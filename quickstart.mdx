@@ -1,0 +1,157 @@
+---
+title: Getting Started with B2Bware
+description: Quickly set up your B2Bware account, connect to your ERP, and launch your first self-service portal.
+---
+
+## Prerequisites
+
+<Callout kind="info" title="Before You Begin">
+Ensure you have:
+- Access to your ERP system (e.g., SAP, Dynamics 365, or NetSuite)
+- Admin privileges for your domain
+- A test buyer account ready for validation
+</Callout>
+
+B2Bware streamlines your B2B commerce by integrating directly with your ERP for real-time data sync. Follow these steps to get up and running in minutes.
+
+## Step 1: Create Your B2Bware Account
+
+Sign up for a free trial to access the dashboard.
+
+<Steps>
+  <Step title="Visit the Dashboard" icon="monitor">
+    Navigate to `https://dashboard.b2bware.com` and click **Sign Up**.
+  </Step>
+  <Step title="Enter Details" icon="user">
+    Provide your company email, name, and create a strong password.
+  </Step>
+  <Step title="Verify Email" icon="mail">
+    Check your inbox and click the verification link.
+  </Step>
+  <Step title="Complete Onboarding" icon="check-circle">
+    Answer setup questions about your ERP and business size.
+  </Step>
+</Steps>
+
+## Step 2: Initial Platform Configuration
+
+Configure basic settings like your company branding and domain.
+
+<Tabs>
+  <Tab title="Branding" icon="palette">
+    Upload your logo and set the primary color to `#30CF93`.
+
+    ```
+    yaml
+    branding:
+      logo: "https://yourcompany.com/logo.png"
+      primaryColor: "#30CF93"
+      domain: "portal.yourcompany.com"
+    ```
+  </Tab>
+  <Tab title="User Roles" icon="users">
+    Define roles such as **Buyer**, **Approver**, and **Admin**.
+
+    <Callout kind="tip">
+      Start with default roles and customize later.
+    </Callout>
+  </Tab>
+</Tabs>
+
+## Step 3: Connect to Your ERP
+
+B2Bware supports popular ERPs. Use the integration wizard for a guided setup.
+
+<CodeGroup tabs="SAP,Dynamics 365,NetSuite">
+  ```bash
+  # SAP Connection - Generate API credentials in your ERP
+  curl -X POST https://api.b2bware.com/v1/erp/connect \
+    -H "Authorization: Bearer YOUR_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "erp": "sap",
+      "host": "your-sap-instance.com",
+      "clientId": "YOUR_CLIENT_ID",
+      "clientSecret": "YOUR_CLIENT_SECRET"
+    }'
+  ```
+  ```bash
+  # Dynamics 365
+  curl -X POST https://api.b2bware.com/v1/erp/connect \
+    -H "Authorization: Bearer YOUR_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "erp": "dynamics365",
+      "tenantId": "your-tenant-id",
+      "clientId": "YOUR_CLIENT_ID",
+      "clientSecret": "YOUR_CLIENT_SECRET"
+    }'
+  ```
+  ```bash
+  # NetSuite
+  curl -X POST https://api.b2bware.com/v1/erp/connect \
+    -H "Authorization: Bearer YOUR_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "erp": "netsuite",
+      "accountId": "1234567",
+      "consumerKey": "YOUR_CONSUMER_KEY",
+      "consumerSecret": "YOUR_CONSUMER_SECRET"
+    }'
+  ```
+</CodeGroup>
+
+<ParamField path="erp" param-type="string" required="true">
+  ERP system identifier (`sap`, `dynamics365`, `netsuite`).
+</ParamField>
+
+<ParamField header="Authorization" param-type="string" required="true">
+  Your B2Bware API key.
+</ParamField>
+
+## Step 4: Place Your First Test Order
+
+Launch the portal and test the end-to-end flow.
+
+<Steps>
+  <Step title="Access Portal" icon="globe">
+    Visit `https://portal.yourcompany.com` (replace with your configured domain).
+  </Step>
+  <Step title="Login as Test Buyer" icon="log-in">
+    Use the test credentials created during onboarding.
+  </Step>
+  <Step title="Browse Catalog" icon="package">
+    Search for a product and add to cart.
+  </Step>
+  <Step title="Submit Order" icon="shopping-cart">
+    Review tiered pricing, apply contract discounts, and place the order.
+    
+    Verify sync in your ERP within seconds.
+  </Step>
+</Steps>
+
+<ResponseField name="orderId" field-type="string" required="true">
+  Unique order identifier.
+</ResponseField>
+
+<ResponseField name="status" field-type="string">
+  Current status (`pending`, `confirmed`, `shipped`).
+</ResponseField>
+
+## Next Steps
+
+<Columns cols={3}>
+  <Card title="Authentication" icon="lock" href="/authentication">
+    Secure buyer logins and SSO setup.
+  </Card>
+  <Card title="Configuration" icon="settings" href="/configuration">
+    Advanced portal customization.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference">
+    Integrate programmatically.
+  </Card>
+</Columns>
+
+<Callout kind="success">
+  Congratulations! Your B2B portal is live. Monitor the first real orders and explore [advanced features](/concepts).
+</Callout>

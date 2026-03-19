@@ -1,0 +1,107 @@
+---
+title: Introduction to B2Bware
+description: Discover the B2Bware platform, a complete B2B commerce solution for manufacturers, distributors, and wholesalers, featuring ERP integration and self-service portals.
+---
+
+<Callout kind="info" title="Starter Kit Template">
+  This documentation was generated as a starter kit template based on your brand. Please review and customize the content to accurately reflect your product's features, APIs, and capabilities.
+</Callout>
+
+## Overview
+
+B2Bware provides a complete B2B commerce platform designed for manufacturers, distributors, and wholesalers. You get smart ordering with ERP-deep accuracy and future-proof features like tiered pricing, contract catalogs, unified product data, and real-time order and inventory sync. The platform runs directly on your ERP system, enabling seamless self-service experiences for buyers while eliminating manual processes.
+
+## Key Features
+
+B2Bware stands out with powerful capabilities tailored for B2B needs.
+
+<Columns cols={3}>
+  <Card title="Tiered Pricing & Contract Catalogs" icon="dollar-sign" href="#tiered-pricing">
+    Set dynamic pricing based on customer tiers, contracts, and volume. Manage complex pricing structures effortlessly.
+  </Card>
+  <Card title="Unified Product Data" icon="database" href="#unified-data">
+    Synchronize product information across all sales channels for consistent, accurate catalogs.
+  </Card>
+  <Card title="Real-Time Sync" icon="zap" href="#real-time-sync">
+    Achieve instant order and inventory updates between your ERP and buyer portals.
+  </Card>
+</Columns>
+
+## Benefits for B2B Businesses
+
+Choose B2Bware to streamline operations and boost efficiency:
+
+- Reduce manual data entry and errors with deep ERP integration
+- Empower buyers with self-service portals for faster ordering
+- Scale effortlessly with real-time inventory visibility
+- Maintain competitive edge through flexible pricing models
+
+<Callout kind="success">
+  Businesses using B2Bware report up to 50% reduction in order processing time.
+</Callout>
+
+## Quick Start Guide
+
+Get up and running in minutes.
+
+<Steps>
+  <Step title="Sign Up" icon="user-plus">
+    Create your account at `https://dashboard.example.com` and verify your email.
+  </Step>
+  <Step title="Connect ERP" icon="settings">
+    Link your ERP system using our guided connector.
+  </Step>
+  <Step title="Configure Portal" icon="edit-3">
+    Customize pricing tiers and product catalogs via the dashboard.
+  </Step>
+  <Step title="Launch & Test" icon="rocket">
+    Publish your portal and test an order flow.
+
+    <CodeGroup tabs="JavaScript,cURL">
+      ```javascript
+      const response = await fetch('https://api.example.com/v1/orders', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer YOUR_API_KEY' },
+        body: JSON.stringify({
+          customerId: 'cust_123',
+          items: [{ productId: 'prod_456', quantity: 10 }]
+        })
+      });
+      const order = await response.json();
+      console.log(order);
+      ```
+      ```bash
+      curl -X POST https://api.example.com/v1/orders \
+        -H "Authorization: Bearer YOUR_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "customerId": "cust_123",
+          "items": [{"productId": "prod_456", "quantity": 10}]
+        }'
+      ```
+    </CodeGroup>
+  </Step>
+</Steps>
+
+## Next Steps
+
+Dive deeper into B2Bware.
+
+<Columns cols={2}>
+  <Card title="Quickstart" icon="play" href="/quickstart">
+    Complete setup in under 10 minutes.
+  </Card>
+  <Card title="Authentication" icon="shield" href="/authentication">
+    Secure your API and portal access.
+  </Card>
+  <Card title="Configuration" icon="settings" href="/configuration">
+    Advanced portal customization.
+  </Card>
+  <Card title="Changelog" icon="git-branch" href="/changelog">
+    Stay updated with latest releases.
+  </Card>
+</Columns>
+
+<Callout kind="tip">
+  Start with the Quickstart guide to see B2Bware in action.
+</Callout>
