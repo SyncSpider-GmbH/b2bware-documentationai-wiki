@@ -1,0 +1,58 @@
+---
+title: ERP Sync Setup
+description: Guide to setting up bidirectional sync between your ERP system and DataHub.
+---
+
+## Overview
+
+DataHub's API is designed for seamless ERP integration. This guide covers common patterns for synchronizing products, stock, prices, orders, and customers between your ERP and DataHub.
+
+## Sync Strategy
+
+<Tabs>
+  <Tab title="ERP → DataHub" icon="arrow-right">
+    Push product catalog, stock levels, and pricing from your ERP to DataHub.
+
+    **Recommended approach:**
+    - Use `PUT /products/upsert/single` for product sync (idempotent by SKU)
+    - Use `POST /stock/upsert/bulk` for batch stock updates
+    - Use `POST /prices/upsert/bulk` for batch price updates
+    - Use the `createOrUpdate` action to handle both new and existing products
+  </Tab>
+  <Tab title="DataHub → ERP" icon="arrow-left">
+    Pull orders and customer data from DataHub into your ERP.
+
+    **Recommended approach:**
+    - Poll `GET /orders` with date filters to get new orders
+    - Use `include=customer,orderLineItems,shippingAddress,billingAddress` for complete order data
+    - Track the last sync timestamp to avoid duplicate processing
+  </Tab>
+</Tabs>
+
+## Product Upsert Example
+
+<Request tabs="cURL">
+```bash
+curl -s -X PUT \
+  'https://your-domain.com/api/v1/apps/product-hub/products/upsert/single' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "action": "createOrUpdate",
+    "sku": "ERP-SKU-001",
+    "name": "Product from ERP",
+    "status": "public",
+    "prices": {"price": 49.99},
+    "stock": [{"warehouse_id": 1, "stock_quantity": 100}]
+  }'
+```
+</Request>
+
+## Best Practices
+
+- Use `external_id` on orders to store your ERP reference number
+- Sync stock and prices frequently (every 5-15 minutes for real-time accuracy)
+- Sync product catalog less frequently (hourly or daily)
+- Always use upsert endpoints to avoid duplicate creation errors
+- Implement error handling and retry logic for failed syncs

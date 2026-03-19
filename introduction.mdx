@@ -1,107 +1,82 @@
 ---
-title: Introduction to B2Bware
-description: Discover the B2Bware platform, a complete B2B commerce solution for manufacturers, distributors, and wholesalers, featuring ERP integration and self-service portals.
+title: Introduction
+description: Welcome to the B2Bware DataHub API documentation. Learn how to integrate with our commerce platform.
 ---
 
-<Callout kind="info" title="Starter Kit Template">
-  This documentation was generated as a starter kit template based on your brand. Please review and customize the content to accurately reflect your product's features, APIs, and capabilities.
+## Welcome to B2Bware DataHub
+
+B2Bware DataHub is a modular commerce API platform that organizes its functionality into specialized **Hubs**. Each hub manages a distinct domain — products, orders, customers, taxes, notifications, and more — while sharing consistent patterns for authentication, filtering, pagination, and response formats.
+
+<Callout kind="info" title="Getting Started?">
+Head to the [Quickstart](/quickstart) guide to make your first API call in under 5 minutes.
 </Callout>
 
-## Overview
+## Architecture
 
-B2Bware provides a complete B2B commerce platform designed for manufacturers, distributors, and wholesalers. You get smart ordering with ERP-deep accuracy and future-proof features like tiered pricing, contract catalogs, unified product data, and real-time order and inventory sync. The platform runs directly on your ERP system, enabling seamless self-service experiences for buyers while eliminating manual processes.
+DataHub follows a hub-based architecture where each hub operates as an independent API module:
 
-## Key Features
+```
+https://{domain}/api/v1/apps/{hub-slug}/
+```
 
-B2Bware stands out with powerful capabilities tailored for B2B needs.
+All hubs share:
+- **Bearer token authentication** — a single token works across all hubs
+- **Consistent filter system** — MongoDB-compatible operators via CommonFilterRepository
+- **Include system** — eager loading of related resources with dot notation
+- **Paginated responses** — standardized pagination on all list endpoints
+
+## Available Hubs
 
 <Columns cols={3}>
-  <Card title="Tiered Pricing & Contract Catalogs" icon="dollar-sign" href="#tiered-pricing">
-    Set dynamic pricing based on customer tiers, contracts, and volume. Manage complex pricing structures effortlessly.
+  <Card title="ProductHub" icon="box" href="/hubs/product-hub">
+    Products, categories, pricing, stock, media, variations, and vendors.
   </Card>
-  <Card title="Unified Product Data" icon="database" href="#unified-data">
-    Synchronize product information across all sales channels for consistent, accurate catalogs.
+  <Card title="OrderHub" icon="shopping-cart" href="/hubs/order-hub">
+    Orders, carts, checkout, quotes, and payment methods.
   </Card>
-  <Card title="Real-Time Sync" icon="zap" href="#real-time-sync">
-    Achieve instant order and inventory updates between your ERP and buyer portals.
+  <Card title="CustomerHub" icon="users" href="/hubs/customer-hub">
+    Customers, companies, addresses, roles, and groups.
+  </Card>
+  <Card title="AttributesHub" icon="sliders" href="/hubs/attributes-hub">
+    Dynamic attributes, types, values, and groups.
+  </Card>
+  <Card title="MediaHub" icon="image" href="/hubs/media-hub">
+    Media management with CDN proxy.
+  </Card>
+  <Card title="NotificationHub" icon="bell" href="/hubs/notification-hub">
+    Multi-channel notifications and analytics.
+  </Card>
+  <Card title="TaxHub" icon="percent" href="/hubs/tax-hub">
+    Tax calculation, rules, and jurisdictions.
+  </Card>
+  <Card title="SettingsHub" icon="settings" href="/hubs/settings-hub">
+    Platform configuration and reference data.
+  </Card>
+  <Card title="LicenseHub" icon="key" href="/hubs/license-hub">
+    License key lifecycle management.
   </Card>
 </Columns>
 
-## Benefits for B2B Businesses
-
-Choose B2Bware to streamline operations and boost efficiency:
-
-- Reduce manual data entry and errors with deep ERP integration
-- Empower buyers with self-service portals for faster ordering
-- Scale effortlessly with real-time inventory visibility
-- Maintain competitive edge through flexible pricing models
-
-<Callout kind="success">
-  Businesses using B2Bware report up to 50% reduction in order processing time.
-</Callout>
-
-## Quick Start Guide
-
-Get up and running in minutes.
+## Key Concepts
 
 <Steps>
-  <Step title="Sign Up" icon="user-plus">
-    Create your account at `https://dashboard.example.com` and verify your email.
+  <Step title="Authenticate" icon="lock">
+    All API requests require a Bearer token. See [Authentication](/authentication).
   </Step>
-  <Step title="Connect ERP" icon="settings">
-    Link your ERP system using our guided connector.
+  <Step title="Explore Hubs" icon="grid">
+    Each hub has its own base URL and set of endpoints. See [Hub Overview](/hubs/overview).
   </Step>
-  <Step title="Configure Portal" icon="edit-3">
-    Customize pricing tiers and product catalogs via the dashboard.
+  <Step title="Filter & Include" icon="filter">
+    Use the powerful [filter system](/core-concepts/filtering) and [include system](/core-concepts/includes) to get exactly the data you need.
   </Step>
-  <Step title="Launch & Test" icon="rocket">
-    Publish your portal and test an order flow.
-
-    <CodeGroup tabs="JavaScript,cURL">
-      ```javascript
-      const response = await fetch('https://api.example.com/v1/orders', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer YOUR_API_KEY' },
-        body: JSON.stringify({
-          customerId: 'cust_123',
-          items: [{ productId: 'prod_456', quantity: 10 }]
-        })
-      });
-      const order = await response.json();
-      console.log(order);
-      ```
-      ```bash
-      curl -X POST https://api.example.com/v1/orders \
-        -H "Authorization: Bearer YOUR_API_KEY" \
-        -H "Content-Type: application/json" \
-        -d '{
-          "customerId": "cust_123",
-          "items": [{"productId": "prod_456", "quantity": 10}]
-        }'
-      ```
-    </CodeGroup>
+  <Step title="Handle Responses" icon="check-circle">
+    All responses follow consistent formats. See [Common Patterns](/core-concepts/common-patterns) and [Error Handling](/core-concepts/error-handling).
   </Step>
 </Steps>
 
 ## Next Steps
 
-Dive deeper into B2Bware.
-
-<Columns cols={2}>
-  <Card title="Quickstart" icon="play" href="/quickstart">
-    Complete setup in under 10 minutes.
-  </Card>
-  <Card title="Authentication" icon="shield" href="/authentication">
-    Secure your API and portal access.
-  </Card>
-  <Card title="Configuration" icon="settings" href="/configuration">
-    Advanced portal customization.
-  </Card>
-  <Card title="Changelog" icon="git-branch" href="/changelog">
-    Stay updated with latest releases.
-  </Card>
-</Columns>
-
-<Callout kind="tip">
-  Start with the Quickstart guide to see B2Bware in action.
-</Callout>
+- [Quickstart](/quickstart) — Make your first API call
+- [Authentication](/authentication) — Set up API access
+- [Common Patterns](/core-concepts/common-patterns) — Learn the shared API patterns
+- [Hub Overview](/hubs/overview) — Explore all 9 hubs

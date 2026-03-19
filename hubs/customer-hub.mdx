@@ -1,0 +1,356 @@
+---
+title: CustomerHub
+description: Manage customers, companies, addresses, roles, customer groups, and notes with custom attributes and settings support.
+---
+
+## Overview
+
+The CustomerHub manages customers, companies, addresses, roles, customer groups, and notes. It integrates with AttributesHub for custom customer and company attributes and provides a settings system via HubSettingsTrait.
+
+**Base URL:** `api/v1/apps/customer-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Customers" icon="users">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/customers` | List all customers (paginated, filterable) |
+| POST | `/customers` | Create a new customer |
+| GET | `/customers/{id}` | Get a single customer |
+| PUT | `/customers/{id}` | Update a customer |
+| DELETE | `/customers/{id}` | Delete a customer |
+| PUT | `/customers/bulk/update` | Bulk update customers |
+
+  </Tab>
+  <Tab title="Companies" icon="building">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/companies` | List all companies (paginated, filterable) |
+| POST | `/companies` | Create a new company |
+| GET | `/companies/{id}` | Get a single company |
+| PUT | `/companies/{id}` | Update a company |
+| DELETE | `/companies/{id}` | Delete a company |
+
+  </Tab>
+  <Tab title="Shipping Addresses" icon="truck">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/shippingAddresses` | List all shipping addresses |
+| POST | `/shippingAddresses` | Create a shipping address |
+| GET | `/shippingAddresses/{id}` | Get a single shipping address |
+| PUT | `/shippingAddresses/{id}` | Update a shipping address |
+| DELETE | `/shippingAddresses/{id}` | Delete a shipping address |
+
+  </Tab>
+  <Tab title="Billing Addresses" icon="credit-card">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/billingAddresses` | List all billing addresses |
+| POST | `/billingAddresses` | Create a billing address |
+| GET | `/billingAddresses/{id}` | Get a single billing address |
+| PUT | `/billingAddresses/{id}` | Update a billing address |
+| DELETE | `/billingAddresses/{id}` | Delete a billing address |
+
+  </Tab>
+  <Tab title="Roles" icon="shield">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/roles` | List all roles |
+| POST | `/roles` | Create a new role |
+| GET | `/roles/{id}` | Get a single role |
+| PUT | `/roles/{id}` | Update a role |
+| DELETE | `/roles/{id}` | Delete a role |
+
+  </Tab>
+  <Tab title="Customer Groups" icon="users">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/customerGroups` | List all customer groups |
+| POST | `/customerGroups` | Create a customer group |
+| GET | `/customerGroups/{id}` | Get a single customer group |
+| PUT | `/customerGroups/{id}` | Update a customer group |
+| DELETE | `/customerGroups/{id}` | Delete a customer group |
+
+  </Tab>
+  <Tab title="Notes" icon="file-text">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/notes` | List all notes |
+| POST | `/notes` | Create a new note |
+| GET | `/notes/{id}` | Get a single note |
+| PUT | `/notes/{id}` | Update a note |
+| DELETE | `/notes/{id}` | Delete a note |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List all settings groups |
+| GET | `/settings` | Get all settings |
+| POST | `/settings` | Update settings |
+| POST | `/settings/reset` | Reset all settings to defaults |
+| GET | `/settings/{group}` | Get settings for a specific group |
+| POST | `/settings/{group}` | Update settings for a specific group |
+| POST | `/settings/{group}/reset` | Reset a specific group to defaults |
+
+  </Tab>
+</Tabs>
+
+## Filters
+
+For filter syntax and operators, see [Filtering](/core-concepts/filtering).
+
+<Expandable title="Customer Filters" default-open="true">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `customer_number` | text | |
+| `first_name` | text | |
+| `last_name` | text | |
+| `email` | text | |
+| `phone` | text | |
+| `company_id` | number | |
+| `company.name` | text | Relation filter (company) |
+| `company.company_number` | text | Relation filter (company) |
+| `company.email` | text | Relation filter (company) |
+| `role_id` | number | |
+| `customer_group_id` | number | |
+| `_created_at` | date | |
+| `_updated_at` | date | |
+| `search` | callback | Searches: first_name, last_name, email, customer_number, id, company_id |
+
+</Expandable>
+
+<Expandable title="Company Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `company_number` | text | |
+| `name` | text | |
+| `email` | text | |
+| `vat_number` | text | |
+| `_created_at` | date | |
+| `_updated_at` | date | |
+
+</Expandable>
+
+<Expandable title="Note Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `model` | text | e.g., `Companies`, `Customers` |
+| `model_id` | text | |
+| `_created_at` | date | |
+| `_updated_at` | date | |
+
+</Expandable>
+
+<Expandable title="Role Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `code` | text | |
+| `name` | text | |
+| `type` | text | |
+| `_created_at` | date | |
+| `_updated_at` | date | |
+
+</Expandable>
+
+<Expandable title="Shipping/Billing Address Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `name` | text | |
+| `address_line_1` | text | |
+| `address_line_2` | text | |
+| `city` | text | |
+| `zip` | text | |
+| `state` | text | |
+| `type` | text | |
+| `country` | text | |
+| `customer_id` | number | |
+| `company_id` | number | |
+| `_created_at` | date | |
+| `_updated_at` | date | |
+
+</Expandable>
+
+<Expandable title="Customer Group Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `name` | text | |
+| `type` | text | |
+| `description` | text | |
+| `_created_at` | date | |
+| `_updated_at` | date | |
+
+</Expandable>
+
+## Includes
+
+For include syntax, see [Includes & Relations](/core-concepts/includes).
+
+| Resource | Available Includes |
+|----------|--------------------|
+| **Customers** | `company`, `company.companyGroup`, `company.shippingAddresses`, `company.billingAddresses`, `role`, `shippingAddresses`, `billingAddresses`, `customerGroup`, `defaultCustomerShippingAddress`, `defaultCompanyShippingAddress`, `defaultCustomerBillingAddress`, `defaultCompanyBillingAddress`, `attributeValues`, `attributeValues.value`, `attributeValues.value.translation`, `attributeValues.value.attribute.translation`, `attributeValues.value.attribute.group` |
+| **Companies** | `customers`, `customers.shippingAddresses`, `customers.billingAddresses`, `shippingAddresses`, `billingAddresses`, `attributeValues`, `attributeValues.value`, `attributeValues.value.translation`, `attributeValues.value.attribute.translation`, `attributeValues.value.attribute.group` |
+| **Shipping Addresses** | `customer` |
+| **Billing Addresses** | `customer` |
+
+## Validation Rules
+
+<Expandable title="Create Customer — POST /customers" default-open="true">
+
+| Field | Rules |
+|-------|-------|
+| `customer_number` | sometimes, string, unique (MongoDB) |
+| `email` | sometimes, email, unique (MongoDB) |
+| `phone` | string, nullable, unique (MongoDB) |
+| `first_name` | string |
+| `last_name` | string |
+| `salutation` | in: `Mr.`, `Ms.`, `Other` |
+| `status` | in: `active`, `inactive`, `pending` |
+| `password` | string |
+| `company_id` | numeric, nullable |
+| `role_id` | numeric, nullable |
+| `customer_group_id` | numeric, nullable |
+| `attributes` | array, nullable |
+
+</Expandable>
+
+<Expandable title="Create Company — POST /companies" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `name` | required, string |
+| `company_number` | string, unique (MongoDB) |
+| `email` | email, unique (MongoDB) |
+| `website` | string, nullable |
+| `phone` | string, nullable |
+| `address_line_1` | string |
+| `city` | string |
+| `zip` | string |
+| `country` | string, ValidCountry rule |
+| `vat_number` | string, nullable |
+| `registration_number` | string, nullable |
+| `attributes` | array, nullable |
+
+</Expandable>
+
+<Expandable title="Create Note — POST /notes" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `model` | required, string, in: `Companies`, `Customers` |
+| `model_id` | required, string |
+| `note` | required, string |
+
+</Expandable>
+
+## Examples
+
+<Steps>
+  <Step title="Search customers with includes">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/customer-hub/customers?filter[search]=john&include=company,role,customerGroup&per_page=20&sort=-_created_at' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Filter customers by company name">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/customer-hub/customers?filter[company.name]=[{"condition":"LIKE","value":"%Acme%"}]&include=company,shippingAddresses,billingAddresses' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Create a customer with attributes">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/customer-hub/customers' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@example.com",
+    "phone": "+1234567890",
+    "salutation": "Mr.",
+    "status": "active",
+    "password": "securePassword123",
+    "company_id": 1,
+    "role_id": 2,
+    "customer_group_id": 1,
+    "attributes": [
+      {"attribute_value_id": 10},
+      {"attribute_value_id": 25}
+    ]
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="Filter companies with VAT number">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/customer-hub/companies?filter[vat_number]=[{"condition":"NOT EMPTY"}]&include=customers,shippingAddresses,billingAddresses&sort=name' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Filter customers by date range">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/customer-hub/customers?filter[_created_at]=[{"condition":">=","value":"2024-01-01"},{"condition":"<=","value":"2024-06-30","operator":"AND"}]&per_page=50&sort=-_created_at' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+</Steps>
+
+## Related
+
+<Columns cols={2}>
+  <Card title="ProductHub" icon="box" href="/hubs/product-hub">
+    Products use customer groups for pricing tiers and customer-specific catalogs.
+  </Card>
+  <Card title="OrderHub" icon="shopping-cart" href="/hubs/order-hub">
+    Orders reference customers and companies for billing and shipping information.
+  </Card>
+  <Card title="AttributesHub" icon="sliders" href="/hubs/attributes-hub">
+    Custom customer and company attributes are managed through the attributable system.
+  </Card>
+</Columns>

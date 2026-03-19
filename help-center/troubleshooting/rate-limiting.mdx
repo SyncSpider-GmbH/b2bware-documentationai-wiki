@@ -1,0 +1,25 @@
+---
+title: Rate Limiting
+description: Understanding and handling API rate limits in DataHub.
+---
+
+## Rate Limit Behavior
+
+DataHub may limit the number of API requests per time period to ensure platform stability. When you exceed the rate limit, you'll receive a `429 Too Many Requests` response.
+
+## Handling Rate Limits
+
+Implement exponential backoff in your integration:
+
+1. When you receive a 429 response, wait before retrying
+2. Double the wait time with each consecutive 429
+3. Start with a 1-second delay, then 2s, 4s, 8s, etc.
+4. Cap the maximum wait time at 60 seconds
+
+## Best Practices
+
+- **Use bulk endpoints** where available to reduce total request count
+- **Cache responses** that don't change frequently (categories, attributes, settings)
+- **Use the upsert endpoint** (`PUT /products/upsert/single`) instead of separate GET + POST/PUT calls
+- **Paginate efficiently** — request only the data you need with appropriate `per_page` values
+- **Avoid polling** — don't repeatedly call endpoints to check for changes; use reasonable intervals

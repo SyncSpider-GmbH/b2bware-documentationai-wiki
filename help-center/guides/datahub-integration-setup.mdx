@@ -1,0 +1,51 @@
+---
+title: SyncSpider Integration
+description: Step-by-step guide to connecting SyncSpider with your B2Bware DataHub instance.
+---
+
+## Overview
+
+SyncSpider is a popular integration platform that connects DataHub with e-commerce platforms, ERPs, and marketplaces. This guide walks you through the setup process.
+
+## Prerequisites
+
+- A B2Bware DataHub instance
+- A SyncSpider account
+- A DataHub API token
+
+## Setup Steps
+
+<Steps>
+  <Step title="Generate your API token" icon="key">
+    Log in to your DataHub admin panel and generate an API token. Copy it securely — you'll need it in the next step.
+  </Step>
+  <Step title="Configure SyncSpider connection" icon="plug">
+    In SyncSpider, add B2Bware DataHub as a data source. Enter your DataHub domain and API token.
+  </Step>
+  <Step title="Map your data fields" icon="git-branch">
+    Map SyncSpider fields to DataHub hub endpoints. Common mappings:
+    - Products → `api/v1/apps/product-hub/products`
+    - Orders → `api/v1/apps/order-hub/orders`
+    - Customers → `api/v1/apps/customer-hub/customers`
+  </Step>
+  <Step title="Configure sync schedule" icon="clock">
+    Set up your sync frequency (real-time, hourly, daily) based on your data change patterns.
+  </Step>
+  <Step title="Test the connection" icon="check-circle">
+    Run a test sync with a small dataset to verify the connection and field mappings are correct.
+  </Step>
+</Steps>
+
+## Recommended Endpoints for Sync
+
+| Data Type | Endpoint | Method | Notes |
+|-----------|----------|--------|-------|
+| Products | `/products/upsert/single` | PUT | Idempotent by SKU |
+| Stock | `/stock/upsert/bulk` | POST | Batch stock updates |
+| Prices | `/prices/upsert/bulk` | POST | Batch price updates |
+| Orders | `/orders` | GET | Pull orders for ERP |
+| Customers | `/customers` | GET/POST | Bi-directional sync |
+
+<Callout kind="tip">
+Use the **upsert** endpoints for product sync — they handle both creation and updates automatically based on SKU.
+</Callout>

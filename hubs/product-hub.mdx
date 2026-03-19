@@ -1,0 +1,729 @@
+---
+title: ProductHub
+description: The most feature-rich hub managing products, categories, pricing, stock, media, variations, vendors, and translations.
+---
+
+## Overview
+
+ProductHub is the most complex hub in the DataHub platform. It manages products with complex pricing (regular, special, tier, group, cost), multi-warehouse stock, configurable/variation products, category trees with anchor categories, media management, cross-sells/up-sells, vendor relationships, AI-generated descriptions, translations, and deep attribute filtering.
+
+**Base URL:** `api/v1/apps/product-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Products" icon="box">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/products` | List all products (paginated, 26 filters, 42+ includes) |
+| POST | `/products` | Create a new product |
+| GET | `/products/{id}` | Get product details |
+| PUT | `/products/{id}` | Update a product |
+| DELETE | `/products/{id}` | Delete a product |
+| PUT | `/products/upsert/single` | Create or update a product by SKU (idempotent) |
+| PUT | `/products/bulk/update` | Bulk update multiple products |
+| DELETE | `/products/bulk/delete` | Bulk delete multiple products |
+| PUT | `/products/{id}/createVariations` | Generate child variation products from attributes |
+| PUT | `/products/{id}/attachVariationsAttributes` | Attach variation attributes to a configurable product |
+| DELETE | `/products/{parentId}/child-products` | Remove child products from a parent |
+| PUT | `/products/{id}/generateAIDescription` | Generate AI-powered product description |
+
+  </Tab>
+  <Tab title="Categories" icon="folder">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/categories` | List all categories (tree-structured) |
+| POST | `/categories` | Create a category |
+| GET | `/categories/{id}` | Get category details |
+| PUT | `/categories/{id}` | Update a category |
+| DELETE | `/categories/{id}` | Delete a category |
+| GET | `/categories/by-path/find` | Find category by URL path/slug |
+| POST | `/categories/update/depths` | Recalculate category tree depths |
+
+  </Tab>
+  <Tab title="Stock" icon="package">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/stock` | List all stock records |
+| POST | `/stock` | Create a stock record |
+| GET | `/stock/{id}` | Get stock details |
+| PUT | `/stock/{id}` | Update a stock record |
+| DELETE | `/stock/{id}` | Delete a stock record |
+| POST | `/stock/upsert/bulk` | Bulk upsert stock records |
+
+  </Tab>
+  <Tab title="Prices" icon="dollar-sign">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/prices` | List all price records |
+| POST | `/prices` | Create a price record |
+| GET | `/prices/{id}` | Get price details |
+| PUT | `/prices/{id}` | Update a price record |
+| DELETE | `/prices/{id}` | Delete a price record |
+| POST | `/prices/upsert/bulk` | Bulk upsert price records |
+
+  </Tab>
+  <Tab title="More" icon="more-horizontal">
+
+**Warehouses**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/warehouses` | List all warehouses |
+| POST | `/warehouses` | Create a warehouse |
+| GET | `/warehouses/{id}` | Get warehouse details |
+| PUT | `/warehouses/{id}` | Update a warehouse |
+| DELETE | `/warehouses/{id}` | Delete a warehouse |
+
+**Media**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/media` | List all media |
+| POST | `/media` | Upload media |
+| GET | `/media/{id}` | Get media details |
+| PUT | `/media/{id}` | Update media metadata |
+| DELETE | `/media/{id}` | Delete media |
+
+**Vendors**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/vendors` | List all vendors |
+| POST | `/vendors` | Create a vendor |
+| GET | `/vendors/{id}` | Get vendor details |
+| PUT | `/vendors/{id}` | Update a vendor |
+| DELETE | `/vendors/{id}` | Delete a vendor |
+
+**Translations**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/translations` | List all translations |
+| POST | `/translations` | Create a translation |
+| GET | `/translations/{id}` | Get translation details |
+| PUT | `/translations/{id}` | Update a translation |
+| DELETE | `/translations/{id}` | Delete a translation |
+| PUT | `/translations/upsert/single` | Upsert a single translation |
+| PUT | `/translations/upsert/bulk` | Bulk upsert translations |
+| POST | `/translations/job/run` | Trigger AI translation job |
+| GET | `/translations/job/progress` | Check translation job progress |
+
+**Customer Groups**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/customer/groups` | List customer groups |
+| POST | `/customer/groups` | Create a customer group |
+| GET | `/customer/groups/{id}` | Get group details |
+| PUT | `/customer/groups/{id}` | Update a group |
+| DELETE | `/customer/groups/{id}` | Delete a group |
+
+**Demo Data**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/demoData/deploy` | Deploy demo product catalog |
+
+  </Tab>
+</Tabs>
+
+## Filters
+
+For filter syntax and operators, see [Filtering](/core-concepts/filtering).
+
+<Expandable title="Product Filters (26 Filters)" default-open="true">
+
+**Standard Filters**
+
+| # | Filter Key | Type | Description |
+|---|------------|------|-------------|
+| 1 | `id` | number | Exact product ID or comma-separated list |
+| 2 | `name` | text | Product name (partial match supported) |
+| 3 | `sku` | text | Product SKU (exact or partial match) |
+| 4 | `status` | text | Product status: `draft`, `private`, `public` |
+| 5 | `product_type` | text | Product type: `simple`, `configurable`, `license`, `dt-one` |
+| 6 | `seo_slug` | text | SEO-friendly URL slug |
+| 7 | `_created_at` | date | Creation date (ISO 8601, supports range) |
+| 8 | `_updated_at` | date | Last update date (ISO 8601, supports range) |
+
+**Relation Filters**
+
+| # | Filter Key | Type | Description |
+|---|------------|------|-------------|
+| 9 | `stock.warehouse_id` | number | Filter by warehouse via stock relation |
+| 10 | `stock.stock_quantity` | number | Filter by stock quantity via stock relation |
+| 11 | `defaultStock.stock_quantity` | number | Filter by default warehouse stock quantity |
+| 12 | `price` | number | Filter by regular price (supports range) |
+| 13 | `specialPrice` | number | Filter by special/sale price |
+| 14 | `finalPrice` | number | Filter by computed final price |
+| 15 | `attributeValues.value.attribute_id` | number | Filter by attribute definition ID |
+| 16 | `attributeValues.value.attribute_value` | text | Filter by attribute value text |
+| 17 | `attributeValues.attribute_value_id` | number | Filter by specific attribute value ID |
+| 18 | `categories.category_id` | number | Filter by exact category (no descendants) |
+
+**Special Callback Filters**
+
+| # | Filter Key | Type | Description |
+|---|------------|------|-------------|
+| 19 | `attribute` | JSON array | Advanced attribute filtering via `AttributeFilterRepository` (see below) |
+| 20 | `exclude_child_products` | callback | Set to `1` to exclude child variations |
+| 21 | `exclude_parent_products` | callback | Set to `1` to exclude configurable parents |
+| 22 | `without_stock` | callback | Set to `1` to exclude products with no stock records |
+| 23 | `exclude_child_products_id` | callback | Parent product ID to exclude its children |
+| 24 | `parent_id` | callback | Parent product ID to return only its children |
+| 25 | `search` | callback | Full-text search across name, sku, description, short_description |
+| 26 | `anchor_category_id` | callback | Filter by category and all its descendant categories |
+
+**Attribute Filter Format (Filter #19)**
+
+The `attribute` filter accepts a JSON-encoded array:
+
+```
+filter[attribute]=[{"attribute_id":1,"attribute_value":"Red","condition":"IN","operator":"AND"}]
+```
+
+| Field | Values | Description |
+|-------|--------|-------------|
+| `attribute_id` | number | The attribute definition ID |
+| `attribute_value` | string | Value(s) to match — comma-separated for multi-value |
+| `condition` | `IN`, `NOT_IN`, `EQUALS`, `NOT_EQUALS`, `LIKE`, `GT`, `LT`, `GTE`, `LTE` | Match condition |
+| `operator` | `AND`, `OR` | How to combine with other attribute conditions |
+
+</Expandable>
+
+<Expandable title="Category Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact category ID |
+| `name` | text | Category name |
+| `slug` | text | URL slug |
+| `parent_id` | number | Parent category ID (null for root) |
+| `depth` | number | Tree depth level (0 = root) |
+| `exclude_from_main_menu` | callback | Set to `1` to exclude categories hidden from main menu |
+| `exclude_from_layer_navigation` | callback | Set to `1` to exclude categories hidden from layered navigation |
+
+</Expandable>
+
+<Expandable title="Stock Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact stock record ID |
+| `product_id` | number | Filter by product |
+| `warehouse_id` | number | Filter by warehouse |
+| `stock_quantity` | number | Stock quantity (supports range) |
+| `product.name` | text | Filter via product name (relation filter) |
+| `product.sku` | text | Filter via product SKU (relation filter) |
+| `_created_at` | date | Creation date |
+| `_updated_at` | date | Last update date |
+
+</Expandable>
+
+<Expandable title="Price Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact price record ID |
+| `product_id` | number | Filter by product |
+| `customer_group_id` | number | Filter by customer group |
+| `price_type` | text | Type: `regular`, `special`, `tier`, `group`, `cost` |
+| `price` | number | Price amount (supports range) |
+| `min_quantity` | number | Minimum quantity for tier pricing |
+| `group` | text | Group identifier |
+| `start_date` | date | Price validity start date |
+| `end_date` | date | Price validity end date |
+| `_created_at` | date | Creation date |
+| `_updated_at` | date | Last update date |
+
+</Expandable>
+
+<Expandable title="Vendor Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact vendor ID |
+| `name` | text | Vendor name |
+| `phone` | text | Phone number |
+| `email` | text | Email address |
+| `address` | text | Address |
+| `_created_at` | date | Creation date |
+
+</Expandable>
+
+<Expandable title="Media Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact media ID |
+| `mediable_id` | number | Owner entity ID |
+| `media_type` | text | Type: image, video, document |
+| `media_url` | text | Media URL |
+| `alt_text` | text | Alt text |
+| `is_primary` | boolean | Primary/featured flag |
+| `_created_at` | date | Creation date |
+| `_updated_at` | date | Last update date |
+
+</Expandable>
+
+## Includes
+
+For include syntax, see [Includes & Relations](/core-concepts/includes).
+
+<Expandable title="Product Includes (42+)" default-open="true">
+
+**Stock**
+
+| Include | Description |
+|---------|-------------|
+| `stock` | All stock records across all warehouses |
+| `stock.warehouse` | Warehouse details per stock record |
+| `stockLocations` | Stock by location (shelf, bin, etc.) |
+| `stockLocations.warehouse` | Warehouse for each stock location |
+
+**Pricing**
+
+| Include | Description |
+|---------|-------------|
+| `prices` | All price records (regular, special, tier, group, cost) |
+| `price` | Regular price only |
+| `specialPrice` | Special/sale price only |
+| `finalPrice` | Computed final price (considers special price, date ranges) |
+| `costPrice` | Cost/wholesale price |
+| `tierPrices` | Tier pricing tiers (quantity-based discounts) |
+| `finalTierPrices` | Computed final tier prices |
+| `groupPrices` | Customer group-specific prices |
+
+**Attributes**
+
+| Include | Description |
+|---------|-------------|
+| `attributeValues` | All attribute values assigned to the product |
+| `attributeValues.value` | The attribute value object |
+| `attributeValues.value.translation` | Translated attribute value label |
+| `attributeValues.value.attribute.translation` | Translated attribute name |
+| `attributeValues.value.attribute.group` | Attribute group |
+
+**Media**
+
+| Include | Description |
+|---------|-------------|
+| `media` | All media (images, videos, documents) |
+| `mainMedia` | Primary/featured media item |
+
+**Cross-Sell & Up-Sell**
+
+| Include | Description |
+|---------|-------------|
+| `crossSells` | Cross-sell relationship records |
+| `crossSells.product` | Source product in cross-sell |
+| `crossSells.crossSellProduct` | Cross-sell target product (with nested prices, media, mainMedia) |
+| `upSells` | Up-sell relationship records |
+| `upSells.product` | Source product in up-sell |
+| `upSells.upSellProduct` | Up-sell target product (with nested prices, media, mainMedia) |
+
+**Vendor**
+
+| Include | Description |
+|---------|-------------|
+| `vendorProduct` | Vendor-product relationship |
+| `vendorProduct.vendor` | Vendor details |
+
+**Variations / Configurable Products**
+
+| Include | Description |
+|---------|-------------|
+| `parentProductAttributes` | Attributes defining variations on parent |
+| `parentProductAttributes.product` | Parent product from attribute relation |
+| `parentProductAttributes.attribute` | Attribute used for variation |
+| `childProducts` | Direct child variation records |
+| `childProducts.childProduct` | Full child product (with nested prices, stock, media, attributes) |
+| `parentProducts` | Parent product records (if this is a child) |
+
+**Category & Translation**
+
+| Include | Description |
+|---------|-------------|
+| `categories` | Category assignment records |
+| `categories.category` | Full category objects |
+| `translation` | Product translations |
+
+**License**
+
+| Include | Description |
+|---------|-------------|
+| `licenseConfiguration` | License generation config (for `license` type products) |
+
+**Custom Computed Includes**
+
+| Include | Description |
+|---------|-------------|
+| `attributes` | **(Custom)** Denormalized attribute summary — grouped values with labels |
+| `stockSum` | **(Custom)** Aggregated total stock quantity across all warehouses |
+| `variationAttributes` | **(Custom)** For configurable parents: variation-defining attributes with available values |
+
+</Expandable>
+
+<Expandable title="Category Includes" default-open="false">
+
+| Include | Description |
+|---------|-------------|
+| `translation` | Category translations |
+| `attributeValues` | Attribute values on the category (with nested value/translation/attribute) |
+| `media` | All category media |
+| `mainMedia` | Primary category image |
+| `productsCount` | **(Custom)** Count of products in this category |
+
+</Expandable>
+
+<Expandable title="Stock Includes" default-open="false">
+
+| Include | Description |
+|---------|-------------|
+| `product` | Associated product |
+| `translation` | Stock record translations |
+| `warehouse` | Warehouse details |
+
+</Expandable>
+
+<Expandable title="Price Includes" default-open="false">
+
+| Include | Description |
+|---------|-------------|
+| `product` | Associated product |
+| `translation` | Price record translations |
+| `customerGroup` | Customer group for group pricing |
+
+</Expandable>
+
+<Expandable title="Vendor Includes" default-open="false">
+
+| Include | Description |
+|---------|-------------|
+| `vendorProducts` | Products supplied by this vendor |
+| `translation` | Vendor translations |
+
+</Expandable>
+
+<Expandable title="Media Includes" default-open="false">
+
+| Include | Description |
+|---------|-------------|
+| `translation` | Media translations (alt text, titles per locale) |
+
+</Expandable>
+
+## Validation Rules
+
+<Expandable title="Create / Upsert Product" default-open="true">
+
+**Top-Level Fields**
+
+| Field | Rules | Notes |
+|-------|-------|-------|
+| `action` | nullable, in: createOrUpdate, onlyCreate, onlyUpdate | Upsert endpoint only |
+| `name` | nullable, string, min:2 | Product name |
+| `sku` | nullable, string, max:255, min:2, unique | Must be unique |
+| `product_type` | nullable, in: simple, configurable, license, dt-one | Cannot be changed after creation |
+| `description` | nullable, string | Full HTML description |
+| `short_description` | nullable, string | Brief description |
+| `status` | nullable, in: draft, private, public | Visibility status |
+| `visibility` | nullable, in: search_catalog, search, catalog, hidden | Where the product appears |
+| `tax_class_id` | nullable, numeric | Link to TaxHub tax class |
+| `seo` | sometimes, array | SEO metadata (slug, meta_title, meta_description) |
+
+**Stock (nested array)**
+
+| Field | Rules |
+|-------|-------|
+| `stock` | array |
+| `stock.*.warehouse_id` | numeric |
+| `stock.*.stock_quantity` | numeric |
+
+**Prices (nested object)**
+
+| Field | Rules |
+|-------|-------|
+| `prices` | array |
+| `prices.price` | numeric (regular price) |
+| `prices.cost_price` | numeric (cost/wholesale) |
+| `prices.special_price` | numeric (sale price) |
+| `prices.special_price_start_date` | date, nullable |
+| `prices.special_price_end_date` | date, nullable |
+| `prices.group_prices` | array of {customer_group_id, price} |
+| `prices.tier_prices` | array of {min_quantity, price} |
+
+**Attributes (nested array)**
+
+| Field | Rules |
+|-------|-------|
+| `attributes` | array |
+| `attributes.*.attribute_id` | numeric |
+| `attributes.*.value` | string |
+| `attributes.*.auto_create_value` | boolean |
+| `attributes.*.is_variation_attribute` | boolean |
+
+**Media (nested array)**
+
+| Field | Rules |
+|-------|-------|
+| `media` | array |
+| `media.*.file` | file upload (binary) |
+| `media.*.media_type` | string (image, video, document) |
+| `media.*.media_url` | string (URL for external media) |
+| `media.*.alt_text` | string |
+| `media.*.is_primary` | boolean |
+| `media.*.order` | numeric (display order) |
+
+**Relations**
+
+| Field | Rules |
+|-------|-------|
+| `child_products` | array (product IDs or objects for variations) |
+| `parent_products` | array (parent product IDs) |
+| `categories` | array (category IDs) |
+| `cross_sells` | array (product IDs) |
+| `up_sells` | array (product IDs) |
+
+**License Configuration (for `license` type products)**
+
+| Field | Rules |
+|-------|-------|
+| `license_configuration` | sometimes, array |
+| `license_configuration.template` | string (key template pattern) |
+| `license_configuration.mode` | string (generation mode) |
+| `license_configuration.allowed_chars` | string (character set) |
+| `license_configuration.auto_generate` | boolean |
+| `license_configuration.quantity_per_order` | numeric |
+
+</Expandable>
+
+<Expandable title="Create Stock" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `product_id` | required, numeric |
+| `warehouse_id` | required, numeric |
+| `stock_quantity` | required, numeric |
+| `stock_availability` | required, boolean |
+| `upcoming_qty` | array (future stock arrivals) |
+| `backorders` | in: no_backorders, allow_qty_below_0, allow_pre_orders |
+
+</Expandable>
+
+<Expandable title="Create Price" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `product_id` | required, numeric |
+| `price_type` | required, in: regular, special, tier, group, cost |
+| `price` | required, numeric |
+| `min_quantity` | numeric, nullable, required_if: price_type is tier |
+| `customer_group_id` | numeric, nullable, required_if: price_type is group |
+| `start_date` | date, nullable |
+| `end_date` | date, nullable |
+
+</Expandable>
+
+<Expandable title="Bulk Upsert Stock — POST /stock/upsert/bulk" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `*.id` | sometimes (if updating existing record) |
+| `*.product_id` | required_without: id |
+| `*.warehouse_id` | required_without: id |
+| `*.stock_quantity` | required |
+| `*.stock_availability` | sometimes, boolean |
+| `*.backorders` | sometimes, in: no_backorders, allow_qty_below_0, allow_pre_orders |
+
+</Expandable>
+
+<Expandable title="Bulk Upsert Prices — POST /prices/upsert/bulk" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `*.product_id` | required |
+| `*.price_type` | required, in: regular, special, tier, group, cost |
+| `*.price` | required, numeric |
+| `*.min_quantity` | nullable |
+| `*.customer_group_id` | nullable |
+| `*.start_date` | nullable, date |
+| `*.end_date` | nullable, date |
+
+</Expandable>
+
+## Examples
+
+<Steps>
+  <Step title="List products with prices and stock">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/product-hub/products?include=price,specialPrice,finalPrice,stock,stock.warehouse,mainMedia,categories.category&filter[status]=public&filter[exclude_child_products]=1&page[size]=25&sort=-_created_at' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Full-text search products">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/product-hub/products?filter[search]=wireless+bluetooth+headphones&include=price,finalPrice,mainMedia,stockSum&filter[status]=public&filter[exclude_child_products]=1&page[size]=20' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Filter by anchor category (category + all descendants)">
+    <Request tabs="cURL">
+```bash
+# Category 5 is "Electronics" — anchor_category_id returns products in
+# Electronics AND all subcategories (Phones, Laptops, Accessories, etc.)
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/product-hub/products?filter[anchor_category_id]=5&include=price,finalPrice,mainMedia,categories.category&filter[status]=public&sort=name&page[size]=50' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Filter by attributes (Color=Red/Blue AND Size=Large)">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/product-hub/products?filter[attribute]=[{"attribute_id":1,"attribute_value":"Red,Blue","condition":"IN","operator":"AND"},{"attribute_id":2,"attribute_value":"Large","condition":"IN","operator":"AND"}]&filter[status]=public&include=attributeValues.value.translation,price,mainMedia' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Create a complete product">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/product-hub/products' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "name": "Premium Wireless Headphones",
+    "sku": "AUDIO-WH-PRO-001",
+    "product_type": "simple",
+    "description": "<p>High-fidelity wireless headphones with active noise cancellation.</p>",
+    "short_description": "Premium ANC wireless headphones",
+    "status": "public",
+    "visibility": "search_catalog",
+    "tax_class_id": 1,
+    "stock": [
+      {"warehouse_id": 1, "stock_quantity": 150},
+      {"warehouse_id": 2, "stock_quantity": 75}
+    ],
+    "prices": {
+      "price": 199.99,
+      "cost_price": 89.00,
+      "special_price": 169.99,
+      "special_price_start_date": "2024-11-01",
+      "special_price_end_date": "2024-12-31",
+      "tier_prices": [
+        {"min_quantity": 5, "price": 159.99},
+        {"min_quantity": 10, "price": 149.99},
+        {"min_quantity": 50, "price": 129.99}
+      ],
+      "group_prices": [
+        {"customer_group_id": 1, "price": 179.99},
+        {"customer_group_id": 2, "price": 159.99}
+      ]
+    },
+    "attributes": [
+      {"attribute_id": 1, "value": "Black", "auto_create_value": true},
+      {"attribute_id": 3, "value": "Bluetooth 5.3", "auto_create_value": true}
+    ],
+    "categories": [5, 12, 18],
+    "cross_sells": [45, 67],
+    "up_sells": [89],
+    "seo": {
+      "slug": "premium-wireless-headphones-pro",
+      "meta_title": "Premium Wireless Headphones | Best ANC Headphones 2024",
+      "meta_description": "Shop premium wireless headphones with active noise cancellation."
+    }
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="Upsert product by SKU (ERP sync)">
+    <Request tabs="cURL">
+```bash
+curl -s -X PUT \
+  'https://your-domain.com/api/v1/apps/product-hub/products/upsert/single' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "action": "createOrUpdate",
+    "sku": "AUDIO-WH-PRO-001",
+    "name": "Premium Wireless Headphones (Updated)",
+    "status": "public",
+    "prices": {
+      "price": 209.99,
+      "special_price": 179.99,
+      "special_price_start_date": "2025-01-01",
+      "special_price_end_date": "2025-03-31"
+    },
+    "stock": [{"warehouse_id": 1, "stock_quantity": 200}]
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="Bulk update products">
+    <Request tabs="cURL">
+```bash
+curl -s -X PUT \
+  'https://your-domain.com/api/v1/apps/product-hub/products/bulk/update' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "products": [
+      {"id": 101, "status": "private"},
+      {"id": 102, "status": "private"},
+      {"id": 103, "status": "public", "name": "Updated Product Name"}
+    ]
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="Show only configurable parent products with variations">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/product-hub/products?filter[exclude_child_products]=1&filter[product_type]=configurable&include=childProducts.childProduct.price,childProducts.childProduct.mainMedia,variationAttributes,price,mainMedia&page[size]=20' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+</Steps>
+
+## Related
+
+<Columns cols={3}>
+  <Card title="AttributesHub" icon="sliders" href="/hubs/attributes-hub">
+    Define and manage the attributes used on products.
+  </Card>
+  <Card title="OrderHub" icon="shopping-cart" href="/hubs/order-hub">
+    Orders reference products through line items.
+  </Card>
+  <Card title="TaxHub" icon="percent" href="/hubs/tax-hub">
+    Tax classes assigned to products for tax calculation.
+  </Card>
+</Columns>

@@ -1,0 +1,118 @@
+---
+title: Bulk Operations
+description: Guide to bulk create, update, and delete operations across DataHub hubs.
+---
+
+## Overview
+
+Several DataHub hubs support bulk operations for efficient batch processing. These endpoints allow you to create, update, or delete multiple resources in a single API call.
+
+<Callout kind="info">
+Bulk endpoints are ideal for ERP synchronization, data imports, and batch updates. They reduce the number of API calls and improve throughput.
+</Callout>
+
+## Available Bulk Endpoints
+
+| Hub | Endpoint | Method | Description |
+|-----|----------|--------|-------------|
+| ProductHub | `/products/bulk/update` | PUT | Update multiple products |
+| ProductHub | `/products/bulk/delete` | DELETE | Delete multiple products |
+| ProductHub | `/products/upsert/single` | PUT | Create or update by SKU |
+| ProductHub | `/stock/upsert/bulk` | POST | Bulk upsert stock records |
+| ProductHub | `/prices/upsert/bulk` | POST | Bulk upsert price records |
+| ProductHub | `/translations/upsert/bulk` | PUT | Bulk upsert translations |
+| AttributesHub | `/attributes/insert/bulk` | PUT | Bulk create/update attributes |
+| CustomerHub | `/customers/bulk/update` | PUT | Bulk update customers |
+| NotificationHub | `/notifications/create-bulk` | POST | Bulk create notifications (max 10,000) |
+| NotificationHub | `/notifications/create-bulk-for-roles` | POST | Bulk create for role members |
+| LicenseHub | `/license-keys/generate` | POST | Generate up to 1,000 keys |
+| LicenseHub | `/license-keys/import` | POST | Import keys from CSV |
+
+## Product Bulk Update
+
+<Request tabs="cURL">
+```bash
+curl -s -X PUT \
+  'https://your-domain.com/api/v1/apps/product-hub/products/bulk/update' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "products": [
+      {"id": 101, "status": "private"},
+      {"id": 102, "status": "private"},
+      {"id": 103, "status": "public", "name": "Updated Name"}
+    ]
+  }'
+```
+</Request>
+
+## Product Upsert by SKU
+
+The upsert endpoint is idempotent — it creates the product if the SKU doesn't exist, or updates it if it does. This is ideal for ERP/PIM synchronization.
+
+<Request tabs="cURL">
+```bash
+curl -s -X PUT \
+  'https://your-domain.com/api/v1/apps/product-hub/products/upsert/single' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "action": "createOrUpdate",
+    "sku": "SKU-001",
+    "name": "Product Name",
+    "status": "public",
+    "prices": {"price": 29.99},
+    "stock": [{"warehouse_id": 1, "stock_quantity": 100}]
+  }'
+```
+</Request>
+
+The `action` field controls behavior:
+- `createOrUpdate` — Create if missing, update if exists (default)
+- `onlyCreate` — Only create, fail if exists
+- `onlyUpdate` — Only update, fail if missing
+
+## Stock Bulk Upsert
+
+<Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/product-hub/stock/upsert/bulk' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '[
+    {"product_id": 101, "warehouse_id": 1, "stock_quantity": 50, "stock_availability": true},
+    {"product_id": 102, "warehouse_id": 1, "stock_quantity": 200, "stock_availability": true},
+    {"product_id": 103, "warehouse_id": 2, "stock_quantity": 0, "stock_availability": false}
+  ]'
+```
+</Request>
+
+## Attribute Bulk Create
+
+<Request tabs="cURL">
+```bash
+curl -s -X PUT \
+  'https://your-domain.com/api/v1/apps/attributes-hub/attributes/insert/bulk' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '[
+    {"name": "Weight", "type": "numeric", "group_id": 2, "position": 1},
+    {"name": "Dimensions", "type": "text", "group_id": 2, "position": 2},
+    {"name": "Color", "type": "swatch", "group_id": 1, "position": 3}
+  ]'
+```
+</Request>
+
+## Best Practices
+
+<Callout kind="tip">
+- Keep bulk payloads under 1,000 items per request for optimal performance
+- Use upsert endpoints for sync workflows to avoid duplicate creation errors
+- For very large imports, batch your requests and process them sequentially
+- Monitor validation errors — bulk endpoints return per-item error details
+</Callout>

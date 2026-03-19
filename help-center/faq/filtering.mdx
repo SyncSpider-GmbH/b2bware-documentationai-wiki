@@ -1,0 +1,48 @@
+---
+title: Filtering FAQ
+description: Common questions about the DataHub filter system.
+---
+
+## How do filters work?
+
+DataHub uses a JSON-based filter system. Filters are passed as query parameters:
+
+```
+?filter[field_name]=[{"condition":"operator","value":"value"}]
+```
+
+See [Filtering](/core-concepts/filtering) for the full guide.
+
+## What operators are available?
+
+The supported operators are: `=`, `!=`, `>`, `<`, `>=`, `<=`, `LIKE`, `IN`, `NOT IN`, `EMPTY`, `NOT EMPTY`.
+
+## Can I filter on related entities?
+
+Yes, use dot notation for relation filters:
+
+```
+?filter[company.name]=[{"condition":"LIKE","value":"%Acme%"}]
+```
+
+## How do I combine multiple conditions?
+
+Use the `operator` key in the condition object:
+
+```
+?filter[price]=[{"condition":">=","value":100},{"condition":"<=","value":500,"operator":"AND"}]
+```
+
+## What is the `search` filter?
+
+Some hubs provide a `search` callback filter that queries across multiple fields simultaneously:
+
+```
+?filter[search]=search+term
+```
+
+This uses simple key-value syntax (not the JSON array format). Check each hub's documentation for which fields the search filter covers.
+
+## How does the ProductHub attribute filter work?
+
+ProductHub has a special `attribute` filter with its own format. See [ProductHub Filters](/hubs/product-hub#filters) for details.

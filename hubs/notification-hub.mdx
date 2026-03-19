@@ -1,0 +1,397 @@
+---
+title: NotificationHub
+description: Multi-channel notification system with 120+ endpoints covering email, SMS, push, Slack, broadcast, and database channels.
+---
+
+## Overview
+
+The NotificationHub is the most feature-rich hub with 120+ endpoints. It provides complete notification lifecycle management across multiple channels (email, SMS, push, Slack, broadcast, database), notification types with templates, user preferences, delivery attempt tracking, and a comprehensive analytics dashboard.
+
+**Base URL:** `api/v1/apps/notification-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+## Supported Channels
+
+| Channel | Description |
+|---------|-------------|
+| `email` | Email delivery |
+| `database` | In-app database storage |
+| `broadcast` | Real-time broadcasting (WebSocket) |
+| `sms` | SMS text message |
+| `push` | Push notification |
+| `slack` | Slack message |
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Notifications" icon="bell">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/notifications` | List notifications (paginated, filterable) |
+| POST | `/notifications` | Create a notification |
+| GET | `/notifications/{id}` | Get a single notification |
+| PUT | `/notifications/{id}` | Update a notification |
+| DELETE | `/notifications/{id}` | Delete a notification |
+| POST | `/notifications/{id}/send` | Send/dispatch a notification |
+| POST | `/notifications/{id}/resend` | Resend a failed notification |
+| POST | `/notifications/{id}/mark-read` | Mark notification as read |
+| GET | `/notifications/stats` | Notification statistics |
+| GET | `/notifications/unread` | Get unread notifications |
+| POST | `/notifications/create-for-user` | Create for a specific user |
+| POST | `/notifications/create-bulk` | Bulk create notifications (max 10,000) |
+| POST | `/notifications/create-bulk-for-roles` | Bulk create for role members |
+| POST | `/notifications/mark-all-read` | Mark all as read |
+
+  </Tab>
+  <Tab title="Types" icon="tag">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/types` | List notification types |
+| POST | `/types` | Create a notification type |
+| GET | `/types/{id}` | Get a single type |
+| PUT | `/types/{id}` | Update a type |
+| DELETE | `/types/{id}` | Delete a type |
+| GET | `/types/active` | List active types |
+| GET | `/types/user-configurable` | List user-configurable types |
+| GET | `/types/channel/{channel}` | List types for a channel |
+| GET | `/types/stats` | Type statistics |
+| GET | `/types/variables` | List all template variables |
+| GET | `/types/variables/{slug}` | Get variables for a type |
+| POST | `/types/variables/validate` | Validate template variables |
+| POST | `/types/create-predefined` | Create a predefined type |
+| POST | `/types/search` | Search notification types |
+| POST | `/types/validate-template` | Validate a template |
+| POST | `/types/bulk-activate` | Bulk activate types |
+| POST | `/types/bulk-deactivate` | Bulk deactivate types |
+| POST | `/types/roles` | Get types by role codes |
+| GET | `/types/role/{roleCode}` | Get types for a role |
+| POST | `/types/{id}/activate` | Activate a type |
+| POST | `/types/{id}/deactivate` | Deactivate a type |
+| POST | `/types/{id}/add-channel` | Add a channel |
+| POST | `/types/{id}/remove-channel` | Remove a channel |
+| POST | `/types/{id}/update-template` | Update the template |
+| POST | `/types/{id}/add-role` | Add a role |
+| POST | `/types/{id}/remove-role` | Remove a role |
+| POST | `/types/{id}/set-roles` | Set roles (replaces all) |
+| POST | `/types/{id}/make-global` | Make globally scoped |
+| POST | `/types/{id}/make-specific` | Make specifically scoped |
+
+  </Tab>
+  <Tab title="Preferences" icon="settings">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/preferences` | List all preferences |
+| POST | `/preferences` | Create a preference |
+| GET | `/preferences/{id}` | Get a single preference |
+| PUT | `/preferences/{id}` | Update a preference |
+| DELETE | `/preferences/{id}` | Delete a preference |
+| GET | `/preferences/stats` | Preference statistics |
+| GET | `/preferences/channel-stats` | Channel preference stats |
+| GET | `/preferences/for-user` | Get preferences for a user |
+| GET | `/preferences/enabled-for-user` | Get enabled preferences |
+| GET | `/preferences/users-for-digest` | Get digest subscribers |
+| GET | `/preferences/users-in-quiet-hours` | Get users in quiet hours |
+| POST | `/preferences/enable-for-user` | Enable a preference |
+| POST | `/preferences/disable-for-user` | Disable a preference |
+| POST | `/preferences/add-channel-for-user` | Add a channel |
+| POST | `/preferences/remove-channel-for-user` | Remove a channel |
+| POST | `/preferences/set-frequency-for-user` | Set frequency |
+| POST | `/preferences/set-quiet-hours-for-user` | Set quiet hours |
+| POST | `/preferences/bulk-update-for-user` | Bulk update preferences |
+| POST | `/preferences/reset-to-defaults` | Reset to defaults |
+| POST | `/preferences/create-defaults-for-user` | Create default prefs |
+| POST | `/preferences/export-user-preferences` | Export preferences |
+| POST | `/preferences/import-user-preferences` | Import preferences |
+| POST | `/preferences/migrate-user-preferences` | Migrate between versions |
+
+  </Tab>
+  <Tab title="Attempts" icon="refresh-cw">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/attempts` | List all delivery attempts |
+| POST | `/attempts` | Create an attempt record |
+| GET | `/attempts/{id}` | Get a single attempt |
+| PUT | `/attempts/{id}` | Update an attempt |
+| DELETE | `/attempts/{id}` | Delete an attempt |
+| GET | `/attempts/stats` | Attempt statistics |
+| GET | `/attempts/pending` | List pending attempts |
+| GET | `/attempts/ready-for-retry` | List ready for retry |
+| GET | `/attempts/failures` | List all failures |
+| GET | `/attempts/recent-failures` | List recent failures |
+| GET | `/attempts/successful` | List successful attempts |
+| GET | `/attempts/channel/{channel}` | List by channel |
+| GET | `/attempts/channel-stats` | Stats per channel |
+| GET | `/attempts/success-rates` | Success rates |
+| GET | `/attempts/error-codes` | List error codes |
+| GET | `/attempts/average-retry-time` | Average retry time |
+| GET | `/attempts/notification/{notificationId}` | List for a notification |
+| POST | `/attempts/{id}/mark-processing` | Mark as processing |
+| POST | `/attempts/{id}/mark-success` | Mark as successful |
+| POST | `/attempts/{id}/mark-failed` | Mark as failed |
+| POST | `/attempts/{id}/mark-retry` | Mark for retry |
+| POST | `/attempts/retry-failed` | Retry all failed |
+| POST | `/attempts/clean-old` | Clean old records |
+
+  </Tab>
+  <Tab title="Dashboard & Settings" icon="bar-chart">
+
+**Dashboard**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/dashboard/overview` | Overall statistics |
+| GET | `/dashboard/channel-performance` | Performance by channel (query: `days` 1-365) |
+| GET | `/dashboard/recent-activity` | Recent activity (query: `hours` 1-168) |
+| GET | `/dashboard/error-analysis` | Failure analysis |
+| GET | `/dashboard/user-engagement` | User engagement metrics |
+| GET | `/dashboard/system-health` | System health indicators |
+| GET | `/dashboard/trends` | Notification trends |
+| GET | `/dashboard/alerts` | Active system alerts |
+
+**Settings**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List settings groups |
+| GET | `/settings` | Get all settings |
+| POST | `/settings` | Update settings |
+| POST | `/settings/reset` | Reset all to defaults |
+| GET | `/settings/{group}` | Get settings for a group |
+| POST | `/settings/{group}` | Update group settings |
+| POST | `/settings/{group}/test` | Test a channel connection |
+| POST | `/settings/{group}/reset` | Reset a group to defaults |
+
+  </Tab>
+</Tabs>
+
+## Filters
+
+For filter syntax and operators, see [Filtering](/core-concepts/filtering).
+
+<Expandable title="Notification Filters" default-open="true">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `notification_type_id` | number | |
+| `status` | text | `pending`, `sent`, `failed`, `partial`, `read` |
+| `priority` | number | 1 (lowest) to 10 (highest) |
+| `notifiable_type` | text | Polymorphic type (e.g., `Customers`, `Users`) |
+| `notifiable_id` | number | |
+| `creator_type` | text | Polymorphic type |
+| `creator_id` | number | |
+| `channels` | text | email, database, broadcast, sms, push, slack |
+
+</Expandable>
+
+<Expandable title="Notification Type Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `name` | text | |
+| `slug` | text | |
+| `is_active` | bool | |
+| `is_user_configurable` | bool | |
+| `supported_channels` | json_array | Array of channel strings |
+| `scope_type` | text | `global`, `specific` |
+
+</Expandable>
+
+<Expandable title="Preference Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `user_type` | text | Polymorphic type |
+| `user_id` | number | |
+| `notification_type_id` | number | |
+| `is_enabled` | bool | |
+| `frequency` | text | `immediate`, `daily_digest`, `weekly_digest`, `disabled` |
+| `channels` | text | |
+
+</Expandable>
+
+<Expandable title="Attempt Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `notification_id` | number | |
+| `channel` | text | email, sms, push, slack, broadcast, database |
+| `status` | text | `pending`, `processing`, `success`, `failed`, `retry` |
+| `attempt_number` | number | |
+| `error_code` | text | |
+| `attempted_at` | date | |
+| `notification.notification_type_id` | number | Relation filter (notification) |
+
+</Expandable>
+
+## Includes
+
+For include syntax, see [Includes & Relations](/core-concepts/includes).
+
+| Resource | Available Includes |
+|----------|--------------------|
+| **Notifications** | `notificationType`, `notifiable`, `creator`, `attempts` |
+| **Notification Types** | `notifications` |
+| **Preferences** | `notificationType`, `user` |
+| **Attempts** | `notification`, `notification.notificationType` |
+
+## Validation Rules
+
+<Expandable title="Create Notification" default-open="true">
+
+| Field | Rules |
+|-------|-------|
+| `notification_type_id` | required, integer |
+| `notifiable_type` | required, string |
+| `notifiable_id` | required, integer |
+| `title` | required, string, max:255 |
+| `message` | required, string |
+| `channels` | sometimes, array, each in: email, database, broadcast, sms, push, slack |
+| `priority` | sometimes, integer, min:1, max:10 |
+| `data` | sometimes, array |
+
+</Expandable>
+
+<Expandable title="Create Notification Type" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `name` | required, string, max:255 |
+| `slug` | nullable, string, unique |
+| `supported_channels` | sometimes, array, each in: email, database, broadcast, sms, push, slack |
+| `default_channels` | sometimes, array |
+| `is_active` | sometimes, boolean |
+| `is_user_configurable` | sometimes, boolean |
+| `scope_type` | sometimes, in: global, specific |
+| `role_codes` | nullable, array |
+
+</Expandable>
+
+<Expandable title="Create Preference" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `user_type` | required, string |
+| `user_id` | required, integer |
+| `notification_type_id` | required, integer |
+| `channels` | sometimes, array, each in: email, database, broadcast, sms, push, slack |
+| `is_enabled` | sometimes, boolean |
+| `frequency` | sometimes, in: immediate, daily_digest, weekly_digest, disabled |
+| `quiet_hours_start` | nullable, string, regex: HH:MM |
+| `quiet_hours_end` | nullable, string, regex: HH:MM |
+| `timezone` | nullable, string (valid timezone) |
+| `settings` | sometimes, array |
+
+</Expandable>
+
+<Expandable title="Create Attempt" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `notification_id` | required, integer |
+| `channel` | required, in: email, database, broadcast, sms, push, slack |
+| `status` | sometimes, in: pending, processing, success, failed, retry |
+| `attempt_number` | sometimes, integer, min:1 |
+| `error_code` | nullable, string |
+| `error_message` | nullable, string |
+| `attempted_at` | nullable, date |
+
+</Expandable>
+
+## Examples
+
+<Steps>
+  <Step title="List failed notifications with includes">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/notification-hub/notifications?filter[status]=[{"condition":"=","value":"failed"}]&include=notificationType,attempts,creator&per_page=20&sort=-_created_at' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Create a notification for a specific user">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/notification-hub/notifications/create-for-user' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "notification_type_id": 5,
+    "notifiable_type": "Customers",
+    "notifiable_id": 1042,
+    "title": "Order Shipped",
+    "message": "Your order #ORD-2024-8847 has been shipped.",
+    "channels": ["email", "database", "push"],
+    "priority": 7,
+    "data": {
+      "order_id": 8847,
+      "tracking_number": "1Z999AA10123456784",
+      "carrier": "UPS"
+    }
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="Get dashboard overview">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/notification-hub/dashboard/overview' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Filter delivery attempts by channel">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/notification-hub/attempts?filter[channel]=[{"condition":"=","value":"email"}]&filter[status]=[{"condition":"IN","value":["failed","retry"]}]&include=notification,notification.notificationType&sort=-attempted_at&per_page=50' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Test a notification channel connection">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/notification-hub/settings/email/test' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "recipient": "admin@example.com",
+    "subject": "Test Notification",
+    "message": "This is a test to verify the email channel configuration."
+  }'
+```
+    </Request>
+  </Step>
+</Steps>
+
+## Related
+
+<Columns cols={2}>
+  <Card title="CustomerHub" icon="users" href="/hubs/customer-hub">
+    Customers are the primary notification recipients.
+  </Card>
+  <Card title="OrderHub" icon="shopping-cart" href="/hubs/order-hub">
+    Order events trigger notifications (shipped, completed, etc.).
+  </Card>
+</Columns>

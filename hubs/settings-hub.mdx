@@ -1,0 +1,223 @@
+---
+title: SettingsHub
+description: Platform-wide configuration, translations, locales, currencies, countries, cache tracking, and search index management.
+---
+
+## Overview
+
+SettingsHub manages platform-wide configuration, translations, locales, currencies, countries, cache tracking, and search index management. It serves as the central configuration store for your DataHub instance.
+
+**Base URL:** `api/v1/apps/settings-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="tip">
+SettingsHub does **not** expose any includes. All data is returned directly in the response without relation loading.
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Configuration" icon="settings">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/config` | List all configuration entries |
+| POST | `/config` | Create a configuration entry |
+| GET | `/config/{id}` | Get a specific configuration |
+| PUT | `/config/{id}` | Update a configuration |
+| DELETE | `/config/{id}` | Delete a configuration |
+
+  </Tab>
+  <Tab title="Translations" icon="globe">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/translations` | List all translation entries |
+| POST | `/translations` | Create a translation |
+| GET | `/translations/{id}` | Get a specific translation |
+| PUT | `/translations/{id}` | Update a translation |
+| DELETE | `/translations/{id}` | Delete a translation |
+
+  </Tab>
+  <Tab title="Reference Data" icon="database">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/locales` | List all available locales (en_US, de_DE, fr_FR, etc.) |
+| GET | `/countries` | List all countries (name, iso2, iso3 codes) |
+| GET | `/currencies` | List all currencies (cached from openexchangerates.org) |
+
+  </Tab>
+  <Tab title="Cache & Index" icon="refresh-cw">
+
+**Cache Management**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/cache` | List cache tracking entries |
+| DELETE | `/clearAppCache/{installationKey}` | Clear application cache |
+
+**Index Management**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/index` | List all index tracking entries |
+| PUT | `/index/{id}` | Update index configuration |
+| POST | `/index/queue` | Queue a reindex job |
+
+  </Tab>
+</Tabs>
+
+## Filters
+
+For filter syntax and operators, see [Filtering](/core-concepts/filtering).
+
+<Expandable title="Config Filters" default-open="true">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact config ID |
+| `config_code` | text | Configuration key (e.g., `general.store_name`) |
+| `value` | json | Configuration value (JSON match) |
+| `installation_key` | json | Installation key filter |
+| `display_schema` | json | FormGenerator display schema |
+
+</Expandable>
+
+<Expandable title="Translation Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact translation ID |
+| `source` | text | Source/key string |
+| `translations` | json | Translation JSON object |
+
+</Expandable>
+
+<Expandable title="Cache Tracking Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact cache entry ID |
+| `installation_key` | text | Installation key |
+| `application_name` | text | Application/hub name |
+| `clear_required` | boolean | Whether cache clear is needed |
+
+</Expandable>
+
+<Expandable title="Index Tracking Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact index entry ID |
+| `installation_key` | text | Installation key |
+| `application_name` | text | Application/hub name |
+| `type` | text | Index type |
+| `model` | text | Model name |
+| `reindex_required` | boolean | Whether reindex is needed |
+
+</Expandable>
+
+## Includes
+
+SettingsHub does **not** expose any includes. All data is returned directly in the response.
+
+## Validation Rules
+
+<Expandable title="Config Store" default-open="true">
+
+| Field | Rules |
+|-------|-------|
+| `installation_key` | string, nullable |
+| `config_code` | required, string |
+| `value` | required (any JSON-compatible value) |
+
+</Expandable>
+
+<Expandable title="Translation Store" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `source` | required, string |
+| `translations` | required (object with locale keys) |
+
+</Expandable>
+
+<Expandable title="Index Update" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `type` | required, in: manual, on_save |
+
+</Expandable>
+
+<Expandable title="Reindex Queue" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `installation_key` | required |
+| `model` | optional, in: stock, prices, attributes |
+
+</Expandable>
+
+## Examples
+
+<Steps>
+  <Step title="List all configuration">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/settings-hub/config?filter[config_code]=general&page[size]=50' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Get all countries">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/settings-hub/countries' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Get all currencies (live rates)">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/settings-hub/currencies' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Trigger reindex">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/settings-hub/index/queue' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{"installation_key": "my-store-key", "model": "prices"}'
+```
+    </Request>
+  </Step>
+</Steps>
+
+## Related
+
+<Columns cols={2}>
+  <Card title="TaxHub" icon="percent" href="/hubs/tax-hub">
+    Tax settings reference SettingsHub for default country and configuration.
+  </Card>
+  <Card title="ProductHub" icon="box" href="/hubs/product-hub">
+    Product translations and indexing are managed through SettingsHub.
+  </Card>
+</Columns>

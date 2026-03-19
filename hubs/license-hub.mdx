@@ -1,0 +1,310 @@
+---
+title: LicenseHub
+description: Complete license key lifecycle management including generation, activation, deactivation, revocation, pools, rules, usage tracking, and configurations.
+---
+
+## Overview
+
+The LicenseHub provides complete license key lifecycle management including generation, activation, deactivation, revocation, pools, rules, usage tracking, and configurations. It enables you to create and distribute software license keys, organize them into pools, enforce activation rules, track usage, and configure license behavior per product.
+
+**Base URL:** `api/v1/apps/license-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="License Keys" icon="key">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/license-keys` | List all license keys (paginated, filterable) |
+| POST | `/license-keys` | Create a license key |
+| GET | `/license-keys/{id}` | Get a single license key |
+| PUT | `/license-keys/{id}` | Update a license key |
+| DELETE | `/license-keys/{id}` | Delete a license key |
+| GET | `/license-keys/statuses/list` | List all possible statuses |
+| POST | `/license-keys/import` | Import license keys from CSV |
+| POST | `/license-keys/generate` | Generate license keys |
+| GET | `/license-keys/export` | Export license keys |
+| POST | `/license-keys/{id}/activate` | Activate a license key |
+| POST | `/license-keys/{id}/deactivate` | Deactivate a license key |
+| POST | `/license-keys/{id}/revoke` | Revoke a license key |
+| POST | `/license-keys/{id}/validate` | Validate a license key |
+| GET | `/license-keys/{id}/status` | Get current status |
+
+**Available Statuses:** `available`, `assigned`, `activated`, `expired`, `revoked`
+
+  </Tab>
+  <Tab title="License Pools" icon="layer-group">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/license-pools` | List all license pools |
+| POST | `/license-pools` | Create a license pool |
+| GET | `/license-pools/{id}` | Get a single license pool |
+| PUT | `/license-pools/{id}` | Update a license pool |
+| DELETE | `/license-pools/{id}` | Delete a license pool |
+| GET | `/license-pools/{id}/available-count` | Get count of available keys |
+| POST | `/license-pools/{id}/assign` | Assign a key from the pool |
+
+  </Tab>
+  <Tab title="License Rules" icon="gavel">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/license-rules` | List all license rules |
+| POST | `/license-rules` | Create a license rule |
+| GET | `/license-rules/{id}` | Get a single license rule |
+| PUT | `/license-rules/{id}` | Update a license rule |
+| DELETE | `/license-rules/{id}` | Delete a license rule |
+| GET | `/license-rules/product/{productId}` | Get rules for a specific product |
+
+  </Tab>
+  <Tab title="Usage Logs" icon="clock-rotate-left">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/license-usage-logs` | List all usage logs |
+| POST | `/license-usage-logs` | Create a usage log entry |
+| GET | `/license-usage-logs/actions/list` | List available log actions |
+| GET | `/license-usage-logs/license-key/{id}` | Get logs for a specific key |
+| GET | `/license-usage-logs/license-key/{id}/activation-count` | Get activation count |
+| GET | `/license-usage-logs/license-key/{id}/recent` | Get recent logs for a key |
+
+  </Tab>
+  <Tab title="Configurations" icon="gear">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/license-configurations` | List all configurations |
+| POST | `/license-configurations` | Create a configuration |
+| GET | `/license-configurations/{id}` | Get a single configuration |
+| PUT | `/license-configurations/{id}` | Update a configuration |
+| DELETE | `/license-configurations/{id}` | Delete a configuration |
+| GET | `/license-configurations/product/{productId}` | Get config for a specific product |
+
+  </Tab>
+</Tabs>
+
+## Filters
+
+For filter syntax and operators, see [Filtering](/core-concepts/filtering).
+
+<Expandable title="License Key Filters" default-open="true">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `product_id` | number | |
+| `order_id` | number | |
+| `status` | text | One of: available, assigned, activated, expired, revoked |
+| `license_key` | text | |
+| `assigned_to` | text | |
+| `expiration_date` | date | |
+| `activations` | number | |
+
+</Expandable>
+
+<Expandable title="License Pool Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `product_id` | number | |
+| `name` | text | |
+| `auto_assign` | bool | |
+
+</Expandable>
+
+<Expandable title="License Rule Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `product_id` | number | |
+| `activation_limit` | number | |
+| `expiration_days` | number | |
+| `reassignable` | bool | |
+
+</Expandable>
+
+<Expandable title="Usage Log Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `license_key_id` | number | |
+| `action` | text | |
+| `ip_address` | text | |
+| `domain` | text | |
+| `created_at` | date | |
+
+</Expandable>
+
+<Expandable title="Configuration Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `product_id` | number | |
+| `template` | text | |
+| `mode` | text | |
+
+</Expandable>
+
+## Includes
+
+For include syntax, see [Includes & Relations](/core-concepts/includes).
+
+| Resource | Available Includes |
+|----------|--------------------|
+| **License Keys** | `usageLogs`, `pool`, `product`, `order` |
+| **License Pools** | `licenseKeys`, `rules`, `product` |
+| **License Rules** | `pool`, `product` |
+| **Usage Logs** | `licenseKey` |
+| **Configurations** | `product` |
+
+## Validation Rules
+
+<Expandable title="Create License Key — POST /license-keys" default-open="true">
+
+| Field | Rules |
+|-------|-------|
+| `product_id` | required, integer |
+| `license_key` | required, string, unique |
+| `status` | sometimes, in: `available`, `assigned`, `activated`, `expired`, `revoked` |
+| `order_id` | nullable, integer |
+| `assigned_to` | nullable, string |
+| `expiration_date` | nullable, date |
+| `activation_limit` | nullable, integer, min: 1 |
+
+</Expandable>
+
+<Expandable title="Generate License Keys — POST /license-keys/generate" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `product_id` | required, integer |
+| `template` | required, string |
+| `allowed_chars` | sometimes, string |
+| `quantity` | required, integer, min: 1, max: 1000 |
+| `mode` | sometimes, in: `quantity_per_licence`, `single_licence_quantity` |
+
+<Callout kind="tip">
+Use `X` characters in the template as placeholders for random characters. For example, `XXXX-XXXX-XXXX-XXXX` generates keys like `A3F7-K9B2-M1D4-P6Q8`. The `allowed_chars` field lets you restrict which characters are used.
+</Callout>
+
+</Expandable>
+
+<Expandable title="Create License Pool — POST /license-pools" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `name` | required, string |
+| `product_id` | required, integer |
+| `auto_assign` | sometimes, boolean |
+
+</Expandable>
+
+<Expandable title="Create License Rule — POST /license-rules" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `product_id` | required, integer |
+| `activation_limit` | sometimes, integer, min: 1 |
+| `expiration_days` | nullable, integer, min: 1 |
+| `reassignable` | sometimes, boolean |
+
+</Expandable>
+
+<Expandable title="Create Usage Log — POST /license-usage-logs" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `license_key_id` | required, integer |
+| `action` | required, string |
+| `ip_address` | nullable, string |
+| `domain` | nullable, string |
+
+</Expandable>
+
+## Examples
+
+<Steps>
+  <Step title="List active license keys with includes">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/license-hub/license-keys?filter[status]=[{"condition":"=","value":"activated"}]&include=usageLogs,pool,product&sort=-expiration_date&per_page=25' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Generate license keys in bulk">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/license-hub/license-keys/generate' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "product_id": 12,
+    "template": "XXXX-XXXX-XXXX-XXXX",
+    "quantity": 100,
+    "mode": "quantity_per_licence"
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="Activate a license key">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/license-hub/license-keys/157/activate' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "ip_address": "192.168.1.100",
+    "domain": "client-app.example.com"
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="Get usage logs for a specific key">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/license-hub/license-usage-logs/license-key/157?include=licenseKey&sort=-created_at&per_page=50' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Filter keys expiring soon">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/license-hub/license-keys?filter[status]=[{"condition":"IN","value":["activated","assigned"]}]&filter[expiration_date]=[{"condition":">=","value":"2026-03-19"},{"condition":"<=","value":"2026-04-19"}]&include=product,pool&sort=expiration_date' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+</Steps>
+
+## Related
+
+<Columns cols={2}>
+  <Card title="ProductHub" icon="box" href="/hubs/product-hub">
+    Products that license keys are generated for and associated with.
+  </Card>
+  <Card title="OrderHub" icon="receipt" href="/hubs/order-hub">
+    Orders that trigger license key assignment and activation.
+  </Card>
+</Columns>

@@ -1,0 +1,58 @@
+---
+title: Hub Overview
+description: Overview of all 9 DataHub hubs with their base URLs, key entities, and capabilities.
+---
+
+## What Are Hubs?
+
+DataHub organizes its API into specialized **Hubs**, each managing a distinct domain of your commerce platform. Every hub provides a RESTful API with consistent patterns for CRUD operations, filtering, pagination, sorting, and eager loading of related resources.
+
+<Callout kind="info">
+All hubs share the same [authentication](/authentication), [filtering](/core-concepts/filtering), [includes](/core-concepts/includes), and [response formats](/core-concepts/common-patterns). Learn these patterns once and apply them everywhere.
+</Callout>
+
+## All Hubs
+
+| Hub | Base URL | Description |
+|-----|----------|-------------|
+| [ProductHub](/hubs/product-hub) | `api/v1/apps/product-hub/` | Products, categories, pricing, stock, media, variations, vendors, translations |
+| [OrderHub](/hubs/order-hub) | `api/v1/apps/order-hub/` | Orders, carts, checkout, line items, quotes, billing/shipping methods |
+| [CustomerHub](/hubs/customer-hub) | `api/v1/apps/customer-hub/` | Customers, companies, addresses, roles, groups, notes |
+| [AttributesHub](/hubs/attributes-hub) | `api/v1/apps/attributes-hub/` | Dynamic attributes, attribute types, values, groups |
+| [MediaHub](/hubs/media-hub) | `api/v1/apps/media-hub/` | Polymorphic media management, CDN proxy |
+| [NotificationHub](/hubs/notification-hub) | `api/v1/apps/notification-hub/` | Multi-channel notifications, types, preferences, delivery tracking, analytics |
+| [TaxHub](/hubs/tax-hub) | `api/v1/apps/tax-hub/` | Tax classes, jurisdictions, rules, calculation engine, rate imports |
+| [SettingsHub](/hubs/settings-hub) | `api/v1/apps/settings-hub/` | Platform configuration, translations, locales, currencies, cache, indexing |
+| [LicenseHub](/hubs/license-hub) | `api/v1/apps/license-hub/` | License key lifecycle, pools, rules, usage tracking, configurations |
+
+## Hub Capabilities
+
+<Columns cols={3}>
+  <Card title="ProductHub" icon="box" href="/hubs/product-hub">
+    The most complex hub with 26 filters, 42+ includes, configurable products, multi-warehouse stock, and AI descriptions.
+  </Card>
+  <Card title="OrderHub" icon="shopping-cart" href="/hubs/order-hub">
+    Full order lifecycle from cart creation through checkout to fulfillment, with quotes and payment integration.
+  </Card>
+  <Card title="CustomerHub" icon="users" href="/hubs/customer-hub">
+    B2B customer management with companies, roles, groups, and custom attribute support.
+  </Card>
+  <Card title="AttributesHub" icon="sliders" href="/hubs/attributes-hub">
+    Dynamic attribute system supporting 10 types including select, multiselect, swatch, and boolean.
+  </Card>
+  <Card title="MediaHub" icon="image" href="/hubs/media-hub">
+    Polymorphic media management for images, videos, documents, and audio with Bunny CDN integration.
+  </Card>
+  <Card title="NotificationHub" icon="bell" href="/hubs/notification-hub">
+    120+ endpoints for multi-channel notifications (email, SMS, push, Slack, broadcast, database) with analytics.
+  </Card>
+  <Card title="TaxHub" icon="percent" href="/hubs/tax-hub">
+    Rule-based tax calculation with jurisdiction support, VAT exemption, and automatic rate imports for US/EU.
+  </Card>
+  <Card title="SettingsHub" icon="settings" href="/hubs/settings-hub">
+    Platform-wide configuration, locales, countries, currencies, cache management, and search indexing.
+  </Card>
+  <Card title="LicenseHub" icon="key" href="/hubs/license-hub">
+    Complete license key lifecycle with generation, activation, pools, usage tracking, and product rules.
+  </Card>
+</Columns>

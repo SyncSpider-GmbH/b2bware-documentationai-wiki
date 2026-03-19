@@ -1,0 +1,126 @@
+---
+title: Product Variations
+description: How to create and manage configurable products with child variations in ProductHub.
+---
+
+## Overview
+
+ProductHub supports configurable products that have child variation products. A configurable product (parent) defines which attributes are used for variation (e.g., Color, Size), and child products represent each specific combination (e.g., Red/Large, Blue/Medium).
+
+## Product Types
+
+| Type | Description |
+|------|-------------|
+| `simple` | A standalone product with no variations |
+| `configurable` | A parent product that has child variations |
+| `license` | A product with license key generation |
+| `dt-one` | A digital product type |
+
+## Creating Configurable Products
+
+<Steps>
+  <Step title="Create the parent product" icon="box">
+    Create a product with `product_type: "configurable"` and define which attributes are used for variation:
+
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/product-hub/products' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "name": "Classic T-Shirt",
+    "sku": "TSHIRT-CLASSIC",
+    "product_type": "configurable",
+    "status": "public",
+    "attributes": [
+      {"attribute_id": 1, "value": "Red", "is_variation_attribute": true},
+      {"attribute_id": 2, "value": "Large", "is_variation_attribute": true}
+    ]
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="Attach variation attributes" icon="sliders">
+    Specify which attributes define the variations:
+
+    <Request tabs="cURL">
+```bash
+curl -s -X PUT \
+  'https://your-domain.com/api/v1/apps/product-hub/products/50/attachVariationsAttributes' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Generate child variations" icon="copy">
+    Auto-generate child products from the defined variation attributes:
+
+    <Request tabs="cURL">
+```bash
+curl -s -X PUT \
+  'https://your-domain.com/api/v1/apps/product-hub/products/50/createVariations' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+</Steps>
+
+## Querying Variations
+
+### Get Parent with All Variations
+
+<Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/product-hub/products/50?include=childProducts.childProduct.price,childProducts.childProduct.mainMedia,childProducts.childProduct.stock,variationAttributes' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+### Filter by Parent ID
+
+<Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/product-hub/products?filter[parent_id]=50&include=price,mainMedia,attributeValues.value.translation' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+## Useful Filters
+
+| Filter | Description |
+|--------|-------------|
+| `filter[exclude_child_products]=1` | Exclude child variations from listings |
+| `filter[exclude_parent_products]=1` | Exclude configurable parents |
+| `filter[parent_id]=50` | Get only children of product 50 |
+| `filter[exclude_child_products_id]=50` | Exclude children of product 50 |
+| `filter[product_type]=configurable` | Only configurable products |
+
+## Key Includes for Variations
+
+| Include | Description |
+|---------|-------------|
+| `childProducts` | Child variation records |
+| `childProducts.childProduct` | Full child product with all nested data |
+| `parentProducts` | Parent product records (from child) |
+| `variationAttributes` | **(Custom)** Variation-defining attributes with available values |
+| `parentProductAttributes` | Attributes that define variations |
+
+## Related
+
+<Columns cols={2}>
+  <Card title="ProductHub" icon="box" href="/hubs/product-hub">
+    Full ProductHub API reference.
+  </Card>
+  <Card title="AttributesHub" icon="sliders" href="/hubs/attributes-hub">
+    Define variation attributes.
+  </Card>
+</Columns>

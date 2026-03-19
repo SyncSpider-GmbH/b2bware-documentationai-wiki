@@ -1,0 +1,120 @@
+---
+title: Tax Calculation
+description: How the DataHub tax engine resolves tax rates using rules, jurisdictions, and fallback chains.
+---
+
+## Overview
+
+The TaxHub provides a flexible tax calculation engine that evaluates rules and jurisdictions to determine the correct tax rate for each line item. It supports condition-based rules, VAT exemption for B2B customers, and automatic tax rate imports.
+
+## Tax Calculation Endpoint
+
+<Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/tax-hub/calculate' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "line_items": [
+      {"subtotal": 199.99, "tax_class_id": 1, "product_id": 105},
+      {"subtotal": 14.50, "tax_class_id": 1, "product_id": 210}
+    ],
+    "customer": {
+      "email": "customer@example.com",
+      "country": "DE",
+      "region": "Bavaria",
+      "customer_group": "retail",
+      "vat_number": "DE123456789"
+    }
+  }'
+```
+</Request>
+
+## Tax Rate Fallback Chain
+
+The engine resolves tax rates using this priority order:
+
+<Steps>
+  <Step title="Matched tax rule" icon="shield">
+    If a tax rule's conditions match the customer data (email, country, VAT number, etc.), its linked tax class jurisdiction rate is used.
+  </Step>
+  <Step title="Tax class + jurisdiction mapping" icon="map-pin">
+    If no rule matches, the engine looks for a direct mapping between the product's tax class and the customer's jurisdiction.
+  </Step>
+  <Step title="Country-level tax rate" icon="globe">
+    If no mapping exists, the engine falls back to a country-level default rate.
+  </Step>
+  <Step title="GLOBAL jurisdiction rate" icon="globe">
+    If no country rate is configured, the GLOBAL jurisdiction rate is used.
+  </Step>
+  <Step title="Config default tax rate" icon="settings">
+    As a final fallback, the default tax rate from SettingsHub configuration is applied.
+  </Step>
+</Steps>
+
+## Country Resolution Chain
+
+When determining the customer's country for jurisdiction matching:
+
+1. **Billing address country** (highest priority)
+2. **Shipping address country** (if billing not available)
+3. **Default country** from SettingsHub config (final fallback)
+
+## Tax Rule Conditions
+
+Tax rules can match against these customer properties:
+
+| Condition Type | Description |
+|----------------|-------------|
+| `customer_email` | Match by exact email or pattern |
+| `email_domain` | Match by email domain |
+| `country` | Match by country code (supports multiple with `in` operator) |
+| `region` | Match by region/state |
+| `customer_group` | Match by customer group |
+| `vat_number` | Check if VAT number exists or matches a pattern |
+
+## B2B VAT Exemption Example
+
+A common use case is zero-rating VAT for B2B customers with valid EU VAT numbers:
+
+<Request tabs="cURL">
+```bash
+# Create a rule that matches customers with VAT numbers in EU countries
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/tax-hub/tax-rules' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "name": "EU B2B VAT Exemption",
+    "description": "Zero-rate VAT for B2B customers with valid EU VAT numbers",
+    "priority": 10,
+    "status": "active",
+    "match_type": "all",
+    "tax_class_jurisdiction_id": 5
+  }'
+```
+</Request>
+
+## Importing Tax Rates
+
+DataHub can automatically import tax rates for major regions:
+
+| Region | Endpoint | Coverage |
+|--------|----------|----------|
+| `eu` | `POST /import/eu` | All EU member state VAT rates |
+| `us` | `POST /import/us` | US state sales tax rates |
+| `non-eu-europe` | `POST /import/non-eu-europe` | Switzerland, Norway, UK, etc. |
+
+## Related
+
+<Columns cols={2}>
+  <Card title="TaxHub" icon="percent" href="/hubs/tax-hub">
+    Full TaxHub API reference.
+  </Card>
+  <Card title="Checkout Flow" icon="credit-card" href="/advanced/checkout-flow">
+    Tax calculation in the checkout process.
+  </Card>
+</Columns>
