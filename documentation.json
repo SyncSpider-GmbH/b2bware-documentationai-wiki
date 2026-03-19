@@ -111,6 +111,31 @@
         ]
       },
       {
+        "tab": "AI Tools & MCP",
+        "icon": "cpu",
+        "groups": [
+          {
+            "group": "Overview",
+            "icon": "sparkles",
+            "pages": [
+              { "title": "AI Tools & Skills", "path": "ai-tools/overview", "icon": "cpu" },
+              { "title": "MCP Server", "path": "ai-tools/mcp-server", "icon": "server" }
+            ]
+          },
+          {
+            "group": "AI Coding Assistants",
+            "icon": "code",
+            "pages": [
+              { "title": "Claude Code", "path": "ai-tools/claude-code", "icon": "terminal" },
+              { "title": "Cursor", "path": "ai-tools/cursor", "icon": "mouse-pointer" },
+              { "title": "GitHub Copilot", "path": "ai-tools/github-copilot", "icon": "github" },
+              { "title": "Windsurf", "path": "ai-tools/windsurf", "icon": "wind" },
+              { "title": "Other Tools", "path": "ai-tools/other-tools", "icon": "plus-circle" }
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Changelog",
         "icon": "clock",
         "pages": [

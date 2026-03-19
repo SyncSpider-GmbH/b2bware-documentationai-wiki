@@ -1,0 +1,136 @@
+---
+title: Claude Code
+description: Set up Claude Code with DataHub API knowledge using CLAUDE.md and 6 ready-to-use slash commands.
+---
+
+## Claude Code Integration
+
+[Claude Code](https://docs.anthropic.com/en/docs/claude-code) is Anthropic's CLI tool for AI-assisted development. It reads a `CLAUDE.md` file from your project root to understand your codebase and API conventions.
+
+We provide:
+- **`CLAUDE.md`** — Complete DataHub API reference (all 9 hubs, endpoints, filters, includes, validation rules)
+- **6 Slash Commands** — Reusable workflows for common DataHub tasks
+
+## Setup
+
+<Steps>
+  <Step title="Download CLAUDE.md" icon="download">
+
+Copy the `CLAUDE.md` file to your project root:
+
+```bash
+curl -o CLAUDE.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/CLAUDE.md
+```
+
+Or copy it manually from this repository's root.
+
+  </Step>
+  <Step title="Install slash commands (optional)" icon="terminal">
+
+Copy the `.claude/commands/` directory to your project:
+
+```bash
+mkdir -p .claude/commands
+curl -o .claude/commands/generate-integration.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/.claude/commands/generate-integration.md
+curl -o .claude/commands/check-endpoint.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/.claude/commands/check-endpoint.md
+curl -o .claude/commands/explain-hub.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/.claude/commands/explain-hub.md
+curl -o .claude/commands/build-filter.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/.claude/commands/build-filter.md
+curl -o .claude/commands/erp-sync.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/.claude/commands/erp-sync.md
+curl -o .claude/commands/checkout-flow.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/.claude/commands/checkout-flow.md
+```
+
+  </Step>
+  <Step title="Add MCP Server (optional)" icon="server">
+
+For live data access, add the MCP server to `.mcp.json`:
+
+```json
+{
+  "inputs": [
+    {
+      "id": "api_key",
+      "type": "promptString",
+      "description": "B2Bware API Key",
+      "password": true
+    }
+  ],
+  "servers": {
+    "b2bware": {
+      "type": "sse",
+      "url": "https://mcp.b2bware.com/sse",
+      "headers": {
+        "Authorization": "Bearer ${input:api_key}"
+      }
+    }
+  }
+}
+```
+
+See [MCP Server](/ai-tools/mcp-server) for details.
+
+  </Step>
+  <Step title="Start using Claude Code" icon="play">
+
+Run `claude` in your project directory. Claude Code automatically loads the `CLAUDE.md` and knows the full DataHub API.
+
+  </Step>
+</Steps>
+
+## Available Slash Commands
+
+| Command | Description |
+|---------|-------------|
+| `/project:generate-integration` | Generate integration code for any hub in any language |
+| `/project:check-endpoint` | Validate an API call against the documentation |
+| `/project:explain-hub` | Get a detailed explanation of any hub |
+| `/project:build-filter` | Build correct filter queries with proper JSON syntax |
+| `/project:erp-sync` | Generate a complete ERP sync integration |
+| `/project:checkout-flow` | Implement the full cart-to-order checkout flow |
+
+### Usage Examples
+
+```bash
+# Generate a Node.js integration for ProductHub
+/project:generate-integration ProductHub in TypeScript with axios
+
+# Validate a curl command
+/project:check-endpoint curl -X GET 'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[status]=public'
+
+# Explain the OrderHub
+/project:explain-hub OrderHub
+
+# Build a filter for products by price range and category
+/project:build-filter products with price between 50 and 200 in category Electronics
+
+# Generate ERP sync for products and stock
+/project:erp-sync sync products and stock from SAP to DataHub
+
+# Implement checkout
+/project:checkout-flow React frontend with cart and checkout
+```
+
+## What CLAUDE.md Contains
+
+The `CLAUDE.md` file provides Claude Code with comprehensive knowledge of:
+
+- **Architecture** — Base URLs, hub slugs, URL patterns
+- **Authentication** — Bearer token setup, required headers
+- **Pagination** — Query parameters, response structure
+- **Filtering** — All operators, relation filters, callback filters, attribute filters
+- **Includes** — Eager loading syntax, available includes per hub
+- **All 9 Hubs** — Complete endpoint listings, filters, includes, validation rules
+- **ProductHub** — 26 filters, 42+ includes, product types, variations
+- **OrderHub** — Checkout flow, order statuses, cart management
+- **CustomerHub** — B2B customer/company management
+- **Bulk Operations** — Upsert patterns, batch limits
+- **AI Features** — Description generation, translation jobs
+- **Coding Conventions** — Best practices for integrations
+
+## Example Prompts
+
+| Prompt | What Claude Code does |
+|--------|----------------------|
+| "Create a Python script to sync products from our ERP" | Generates upsert-based sync using `PUT /products/upsert/single` |
+| "Write a TypeScript function to search products with filters" | Generates typed function with correct filter JSON syntax |
+| "Build a checkout flow in Next.js" | Generates cart → checkout → order flow using OrderHub |
+| "How do I filter products by multiple attributes?" | Explains the `filter[attribute]` JSON array syntax with examples |

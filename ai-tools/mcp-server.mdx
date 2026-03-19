@@ -1,0 +1,285 @@
+---
+title: MCP Server
+description: Connect AI assistants directly to your live DataHub data using the B2Bware MCP Server at mcp.b2bware.com.
+---
+
+## B2Bware MCP Server
+
+The B2Bware MCP Server is a hosted remote service that connects AI coding assistants directly to your live DataHub data using the [Model Context Protocol (MCP)](https://modelcontextprotocol.io). No local installation required — just configure your API key and start interacting with products, customers, and orders through natural language.
+
+**Server URL:** `https://mcp.b2bware.com/sse`
+
+<Callout kind="info" title="What is MCP?">
+The Model Context Protocol (MCP) is an open standard that allows AI assistants to use external tools and access data sources. When you connect the B2Bware MCP Server, your AI assistant can browse your product catalog, search customers, create carts, and process orders — all through conversation.
+</Callout>
+
+## Available Tools
+
+The MCP Server exposes 14 tools that your AI assistant can call:
+
+<Tabs>
+  <Tab title="Products" icon="box">
+
+| Tool | Description |
+|------|-------------|
+| `list_products` | List products with filters and pagination |
+| `search_products` | Full-text product search by name, SKU, description |
+| `get_product` | Retrieve a single product with all details by ID |
+| `list_categories` | List product categories and category tree |
+
+  </Tab>
+  <Tab title="Customers" icon="users">
+
+| Tool | Description |
+|------|-------------|
+| `list_customers` | List customers with filter options |
+| `search_customers` | Search customers by name, email or company |
+| `get_customer` | Retrieve customer profile with addresses by ID |
+
+  </Tab>
+  <Tab title="Orders" icon="shopping-cart">
+
+| Tool | Description |
+|------|-------------|
+| `list_orders` | List orders, filter by customer or status |
+| `get_order` | Retrieve order details with line items by ID |
+
+  </Tab>
+  <Tab title="Cart & Checkout" icon="credit-card">
+
+| Tool | Description |
+|------|-------------|
+| `create_cart` | Create a new cart for an order |
+| `add_cart_item` | Add products with quantity to the cart |
+| `checkout_cart` | Complete the cart as a binding order |
+| `list_billing_methods` | Retrieve available payment methods |
+| `list_shipping_methods` | Retrieve available shipping methods |
+
+  </Tab>
+</Tabs>
+
+## Getting Your API Key
+
+<Steps>
+  <Step title="Log in to B2Bware" icon="log-in">
+    Go to your B2Bware admin panel.
+  </Step>
+  <Step title="Navigate to API settings" icon="settings">
+    Go to **Settings → API → API Keys**.
+  </Step>
+  <Step title="Create or copy your API key" icon="key">
+    Create a new API key or copy an existing one. This key works for both the REST API and the MCP Server.
+  </Step>
+</Steps>
+
+## Authentication Methods
+
+<Tabs>
+  <Tab title="Header-Based (Recommended)" icon="shield">
+
+Pass your API key via the `Authorization` header:
+
+```
+URL: https://mcp.b2bware.com/sse
+Header: Authorization: Bearer YOUR_B2BWARE_API_KEY
+```
+
+<Callout kind="tip">
+The header approach is more secure since the API key does not appear in server logs or browser history.
+</Callout>
+
+  </Tab>
+  <Tab title="URL Parameter" icon="link">
+
+For clients that do not support custom headers, pass the API key as a query parameter:
+
+```
+https://mcp.b2bware.com/sse?key=YOUR_B2BWARE_API_KEY
+```
+
+Use URL parameters only when custom headers are not supported by your client.
+
+  </Tab>
+</Tabs>
+
+## Client Configuration
+
+<Tabs>
+  <Tab title="Cursor" icon="code">
+
+**File:** `~/.cursor/mcp.json` (Mac) or `%USERPROFILE%\.cursor\mcp.json` (Windows)
+
+```json
+{
+  "mcpServers": {
+    "b2bware": {
+      "url": "https://mcp.b2bware.com/sse",
+      "headers": {
+        "Authorization": "Bearer YOUR_B2BWARE_API_KEY"
+      }
+    }
+  }
+}
+```
+
+<Steps>
+  <Step title="Open or create the config file" icon="file">
+    Create `mcp.json` in your Cursor config directory if it doesn't exist.
+  </Step>
+  <Step title="Paste the configuration" icon="clipboard">
+    Replace `YOUR_B2BWARE_API_KEY` with your actual API key.
+  </Step>
+  <Step title="Restart Cursor" icon="refresh-cw">
+    Restart Cursor to load the MCP server. You should see the B2Bware tools in the MCP panel.
+  </Step>
+</Steps>
+
+  </Tab>
+  <Tab title="Claude Desktop" icon="monitor">
+
+**File:** `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
+
+```json
+{
+  "mcpServers": {
+    "b2bware": {
+      "url": "https://mcp.b2bware.com/sse",
+      "headers": {
+        "Authorization": "Bearer YOUR_B2BWARE_API_KEY"
+      }
+    }
+  }
+}
+```
+
+<Steps>
+  <Step title="Open Claude Desktop settings" icon="settings">
+    Open Claude Desktop and go to settings, or edit the config file directly.
+  </Step>
+  <Step title="Add the MCP server" icon="plus">
+    Paste the configuration above with your API key.
+  </Step>
+  <Step title="Restart Claude Desktop" icon="refresh-cw">
+    Restart the app. The B2Bware tools will appear in the tool list.
+  </Step>
+</Steps>
+
+  </Tab>
+  <Tab title="Claude Code" icon="terminal">
+
+Add to your project's `.mcp.json` or Claude Code settings:
+
+```json
+{
+  "inputs": [
+    {
+      "id": "api_key",
+      "type": "promptString",
+      "description": "B2Bware API Key",
+      "password": true
+    }
+  ],
+  "servers": {
+    "b2bware": {
+      "type": "sse",
+      "url": "https://mcp.b2bware.com/sse",
+      "headers": {
+        "Authorization": "Bearer ${input:api_key}"
+      }
+    }
+  }
+}
+```
+
+<Callout kind="tip">
+Claude Code prompts you for the API key securely at startup. The key is never stored in plain text.
+</Callout>
+
+  </Tab>
+  <Tab title="Windsurf" icon="wind">
+
+**File:** `~/.codeium/windsurf/mcp_config.json` (Mac) or `%USERPROFILE%\.codeium\windsurf\mcp_config.json` (Windows)
+
+```json
+{
+  "mcpServers": {
+    "b2bware": {
+      "serverUrl": "https://mcp.b2bware.com/sse",
+      "headers": {
+        "Authorization": "Bearer YOUR_B2BWARE_API_KEY"
+      }
+    }
+  }
+}
+```
+
+<Callout kind="alert" title="Note">
+Windsurf uses `serverUrl` instead of `url`. Make sure to use the correct key name.
+</Callout>
+
+  </Tab>
+  <Tab title="Claude.ai" icon="globe">
+
+For Claude.ai (web), use the URL parameter method:
+
+```
+https://mcp.b2bware.com/mcp?key=YOUR_B2BWARE_API_KEY
+```
+
+**With language preference:**
+```
+https://mcp.b2bware.com/sse?key=YOUR_B2BWARE_API_KEY&lang=de
+```
+
+Supported languages: `de` (German), `en` (English), `fr` (French), `es` (Spanish)
+
+<Callout kind="info">
+Leave the OAuth fields empty when adding this as an MCP integration in Claude.ai. The API key in the URL is sufficient for authentication.
+</Callout>
+
+  </Tab>
+</Tabs>
+
+## Security
+
+<Callout kind="alert" title="Connection Isolation">
+Every connection is fully isolated by your API key. The server stores no keys — they only live in memory for the duration of the active session and are discarded immediately on disconnect.
+</Callout>
+
+- API keys are never persisted on the MCP server
+- Each session is isolated — no cross-session data leakage
+- Prefer header-based authentication over URL parameters
+- Never commit API keys to version control — use environment variables or secure input prompts
+
+## Example Prompts
+
+Once connected, try these prompts with your AI assistant:
+
+| Prompt | What it does |
+|--------|-------------|
+| "Show me all products in the Electronics category" | Uses `list_products` with category filter |
+| "Search for customers from Berlin" | Uses `search_customers` |
+| "What's the status of order #1234?" | Uses `get_order` with ID |
+| "Create a cart with 3x Product SKU-001 and 1x SKU-002" | Uses `create_cart` + `add_cart_item` |
+| "Show me all pending orders from this month" | Uses `list_orders` with status and date filters |
+| "Get the full details of product 42 including stock and pricing" | Uses `get_product` |
+
+## Troubleshooting
+
+<Expandable title="Server not connecting" default-open="false">
+
+1. Verify your API key is correct (test it with a direct API call first)
+2. Check the server status at [mcp.b2bware.com](https://mcp.b2bware.com)
+3. Ensure your client supports SSE (Server-Sent Events) transport
+4. Restart your AI tool after changing the configuration
+
+</Expandable>
+
+<Expandable title="Tools not appearing" default-open="false">
+
+1. Check that the config file is in the correct location for your tool
+2. Verify the JSON syntax is valid (no trailing commas, correct quotes)
+3. For Windsurf: use `serverUrl` instead of `url`
+4. Restart the application after saving the config
+
+</Expandable>

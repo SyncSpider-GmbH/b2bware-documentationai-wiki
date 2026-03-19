@@ -1,0 +1,73 @@
+---
+title: GitHub Copilot
+description: Configure GitHub Copilot with DataHub API knowledge using copilot-instructions.md.
+---
+
+## GitHub Copilot Integration
+
+[GitHub Copilot](https://github.com/features/copilot) reads custom instructions from `.github/copilot-instructions.md` in your project. We provide a ready-to-use instructions file that teaches Copilot the complete DataHub API.
+
+## Setup
+
+<Steps>
+  <Step title="Create the instructions directory" icon="folder">
+
+```bash
+mkdir -p .github
+```
+
+  </Step>
+  <Step title="Download the instructions file" icon="download">
+
+```bash
+curl -o .github/copilot-instructions.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/.cursorrules
+```
+
+<Callout kind="info">
+We use the same content as `.cursorrules` — the format is compatible with Copilot's instruction system.
+</Callout>
+
+  </Step>
+  <Step title="Enable custom instructions in VS Code" icon="settings">
+
+Open VS Code Settings and ensure **GitHub Copilot > Chat > Code Generation Instructions** is enabled. Copilot automatically reads `.github/copilot-instructions.md` when this is active.
+
+  </Step>
+</Steps>
+
+## Scoped Instructions (Advanced)
+
+Copilot also supports scoped instructions in `.github/instructions/`:
+
+```
+.github/
+├── copilot-instructions.md          # Global instructions
+└── instructions/
+    ├── datahub-products.instructions.md  # Product-specific
+    └── datahub-orders.instructions.md    # Order-specific
+```
+
+Each `.instructions.md` file can have YAML frontmatter with glob patterns to specify which files it applies to:
+
+```markdown
+---
+applyTo: "src/integrations/**"
+---
+When working on DataHub integrations, use the upsert endpoints...
+```
+
+## Copilot Coding Agent
+
+The Copilot coding agent also supports `AGENTS.md` for autonomous task execution. You can place the DataHub API reference as an `AGENTS.md` file:
+
+```bash
+curl -o AGENTS.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/CLAUDE.md
+```
+
+## Example Prompts
+
+| Prompt | What Copilot does |
+|--------|------------------|
+| "Create a DataHub product sync function" | Generates code using upsert endpoint with correct validation |
+| "Filter customers by email domain" | Uses `LIKE` filter with `%@domain.com` pattern |
+| "Add checkout to this cart component" | Implements checkout flow with correct endpoint sequence |

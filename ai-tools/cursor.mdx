@@ -1,0 +1,78 @@
+---
+title: Cursor
+description: Set up the Cursor IDE with DataHub API knowledge using .cursorrules and the MCP Server.
+---
+
+## Cursor Integration
+
+[Cursor](https://cursor.sh) is an AI-powered IDE that reads `.cursorrules` from your project root to understand your codebase conventions.
+
+We provide:
+- **`.cursorrules`** — Complete DataHub API reference optimized for Cursor
+- **MCP Server** — Live data access from within Cursor
+
+## Setup
+
+<Steps>
+  <Step title="Download .cursorrules" icon="download">
+
+Copy the `.cursorrules` file to your project root:
+
+```bash
+curl -o .cursorrules https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/.cursorrules
+```
+
+  </Step>
+  <Step title="Add MCP Server (optional)" icon="server">
+
+Create or edit `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "b2bware": {
+      "url": "https://mcp.b2bware.com/sse",
+      "headers": {
+        "Authorization": "Bearer YOUR_B2BWARE_API_KEY"
+      }
+    }
+  }
+}
+```
+
+Replace `YOUR_B2BWARE_API_KEY` with your key from **B2Bware Settings → API → API Keys**.
+
+  </Step>
+  <Step title="Restart Cursor" icon="refresh-cw">
+
+Restart Cursor to load the rules and MCP server. Cursor now knows the DataHub API.
+
+  </Step>
+</Steps>
+
+<Callout kind="tip" title="Scoped Rules (Advanced)">
+Cursor also supports scoped rules in `.cursor/rules/`. You can create separate `.mdc` files for different parts of your project (e.g., `datahub-products.mdc`, `datahub-orders.mdc`). The single `.cursorrules` file works for most use cases.
+</Callout>
+
+## What .cursorrules Contains
+
+- Default API domain (`api.datahub.syncspider.com`)
+- All 9 hub slugs and their purposes
+- Filter operators and syntax (MongoDB-compatible JSON)
+- ProductHub special filters (26 filters including attribute filter)
+- Product types and variation flow
+- Checkout flow (cart → order)
+- Tax calculation endpoint and fallback chain
+- Bulk operation endpoints and limits
+- Coding guidelines for integrations
+- Most common includes for Products, Orders, Customers
+- Error handling patterns
+
+## Example Prompts
+
+| Prompt | What Cursor does |
+|--------|-----------------|
+| "Create a function to list products with price and stock" | Generates code with correct includes and filter syntax |
+| "Build a filter for customers by company name" | Uses relation filter `filter[company.name]` with LIKE operator |
+| "Write an ERP product sync" | Uses `PUT /products/upsert/single` with `action: "createOrUpdate"` |
+| "Implement the checkout flow" | Creates cart, adds items, previews, and completes checkout |
