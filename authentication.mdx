@@ -1,0 +1,73 @@
+---
+title: Authentication
+description: How to authenticate with the B2Bware DataHub API using Bearer tokens.
+---
+
+## Bearer Token Authentication
+
+All DataHub API endpoints require Bearer token authentication (unless explicitly marked as public). Include your API token in the `Authorization` header of every request:
+
+```
+Authorization: Bearer {api_token}
+```
+
+All hub endpoints are protected by the `auth:api` middleware.
+
+## Making Authenticated Requests
+
+Every request must include the following headers:
+
+<Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/product-hub/products' \
+  -H 'Authorization: Bearer YOUR_API_TOKEN' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+For requests that send data (POST, PUT, PATCH), also include the `Content-Type` header:
+
+```
+Content-Type: application/json
+```
+
+## Required Headers Summary
+
+| Header | Required | Value |
+|--------|----------|-------|
+| `Authorization` | Always | `Bearer {api_token}` |
+| `Accept` | Always | `application/json` |
+| `Content-Type` | For POST/PUT/PATCH | `application/json` |
+
+## Public Endpoints
+
+A small number of endpoints do **not** require authentication:
+
+| Hub | Endpoint | Description |
+|-----|----------|-------------|
+| MediaHub | `GET /cdn/{domain}/{path}` | Public CDN proxy for media |
+| OrderHub | `GET /payment/webhook/{installationKey}/{provider}` | Payment provider webhook |
+| OrderHub | `GET /order/payment/{installationKey}/{order_id}` | Payment redirect |
+
+## Error Responses
+
+If authentication fails, the API returns a `401 Unauthorized` response:
+
+<Response tabs="401">
+```json
+{
+  "message": "Unauthenticated."
+}
+```
+</Response>
+
+<Callout kind="alert" title="Token Security">
+Keep your API tokens secure. Never expose them in client-side code, public repositories, or URLs. Use environment variables or a secrets manager to store tokens.
+</Callout>
+
+## Next Steps
+
+- [Quickstart](/quickstart) — Make your first authenticated API call
+- [Common Patterns](/core-concepts/common-patterns) — Learn about pagination, sorting, and response formats
+- [Error Handling](/core-concepts/error-handling) — Handle authentication errors

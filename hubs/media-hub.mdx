@@ -1,0 +1,161 @@
+---
+title: MediaHub
+description: Manage polymorphic media associations (images, videos, documents, audio) and access public CDN proxy endpoints for Bunny CDN signed URLs.
+---
+
+## Overview
+
+The MediaHub manages polymorphic media associations, supporting images, videos, documents, and audio files. It provides full CRUD operations for media records with polymorphic relations to any parent model (e.g., Products, Companies), as well as a public CDN proxy endpoint for serving assets via Bunny CDN signed URLs.
+
+**Base URL:** `api/v1/apps/media-hub/`
+
+<Callout kind="info">
+All media management endpoints require Bearer token authentication. See [Authentication](/authentication).
+The CDN proxy endpoint is **public** and does not require authentication.
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="CDN Proxy" icon="globe">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/cdn/{domain}/{path}` | Public CDN proxy with Bunny CDN signed URLs |
+
+<Callout kind="warning">
+The CDN proxy endpoint is **publicly accessible** and does not require authentication. It generates signed URLs for Bunny CDN on the fly.
+</Callout>
+
+  </Tab>
+  <Tab title="Media" icon="image">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/media` | List all media (paginated, filterable) |
+| POST | `/media` | Create/upload a media record |
+| GET | `/media/{id}` | Get a single media record |
+| PUT | `/media/{id}` | Update a media record |
+| DELETE | `/media/{id}` | Delete a media record |
+| GET | `/media/{type}/{id}` | Get all media for a specific model |
+| GET | `/media/{type}/{id}/primary` | Get primary media for a specific model |
+| POST | `/media/{id}/primary` | Set a media record as primary |
+| POST | `/media/{id}/sort-order` | Update sort order of a media record |
+
+  </Tab>
+</Tabs>
+
+## Filters
+
+For filter syntax and operators, see [Filtering](/core-concepts/filtering).
+
+<Expandable title="Media Filters" default-open="true">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `mediable_type` | text | Polymorphic type (e.g., `Products`, `Companies`) |
+| `mediable_id` | number | ID of the parent model |
+| `media_type` | text | `image`, `video`, `document`, `audio` |
+| `is_primary` | bool | |
+
+</Expandable>
+
+## Includes
+
+For include syntax, see [Includes & Relations](/core-concepts/includes).
+
+| Resource | Available Includes |
+|----------|--------------------|
+| **Media** | `mediable` |
+
+## Validation Rules
+
+<Expandable title="Create Media — POST /media" default-open="true">
+
+| Field | Rules |
+|-------|-------|
+| `mediable_type` | required, string |
+| `mediable_id` | required, integer |
+| `media_type` | required, in: `image`, `video`, `document`, `audio` |
+| `media_url` | nullable, url |
+| `alt_text` | nullable, string |
+| `is_primary` | sometimes, boolean |
+| `sort_order` | sometimes, integer, min: 0 |
+
+</Expandable>
+
+## Examples
+
+<Steps>
+  <Step title="Access a file via CDN proxy (public, no auth)">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/media-hub/cdn/cdn.example-storage.com/products/images/product-42-hero.jpg'
+```
+    </Request>
+  </Step>
+  <Step title="List media for a specific product">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/media-hub/media?filter[mediable_type]=[{"condition":"=","value":"Products"}]&filter[mediable_id]=[{"condition":"=","value":42}]&sort=sort_order' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Filter primary images with includes">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/media-hub/media?filter[media_type]=[{"condition":"=","value":"image"}]&filter[is_primary]=[{"condition":"=","value":true}]&include=mediable&per_page=50' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Create a new media record">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/media-hub/media' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "mediable_type": "Products",
+    "mediable_id": 42,
+    "media_type": "image",
+    "media_url": "https://cdn.example-storage.com/products/images/product-42-hero.jpg",
+    "alt_text": "Product 42 hero image",
+    "is_primary": true,
+    "sort_order": 0
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="Set a media record as primary">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/media-hub/media/15/primary' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+</Steps>
+
+## Related
+
+<Columns cols={2}>
+  <Card title="ProductHub" icon="box" href="/hubs/product-hub">
+    Products use the MediaHub for product images, videos, and downloadable documents.
+  </Card>
+  <Card title="CustomerHub" icon="users" href="/hubs/customer-hub">
+    Companies and customers use media associations for logos and profile assets.
+  </Card>
+</Columns>

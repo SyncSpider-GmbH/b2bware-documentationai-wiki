@@ -1,0 +1,75 @@
+---
+title: AI Features
+description: AI-powered product descriptions and translations in the DataHub platform.
+---
+
+## Overview
+
+DataHub integrates AI capabilities for automated content generation, including product descriptions and multi-language translations. These features help streamline catalog management for large product sets.
+
+## AI Product Descriptions
+
+Generate AI-powered product descriptions based on existing product data (name, attributes, category):
+
+<Request tabs="cURL">
+```bash
+curl -s -X PUT \
+  'https://your-domain.com/api/v1/apps/product-hub/products/105/generateAIDescription' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+The AI generates both `description` (full HTML) and `short_description` (brief text) based on the product's attributes, name, and category context.
+
+## AI Translations
+
+ProductHub supports AI-powered translation of product content across multiple locales:
+
+<Steps>
+  <Step title="Trigger a translation job" icon="globe">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/product-hub/translations/job/run' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Check translation progress" icon="loader">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/product-hub/translations/job/progress' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+</Steps>
+
+## Translation Management
+
+You can also manage translations manually:
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/translations` | List all translations |
+| POST | `/translations` | Create a translation |
+| PUT | `/translations/{id}` | Update a translation |
+| PUT | `/translations/upsert/single` | Upsert a single translation |
+| PUT | `/translations/upsert/bulk` | Bulk upsert translations |
+
+## Related
+
+<Columns cols={2}>
+  <Card title="ProductHub" icon="box" href="/hubs/product-hub">
+    Full ProductHub API reference with translation endpoints.
+  </Card>
+  <Card title="Bulk Operations" icon="layers" href="/advanced/bulk-operations">
+    Bulk upsert translations across your catalog.
+  </Card>
+</Columns>

@@ -1,0 +1,43 @@
+---
+title: Authentication Errors
+description: Troubleshoot common authentication issues with the DataHub API.
+---
+
+## 401 Unauthorized
+
+**Symptom:** API returns `{"message": "Unauthenticated."}`
+
+**Causes:**
+- Missing `Authorization` header
+- Invalid or expired token
+- Incorrect token format (must be `Bearer {token}`, not just the token)
+
+**Solutions:**
+1. Verify the header: `Authorization: Bearer YOUR_TOKEN`
+2. Generate a new token if the current one has expired
+3. Check for extra spaces or line breaks in the token string
+
+## 403 Forbidden
+
+**Symptom:** API returns a 403 status code
+
+**Causes:**
+- Token is valid but lacks permissions for the requested resource
+- Attempting to access a hub or endpoint not included in your plan
+
+**Solutions:**
+1. Check your account permissions with your administrator
+2. Verify you're accessing the correct hub endpoint
+
+## Token Not Working After Copy/Paste
+
+Ensure there are no hidden characters, trailing newlines, or URL encoding in your token. Test with a simple curl command:
+
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/product-hub/products?per_page=1' \
+  -H 'Authorization: Bearer YOUR_TOKEN_HERE' \
+  -H 'Accept: application/json'
+```
+
+If this works but your integration doesn't, the issue is in how your integration sets the header.

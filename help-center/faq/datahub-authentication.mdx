@@ -1,0 +1,33 @@
+---
+title: Authentication FAQ
+description: Common questions about authenticating with the B2Bware DataHub API.
+---
+
+## How do I authenticate with the DataHub API?
+
+All API endpoints require a Bearer token in the `Authorization` header:
+
+```
+Authorization: Bearer {api_token}
+```
+
+See [Authentication](/authentication) for full details.
+
+## Where do I get my API token?
+
+API tokens are generated through your DataHub admin panel. Contact your system administrator if you don't have access.
+
+## Does one token work across all hubs?
+
+Yes. A single Bearer token authenticates you across all 9 DataHub hubs (ProductHub, OrderHub, CustomerHub, etc.).
+
+## Are there any public endpoints?
+
+Yes, a few endpoints do not require authentication:
+- **MediaHub** CDN proxy: `GET /api/v1/apps/media-hub/cdn/{domain}/{path}`
+- **OrderHub** payment webhook: `GET /api/v1/apps/order-hub/payment/webhook/{installationKey}/{provider}`
+- **OrderHub** payment redirect: `GET /api/v1/apps/order-hub/order/payment/{installationKey}/{order_id}`
+
+## What happens if my token expires?
+
+You receive a `401 Unauthorized` response with the message `"Unauthenticated."`. Generate a new token to continue.

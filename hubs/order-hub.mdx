@@ -1,0 +1,523 @@
+---
+title: OrderHub
+description: Full order lifecycle management including carts, checkout, line items, quotes, billing and shipping methods.
+---
+
+## Overview
+
+The OrderHub manages the complete order lifecycle from cart creation through checkout to fulfillment. It includes support for quotes, multiple billing/shipping methods, payment provider integration (Stripe, Mollie), and customer payment method storage.
+
+**Base URL:** `api/v1/apps/order-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="tip" title="Public Routes">
+Two endpoints do **not** require authentication:
+- `GET /payment/webhook/{installationKey}/{provider}` — Payment provider webhook callback
+- `GET /order/payment/{installationKey}/{order_id}` — Payment redirect after checkout
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Orders" icon="shopping-cart">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/orders` | List all orders (paginated, filterable) |
+| POST | `/orders` | Create a new order |
+| GET | `/orders/{id}` | Get order details |
+| PUT | `/orders/{id}` | Update an order |
+| DELETE | `/orders/{id}` | Delete an order |
+| GET | `/orders/statuses/list` | List all available order statuses |
+| GET | `/orders/statuses/options` | Get order statuses as select options |
+| POST | `/orders/statuses` | Create a custom order status |
+| DELETE | `/orders/statuses/{status}` | Delete a custom order status |
+
+  </Tab>
+  <Tab title="Line Items" icon="list">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/order-line-items` | List all order line items |
+| POST | `/order-line-items` | Create a line item |
+| GET | `/order-line-items/{id}` | Get line item details |
+| PUT | `/order-line-items/{id}` | Update a line item |
+| DELETE | `/order-line-items/{id}` | Delete a line item |
+
+**Order Comments**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/order-comments` | List all order comments |
+| POST | `/order-comments` | Add a comment to an order |
+| GET | `/order-comments/{id}` | Get comment details |
+| PUT | `/order-comments/{id}` | Update a comment |
+| DELETE | `/order-comments/{id}` | Delete a comment |
+
+  </Tab>
+  <Tab title="Carts & Checkout" icon="shopping-bag">
+
+**Carts**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/carts` | List all carts |
+| POST | `/carts` | Create a new cart |
+| GET | `/carts/{id}` | Get cart details |
+| PUT | `/carts/{id}` | Update a cart |
+| PATCH | `/carts` | Upsert cart by `session_uuid` (creates or updates) |
+| DELETE | `/carts/{id}` | Delete a cart |
+
+**Cart Items**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/cart-items` | List all cart items |
+| POST | `/cart-items` | Add item to cart |
+| GET | `/cart-items/{id}` | Get cart item details |
+| PUT | `/cart-items/{id}` | Update cart item |
+| DELETE | `/cart-items/{id}` | Remove item from cart |
+
+**Checkout**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/carts/{cart}/checkout` | Preview checkout (calculate totals, shipping, tax) |
+| POST | `/carts/{cart}/checkout` | Complete checkout — converts cart to order |
+
+  </Tab>
+  <Tab title="Payments & Shipping" icon="credit-card">
+
+**Billing Methods**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/billing-methods` | List all billing methods |
+| POST | `/billing-methods` | Create a billing method |
+| GET | `/billing-methods/{id}` | Get billing method details |
+| PUT | `/billing-methods/{id}` | Update a billing method |
+| DELETE | `/billing-methods/{id}` | Delete a billing method |
+| GET | `/billing-methods/payment-providers/templates` | List available payment provider templates |
+| POST | `/billing-methods/payment-providers/templates` | Create from provider template |
+
+**Shipping Methods**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/shipping-methods` | List all shipping methods |
+| POST | `/shipping-methods` | Create a shipping method |
+| GET | `/shipping-methods/{id}` | Get shipping method details |
+| PUT | `/shipping-methods/{id}` | Update a shipping method |
+| DELETE | `/shipping-methods/{id}` | Delete a shipping method |
+
+**Customer Payment Methods**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/customer-payment-methods` | List customer payment methods |
+| POST | `/customer-payment-methods` | Add a customer payment method |
+| GET | `/customer-payment-methods/{id}` | Get payment method details |
+| PUT | `/customer-payment-methods/{id}` | Update a payment method |
+| DELETE | `/customer-payment-methods/{id}` | Remove a payment method |
+
+  </Tab>
+  <Tab title="Quotes" icon="file-text">
+
+**Quotes**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/quotes` | List all quotes |
+| POST | `/quotes` | Create a new quote |
+| GET | `/quotes/{id}` | Get quote details |
+| PUT | `/quotes/{id}` | Update a quote |
+| DELETE | `/quotes/{id}` | Delete a quote |
+
+**Quote Items**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/quote-items` | List all quote items |
+| POST | `/quote-items` | Add item to a quote |
+| GET | `/quote-items/{id}` | Get quote item details |
+| PUT | `/quote-items/{id}` | Update a quote item |
+| DELETE | `/quote-items/{id}` | Remove a quote item |
+
+**Quote Item Groups**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/quote-items-groups` | List all quote item groups |
+| POST | `/quote-items-groups` | Create a quote item group |
+| GET | `/quote-items-groups/{id}` | Get group details |
+| PUT | `/quote-items-groups/{id}` | Update a group |
+| DELETE | `/quote-items-groups/{id}` | Delete a group |
+
+  </Tab>
+</Tabs>
+
+## Filters
+
+For filter syntax and operators, see [Filtering](/core-concepts/filtering).
+
+<Expandable title="Order Filters" default-open="true">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact order ID |
+| `status` | text | Order status (draft, pending, invoiced, shipped, completed, pending_payment, paid, refunded, partially_refunded, canceled, processing) |
+| `total_price` | number | Total order price (supports range) |
+| `customer_id` | number | Filter by customer |
+| `shipping_method_id` | number | Filter by shipping method |
+| `billing_method_id` | number | Filter by billing method |
+| `external_id` | text | External system reference ID |
+| `order_number` | text | Human-readable order number |
+| `_created_at` | date | Creation date |
+| `_updated_at` | date | Last update date |
+
+</Expandable>
+
+<Expandable title="Cart Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact cart ID |
+| `session_uuid` | text | Session identifier for guest carts |
+| `total_price` | number | Total cart value |
+| `customer_id` | number | Filter by customer |
+| `_created_at` | date | Creation date |
+| `_updated_at` | date | Last update date |
+
+</Expandable>
+
+<Expandable title="Order Line Item Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact line item ID |
+| `name` | text | Line item name (partial match) |
+| `order_id` | number | Parent order ID |
+| `quantity` | number | Quantity |
+| `price` | number | Unit price |
+| `total_price` | number | Line total |
+| `product_id` | number | Associated product ID |
+| `_created_at` | date | Creation date |
+| `_updated_at` | date | Last update date |
+
+</Expandable>
+
+<Expandable title="Cart Item Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact cart item ID |
+| `cart_id` | number | Parent cart ID |
+| `product_id` | number | Product ID |
+| `quantity` | number | Quantity in cart |
+| `price` | number | Unit price |
+
+</Expandable>
+
+<Expandable title="Order Comment Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact comment ID |
+| `comment` | text | Comment body (partial match) |
+| `order_id` | number | Parent order ID |
+| `_created_at` | date | Creation date |
+| `_updated_at` | date | Last update date |
+
+</Expandable>
+
+<Expandable title="Billing / Shipping Method Filters" default-open="false">
+
+**Billing Methods**
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact billing method ID |
+| `name` | text | Billing method name |
+| `_created_at` | date | Creation date |
+| `_updated_at` | date | Last update date |
+
+**Shipping Methods**
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact shipping method ID |
+| `name` | text | Shipping method name |
+| `_created_at` | date | Creation date |
+| `_updated_at` | date | Last update date |
+
+**Customer Payment Methods**
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact payment method ID |
+| `provider` | text | Payment provider (stripe, mollie, etc.) |
+| `brand` | text | Card brand (visa, mastercard, etc.) |
+| `_created_at` | date | Creation date |
+| `_updated_at` | date | Last update date |
+
+</Expandable>
+
+<Expandable title="Quote Filters" default-open="false">
+
+**Quotes**
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact quote ID |
+| `total_price` | number | Quote total |
+| `customer_id` | number | Customer ID |
+| `_created_at` | date | Creation date |
+| `_updated_at` | date | Last update date |
+
+**Quote Items**
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact quote item ID |
+| `quote_id` | number | Parent quote ID |
+| `order_id` | number | Linked order ID (if converted) |
+| `product_id` | number | Product ID |
+| `group_id` | number | Quote item group ID |
+| `quantity` | number | Quantity |
+| `price` | number | Unit price |
+
+**Quote Item Groups**
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact group ID |
+| `name` | text | Group name |
+| `quote_id` | number | Parent quote ID |
+| `_created_at` | date | Creation date |
+| `_updated_at` | date | Last update date |
+
+</Expandable>
+
+## Includes
+
+For include syntax, see [Includes & Relations](/core-concepts/includes).
+
+<Expandable title="Order Includes" default-open="true">
+
+| Include | Description |
+|---------|-------------|
+| `customer` | Customer who placed the order |
+| `customer.company` | Customer's company details |
+| `shippingMethod` | Shipping method used |
+| `billingMethod` | Billing/payment method used |
+| `orderLineItems` | All line items in the order |
+| `comments` | Order comments/notes |
+| `orderLineItems.product` | Product details per line item |
+| `orderLineItems.product.mainMedia` | Primary product image per line item |
+| `orderLineItems.product.media` | All product media per line item |
+| `shippingAddress` | Shipping address |
+| `billingAddress` | Billing address |
+| `attributeValues` | Custom attribute values on the order |
+| `attributeValues.value` | The attribute value object |
+| `attributeValues.value.translation` | Translated attribute value |
+| `attributeValues.value.attribute` | Parent attribute definition |
+
+</Expandable>
+
+<Expandable title="Cart Includes" default-open="false">
+
+| Include | Description |
+|---------|-------------|
+| `session` | Session data for guest carts |
+| `cartItems` | All items in the cart |
+| `cartItems.product` | Product for each cart item |
+| `cartItems.product.productImages` | Product images |
+| `cartItems.product.prices` | All prices for the product |
+| `cartItems.product.price` | Regular price |
+| `cartItems.product.specialPrice` | Special/sale price |
+| `cartItems.product.finalPrice` | Computed final price |
+| `cartItems.product.tierPrices` | Tier pricing tiers |
+| `cartItems.product.finalTierPrices` | Computed tier prices |
+| `cartItems.product.groupPrices` | Customer group prices |
+| `cartItems.product.media` | All product media |
+| `cartItems.product.mainMedia` | Primary product image |
+| `cartItems.product.crossSells` | Cross-sell products |
+| `cartItems.product.upSells` | Up-sell products |
+| `customer` | Cart owner (if authenticated) |
+| `customer.company` | Cart owner's company |
+
+</Expandable>
+
+<Expandable title="Other Includes" default-open="false">
+
+**Order Line Items:** `order`, `product`
+
+**Cart Items:** `cart`, `product`, `product.mainMedia`, `product.crossSells.crossSellProduct.mainMedia`, `product.upSells.upSellProduct.mainMedia`
+
+**Order Comments:** `order`
+
+**Billing Methods:** `order`
+
+**Shipping Methods:** `order`
+
+**Customer Payment Methods:** `billingMethod`
+
+**Quotes:** `quoteItems`, `quoteItems.product`, `quoteItems.product.prices`, `quoteItems.product.media`, `customer`, `customer.company`
+
+**Quote Items:** `quote`, `quote.customer`, `order`, `order.orderItems`, `product`, `product.prices`, `product.media`
+
+**Quote Item Groups:** `quoteItems`, `quoteItems.product`, `quote`, `quote.customer`, `quote.customer.company`
+
+</Expandable>
+
+## Validation Rules
+
+<Expandable title="Create Order" default-open="true">
+
+| Field | Rules |
+|-------|-------|
+| `status` | required, in: draft, pending, invoiced, shipped, completed, pending_payment, paid, refunded, partially_refunded, canceled, processing |
+| `customer_id` | required, numeric |
+| `shipping_method_id` | numeric |
+| `billing_method_id` | numeric |
+| `shipping_address_id` | numeric |
+| `billing_address_id` | numeric |
+| `external_id` | sometimes, nullable, unique |
+| `order_number` | sometimes, nullable, unique |
+| `line_items` | required, array, min:1 |
+| `line_items.*.name` | required, string |
+| `line_items.*.quantity` | required, numeric |
+| `line_items.*.price` | required, numeric |
+| `line_items.*.product_id` | numeric (optional link to ProductHub) |
+| `attributes` | array, nullable |
+
+</Expandable>
+
+<Expandable title="Create Cart" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `is_active` | sometimes, boolean |
+| `session_uuid` | sometimes, nullable |
+| `customer_id` | sometimes, nullable, numeric |
+| `cart_items` | required, array, min:1 |
+| `cart_items.*.quantity` | required, numeric |
+| `cart_items.*.product_id` | numeric |
+
+</Expandable>
+
+<Expandable title="Checkout" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `shipping_method_id` | required, numeric |
+| `billing_method_id` | required, numeric |
+| `shipping_address_id` | required, numeric |
+| `billing_address_id` | required, numeric |
+| `comment` | string (optional order comment) |
+
+</Expandable>
+
+## Examples
+
+<Steps>
+  <Step title="List orders with full includes">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/order-hub/orders?include=customer,customer.company,orderLineItems,orderLineItems.product.mainMedia,shippingMethod,billingMethod,shippingAddress,billingAddress&page[size]=20&sort=-_created_at' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Filter orders by status and date range">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/order-hub/orders?filter[status]=pending,processing&filter[_created_at]=2024-01-01,2024-12-31&include=customer,orderLineItems&sort=-total_price' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Create an order with line items">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/order-hub/orders' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "status": "pending",
+    "customer_id": 42,
+    "shipping_method_id": 1,
+    "billing_method_id": 2,
+    "shipping_address_id": 15,
+    "billing_address_id": 15,
+    "external_id": "ERP-2024-00891",
+    "line_items": [
+      {"name": "Premium Widget", "quantity": 3, "price": 29.99, "product_id": 105},
+      {"name": "Widget Accessory Pack", "quantity": 1, "price": 14.50, "product_id": 210}
+    ]
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="Upsert cart by session UUID">
+    <Request tabs="cURL">
+```bash
+curl -s -X PATCH \
+  'https://your-domain.com/api/v1/apps/order-hub/carts' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "session_uuid": "a3f8c912-7b4e-4d1a-9c6e-2f8b1d0e5a73",
+    "is_active": true,
+    "cart_items": [
+      {"product_id": 105, "quantity": 2},
+      {"product_id": 210, "quantity": 1}
+    ]
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="Complete checkout">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/order-hub/carts/17/checkout' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "shipping_method_id": 1,
+    "billing_method_id": 2,
+    "shipping_address_id": 15,
+    "billing_address_id": 15,
+    "comment": "Please gift-wrap the order."
+  }'
+```
+    </Request>
+  </Step>
+</Steps>
+
+## Related
+
+<Columns cols={3}>
+  <Card title="ProductHub" icon="box" href="/hubs/product-hub">
+    Products referenced in order line items and cart items.
+  </Card>
+  <Card title="CustomerHub" icon="users" href="/hubs/customer-hub">
+    Customers and addresses used in orders.
+  </Card>
+  <Card title="TaxHub" icon="percent" href="/hubs/tax-hub">
+    Tax calculation during checkout.
+  </Card>
+</Columns>

@@ -1,0 +1,51 @@
+---
+title: Sync Failures
+description: Diagnose and fix common DataHub synchronization issues.
+---
+
+## Common Sync Failure Causes
+
+### 1. Authentication Errors
+
+If your sync is failing with `401 Unauthorized`, your API token may have expired. Generate a new token and update your integration configuration.
+
+### 2. Validation Errors (422)
+
+Check the error response for field-specific messages:
+
+```json
+{
+  "message": "The given data was invalid.",
+  "errors": {
+    "sku": ["The sku has already been taken."]
+  }
+}
+```
+
+**Common fixes:**
+- Ensure required fields are present
+- Check unique constraints (SKU, email, customer_number)
+- Verify field types match expected formats
+
+### 3. Product Upsert Failures
+
+When using `PUT /products/upsert/single`, ensure:
+- The `sku` field is provided and correctly formatted
+- The `action` field is set appropriately (`createOrUpdate`, `onlyCreate`, `onlyUpdate`)
+- Price and stock arrays follow the expected nested format
+
+### 4. Rate Limiting
+
+If you're making too many requests in a short period, implement exponential backoff retry logic. See [Rate Limiting](/help-center/troubleshooting/rate-limiting).
+
+### 5. Large Payload Timeouts
+
+For bulk operations, keep payloads under 1,000 items per request. Split larger imports into batches.
+
+## Debugging Steps
+
+1. Check the HTTP status code in the response
+2. Read the `errors` object for field-level details
+3. Verify your request body against the hub's [validation rules](/hubs/overview)
+4. Test with a single record before running bulk operations
+5. Enable logging in your integration to capture full request/response payloads

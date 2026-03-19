@@ -1,11 +1,11 @@
 {
-  "name": "B2Bware",
+  "name": "B2Bware DataHub",
   "colors": {
     "light": {
-      "brand": "#30CF93"
+      "brand": "#2B2F3E"
     },
     "dark": {
-      "brand": "#73D9B2"
+      "brand": "#8291C9"
     }
   },
   "navigation": {
@@ -18,38 +18,46 @@
             "group": "Getting Started",
             "icon": "rocket",
             "pages": [
-              {
-                "title": "Introduction",
-                "path": "introduction",
-                "icon": "home"
-              },
-              {
-                "title": "Quickstart",
-                "path": "quickstart",
-                "icon": "zap"
-              }
+              { "title": "Introduction", "path": "introduction", "icon": "home" },
+              { "title": "Quickstart", "path": "quickstart", "icon": "zap" },
+              { "title": "Authentication", "path": "authentication", "icon": "lock" }
             ]
           },
           {
             "group": "Core Concepts",
-            "icon": "layers",
+            "icon": "compass",
             "pages": [
-              {
-                "title": "Features",
-                "path": "features",
-                "icon": "file-text"
-              }
+              { "title": "Common Patterns", "path": "core-concepts/common-patterns", "icon": "layers" },
+              { "title": "Filtering", "path": "core-concepts/filtering", "icon": "filter" },
+              { "title": "Includes & Relations", "path": "core-concepts/includes", "icon": "git-branch" },
+              { "title": "Error Handling", "path": "core-concepts/error-handling", "icon": "alert-circle" }
             ]
           },
           {
-            "group": "Integrations",
-            "icon": "plug",
+            "group": "Hubs",
+            "icon": "database",
             "pages": [
-              {
-                "title": "Integrations",
-                "path": "integrations",
-                "icon": "file-text"
-              }
+              { "title": "Hub Overview", "path": "hubs/overview", "icon": "grid" },
+              { "title": "ProductHub", "path": "hubs/product-hub", "icon": "box" },
+              { "title": "OrderHub", "path": "hubs/order-hub", "icon": "shopping-cart" },
+              { "title": "CustomerHub", "path": "hubs/customer-hub", "icon": "users" },
+              { "title": "AttributesHub", "path": "hubs/attributes-hub", "icon": "sliders" },
+              { "title": "MediaHub", "path": "hubs/media-hub", "icon": "image" },
+              { "title": "NotificationHub", "path": "hubs/notification-hub", "icon": "bell" },
+              { "title": "TaxHub", "path": "hubs/tax-hub", "icon": "percent" },
+              { "title": "SettingsHub", "path": "hubs/settings-hub", "icon": "settings" },
+              { "title": "LicenseHub", "path": "hubs/license-hub", "icon": "key" }
+            ]
+          },
+          {
+            "group": "Advanced",
+            "icon": "code",
+            "pages": [
+              { "title": "Bulk Operations", "path": "advanced/bulk-operations", "icon": "layers" },
+              { "title": "Checkout Flow", "path": "advanced/checkout-flow", "icon": "credit-card" },
+              { "title": "Tax Calculation", "path": "advanced/tax-calculation", "icon": "calculator" },
+              { "title": "Product Variations", "path": "advanced/product-variations", "icon": "copy" },
+              { "title": "AI Features", "path": "advanced/ai-features", "icon": "cpu" }
             ]
           }
         ]
@@ -69,20 +77,15 @@
         "tab": "Help Center",
         "icon": "help-circle",
         "pages": [
-          {
-            "title": "Help Center",
-            "path": "help-center",
-            "icon": "home"
-          },
+          { "title": "Help Center", "path": "help-center", "icon": "home" },
           {
             "group": "FAQs",
             "icon": "help-circle",
             "expandable": false,
             "pages": [
-              {
-                "title": "B2Bware Authentication",
-                "path": "help-center/faq/b2bware-authentication"
-              }
+              { "title": "Authentication FAQ", "path": "help-center/faq/datahub-authentication" },
+              { "title": "Filtering FAQ", "path": "help-center/faq/filtering" },
+              { "title": "Pricing & Plans", "path": "help-center/faq/pricing" }
             ]
           },
           {
@@ -90,10 +93,9 @@
             "icon": "alert-triangle",
             "expandable": false,
             "pages": [
-              {
-                "title": "Sync Error",
-                "path": "help-center/troubleshooting/sync-error"
-              }
+              { "title": "Sync Failures", "path": "help-center/troubleshooting/datahub-sync-failures" },
+              { "title": "Authentication Errors", "path": "help-center/troubleshooting/authentication-errors" },
+              { "title": "Rate Limiting", "path": "help-center/troubleshooting/rate-limiting" }
             ]
           },
           {
@@ -101,10 +103,9 @@
             "icon": "book-open",
             "expandable": false,
             "pages": [
-              {
-                "title": "Connect SyncSpider",
-                "path": "help-center/guides/connect-syncspider"
-              }
+              { "title": "SyncSpider Integration", "path": "help-center/guides/datahub-integration-setup" },
+              { "title": "ERP Sync Setup", "path": "help-center/guides/erp-sync-setup" },
+              { "title": "Product Import Guide", "path": "help-center/guides/product-import" }
             ]
           }
         ]
@@ -113,11 +114,7 @@
         "tab": "Changelog",
         "icon": "clock",
         "pages": [
-          {
-            "title": "Release History",
-            "path": "changelog",
-            "icon": "history"
-          }
+          { "title": "Release History", "path": "changelog", "icon": "history" }
         ]
       }
     ]

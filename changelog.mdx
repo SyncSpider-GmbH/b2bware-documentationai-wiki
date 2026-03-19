@@ -1,137 +1,34 @@
 ---
 title: Changelog
-description: Review the version history of B2Bware, including recent updates, new features, and improvements.
+description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
-## Recent Updates
+<Update label="2025-03-19" description="v2.0.0 — Documentation Overhaul" tags={["feature"]}>
 
-Stay informed about the latest enhancements to B2Bware. Each release delivers new features, performance improvements, and critical bug fixes to enhance your B2B commerce experience.
+## Complete API Documentation
 
-<Callout kind="info">
-  Check the [official release notes](https://github.com/b2bware/releases) for full details and migration guides.
-</Callout>
+- Added comprehensive documentation for all 9 DataHub hubs
+- ProductHub: 26 filters, 42+ includes, full validation rules
+- OrderHub: Complete checkout flow with carts, quotes, and payment methods
+- NotificationHub: 120+ endpoints across 6 channels
+- CustomerHub: B2B customer management with companies, roles, groups
+- TaxHub: Rule-based calculation engine with jurisdiction support
+- AttributesHub, MediaHub, SettingsHub, LicenseHub: Full API reference
 
-<Update label="2024-10-15" description="v2.1.0" tags={["feature", "improvement"]}>
+## New Sections
 
-## New Features
-
-- Added support for dynamic tiered pricing catalogs with real-time ERP synchronization
-- Introduced unified product data management across multiple buyer portals
-
-## Improvements
-
-- Enhanced order processing speed by `>30%` for high-volume distributors
-- Optimized inventory sync to reduce manual reconciliation efforts
-
-## Bug Fixes
-
-- Fixed intermittent failures in contract catalog loading
-- Resolved UI glitches in the buyer self-service dashboard
+- Core Concepts: Common patterns, filtering, includes, error handling
+- Advanced Guides: Bulk operations, checkout flow, tax calculation, product variations, AI features
+- Updated Help Center with integration guides and troubleshooting
 
 </Update>
 
-<Update label="2024-09-20" description="v2.0.0" tags={["feature", "breaking"]}>
+<Update label="2024-10-15" description="v1.0.0" tags={["feature"]}>
 
-## New Features
+## Initial Release
 
-- Native ERP integration for manufacturers and wholesalers
-- Self-service buyer portal with seamless authentication
-
-## Breaking Changes
-
-- Updated API endpoints from `/v1/orders` to `/v2/orders` – update your integrations
-- Deprecated legacy pricing rules; migrate to new tiered system
-
-## Bug Fixes
-
-- Corrected inventory sync discrepancies with popular ERPs
-- Improved error handling for failed order submissions
+- Basic API reference with OpenAPI specification
+- Getting started guide and authentication documentation
+- Help center with SyncSpider integration guide
 
 </Update>
-
-<Update label="2024-08-10" description="v1.9.0" tags={["bugfix", "improvement"]}>
-
-## Improvements
-
-- Boosted dashboard performance for `>50` concurrent users
-- Added customizable buyer notifications for order status updates
-
-## Bug Fixes
-
-- Patched security vulnerability in webhook endpoints (CVE-2024-XXXX)
-- Fixed pricing calculation errors for multi-currency setups
-
-</Update>
-
-## Upgrade Instructions
-
-Follow these steps to upgrade B2Bware to the latest version safely.
-
-<Steps>
-  <Step title="Backup Your Data" icon="database">
-
-    Create a full backup of your ERP data and configurations.
-
-````bash
-# Example backup command
-pg_dump -U user b2bware_db > backup_$(date +%Y%m%d).sql
-````
-
-  </Step>
-  <Step title="Update Package" icon="package">
-
-    Use your package manager to install the latest version.
-
-    <CodeGroup tabs="npm,yarn">
-````bash
-npm install b2bware@latest
-````
-````bash
-yarn add b2bware@latest
-````
-    </CodeGroup>
-
-  </Step>
-  <Step title="Run Migrations" icon="git-branch">
-
-    Execute database migrations.
-
-````bash
-npx b2bware migrate
-````
-
-  </Step>
-  <Step title="Restart Services" icon="refresh-cw">
-
-    Restart your B2Bware services and verify functionality.
-
-  </Step>
-</Steps>
-
-<Callout kind="tip">
-  Test upgrades in a staging environment first. Monitor logs for any `{deprecation}` warnings.
-</Callout>
-
-## Next Steps
-
-<Columns cols={3}>
-  <Card title="Quickstart" icon="zap" href="/quickstart">
-    Get up and running with B2Bware in minutes.
-  </Card>
-  <Card title="Authentication" icon="shield" href="/authentication">
-    Secure your ERP integrations properly.
-  </Card>
-  <Card title="Configuration" icon="settings" href="/configuration">
-    Customize B2Bware for your business needs.
-  </Card>
-</Columns>
-
-## Upcoming Changes
-
-<Expandable title="Planned Features" default-open="false">
-
-- Advanced analytics dashboard (Q4 2024)
-- Multi-tenant support for resellers
-- AI-driven pricing recommendations
-
-</Expandable>

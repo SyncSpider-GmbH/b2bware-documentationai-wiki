@@ -1,0 +1,146 @@
+---
+title: Filtering
+description: Complete guide to the DataHub filter system using CommonFilterRepository with MongoDB-compatible operators.
+---
+
+## Overview
+
+All DataHub hubs use `CommonFilterRepository` for MongoDB-compatible filtering via Spatie QueryBuilder. Filters are passed as JSON-encoded arrays of condition objects in query parameters.
+
+<Callout kind="info">
+Each hub page documents its specific filterable fields. This page covers the generic filter syntax and operators that apply across all hubs.
+</Callout>
+
+## Filter Syntax
+
+```
+?filter[field_name]=[{"condition":"operator","value":"value"}]
+```
+
+The value is a JSON-encoded array of condition objects. Each condition object has:
+
+| Key | Required | Description |
+|-----|----------|-------------|
+| `condition` | Yes | The comparison operator |
+| `value` | Depends | The value to compare against (not needed for `EMPTY`/`NOT EMPTY`) |
+| `operator` | No | Logical operator to combine with previous conditions (`AND` or `OR`) |
+
+## Supported Operators
+
+| Condition | Description | Example |
+|-----------|-------------|---------|
+| `=` | Exact match | `?filter[status]=[{"condition":"=","value":"active"}]` |
+| `!=` | Not equal | `?filter[status]=[{"condition":"!=","value":"deleted"}]` |
+| `>` | Greater than | `?filter[price]=[{"condition":">","value":100}]` |
+| `<` | Less than | `?filter[price]=[{"condition":"<","value":500}]` |
+| `>=` | Greater than or equal | `?filter[quantity]=[{"condition":">=","value":10}]` |
+| `<=` | Less than or equal | `?filter[quantity]=[{"condition":"<=","value":100}]` |
+| `LIKE` | Pattern match | `?filter[name]=[{"condition":"LIKE","value":"%search%"}]` |
+| `IN` | Value in set | `?filter[status]=[{"condition":"IN","value":["active","pending"]}]` |
+| `NOT IN` | Value not in set | `?filter[status]=[{"condition":"NOT IN","value":["canceled"]}]` |
+| `EMPTY` | Field is null/empty | `?filter[description]=[{"condition":"EMPTY"}]` |
+| `NOT EMPTY` | Field is not null/empty | `?filter[description]=[{"condition":"NOT EMPTY"}]` |
+
+## Filter Field Types
+
+| Type | Description | Example Values |
+|------|-------------|----------------|
+| `number` | Integer or float values | `1`, `42`, `3.14` |
+| `text` | String values | `"Product Name"`, `"SKU-001"` |
+| `date` | Date/DateTime values | `"2024-01-01"`, `"2024-01-01T10:30:00"` |
+| `bool` | Boolean values | `true`, `false`, `1`, `0` |
+
+## Combining Conditions
+
+### AND Conditions
+
+Multiple conditions on the same field can be combined with `AND` to create range filters:
+
+<Request tabs="cURL">
+```bash
+# Price between 100 and 500
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/product-hub/products?filter[price]=[{"condition":">=","value":100},{"condition":"<=","value":500,"operator":"AND"}]' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+### OR Conditions
+
+Use `OR` to match any of several values:
+
+<Request tabs="cURL">
+```bash
+# Status is active OR pending
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/customer-hub/customers?filter[status]=[{"condition":"=","value":"active"},{"condition":"=","value":"pending","operator":"OR"}]' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+<Callout kind="tip" title="IN vs OR">
+For matching multiple values on the same field, prefer the `IN` operator over chaining multiple `OR` conditions. It's more concise and performs the same operation.
+</Callout>
+
+## Relation Filters
+
+Filter through relationships using dot notation. This allows you to filter a resource based on the properties of its related entities:
+
+```
+?filter[company.name]=[{"condition":"LIKE","value":"%Acme%"}]
+```
+
+<Request tabs="cURL">
+```bash
+# Find customers whose company name contains "Acme"
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/customer-hub/customers?filter[company.name]=[{"condition":"LIKE","value":"%Acme%"}]&include=company' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+## Callback / Search Filters
+
+Some hubs define callback filters that query across multiple fields simultaneously. The most common is `search`:
+
+```
+?filter[search]=term
+```
+
+<Callout kind="info">
+Callback filters use simple key-value syntax (not the JSON array format). Each hub documents which callback filters are available and which fields they search.
+</Callout>
+
+## Multiple Filters
+
+Combine filters across different fields by adding multiple `filter[]` parameters. All filters are applied with AND logic:
+
+<Request tabs="cURL">
+```bash
+# Public products created in 2024 with stock
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/product-hub/products?filter[status]=[{"condition":"=","value":"public"}]&filter[_created_at]=[{"condition":">=","value":"2024-01-01"}]&filter[without_stock]=1' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+## ProductHub Attribute Filter
+
+ProductHub has a special `attribute` filter that uses the `AttributeFilterRepository` for advanced attribute-based product filtering:
+
+```
+filter[attribute]=[{"attribute_id":1,"attribute_value":"Red","condition":"IN","operator":"AND"}]
+```
+
+| Field | Values | Description |
+|-------|--------|-------------|
+| `attribute_id` | number | The attribute definition ID |
+| `attribute_value` | string | Value(s) to match — comma-separated for multi-value |
+| `condition` | `IN`, `NOT_IN`, `EQUALS`, `NOT_EQUALS`, `LIKE`, `GT`, `LT`, `GTE`, `LTE` | Match condition |
+| `operator` | `AND`, `OR` | How to combine with other attribute conditions |
+
+For full details, see [ProductHub Filters](/hubs/product-hub#filters).

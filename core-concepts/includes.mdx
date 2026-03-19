@@ -1,0 +1,101 @@
+---
+title: Includes & Relations
+description: How to use the include system to eagerly load related resources with dot notation for nested relationships.
+---
+
+## Overview
+
+DataHub supports eager loading of related resources using the `include` query parameter. This allows you to retrieve a resource along with its related data in a single API call, reducing the number of requests needed.
+
+## Syntax
+
+Add the `include` query parameter with a comma-separated list of relation names:
+
+```
+?include=relation1,relation2
+```
+
+### Nested Relations (Dot Notation)
+
+Use dot notation to include nested relationships:
+
+```
+?include=relation1,relation2.nestedRelation,relation2.nestedRelation.deepNested
+```
+
+<Request tabs="cURL">
+```bash
+# Load a customer with company, addresses, and translated attribute values
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/customer-hub/customers?include=company,shippingAddresses,attributeValues.value.translation' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+## How Includes Work
+
+When you include a relation, the related data is embedded in the response under the relation name:
+
+```json
+{
+  "data": {
+    "id": 1,
+    "first_name": "Jane",
+    "last_name": "Doe",
+    "company": {
+      "id": 10,
+      "name": "Acme Corp"
+    },
+    "shippingAddresses": [
+      {
+        "id": 5,
+        "city": "Berlin",
+        "country": "DE"
+      }
+    ]
+  }
+}
+```
+
+## Performance Considerations
+
+<Callout kind="alert" title="Use Includes Judiciously">
+Deep include chains can significantly impact response times, especially on large datasets. Only include the relations you actually need.
+</Callout>
+
+**Best practices:**
+
+- Only request includes you need for your current use case
+- Avoid deeply nested includes (3+ levels) on list endpoints with large page sizes
+- For catalog browsing, use focused includes like `price,mainMedia` rather than loading all relations
+- ProductHub supports 42+ includes — loading all of them simultaneously is not recommended
+
+## Available Includes by Hub
+
+Each hub defines its own set of available includes. Refer to the individual hub pages for the complete list:
+
+| Hub | Notable Includes |
+|-----|-----------------|
+| [ProductHub](/hubs/product-hub) | 42+ includes: prices, stock, attributes, media, categories, variations, cross-sells |
+| [OrderHub](/hubs/order-hub) | Orders with line items, customers, addresses, products, quotes |
+| [CustomerHub](/hubs/customer-hub) | Company, addresses, roles, groups, attribute values with deep nesting |
+| [AttributesHub](/hubs/attributes-hub) | Values, translations, groups |
+| [NotificationHub](/hubs/notification-hub) | Types, attempts, preferences, creators |
+| [LicenseHub](/hubs/license-hub) | Usage logs, pools, products, orders |
+| [MediaHub](/hubs/media-hub) | Polymorphic mediable parent |
+| [TaxHub](/hubs/tax-hub) | Tax classes, jurisdictions, conditions, translations |
+| [SettingsHub](/hubs/settings-hub) | No includes (data returned directly) |
+
+## Custom Computed Includes
+
+Some includes trigger custom logic rather than simple relation loading. These are marked as **(Custom)** in hub documentation. Examples from ProductHub:
+
+| Include | Description |
+|---------|-------------|
+| `attributes` | Returns a denormalized attribute summary grouped by attribute |
+| `stockSum` | Aggregated total stock quantity across all warehouses |
+| `variationAttributes` | For configurable parents: variation-defining attributes with available values |
+| `productsCount` | On categories: count of products in the category |
+
+These computed includes may have different performance characteristics than standard relation includes.

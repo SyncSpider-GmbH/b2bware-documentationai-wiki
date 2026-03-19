@@ -1,0 +1,268 @@
+---
+title: AttributesHub
+description: Manage dynamic product attributes, types, values, and groups with polymorphic attributable relations and translations.
+---
+
+## Overview
+
+The AttributesHub manages dynamic product attributes, including attribute definitions, types, values, and groups. It supports polymorphic attributable relations and translations, allowing you to extend products and other entities with custom data.
+
+**Base URL:** `api/v1/apps/attributes-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Attributes" icon="sliders">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/attributes` | List all attributes (paginated, filterable) |
+| POST | `/attributes` | Create a new attribute |
+| GET | `/attributes/{id}` | Get a single attribute |
+| PUT | `/attributes/{id}` | Update an attribute |
+| DELETE | `/attributes/{id}` | Delete an attribute |
+| PUT | `/attributes/insert/bulk` | Bulk create or update attributes |
+| GET | `/attributeTypes` | List available attribute types |
+
+**Available Attribute Types:** `numeric`, `text`, `textarea`, `select`, `multiselect`, `radio`, `boolean`, `date`, `datetime`, `swatch`
+
+  </Tab>
+  <Tab title="Attribute Values" icon="list">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/attributeValues` | List all attribute values |
+| POST | `/attributeValues` | Create an attribute value |
+| GET | `/attributeValues/{id}` | Get a single attribute value |
+| PUT | `/attributeValues/{id}` | Update an attribute value |
+| DELETE | `/attributeValues/{id}` | Delete an attribute value |
+
+  </Tab>
+  <Tab title="Attribute Groups" icon="folder">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/attributeGroups` | List all attribute groups |
+| POST | `/attributeGroups` | Create an attribute group |
+| GET | `/attributeGroups/{id}` | Get a single attribute group |
+| PUT | `/attributeGroups/{id}` | Update an attribute group |
+| DELETE | `/attributeGroups/{id}` | Delete an attribute group |
+| GET | `/attributeGroups/types/list` | List available group types |
+
+  </Tab>
+  <Tab title="Attributable Values" icon="link">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/attributableValues` | List all attributable values |
+| POST | `/attributableValues` | Create an attributable value |
+| GET | `/attributableValues/{id}` | Get a single attributable value |
+| PUT | `/attributableValues/{id}` | Update an attributable value |
+| DELETE | `/attributableValues/{id}` | Delete an attributable value |
+
+  </Tab>
+</Tabs>
+
+## Filters
+
+For filter syntax and operators, see [Filtering](/core-concepts/filtering).
+
+<Expandable title="Attribute Filters" default-open="true">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `name` | text | |
+| `type` | text | One of the attribute types |
+| `group_id` | number | |
+| `_created_at` | date | |
+| `_updated_at` | date | |
+| `visible_on_the_product_page` | bool | |
+| `used_for_filtering` | bool | |
+| `filterable_with_results` | bool | |
+| `position` | number | |
+| `group.type` | text | Relation filter (group) |
+
+</Expandable>
+
+<Expandable title="Attribute Value Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `attribute_id` | number | |
+| `value` | text | |
+| `swatch_value` | text | |
+| `attribute.visible_on_the_product_page` | bool | Relation filter (attribute) |
+| `attribute.used_for_filtering` | bool | Relation filter (attribute) |
+| `attribute.filterable_with_results` | bool | Relation filter (attribute) |
+| `attribute.type` | text | Relation filter (attribute) |
+| `attribute.group_id` | number | Relation filter (attribute) |
+
+</Expandable>
+
+<Expandable title="Attribute Group Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `name` | text | |
+| `display_order` | number | |
+| `type` | text | |
+
+</Expandable>
+
+<Expandable title="Attributable Value Filters" default-open="false">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `attributable_id` | number | |
+| `attributable_type` | text | |
+| `attribute_value_id` | number | |
+
+</Expandable>
+
+## Includes
+
+For include syntax, see [Includes & Relations](/core-concepts/includes).
+
+| Resource | Available Includes |
+|----------|--------------------|
+| **Attributes** | `values`, `values.translation`, `translation`, `group` |
+| **Attribute Values** | `attribute`, `translation` |
+| **Attribute Groups** | `translation` |
+| **Attributable Values** | `value`, `value.attribute`, `attributable` |
+
+## Validation Rules
+
+<Expandable title="Create Attribute — POST /attributes" default-open="true">
+
+| Field | Rules |
+|-------|-------|
+| `name` | required, string, unique per type |
+| `type` | required, string (one of available types) |
+| `group_id` | required, numeric |
+| `display_options` | sometimes, json |
+| `visible_on_the_product_page` | sometimes, boolean |
+| `used_for_filtering` | sometimes, boolean |
+| `filterable_with_results` | sometimes, boolean |
+| `required` | sometimes, boolean |
+| `position` | sometimes, numeric |
+| `meta_data` | sometimes, array |
+
+</Expandable>
+
+<Expandable title="Create Attribute Value — POST /attributeValues" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `attribute_id` | required, numeric |
+| `value` | required |
+| `meta_data.definition_values` | sometimes, array |
+
+</Expandable>
+
+<Expandable title="Create Attribute Group — POST /attributeGroups" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `name` | required, string |
+| `type` | required, string, in: `dynamic` |
+| `display_order` | sometimes, numeric |
+
+</Expandable>
+
+<Expandable title="Bulk Create/Update — PUT /attributes/insert/bulk" default-open="false">
+
+Each item in the array requires: `name` (required, string), `type` (required, string), `group_id` (required, numeric), plus all optional fields from the single create endpoint.
+
+</Expandable>
+
+## Examples
+
+<Steps>
+  <Step title="List attributes with filter and include">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/attributes-hub/attributes?filter[type]=[{"condition":"=","value":"select"}]&include=values,group&per_page=10&sort=position' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Create a new attribute">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/attributes-hub/attributes' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "name": "Material",
+    "type": "select",
+    "group_id": 1,
+    "visible_on_the_product_page": true,
+    "used_for_filtering": true,
+    "filterable_with_results": true,
+    "required": false,
+    "position": 5
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="Get attribute values for a specific attribute">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/attributes-hub/attributeValues?filter[attribute_id]=[{"condition":"=","value":42}]&include=attribute,translation&sort=value' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Bulk create attributes">
+    <Request tabs="cURL">
+```bash
+curl -s -X PUT \
+  'https://your-domain.com/api/v1/apps/attributes-hub/attributes/insert/bulk' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '[
+    {"name": "Weight", "type": "numeric", "group_id": 2, "position": 1},
+    {"name": "Dimensions", "type": "text", "group_id": 2, "position": 2},
+    {"name": "Color", "type": "swatch", "group_id": 1, "position": 3, "visible_on_the_product_page": true, "used_for_filtering": true}
+  ]'
+```
+    </Request>
+  </Step>
+  <Step title="Filter visible and filterable attributes">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/attributes-hub/attributes?filter[visible_on_the_product_page]=[{"condition":"=","value":true}]&filter[used_for_filtering]=[{"condition":"=","value":true}]&include=values.translation,group&sort=-position' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+</Steps>
+
+## Related
+
+<Columns cols={2}>
+  <Card title="ProductHub" icon="box" href="/hubs/product-hub">
+    Products use attributes for dynamic properties and variation configuration.
+  </Card>
+  <Card title="CustomerHub" icon="users" href="/hubs/customer-hub">
+    Customers and companies support custom attributes via the attributable system.
+  </Card>
+</Columns>

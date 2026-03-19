@@ -1,0 +1,133 @@
+---
+title: Common Patterns
+description: Base URL structure, pagination, sorting, and response formats used across all DataHub API endpoints.
+---
+
+## Base URL
+
+All DataHub API endpoints follow a consistent URL structure:
+
+```
+https://{domain}/api/v1/apps/{hub-slug}/
+```
+
+Replace `{domain}` with your DataHub instance domain and `{hub-slug}` with the kebab-case hub identifier.
+
+| Hub | Slug |
+|-----|------|
+| AttributesHub | `attributes-hub` |
+| CustomerHub | `customer-hub` |
+| LicenseHub | `license-hub` |
+| MediaHub | `media-hub` |
+| NotificationHub | `notification-hub` |
+| OrderHub | `order-hub` |
+| ProductHub | `product-hub` |
+| SettingsHub | `settings-hub` |
+| TaxHub | `tax-hub` |
+
+## Pagination
+
+All list (index) endpoints return paginated results. Control pagination with these query parameters:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number (1-based) |
+| `per_page` | integer | 25 | Items per page (max varies, typically 50-200) |
+
+<Expandable title="Paginated Response Structure" default-open="true">
+
+```json
+{
+  "data": [ ... ],
+  "current_page": 1,
+  "last_page": 10,
+  "per_page": 25,
+  "total": 250,
+  "from": 1,
+  "to": 25
+}
+```
+
+</Expandable>
+
+## Sorting
+
+Sort results using the `sort` query parameter. Prefix a field name with `-` for descending order:
+
+```
+?sort=-_created_at,name
+```
+
+This sorts by `_created_at` descending, then by `name` ascending.
+
+<Callout kind="tip" title="Common Sort Fields">
+Most entities support sorting by `_created_at`, `_updated_at`, `name`, and `id`. Check each hub's documentation for entity-specific sort fields.
+</Callout>
+
+## Response Formats
+
+### Success (Single Resource)
+
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "Example Resource",
+    "_created_at": "2024-01-15T10:30:00Z",
+    "_updated_at": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+### Success (Collection with Pagination)
+
+```json
+{
+  "data": [
+    { "id": 1, "name": "First" },
+    { "id": 2, "name": "Second" }
+  ],
+  "current_page": 1,
+  "last_page": 10,
+  "per_page": 25,
+  "total": 250
+}
+```
+
+### Error Response
+
+```json
+{
+  "message": "The given data was invalid.",
+  "errors": {
+    "field_name": ["Error description."]
+  }
+}
+```
+
+For a complete list of error codes, see [Error Handling](/core-concepts/error-handling).
+
+## HTTP Methods
+
+| Method | Usage |
+|--------|-------|
+| `GET` | Retrieve resources (list or single) |
+| `POST` | Create new resources |
+| `PUT` | Update existing resources (full replacement) |
+| `PATCH` | Partial update or upsert operations |
+| `DELETE` | Remove resources |
+
+## Required Headers
+
+All authenticated requests must include:
+
+```
+Authorization: Bearer {api_token}
+Accept: application/json
+```
+
+For requests with a body (POST, PUT, PATCH), also include:
+
+```
+Content-Type: application/json
+```

@@ -1,0 +1,328 @@
+---
+title: TaxHub
+description: Flexible rule-based tax calculation with jurisdictions, VAT exemption, condition-based rules, and automatic rate imports.
+---
+
+## Overview
+
+TaxHub provides a flexible, rule-based tax calculation system with support for jurisdictions, VAT exemption, condition-based tax rules, and automatic tax rate imports for US, EU, and non-EU European countries.
+
+**Base URL:** `api/v1/apps/tax-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Tax Classes" icon="tag">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/tax-classes` | List all tax classes |
+| POST | `/tax-classes` | Create a tax class |
+| GET | `/tax-classes/{id}` | Get tax class details |
+| PUT | `/tax-classes/{id}` | Update a tax class |
+| DELETE | `/tax-classes/{id}` | Delete a tax class |
+
+  </Tab>
+  <Tab title="Jurisdictions" icon="map-pin">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/jurisdictions` | List all tax jurisdictions |
+| POST | `/jurisdictions` | Create a jurisdiction |
+| GET | `/jurisdictions/{id}` | Get jurisdiction details |
+| PUT | `/jurisdictions/{id}` | Update a jurisdiction |
+| DELETE | `/jurisdictions/{id}` | Delete a jurisdiction |
+
+**Tax Class Jurisdictions (Mappings)**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/tax-class-jurisdictions` | List all mappings |
+| POST | `/tax-class-jurisdictions` | Create a mapping with tax rate |
+| GET | `/tax-class-jurisdictions/{id}` | Get mapping details |
+| PUT | `/tax-class-jurisdictions/{id}` | Update a mapping |
+| DELETE | `/tax-class-jurisdictions/{id}` | Delete a mapping |
+
+  </Tab>
+  <Tab title="Tax Rules" icon="shield">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/tax-rules` | List all tax rules |
+| POST | `/tax-rules` | Create a tax rule |
+| GET | `/tax-rules/{id}` | Get tax rule details |
+| PUT | `/tax-rules/{id}` | Update a tax rule |
+| DELETE | `/tax-rules/{id}` | Delete a tax rule |
+| GET | `/tax-rules/{id}/conditions` | List conditions for a rule |
+| POST | `/tax-rules/{id}/conditions` | Add a condition to a rule |
+
+**Tax Rule Conditions**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| PUT | `/tax-rule-conditions/{id}` | Update a condition |
+| DELETE | `/tax-rule-conditions/{id}` | Delete a condition |
+
+  </Tab>
+  <Tab title="Calculation & Import" icon="calculator">
+
+**Tax Calculation**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/calculate` | Calculate tax for line items |
+
+**Tax Rate Import**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/import/regions` | List available import regions |
+| POST | `/import/{region}` | Import rates for a region (us, eu, non-eu-europe) |
+| POST | `/import/refresh/all` | Refresh all imported rates |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List all settings groups |
+| GET | `/settings` | Get all tax settings |
+| POST | `/settings` | Update tax settings |
+| POST | `/settings/reset` | Reset all to defaults |
+| GET | `/settings/{group}` | Get settings for a group |
+| POST | `/settings/{group}` | Update group settings |
+| POST | `/settings/{group}/reset` | Reset a group to defaults |
+
+  </Tab>
+</Tabs>
+
+## Filters
+
+For filter syntax and operators, see [Filtering](/core-concepts/filtering).
+
+<Expandable title="Tax Class Filters" default-open="true">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact tax class ID |
+| `name` | text | Tax class name |
+| `description` | text | Tax class description |
+
+</Expandable>
+
+<Expandable title="Tax Rule Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact rule ID |
+| `name` | text | Rule name |
+| `status` | text | `active` or `inactive` |
+| `priority` | number | Rule priority (lower = higher priority) |
+
+</Expandable>
+
+<Expandable title="Jurisdiction Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact jurisdiction ID |
+| `name` | text | Jurisdiction name (e.g., "Germany", "California") |
+| `code` | text | Jurisdiction code (e.g., "DE", "US-CA") |
+
+</Expandable>
+
+<Expandable title="Tax Class Jurisdiction Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact mapping ID |
+| `tax_class_id` | number | Tax class ID |
+| `jurisdiction_id` | number | Jurisdiction ID |
+| `tax_rate` | number | Tax rate percentage |
+
+</Expandable>
+
+<Expandable title="Tax Rule Condition Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact condition ID |
+| `tax_rule_id` | number | Parent rule ID |
+| `condition_type` | text | Condition type |
+
+</Expandable>
+
+## Includes
+
+For include syntax, see [Includes & Relations](/core-concepts/includes).
+
+| Resource | Available Includes |
+|----------|--------------------|
+| **Tax Classes** | `translation` |
+| **Tax Rules** | `conditions`, `taxClassJurisdiction`, `translation` |
+| **Jurisdictions** | `translation` |
+| **Tax Class Jurisdictions** | `translation`, `taxClass`, `jurisdiction` |
+| **Tax Rule Conditions** | `taxRule`, `translation` |
+
+## Validation Rules
+
+<Expandable title="Create Tax Rule" default-open="true">
+
+| Field | Rules |
+|-------|-------|
+| `name` | required, string |
+| `description` | nullable, string |
+| `priority` | required, integer, min:0 |
+| `status` | required, in: active, inactive |
+| `match_type` | required, in: all, any (how to combine conditions) |
+| `tax_class_jurisdiction_id` | required, integer (which tax rate to apply) |
+
+</Expandable>
+
+<Expandable title="Add Condition to Rule" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `condition_type` | required, in: customer_email, email_domain, country, region, customer_group, vat_number |
+| `operator` | required, in: equals, contains, starts_with, ends_with, in, not_in, is_empty, is_not_empty |
+| `value` | nullable, string |
+
+</Expandable>
+
+## Settings Groups
+
+<Expandable title="Tax Settings Reference" default-open="false">
+
+**general** — General Tax Settings
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `enable_tax_rules` | boolean | Enable/disable rule-based tax calculation |
+| `default_tax_class_id` | number | Default tax class for products without one |
+| `default_jurisdiction_id` | number | Default jurisdiction |
+| `default_country_tax` | number | Fallback tax rate by country |
+| `log_tax_calculations` | boolean | Enable calculation logging |
+
+**calculation** — Calculation Settings
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `tax_calculation_method` | string | Method (per item, per row, total) |
+| `tax_rounding_mode` | string | Rounding (round, ceil, floor) |
+| `prices_include_tax` | boolean | Whether catalog prices are tax-inclusive |
+
+**product_pricing** — Product Pricing Display
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `price_entry_mode` | string | How prices are entered (excl_tax, incl_tax) |
+| `display_prices_with_tax` | boolean | Display prices with tax |
+| `final_price_includes_tax` | boolean | Final computed price includes tax |
+
+**vat** — VAT Settings
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `enable_vat_exemption` | boolean | Enable VAT exemption for valid VAT numbers |
+
+**import** — Tax Rate Import Settings
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `auto_refresh_enabled` | boolean | Automatically refresh imported rates |
+| `taxrate_io_api_key` | string | API key for taxrate.io service |
+| `last_refresh_at` | datetime | Last successful refresh timestamp |
+
+</Expandable>
+
+## Examples
+
+<Steps>
+  <Step title="List tax rules with conditions">
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/tax-hub/tax-rules?include=conditions,taxClassJurisdiction,taxClassJurisdiction.taxClass,taxClassJurisdiction.jurisdiction&filter[status]=active&sort=priority' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+  <Step title="Create tax rule with VAT exemption condition">
+    <Request tabs="cURL">
+```bash
+# Step 1: Create the rule
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/tax-hub/tax-rules' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "name": "EU B2B VAT Exemption",
+    "description": "Zero-rate VAT for B2B customers with valid EU VAT numbers",
+    "priority": 10,
+    "status": "active",
+    "match_type": "all",
+    "tax_class_jurisdiction_id": 5
+  }'
+
+# Step 2: Add condition (assuming rule ID 7)
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/tax-hub/tax-rules/7/conditions' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{"condition_type": "vat_number", "operator": "is_not_empty", "value": null}'
+```
+    </Request>
+  </Step>
+  <Step title="Calculate tax for a B2C customer">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/tax-hub/calculate' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "line_items": [
+      {"subtotal": 199.99, "tax_class_id": 1, "product_id": 105},
+      {"subtotal": 14.50, "tax_class_id": 1, "product_id": 210}
+    ],
+    "customer": {
+      "email": "hans.mueller@gmail.com",
+      "country": "DE",
+      "region": "Bavaria",
+      "customer_group": "retail"
+    }
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="Import EU tax rates">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/tax-hub/import/eu' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+    </Request>
+  </Step>
+</Steps>
+
+## Related
+
+<Columns cols={2}>
+  <Card title="ProductHub" icon="box" href="/hubs/product-hub">
+    Products are assigned tax classes for calculation.
+  </Card>
+  <Card title="OrderHub" icon="shopping-cart" href="/hubs/order-hub">
+    Tax is calculated during the checkout flow.
+  </Card>
+</Columns>

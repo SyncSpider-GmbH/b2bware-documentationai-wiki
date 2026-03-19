@@ -1,0 +1,135 @@
+---
+title: Checkout Flow
+description: Complete guide to the cart-to-checkout-to-order flow using the OrderHub API.
+---
+
+## Overview
+
+The OrderHub provides a complete checkout flow that converts a cart into an order. The flow involves creating a cart, adding items, previewing the checkout (with tax and shipping calculation), and completing the checkout.
+
+## Flow Diagram
+
+```
+1. Create Cart (POST /carts or PATCH /carts for upsert)
+       ↓
+2. Add Items (POST /cart-items)
+       ↓
+3. Preview Checkout (GET /carts/{cart}/checkout)
+       ↓
+4. Complete Checkout (POST /carts/{cart}/checkout)
+       ↓
+5. Order Created (with line items, addresses, payment)
+```
+
+## Step 1: Create a Cart
+
+Create a cart for a known customer or a guest session:
+
+<Tabs>
+  <Tab title="Customer Cart" icon="user">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/order-hub/carts' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "customer_id": 42,
+    "is_active": true,
+    "cart_items": [
+      {"product_id": 105, "quantity": 2},
+      {"product_id": 210, "quantity": 1}
+    ]
+  }'
+```
+    </Request>
+  </Tab>
+  <Tab title="Guest Cart (Upsert)" icon="user-x">
+    <Request tabs="cURL">
+```bash
+curl -s -X PATCH \
+  'https://your-domain.com/api/v1/apps/order-hub/carts' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "session_uuid": "a3f8c912-7b4e-4d1a-9c6e-2f8b1d0e5a73",
+    "is_active": true,
+    "cart_items": [
+      {"product_id": 105, "quantity": 2},
+      {"product_id": 210, "quantity": 1}
+    ]
+  }'
+```
+    </Request>
+  </Tab>
+</Tabs>
+
+## Step 2: Preview Checkout
+
+Preview the checkout to calculate totals, shipping costs, and tax before completing:
+
+<Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/order-hub/carts/17/checkout' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+## Step 3: Complete Checkout
+
+Submit the checkout to convert the cart into an order:
+
+<Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://your-domain.com/api/v1/apps/order-hub/carts/17/checkout' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "shipping_method_id": 1,
+    "billing_method_id": 2,
+    "shipping_address_id": 15,
+    "billing_address_id": 15,
+    "comment": "Please gift-wrap the order."
+  }'
+```
+</Request>
+
+## Checkout Validation
+
+| Field | Rules |
+|-------|-------|
+| `shipping_method_id` | required, numeric |
+| `billing_method_id` | required, numeric |
+| `shipping_address_id` | required, numeric |
+| `billing_address_id` | required, numeric |
+| `comment` | string (optional) |
+
+## Loading Cart with Full Product Data
+
+Use includes to get complete product information for cart display:
+
+<Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://your-domain.com/api/v1/apps/order-hub/carts/17?include=cartItems.product.price,cartItems.product.finalPrice,cartItems.product.mainMedia,cartItems.product.crossSells,customer' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+## Related
+
+<Columns cols={2}>
+  <Card title="OrderHub" icon="shopping-cart" href="/hubs/order-hub">
+    Full OrderHub API reference with all endpoints.
+  </Card>
+  <Card title="Tax Calculation" icon="calculator" href="/advanced/tax-calculation">
+    How tax is calculated during checkout.
+  </Card>
+</Columns>

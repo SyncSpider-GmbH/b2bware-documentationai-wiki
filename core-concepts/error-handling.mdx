@@ -1,0 +1,135 @@
+---
+title: Error Handling
+description: HTTP status codes, error response formats, and troubleshooting guidance for the DataHub API.
+---
+
+## HTTP Status Codes
+
+The DataHub API uses standard HTTP status codes to indicate the outcome of requests.
+
+### Success Codes
+
+| Code | Meaning | Description |
+|------|---------|-------------|
+| `200` | OK | Request succeeded. Response body contains the requested data. |
+| `201` | Created | Resource was successfully created. Response body contains the new resource. |
+| `204` | No Content | Request succeeded with no response body (typically after DELETE). |
+
+### Client Error Codes
+
+| Code | Meaning | Description |
+|------|---------|-------------|
+| `400` | Bad Request | The request was malformed or contains invalid parameters. |
+| `401` | Unauthorized | Missing or invalid authentication token. |
+| `403` | Forbidden | Valid token but insufficient permissions for this action. |
+| `404` | Not Found | The requested resource does not exist. |
+| `422` | Unprocessable Entity | Validation error — the request body failed validation rules. |
+
+### Server Error Codes
+
+| Code | Meaning | Description |
+|------|---------|-------------|
+| `500` | Internal Server Error | An unexpected error occurred on the server. |
+
+## Error Response Format
+
+All error responses follow a consistent JSON structure:
+
+### Validation Errors (422)
+
+```json
+{
+  "message": "The given data was invalid.",
+  "errors": {
+    "name": ["The name field is required."],
+    "email": [
+      "The email field must be a valid email address.",
+      "The email has already been taken."
+    ]
+  }
+}
+```
+
+The `errors` object maps field names to arrays of error messages. A single field can have multiple validation errors.
+
+### Authentication Errors (401)
+
+```json
+{
+  "message": "Unauthenticated."
+}
+```
+
+### Not Found Errors (404)
+
+```json
+{
+  "message": "No query results for model [ModelName]."
+}
+```
+
+## Common Error Scenarios
+
+<Expandable title="401 — Unauthenticated" default-open="true">
+
+**Cause:** Missing, expired, or invalid Bearer token.
+
+**Solution:**
+- Verify the `Authorization` header is present: `Authorization: Bearer {token}`
+- Check that the token has not expired
+- Generate a new token through the authentication flow
+
+See [Authentication](/authentication) for details.
+
+</Expandable>
+
+<Expandable title="422 — Validation Error" default-open="false">
+
+**Cause:** The request body does not satisfy the endpoint's validation rules.
+
+**Solution:**
+- Check the `errors` object for specific field-level messages
+- Review the validation rules in the corresponding hub documentation
+- Common issues: missing required fields, invalid field types, unique constraint violations
+
+</Expandable>
+
+<Expandable title="404 — Not Found" default-open="false">
+
+**Cause:** The requested resource ID does not exist, or the endpoint URL is incorrect.
+
+**Solution:**
+- Verify the resource ID exists
+- Check the hub slug in the URL (e.g., `product-hub` not `products-hub`)
+- Ensure the endpoint path is correct
+
+</Expandable>
+
+<Expandable title="400 — Bad Request" default-open="false">
+
+**Cause:** Malformed request, often due to invalid JSON in filter parameters or request body.
+
+**Solution:**
+- Validate your JSON syntax
+- URL-encode filter parameter values properly
+- Ensure filter condition objects have the correct structure
+
+</Expandable>
+
+## Handling Errors in Your Integration
+
+<Steps>
+  <Step title="Check the HTTP status code">
+    Use the status code to determine the error category (client vs. server error).
+  </Step>
+  <Step title="Parse the error response body">
+    Read the `message` field for a human-readable description. For 422 errors, iterate over the `errors` object for field-specific messages.
+  </Step>
+  <Step title="Implement retry logic for server errors">
+    For 500 errors, implement exponential backoff retry logic. Do not retry client errors (4xx) without fixing the request first.
+  </Step>
+</Steps>
+
+<Callout kind="tip" title="Debugging Tip">
+When debugging filter-related errors, test your filter JSON in isolation first. URL-encode the JSON array and verify it parses correctly before adding it to the query string.
+</Callout>
