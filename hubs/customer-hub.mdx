@@ -276,7 +276,7 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/customer-hub/customers?filter[search]=john&include=company,role,customerGroup&per_page=20&sort=-_created_at' \
+  'https://api.datahub.syncspider.com/api/v1/apps/customer-hub/customers?filter[search]=john&include=company,role,customerGroup&per_page=20&sort=-_created_at' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -286,7 +286,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/customer-hub/customers?filter[company.name]=[{"condition":"LIKE","value":"%Acme%"}]&include=company,shippingAddresses,billingAddresses' \
+  'https://api.datahub.syncspider.com/api/v1/apps/customer-hub/customers?filter[company.name]=[{"condition":"LIKE","value":"%Acme%"}]&include=company,shippingAddresses,billingAddresses' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -296,7 +296,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/customer-hub/customers' \
+  'https://api.datahub.syncspider.com/api/v1/apps/customer-hub/customers' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -323,7 +323,7 @@ curl -s -X POST \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/customer-hub/companies?filter[vat_number]=[{"condition":"NOT EMPTY"}]&include=customers,shippingAddresses,billingAddresses&sort=name' \
+  'https://api.datahub.syncspider.com/api/v1/apps/customer-hub/companies?filter[vat_number]=[{"condition":"NOT EMPTY"}]&include=customers,shippingAddresses,billingAddresses&sort=name' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -333,7 +333,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/customer-hub/customers?filter[_created_at]=[{"condition":">=","value":"2024-01-01"},{"condition":"<=","value":"2024-06-30","operator":"AND"}]&per_page=50&sort=-_created_at' \
+  'https://api.datahub.syncspider.com/api/v1/apps/customer-hub/customers?filter[_created_at]=[{"condition":">=","value":"2024-01-01"},{"condition":"<=","value":"2024-06-30","operator":"AND"}]&per_page=50&sort=-_created_at' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```

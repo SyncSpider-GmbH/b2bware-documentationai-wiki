@@ -32,7 +32,7 @@ This guide covers how to bulk import products into DataHub using the ProductHub 
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/product-hub/categories' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/categories' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -46,7 +46,7 @@ curl -s -X POST \
     <Request tabs="cURL">
 ```bash
 curl -s -X PUT \
-  'https://your-domain.com/api/v1/apps/product-hub/products/upsert/single' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/upsert/single' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -69,7 +69,7 @@ curl -s -X PUT \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?include=price,stock,categories.category&sort=-_created_at&per_page=10' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?include=price,stock,categories.category&sort=-_created_at&per_page=10' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```

@@ -60,7 +60,7 @@ Multiple conditions on the same field can be combined with `AND` to create range
 ```bash
 # Price between 100 and 500
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?filter[price]=[{"condition":">=","value":100},{"condition":"<=","value":500,"operator":"AND"}]' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[price]=[{"condition":">=","value":100},{"condition":"<=","value":500,"operator":"AND"}]' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -74,7 +74,7 @@ Use `OR` to match any of several values:
 ```bash
 # Status is active OR pending
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/customer-hub/customers?filter[status]=[{"condition":"=","value":"active"},{"condition":"=","value":"pending","operator":"OR"}]' \
+  'https://api.datahub.syncspider.com/api/v1/apps/customer-hub/customers?filter[status]=[{"condition":"=","value":"active"},{"condition":"=","value":"pending","operator":"OR"}]' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -96,7 +96,7 @@ Filter through relationships using dot notation. This allows you to filter a res
 ```bash
 # Find customers whose company name contains "Acme"
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/customer-hub/customers?filter[company.name]=[{"condition":"LIKE","value":"%Acme%"}]&include=company' \
+  'https://api.datahub.syncspider.com/api/v1/apps/customer-hub/customers?filter[company.name]=[{"condition":"LIKE","value":"%Acme%"}]&include=company' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -122,7 +122,7 @@ Combine filters across different fields by adding multiple `filter[]` parameters
 ```bash
 # Public products created in 2024 with stock
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?filter[status]=[{"condition":"=","value":"public"}]&filter[_created_at]=[{"condition":">=","value":"2024-01-01"}]&filter[without_stock]=1' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[status]=[{"condition":"=","value":"public"}]&filter[_created_at]=[{"condition":">=","value":"2024-01-01"}]&filter[without_stock]=1' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```

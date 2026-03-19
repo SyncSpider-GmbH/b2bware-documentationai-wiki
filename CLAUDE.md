@@ -8,8 +8,10 @@ B2Bware DataHub is a modular commerce API platform organized into 9 specialized 
 
 All endpoints follow this URL pattern:
 ```
-https://{domain}/api/v1/apps/{hub-slug}/{resource}
+https://api.datahub.syncspider.com/api/v1/apps/{hub-slug}/{resource}
 ```
+
+The default API domain is `api.datahub.syncspider.com`. This works for all DataHub instances.
 
 ### Hub Slugs
 
@@ -550,7 +552,7 @@ POST /license-keys/generate
 When writing code that integrates with the DataHub API:
 
 1. **Always set these headers**: `Authorization: Bearer {token}`, `Accept: application/json`, `Content-Type: application/json` (for POST/PUT/PATCH)
-2. **Use environment variables** for domain and token: `DATAHUB_DOMAIN`, `DATAHUB_TOKEN`
+2. **Use environment variables** for domain and token: `DATAHUB_DOMAIN` (default: `api.datahub.syncspider.com`), `DATAHUB_TOKEN`
 3. **Handle pagination** — iterate through `current_page` to `last_page`
 4. **Use upsert endpoints** for sync workflows to avoid duplicate errors
 5. **URL-encode filter JSON** properly

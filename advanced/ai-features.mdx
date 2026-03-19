@@ -14,7 +14,7 @@ Generate AI-powered product descriptions based on existing product data (name, a
 <Request tabs="cURL">
 ```bash
 curl -s -X PUT \
-  'https://your-domain.com/api/v1/apps/product-hub/products/105/generateAIDescription' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/105/generateAIDescription' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json'
@@ -32,7 +32,7 @@ ProductHub supports AI-powered translation of product content across multiple lo
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/product-hub/translations/job/run' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/translations/job/run' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json'
@@ -43,7 +43,7 @@ curl -s -X POST \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/translations/job/progress' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/translations/job/progress' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```

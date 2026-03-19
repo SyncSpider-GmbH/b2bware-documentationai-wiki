@@ -12,7 +12,7 @@ The user wants to generate integration code for the DataHub API. Ask them (or us
 
 Then generate clean, production-ready code that:
 
-- Uses environment variables for `DATAHUB_DOMAIN` and `DATAHUB_TOKEN`
+- Uses environment variables for `DATAHUB_DOMAIN` (default: `api.datahub.syncspider.com`) and `DATAHUB_TOKEN`
 - Sets all required headers: `Authorization: Bearer {token}`, `Accept: application/json`, `Content-Type: application/json`
 - Handles pagination (iterate `current_page` to `last_page`)
 - Handles errors properly (check HTTP status, parse validation errors from 422)

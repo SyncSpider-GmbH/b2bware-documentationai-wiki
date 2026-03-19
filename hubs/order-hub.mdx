@@ -429,7 +429,7 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/order-hub/orders?include=customer,customer.company,orderLineItems,orderLineItems.product.mainMedia,shippingMethod,billingMethod,shippingAddress,billingAddress&page[size]=20&sort=-_created_at' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/orders?include=customer,customer.company,orderLineItems,orderLineItems.product.mainMedia,shippingMethod,billingMethod,shippingAddress,billingAddress&page[size]=20&sort=-_created_at' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -439,7 +439,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/order-hub/orders?filter[status]=pending,processing&filter[_created_at]=2024-01-01,2024-12-31&include=customer,orderLineItems&sort=-total_price' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/orders?filter[status]=pending,processing&filter[_created_at]=2024-01-01,2024-12-31&include=customer,orderLineItems&sort=-total_price' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -449,7 +449,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/order-hub/orders' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/orders' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -473,7 +473,7 @@ curl -s -X POST \
     <Request tabs="cURL">
 ```bash
 curl -s -X PATCH \
-  'https://your-domain.com/api/v1/apps/order-hub/carts' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -492,7 +492,7 @@ curl -s -X PATCH \
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/order-hub/carts/17/checkout' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts/17/checkout' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \

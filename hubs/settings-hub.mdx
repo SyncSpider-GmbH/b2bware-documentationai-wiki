@@ -171,7 +171,7 @@ SettingsHub does **not** expose any includes. All data is returned directly in t
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/settings-hub/config?filter[config_code]=general&page[size]=50' \
+  'https://api.datahub.syncspider.com/api/v1/apps/settings-hub/config?filter[config_code]=general&page[size]=50' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -181,7 +181,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/settings-hub/countries' \
+  'https://api.datahub.syncspider.com/api/v1/apps/settings-hub/countries' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -191,7 +191,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/settings-hub/currencies' \
+  'https://api.datahub.syncspider.com/api/v1/apps/settings-hub/currencies' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -201,7 +201,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/settings-hub/index/queue' \
+  'https://api.datahub.syncspider.com/api/v1/apps/settings-hub/index/queue' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
