@@ -27,7 +27,7 @@ Use dot notation to include nested relationships:
 ```bash
 # Load a customer with company, addresses, and translated attribute values
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/customer-hub/customers?include=company,shippingAddresses,attributeValues.value.translation' \
+  'https://api.datahub.syncspider.com/api/v1/apps/customer-hub/customers?include=company,shippingAddresses,attributeValues.value.translation' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```

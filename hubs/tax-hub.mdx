@@ -247,7 +247,7 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/tax-hub/tax-rules?include=conditions,taxClassJurisdiction,taxClassJurisdiction.taxClass,taxClassJurisdiction.jurisdiction&filter[status]=active&sort=priority' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/tax-rules?include=conditions,taxClassJurisdiction,taxClassJurisdiction.taxClass,taxClassJurisdiction.jurisdiction&filter[status]=active&sort=priority' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -258,7 +258,7 @@ curl -s -X GET \
 ```bash
 # Step 1: Create the rule
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/tax-hub/tax-rules' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/tax-rules' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -273,7 +273,7 @@ curl -s -X POST \
 
 # Step 2: Add condition (assuming rule ID 7)
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/tax-hub/tax-rules/7/conditions' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/tax-rules/7/conditions' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -285,7 +285,7 @@ curl -s -X POST \
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/tax-hub/calculate' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/calculate' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -308,7 +308,7 @@ curl -s -X POST \
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/tax-hub/import/eu' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/import/eu' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```

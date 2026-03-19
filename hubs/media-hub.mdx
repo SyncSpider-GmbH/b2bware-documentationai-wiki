@@ -93,7 +93,7 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/media-hub/cdn/cdn.example-storage.com/products/images/product-42-hero.jpg'
+  'https://api.datahub.syncspider.com/api/v1/apps/media-hub/cdn/cdn.example-storage.com/products/images/product-42-hero.jpg'
 ```
     </Request>
   </Step>
@@ -101,7 +101,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/media-hub/media?filter[mediable_type]=[{"condition":"=","value":"Products"}]&filter[mediable_id]=[{"condition":"=","value":42}]&sort=sort_order' \
+  'https://api.datahub.syncspider.com/api/v1/apps/media-hub/media?filter[mediable_type]=[{"condition":"=","value":"Products"}]&filter[mediable_id]=[{"condition":"=","value":42}]&sort=sort_order' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -111,7 +111,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/media-hub/media?filter[media_type]=[{"condition":"=","value":"image"}]&filter[is_primary]=[{"condition":"=","value":true}]&include=mediable&per_page=50' \
+  'https://api.datahub.syncspider.com/api/v1/apps/media-hub/media?filter[media_type]=[{"condition":"=","value":"image"}]&filter[is_primary]=[{"condition":"=","value":true}]&include=mediable&per_page=50' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -121,7 +121,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/media-hub/media' \
+  'https://api.datahub.syncspider.com/api/v1/apps/media-hub/media' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -141,7 +141,7 @@ curl -s -X POST \
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/media-hub/media/15/primary' \
+  'https://api.datahub.syncspider.com/api/v1/apps/media-hub/media/15/primary' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```

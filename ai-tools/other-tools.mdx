@@ -1,0 +1,117 @@
+---
+title: Other AI Tools
+description: DataHub API skills for Cline, Aider, Codex CLI, Gemini CLI, and the universal AGENTS.md standard.
+---
+
+## Additional AI Tool Integrations
+
+The DataHub API skills work with any AI coding assistant that reads project-level instruction files. Here's how to set up the most popular tools.
+
+## Cline (VS Code Extension)
+
+[Cline](https://github.com/cline/cline) is an open-source autonomous coding agent for VS Code. It reads all `.md` files from a `.clinerules/` directory.
+
+<Steps>
+  <Step title="Create the rules directory" icon="folder">
+
+```bash
+mkdir -p .clinerules
+```
+
+  </Step>
+  <Step title="Download the rules file" icon="download">
+
+```bash
+curl -o .clinerules/datahub-api.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/.cursorrules
+```
+
+  </Step>
+</Steps>
+
+Cline also supports MCP servers. Add the B2Bware MCP server in Cline's settings panel under "MCP Servers".
+
+---
+
+## Codex CLI (OpenAI)
+
+[Codex CLI](https://github.com/openai/codex) reads `AGENTS.md` from the project root.
+
+```bash
+curl -o AGENTS.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/CLAUDE.md
+```
+
+You can also create nested `AGENTS.md` files in subdirectories for scoped instructions.
+
+---
+
+## Gemini CLI (Google)
+
+[Gemini CLI](https://github.com/google-gemini/gemini-cli) reads `GEMINI.md` from the project root.
+
+```bash
+curl -o GEMINI.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/CLAUDE.md
+```
+
+---
+
+## Aider
+
+[Aider](https://aider.chat) reads `CONVENTIONS.md` from the project root.
+
+```bash
+curl -o CONVENTIONS.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/.cursorrules
+```
+
+---
+
+## Universal AGENTS.md Standard
+
+The `AGENTS.md` standard is backed by OpenAI, Google, Anthropic, Cursor, and Sourcegraph. It's designed to work across all AI coding tools. If your tool supports `AGENTS.md`, download the full DataHub reference:
+
+```bash
+curl -o AGENTS.md https://raw.githubusercontent.com/SyncSpider-GmbH/b2bware-documentationai-wiki/main/CLAUDE.md
+```
+
+## Quick Reference: Which File for Which Tool
+
+| Tool | File to Create | Source to Use |
+|------|---------------|--------------|
+| **Cline** | `.clinerules/datahub-api.md` | `.cursorrules` |
+| **Codex CLI** | `AGENTS.md` | `CLAUDE.md` |
+| **Gemini CLI** | `GEMINI.md` | `CLAUDE.md` |
+| **Aider** | `CONVENTIONS.md` | `.cursorrules` |
+| **RooCode** | `.clinerules/datahub-api.md` | `.cursorrules` |
+| **Kilo Code** | `.clinerules/datahub-api.md` | `.cursorrules` |
+| **Warp Terminal** | `.warp/rules/datahub.md` | `.cursorrules` |
+| **Any tool with AGENTS.md** | `AGENTS.md` | `CLAUDE.md` |
+
+<Callout kind="tip" title="Symlink Strategy">
+Instead of maintaining multiple copies, you can create symlinks from a single source file:
+
+```bash
+# Use CLAUDE.md as the source of truth
+ln -s CLAUDE.md AGENTS.md
+ln -s CLAUDE.md GEMINI.md
+ln -s .cursorrules .windsurfrules
+```
+
+This way you only update one file and all tools stay in sync.
+</Callout>
+
+## MCP Server Support
+
+The following tools support the B2Bware MCP Server for live data access:
+
+| Tool | MCP Support | Configuration |
+|------|------------|---------------|
+| **Cursor** | Yes | `~/.cursor/mcp.json` |
+| **Claude Code** | Yes | `.mcp.json` in project root |
+| **Claude Desktop** | Yes | App settings or config file |
+| **Claude.ai** | Yes | URL parameter method |
+| **Windsurf** | Yes | `~/.codeium/windsurf/mcp_config.json` |
+| **Cline** | Yes | Settings panel |
+| **GitHub Copilot** | Limited | Not yet fully supported |
+| **Aider** | No | — |
+| **Codex CLI** | No | — |
+
+See [MCP Server](/ai-tools/mcp-server) for detailed configuration instructions for each client.

@@ -30,7 +30,7 @@ Create a cart for a known customer or a guest session:
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/order-hub/carts' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -49,7 +49,7 @@ curl -s -X POST \
     <Request tabs="cURL">
 ```bash
 curl -s -X PATCH \
-  'https://your-domain.com/api/v1/apps/order-hub/carts' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -73,7 +73,7 @@ Preview the checkout to calculate totals, shipping costs, and tax before complet
 <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/order-hub/carts/17/checkout' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts/17/checkout' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -86,7 +86,7 @@ Submit the checkout to convert the cart into an order:
 <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/order-hub/carts/17/checkout' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts/17/checkout' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -117,7 +117,7 @@ Use includes to get complete product information for cart display:
 <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/order-hub/carts/17?include=cartItems.product.price,cartItems.product.finalPrice,cartItems.product.mainMedia,cartItems.product.crossSells,customer' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts/17?include=cartItems.product.price,cartItems.product.finalPrice,cartItems.product.mainMedia,cartItems.product.crossSells,customer' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```

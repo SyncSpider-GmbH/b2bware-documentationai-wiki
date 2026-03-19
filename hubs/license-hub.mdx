@@ -238,7 +238,7 @@ Use `X` characters in the template as placeholders for random characters. For ex
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/license-hub/license-keys?filter[status]=[{"condition":"=","value":"activated"}]&include=usageLogs,pool,product&sort=-expiration_date&per_page=25' \
+  'https://api.datahub.syncspider.com/api/v1/apps/license-hub/license-keys?filter[status]=[{"condition":"=","value":"activated"}]&include=usageLogs,pool,product&sort=-expiration_date&per_page=25' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -248,7 +248,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/license-hub/license-keys/generate' \
+  'https://api.datahub.syncspider.com/api/v1/apps/license-hub/license-keys/generate' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -265,7 +265,7 @@ curl -s -X POST \
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/license-hub/license-keys/157/activate' \
+  'https://api.datahub.syncspider.com/api/v1/apps/license-hub/license-keys/157/activate' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -280,7 +280,7 @@ curl -s -X POST \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/license-hub/license-usage-logs/license-key/157?include=licenseKey&sort=-created_at&per_page=50' \
+  'https://api.datahub.syncspider.com/api/v1/apps/license-hub/license-usage-logs/license-key/157?include=licenseKey&sort=-created_at&per_page=50' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -290,7 +290,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/license-hub/license-keys?filter[status]=[{"condition":"IN","value":["activated","assigned"]}]&filter[expiration_date]=[{"condition":">=","value":"2026-03-19"},{"condition":"<=","value":"2026-04-19"}]&include=product,pool&sort=expiration_date' \
+  'https://api.datahub.syncspider.com/api/v1/apps/license-hub/license-keys?filter[status]=[{"condition":"IN","value":["activated","assigned"]}]&filter[expiration_date]=[{"condition":">=","value":"2026-03-19"},{"condition":"<=","value":"2026-04-19"}]&include=product,pool&sort=expiration_date' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```

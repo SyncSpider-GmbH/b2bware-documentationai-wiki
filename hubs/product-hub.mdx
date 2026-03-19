@@ -569,7 +569,7 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?include=price,specialPrice,finalPrice,stock,stock.warehouse,mainMedia,categories.category&filter[status]=public&filter[exclude_child_products]=1&page[size]=25&sort=-_created_at' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?include=price,specialPrice,finalPrice,stock,stock.warehouse,mainMedia,categories.category&filter[status]=public&filter[exclude_child_products]=1&page[size]=25&sort=-_created_at' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -579,7 +579,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?filter[search]=wireless+bluetooth+headphones&include=price,finalPrice,mainMedia,stockSum&filter[status]=public&filter[exclude_child_products]=1&page[size]=20' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[search]=wireless+bluetooth+headphones&include=price,finalPrice,mainMedia,stockSum&filter[status]=public&filter[exclude_child_products]=1&page[size]=20' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -591,7 +591,7 @@ curl -s -X GET \
 # Category 5 is "Electronics" — anchor_category_id returns products in
 # Electronics AND all subcategories (Phones, Laptops, Accessories, etc.)
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?filter[anchor_category_id]=5&include=price,finalPrice,mainMedia,categories.category&filter[status]=public&sort=name&page[size]=50' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[anchor_category_id]=5&include=price,finalPrice,mainMedia,categories.category&filter[status]=public&sort=name&page[size]=50' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -601,7 +601,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?filter[attribute]=[{"attribute_id":1,"attribute_value":"Red,Blue","condition":"IN","operator":"AND"},{"attribute_id":2,"attribute_value":"Large","condition":"IN","operator":"AND"}]&filter[status]=public&include=attributeValues.value.translation,price,mainMedia' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[attribute]=[{"attribute_id":1,"attribute_value":"Red,Blue","condition":"IN","operator":"AND"},{"attribute_id":2,"attribute_value":"Large","condition":"IN","operator":"AND"}]&filter[status]=public&include=attributeValues.value.translation,price,mainMedia' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -611,7 +611,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/product-hub/products' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -664,7 +664,7 @@ curl -s -X POST \
     <Request tabs="cURL">
 ```bash
 curl -s -X PUT \
-  'https://your-domain.com/api/v1/apps/product-hub/products/upsert/single' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/upsert/single' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -688,7 +688,7 @@ curl -s -X PUT \
     <Request tabs="cURL">
 ```bash
 curl -s -X PUT \
-  'https://your-domain.com/api/v1/apps/product-hub/products/bulk/update' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/bulk/update' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -706,7 +706,7 @@ curl -s -X PUT \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?filter[exclude_child_products]=1&filter[product_type]=configurable&include=childProducts.childProduct.price,childProducts.childProduct.mainMedia,variationAttributes,price,mainMedia&page[size]=20' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[exclude_child_products]=1&filter[product_type]=configurable&include=childProducts.childProduct.price,childProducts.childProduct.mainMedia,variationAttributes,price,mainMedia&page[size]=20' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```

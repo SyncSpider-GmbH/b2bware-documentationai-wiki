@@ -25,7 +25,7 @@ ProductHub supports configurable products that have child variation products. A 
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/product-hub/products' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -48,7 +48,7 @@ curl -s -X POST \
     <Request tabs="cURL">
 ```bash
 curl -s -X PUT \
-  'https://your-domain.com/api/v1/apps/product-hub/products/50/attachVariationsAttributes' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/50/attachVariationsAttributes' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json'
@@ -61,7 +61,7 @@ curl -s -X PUT \
     <Request tabs="cURL">
 ```bash
 curl -s -X PUT \
-  'https://your-domain.com/api/v1/apps/product-hub/products/50/createVariations' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/50/createVariations' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json'
@@ -77,7 +77,7 @@ curl -s -X PUT \
 <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products/50?include=childProducts.childProduct.price,childProducts.childProduct.mainMedia,childProducts.childProduct.stock,variationAttributes' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/50?include=childProducts.childProduct.price,childProducts.childProduct.mainMedia,childProducts.childProduct.stock,variationAttributes' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -88,7 +88,7 @@ curl -s -X GET \
 <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?filter[parent_id]=50&include=price,mainMedia,attributeValues.value.translation' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[parent_id]=50&include=price,mainMedia,attributeValues.value.translation' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```

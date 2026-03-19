@@ -12,7 +12,7 @@ The TaxHub provides a flexible tax calculation engine that evaluates rules and j
 <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/tax-hub/calculate' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/calculate' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -83,7 +83,7 @@ A common use case is zero-rating VAT for B2B customers with valid EU VAT numbers
 ```bash
 # Create a rule that matches customers with VAT numbers in EU countries
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/tax-hub/tax-rules' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/tax-rules' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \

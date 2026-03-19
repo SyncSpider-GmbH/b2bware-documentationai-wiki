@@ -1,0 +1,75 @@
+---
+title: AI Tools & Skills
+description: Supercharge your DataHub development with ready-to-use AI coding assistant configurations, MCP server integration, and slash commands.
+---
+
+## AI-Powered DataHub Development
+
+B2Bware DataHub provides ready-to-use configurations for all major AI coding assistants. These skills teach your AI assistant the complete DataHub API — endpoints, filters, includes, validation rules, and best practices — so it can generate correct integration code from the first prompt.
+
+<Callout kind="info" title="What are AI Skills?">
+AI skills are configuration files that you place in your project. Your AI coding assistant reads them automatically and uses the knowledge to help you write DataHub integrations faster and more accurately.
+</Callout>
+
+## Available Integrations
+
+<Columns cols={3}>
+  <Card title="MCP Server" icon="server" href="/ai-tools/mcp-server">
+    Connect any AI assistant directly to your live DataHub data via Model Context Protocol.
+  </Card>
+  <Card title="Claude Code" icon="terminal" href="/ai-tools/claude-code">
+    CLAUDE.md reference + 6 slash commands for Anthropic's CLI tool.
+  </Card>
+  <Card title="Cursor" icon="code" href="/ai-tools/cursor">
+    .cursorrules with complete API knowledge for the Cursor IDE.
+  </Card>
+</Columns>
+
+<Columns cols={3}>
+  <Card title="GitHub Copilot" icon="github" href="/ai-tools/github-copilot">
+    Custom instructions for Copilot Chat and Copilot Workspace.
+  </Card>
+  <Card title="Windsurf" icon="wind" href="/ai-tools/windsurf">
+    .windsurfrules for Codeium's Windsurf IDE.
+  </Card>
+  <Card title="More Tools" icon="plus-circle" href="/ai-tools/other-tools">
+    Cline, Aider, Codex CLI, Gemini CLI, and the universal AGENTS.md standard.
+  </Card>
+</Columns>
+
+## Quick Comparison
+
+| Tool | Config File | MCP Support | Slash Commands |
+|------|------------|-------------|----------------|
+| **Claude Code** | `CLAUDE.md` | Yes | Yes (6 commands) |
+| **Cursor** | `.cursorrules` | Yes | No |
+| **GitHub Copilot** | `.github/copilot-instructions.md` | Limited | No |
+| **Windsurf** | `.windsurfrules` | Yes | No |
+| **Cline** | `.clinerules/` | Yes | No |
+| **Aider** | `CONVENTIONS.md` | No | No |
+| **Codex CLI** | `AGENTS.md` | No | No |
+| **Gemini CLI** | `GEMINI.md` | No | No |
+
+## MCP Server vs. Skills Files
+
+<Columns cols={2}>
+  <Card title="MCP Server (Live Data)" icon="database">
+    Connects your AI assistant to **live DataHub data**. It can browse products, search customers, create orders — all in real-time. Best for: data exploration, order management, customer lookup.
+  </Card>
+  <Card title="Skills Files (API Knowledge)" icon="book-open">
+    Teaches your AI assistant the **API documentation**. It knows all endpoints, filters, validation rules, and can generate integration code. Best for: writing code, building integrations, debugging API calls.
+  </Card>
+</Columns>
+
+<Callout kind="tip" title="Use Both Together">
+For the best experience, combine the MCP server (live data access) with skills files (API knowledge). Your AI assistant can then both understand the API and interact with real data.
+</Callout>
+
+## Download & Setup
+
+Each tool page includes:
+1. **Ready-to-use configuration files** — copy-paste into your project
+2. **Step-by-step setup instructions** — from zero to working in minutes
+3. **Example prompts** — get started immediately with practical examples
+
+Choose your tool from the cards above to get started.

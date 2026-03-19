@@ -34,10 +34,10 @@ Tokens are obtained through the authentication flow. All hub endpoints are prote
 ### Base URL
 
 ```
-https://{domain}/api/v1/apps/{hub-slug}/
+https://api.datahub.syncspider.com/api/v1/apps/{hub-slug}/
 ```
 
-Replace `{domain}` with your DataHub instance domain and `{hub-slug}` with the kebab-case hub identifier (e.g., `attributes-hub`, `customer-hub`).
+The default API domain is `api.datahub.syncspider.com`. Replace `{hub-slug}` with the kebab-case hub identifier (e.g., `attributes-hub`, `customer-hub`).
 
 ### Pagination
 
@@ -1897,7 +1897,7 @@ curl -X POST \
 
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/order-hub/orders?include=customer,customer.company,orderLineItems,orderLineItems.product.mainMedia,shippingMethod,billingMethod,shippingAddress,billingAddress&page[size]=20&sort=-_created_at' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/orders?include=customer,customer.company,orderLineItems,orderLineItems.product.mainMedia,shippingMethod,billingMethod,shippingAddress,billingAddress&page[size]=20&sort=-_created_at' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -1906,7 +1906,7 @@ curl -s -X GET \
 
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/order-hub/orders?filter[status]=pending,processing&filter[_created_at]=2024-01-01,2024-12-31&include=customer,orderLineItems&sort=-total_price' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/orders?filter[status]=pending,processing&filter[_created_at]=2024-01-01,2024-12-31&include=customer,orderLineItems&sort=-total_price' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -1915,7 +1915,7 @@ curl -s -X GET \
 
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/order-hub/orders' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/orders' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -1951,7 +1951,7 @@ curl -s -X POST \
 
 ```bash
 curl -s -X PATCH \
-  'https://your-domain.com/api/v1/apps/order-hub/carts' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -1969,7 +1969,7 @@ curl -s -X PATCH \
 
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/order-hub/carts/17/checkout' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts/17/checkout' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -1986,7 +1986,7 @@ curl -s -X POST \
 
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/order-hub/orders?filter[customer_id]=42&include=customer,orderLineItems,comments&sort=-_created_at&page[size]=10' \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/orders?filter[customer_id]=42&include=customer,orderLineItems,comments&sort=-_created_at&page[size]=10' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -2536,7 +2536,7 @@ Request body is an array of price objects:
 
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?include=price,specialPrice,finalPrice,stock,stock.warehouse,mainMedia,categories.category&filter[status]=public&filter[exclude_child_products]=1&page[size]=25&sort=-_created_at' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?include=price,specialPrice,finalPrice,stock,stock.warehouse,mainMedia,categories.category&filter[status]=public&filter[exclude_child_products]=1&page[size]=25&sort=-_created_at' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -2545,7 +2545,7 @@ curl -s -X GET \
 
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?filter[search]=wireless+bluetooth+headphones&include=price,finalPrice,mainMedia,stockSum&filter[status]=public&filter[exclude_child_products]=1&page[size]=20' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[search]=wireless+bluetooth+headphones&include=price,finalPrice,mainMedia,stockSum&filter[status]=public&filter[exclude_child_products]=1&page[size]=20' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -2556,7 +2556,7 @@ curl -s -X GET \
 # Category 5 is "Electronics" — anchor_category_id returns products in
 # Electronics AND all subcategories (Phones, Laptops, Accessories, etc.)
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?filter[anchor_category_id]=5&include=price,finalPrice,mainMedia,categories.category&filter[status]=public&sort=name&page[size]=50' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[anchor_category_id]=5&include=price,finalPrice,mainMedia,categories.category&filter[status]=public&sort=name&page[size]=50' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -2566,7 +2566,7 @@ curl -s -X GET \
 ```bash
 # Find public products where Color is Red or Blue AND Size is Large
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?filter[attribute]=[{"attribute_id":1,"attribute_value":"Red,Blue","condition":"IN","operator":"AND"},{"attribute_id":2,"attribute_value":"Large","condition":"IN","operator":"AND"}]&filter[status]=public&include=attributeValues.value.translation,price,mainMedia' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[attribute]=[{"attribute_id":1,"attribute_value":"Red,Blue","condition":"IN","operator":"AND"},{"attribute_id":2,"attribute_value":"Large","condition":"IN","operator":"AND"}]&filter[status]=public&include=attributeValues.value.translation,price,mainMedia' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -2576,7 +2576,7 @@ curl -s -X GET \
 ```bash
 # Products with final price between 10.00 and 99.99
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?filter[finalPrice]=10,99.99&include=price,specialPrice,finalPrice,mainMedia&filter[status]=public&sort=finalPrice' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[finalPrice]=10,99.99&include=price,specialPrice,finalPrice,mainMedia&filter[status]=public&sort=finalPrice' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -2585,7 +2585,7 @@ curl -s -X GET \
 
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/product-hub/products' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -2640,7 +2640,7 @@ curl -s -X POST \
 # Creates the product if SKU doesn't exist, updates if it does.
 # Ideal for ERP/PIM synchronization.
 curl -s -X PUT \
-  'https://your-domain.com/api/v1/apps/product-hub/products/upsert/single' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/upsert/single' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -2665,7 +2665,7 @@ curl -s -X PUT \
 
 ```bash
 curl -s -X PUT \
-  'https://your-domain.com/api/v1/apps/product-hub/products/bulk/update' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/bulk/update' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -2683,7 +2683,7 @@ curl -s -X PUT \
 ```bash
 # Get only standalone and configurable parent products (no variations)
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?filter[exclude_child_products]=1&filter[product_type]=configurable&include=childProducts.childProduct.price,childProducts.childProduct.mainMedia,variationAttributes,price,mainMedia&page[size]=20' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[exclude_child_products]=1&filter[product_type]=configurable&include=childProducts.childProduct.price,childProducts.childProduct.mainMedia,variationAttributes,price,mainMedia&page[size]=20' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -2693,7 +2693,7 @@ curl -s -X GET \
 ```bash
 # Products with stock in warehouse 3, excluding out-of-stock
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/product-hub/products?filter[stock.warehouse_id]=3&filter[without_stock]=1&include=stock,stock.warehouse,price,finalPrice,mainMedia&sort=-stock.stock_quantity&page[size]=30' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[stock.warehouse_id]=3&filter[without_stock]=1&include=stock,stock.warehouse,price,finalPrice,mainMedia&sort=-stock.stock_quantity&page[size]=30' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -2831,7 +2831,7 @@ SettingsHub repositories do **not** expose any includes. All data is returned di
 
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/settings-hub/config?filter[config_code]=general&page[size]=50' \
+  'https://api.datahub.syncspider.com/api/v1/apps/settings-hub/config?filter[config_code]=general&page[size]=50' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -2840,7 +2840,7 @@ curl -s -X GET \
 
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/settings-hub/countries' \
+  'https://api.datahub.syncspider.com/api/v1/apps/settings-hub/countries' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -2851,7 +2851,7 @@ Response includes name, iso2 (2-letter code), and iso3 (3-letter code) for every
 
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/settings-hub/currencies' \
+  'https://api.datahub.syncspider.com/api/v1/apps/settings-hub/currencies' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -2862,7 +2862,7 @@ Currencies are cached from openexchangerates.org. If the API is unavailable, a b
 
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/settings-hub/index/queue' \
+  'https://api.datahub.syncspider.com/api/v1/apps/settings-hub/index/queue' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -3169,7 +3169,7 @@ When determining the customer's country:
 
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/tax-hub/tax-rules?include=conditions,taxClassJurisdiction,taxClassJurisdiction.taxClass,taxClassJurisdiction.jurisdiction&filter[status]=active&sort=priority' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/tax-rules?include=conditions,taxClassJurisdiction,taxClassJurisdiction.taxClass,taxClassJurisdiction.jurisdiction&filter[status]=active&sort=priority' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -3179,7 +3179,7 @@ curl -s -X GET \
 ```bash
 # Step 1: Create the rule
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/tax-hub/tax-rules' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/tax-rules' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -3194,7 +3194,7 @@ curl -s -X POST \
 
 # Step 2: Add conditions to the rule (assuming rule ID 7 was returned)
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/tax-hub/tax-rules/7/conditions' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/tax-rules/7/conditions' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -3205,7 +3205,7 @@ curl -s -X POST \
   }'
 
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/tax-hub/tax-rules/7/conditions' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/tax-rules/7/conditions' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -3220,7 +3220,7 @@ curl -s -X POST \
 
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/tax-hub/calculate' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/calculate' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -3243,7 +3243,7 @@ curl -s -X POST \
 
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/tax-hub/calculate' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/calculate' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -3268,7 +3268,7 @@ If the "EU B2B VAT Exemption" rule from example 9.2 is active, this will match a
 
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/tax-hub/import/eu' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/import/eu' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -3279,7 +3279,7 @@ This imports standard VAT rates for all EU member states. Also available: `POST 
 
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/tax-hub/tax-class-jurisdictions?filter[tax_class_id]=1&include=taxClass,jurisdiction&sort=tax_rate&page[size]=50' \
+  'https://api.datahub.syncspider.com/api/v1/apps/tax-hub/tax-class-jurisdictions?filter[tax_class_id]=1&include=taxClass,jurisdiction&sort=tax_rate&page[size]=50' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```

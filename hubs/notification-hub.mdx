@@ -316,7 +316,7 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/notification-hub/notifications?filter[status]=[{"condition":"=","value":"failed"}]&include=notificationType,attempts,creator&per_page=20&sort=-_created_at' \
+  'https://api.datahub.syncspider.com/api/v1/apps/notification-hub/notifications?filter[status]=[{"condition":"=","value":"failed"}]&include=notificationType,attempts,creator&per_page=20&sort=-_created_at' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -326,7 +326,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/notification-hub/notifications/create-for-user' \
+  'https://api.datahub.syncspider.com/api/v1/apps/notification-hub/notifications/create-for-user' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -351,7 +351,7 @@ curl -s -X POST \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/notification-hub/dashboard/overview' \
+  'https://api.datahub.syncspider.com/api/v1/apps/notification-hub/dashboard/overview' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -361,7 +361,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  'https://your-domain.com/api/v1/apps/notification-hub/attempts?filter[channel]=[{"condition":"=","value":"email"}]&filter[status]=[{"condition":"IN","value":["failed","retry"]}]&include=notification,notification.notificationType&sort=-attempted_at&per_page=50' \
+  'https://api.datahub.syncspider.com/api/v1/apps/notification-hub/attempts?filter[channel]=[{"condition":"=","value":"email"}]&filter[status]=[{"condition":"IN","value":["failed","retry"]}]&include=notification,notification.notificationType&sort=-attempted_at&per_page=50' \
   -H 'Authorization: Bearer {token}' \
   -H 'Accept: application/json'
 ```
@@ -371,7 +371,7 @@ curl -s -X GET \
     <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/notification-hub/settings/email/test' \
+  'https://api.datahub.syncspider.com/api/v1/apps/notification-hub/settings/email/test' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \

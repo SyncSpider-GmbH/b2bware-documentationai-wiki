@@ -1,0 +1,132 @@
+# B2Bware DataHub API — Cursor Rules
+
+You are an expert on the B2Bware DataHub API, a modular B2B commerce platform with 9 specialized Hubs.
+
+## Key Facts
+
+- Default API domain: `api.datahub.syncspider.com`
+- Base URL pattern: `https://api.datahub.syncspider.com/api/v1/apps/{hub-slug}/{resource}`
+- Auth: Bearer token in `Authorization` header on all requests (except public CDN/webhook endpoints)
+- Required headers: `Authorization: Bearer {token}`, `Accept: application/json`, `Content-Type: application/json` (POST/PUT/PATCH)
+- All list endpoints are paginated: `?page=1&per_page=25`
+- Sorting: `?sort=-_created_at,name` (prefix `-` for descending)
+- Filtering uses MongoDB-compatible JSON syntax: `?filter[field]=[{"condition":"=","value":"active"}]`
+- Includes use comma-separated dot notation: `?include=price,mainMedia,categories.category`
+
+## Hub Slugs
+
+- `product-hub` — Products, categories, pricing, stock, media, variations, vendors
+- `order-hub` — Orders, carts, checkout, quotes, payments
+- `customer-hub` — Customers, companies, addresses, roles, groups
+- `attributes-hub` — Dynamic attributes, types, values, groups
+- `media-hub` — Polymorphic media with Bunny CDN proxy
+- `notification-hub` — Multi-channel notifications (120+ endpoints)
+- `tax-hub` — Tax calculation, rules, jurisdictions
+- `settings-hub` — Platform config, locales, currencies, cache
+- `license-hub` — License key lifecycle management
+
+## Filter Operators
+
+`=`, `!=`, `>`, `<`, `>=`, `<=`, `LIKE`, `IN`, `NOT IN`, `EMPTY`, `NOT EMPTY`
+
+Combine with `"operator": "AND"` or `"operator": "OR"` in condition arrays.
+
+Relation filters use dot notation: `filter[company.name]=[...]`
+
+Callback filters use simple key=value: `filter[search]=term`
+
+## ProductHub Special Filters
+
+- `filter[attribute]` — JSON array: `[{"attribute_id":1,"attribute_value":"Red","condition":"IN","operator":"AND"}]`
+- `filter[exclude_child_products]=1` — Hide variation children
+- `filter[exclude_parent_products]=1` — Hide configurable parents
+- `filter[anchor_category_id]=5` — Category + all descendants
+- `filter[parent_id]=50` — Only children of product 50
+- `filter[search]=term` — Full-text across name, sku, description
+- `filter[without_stock]=1` — Exclude products with no stock
+
+## Product Types
+
+- `simple` — Standalone product
+- `configurable` — Parent with child variations (product_type is immutable after creation)
+- `license` — Product with license key generation
+- `dt-one` — Digital product
+
+## Checkout Flow
+
+1. Create cart: `POST /carts` or `PATCH /carts` (upsert by session_uuid)
+2. Add items: `POST /cart-items`
+3. Preview: `GET /carts/{id}/checkout`
+4. Complete: `POST /carts/{id}/checkout` with shipping_method_id, billing_method_id, shipping_address_id, billing_address_id
+
+## Tax Calculation
+
+`POST /tax-hub/calculate` with `line_items` (subtotal, tax_class_id) and `customer` (email, country, region, customer_group, vat_number)
+
+Rate fallback: Matched rule → Class+jurisdiction mapping → Country rate → GLOBAL jurisdiction → Config default
+
+## Bulk Operations
+
+- `PUT /product-hub/products/bulk/update` — Bulk update products
+- `PUT /product-hub/products/upsert/single` — Upsert by SKU (action: createOrUpdate/onlyCreate/onlyUpdate)
+- `POST /product-hub/stock/upsert/bulk` — Bulk upsert stock
+- `POST /product-hub/prices/upsert/bulk` — Bulk upsert prices
+- `PUT /attributes-hub/attributes/insert/bulk` — Bulk create/update attributes
+- `POST /notification-hub/notifications/create-bulk` — Bulk notifications (max 10,000)
+- `POST /license-hub/license-keys/generate` — Generate keys (max 1,000)
+
+## Coding Guidelines
+
+1. Always use environment variables for domain and token (DATAHUB_DOMAIN=api.datahub.syncspider.com, DATAHUB_TOKEN)
+2. Handle pagination — iterate current_page to last_page
+3. Use upsert endpoints for sync workflows to avoid duplicates
+4. URL-encode filter JSON values properly
+5. Only retry 5xx errors with exponential backoff; fix 4xx before retrying
+6. Use includes judiciously — only request what you need
+7. Prefer IN operator over chaining OR conditions
+8. Use anchor_category_id for category trees (includes subcategories)
+9. Use exclude_child_products=1 on product listings
+10. Never expose API tokens in client-side code
+
+## Error Handling
+
+- 200 OK, 201 Created, 204 No Content (DELETE)
+- 400 Bad Request (malformed JSON/params)
+- 401 Unauthorized (missing/invalid token)
+- 403 Forbidden (insufficient permissions)
+- 404 Not Found
+- 422 Validation Error: `{"message": "...", "errors": {"field": ["Error."]}}`
+- 500 Server Error
+
+## Product Includes (most common)
+
+`price`, `specialPrice`, `finalPrice`, `costPrice`, `tierPrices`, `groupPrices`, `stock`, `stock.warehouse`, `mainMedia`, `media`, `categories.category`, `attributeValues.value.translation`, `childProducts.childProduct`, `variationAttributes`, `stockSum`, `attributes`, `crossSells.crossSellProduct`, `upSells.upSellProduct`, `vendorProduct.vendor`, `translation`, `licenseConfiguration`
+
+## Order Includes (most common)
+
+`customer`, `customer.company`, `orderLineItems`, `orderLineItems.product.mainMedia`, `shippingMethod`, `billingMethod`, `shippingAddress`, `billingAddress`, `comments`
+
+## Customer Includes (most common)
+
+`company`, `role`, `shippingAddresses`, `billingAddresses`, `customerGroup`, `attributeValues.value.translation`
+
+## Notification Channels
+
+`email`, `database`, `broadcast`, `sms`, `push`, `slack`
+
+## License Key Statuses
+
+`available`, `assigned`, `activated`, `expired`, `revoked`
+
+## Documentation
+
+Detailed docs are in this repo as MDX files. Key files:
+- `hubs/product-hub.mdx` — ProductHub (26 filters, 42+ includes, full validation rules)
+- `hubs/order-hub.mdx` — OrderHub with checkout flow
+- `hubs/customer-hub.mdx` — CustomerHub
+- `hubs/notification-hub.mdx` — NotificationHub (120+ endpoints)
+- `core-concepts/filtering.mdx` — Filter syntax reference
+- `core-concepts/includes.mdx` — Include system reference
+- `advanced/checkout-flow.mdx` — Cart-to-order flow
+- `advanced/bulk-operations.mdx` — Bulk operations guide
+- `api-reference/openapi.yaml` — OpenAPI 3.0.0 spec

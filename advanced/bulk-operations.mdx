@@ -33,7 +33,7 @@ Bulk endpoints are ideal for ERP synchronization, data imports, and batch update
 <Request tabs="cURL">
 ```bash
 curl -s -X PUT \
-  'https://your-domain.com/api/v1/apps/product-hub/products/bulk/update' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/bulk/update' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -54,7 +54,7 @@ The upsert endpoint is idempotent — it creates the product if the SKU doesn't 
 <Request tabs="cURL">
 ```bash
 curl -s -X PUT \
-  'https://your-domain.com/api/v1/apps/product-hub/products/upsert/single' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/upsert/single' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -79,7 +79,7 @@ The `action` field controls behavior:
 <Request tabs="cURL">
 ```bash
 curl -s -X POST \
-  'https://your-domain.com/api/v1/apps/product-hub/stock/upsert/bulk' \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/stock/upsert/bulk' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -96,7 +96,7 @@ curl -s -X POST \
 <Request tabs="cURL">
 ```bash
 curl -s -X PUT \
-  'https://your-domain.com/api/v1/apps/attributes-hub/attributes/insert/bulk' \
+  'https://api.datahub.syncspider.com/api/v1/apps/attributes-hub/attributes/insert/bulk' \
   -H 'Authorization: Bearer {token}' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
