@@ -5,7 +5,7 @@ description: Complete guide to the cart-to-checkout-to-order flow using the Orde
 
 ## Overview
 
-The OrderHub provides a complete checkout flow that converts a cart into an order. The flow involves creating a cart, adding items, previewing the checkout (with tax and shipping calculation), and completing the checkout.
+The OrderHub provides a complete checkout flow that converts a cart into an order: create or upsert a cart (with items), preview the checkout to see totals and tax, then complete the checkout with shipping and billing addresses and method IDs. When using the [B2Bware MCP Server](/ai-tools/mcp-server), the tools `upsert_cart`, `preview_checkout`, and `checkout` follow this same flow.
 
 ## Flow Diagram
 
@@ -68,7 +68,7 @@ curl -s -X PATCH \
 
 ## Step 2: Preview Checkout
 
-Preview the checkout to calculate totals, shipping costs, and tax before completing:
+Call `GET /carts/{id}/checkout` to calculate totals, shipping costs, and tax without creating the order. Use this to show the customer the final amount before they confirm.
 
 <Request tabs="cURL">
 ```bash
@@ -125,11 +125,14 @@ curl -s -X GET \
 
 ## Related
 
-<Columns cols={2}>
+<Columns cols={3}>
   <Card title="OrderHub" icon="shopping-cart" href="/hubs/order-hub">
     Full OrderHub API reference with all endpoints.
   </Card>
   <Card title="Tax Calculation" icon="calculator" href="/advanced/tax-calculation">
     How tax is calculated during checkout.
+  </Card>
+  <Card title="MCP Server" icon="cpu" href="/ai-tools/mcp-server">
+    Use <code>upsert_cart</code>, <code>preview_checkout</code>, and <code>checkout</code> from your AI assistant.
   </Card>
 </Columns>

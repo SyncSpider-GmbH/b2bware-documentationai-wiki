@@ -5,55 +5,80 @@ description: Connect AI assistants directly to your live DataHub data using the 
 
 ## B2Bware MCP Server
 
-The B2Bware MCP Server is a hosted remote service that connects AI coding assistants directly to your live DataHub data using the [Model Context Protocol (MCP)](https://modelcontextprotocol.io). No local installation required — just configure your API key and start interacting with products, customers, and orders through natural language.
+The B2Bware MCP Server is a hosted remote service that connects AI assistants to your live DataHub using the [Model Context Protocol (MCP)](https://modelcontextprotocol.io). No local installation is required: configure your API key and interact with products, customers, orders, carts, checkout, and tax through natural language.
 
 **Server URL:** `https://mcp.b2bware.com/sse`
 
 <Callout kind="info" title="What is MCP?">
-The Model Context Protocol (MCP) is an open standard that allows AI assistants to use external tools and access data sources. When you connect the B2Bware MCP Server, your AI assistant can browse your product catalog, search customers, create carts, and process orders — all through conversation.
+The Model Context Protocol (MCP) is an open standard that lets AI assistants call external tools and access data sources. With the B2Bware MCP Server connected, your assistant can browse the product catalog, search customers, manage carts, preview and complete checkout, calculate tax, and create or update orders — all in conversation.
 </Callout>
 
 ## Available Tools
 
-The MCP Server exposes 14 tools that your AI assistant can call:
+The MCP Server exposes **27 tools** for products, categories, orders, carts, checkout, tax, customers, and authentication. Order responses include a synthetic `order_number` (e.g. `ORD-2024-00001`); the status value `"processing"` is normalized from the API’s internal spelling.
 
 <Tabs>
   <Tab title="Products" icon="box">
 
 | Tool | Description |
 |------|-------------|
-| `list_products` | List products with filters and pagination |
-| `search_products` | Full-text product search by name, SKU, description |
-| `get_product` | Retrieve a single product with all details by ID |
-| `list_categories` | List product categories and category tree |
+| `list_products` | List products with pagination, sort, and filters (e.g. category, anchor_category_id, product_type, exclude_configurable, exclude_child_products) |
+| `search_products` | Full-text search by name, SKU, description; use `exclude_configurable=true` to return only orderable products |
+| `get_product` | Get a single product by ID with details (price, media, categories) |
+| `list_categories` | List product categories (tree) with pagination |
+| `get_category` | Get a single category by ID |
 
   </Tab>
   <Tab title="Customers" icon="users">
 
 | Tool | Description |
 |------|-------------|
-| `list_customers` | List customers with filter options |
+| `list_customers` | List customers with filter options (email, customer_number, pagination) |
 | `search_customers` | Search customers by name, email or company |
-| `get_customer` | Retrieve customer profile with addresses by ID |
+| `get_customer` | Retrieve customer profile with shipping and billing addresses by ID |
+| `create_customer` | Create a new customer account |
+| `update_customer` | Update an existing customer (name, phone, status, etc.) |
+| `list_customer_addresses` | List all shipping and billing addresses for a customer |
+| `create_shipping_address` | Create a shipping address for a customer |
+| `create_billing_address` | Create a billing address for a customer |
 
   </Tab>
   <Tab title="Orders" icon="shopping-cart">
 
 | Tool | Description |
 |------|-------------|
-| `list_orders` | List orders, filter by customer or status |
+| `list_orders` | List orders with filters (customer, status, date range, price) and sorting; use `sort=-id` for newest first |
 | `get_order` | Retrieve order details with line items by ID |
+| `update_order_status` | Update the status of an order (pending, processing, completed, cancelled) |
 
   </Tab>
   <Tab title="Cart & Checkout" icon="credit-card">
 
 | Tool | Description |
 |------|-------------|
-| `create_cart` | Create a new cart for an order |
-| `add_cart_item` | Add products with quantity to the cart |
-| `checkout_cart` | Complete the cart as a binding order |
-| `list_billing_methods` | Retrieve available payment methods |
-| `list_shipping_methods` | Retrieve available shipping methods |
+| `upsert_cart` | Create or update a cart by `session_uuid`; pass `cart_items` (product_id, quantity, optional price) in one call |
+| `get_cart` | Retrieve cart contents for a session by `session_uuid` |
+| `list_carts` | List all carts, optionally filtered by customer ID |
+| `remove_cart_item` | Remove one item from a cart by cart item ID |
+| `preview_checkout` | Preview checkout for a cart: get totals, shipping, and tax without completing the order |
+| `checkout` | Complete checkout and create an order. Requires cart_id, shipping_address_id, billing_address_id, shipping_method_id, billing_method_id — use `list_shipping_methods`, `list_billing_methods`, and `list_customer_addresses` first to get valid IDs |
+| `list_shipping_methods` | List available shipping methods (required for checkout) |
+| `list_billing_methods` | List available payment/billing methods (required for checkout) |
+
+  </Tab>
+  <Tab title="Tax" icon="percent">
+
+| Tool | Description |
+|------|-------------|
+| `calculate_tax` | Calculate tax for line items using customer context (country, region, customer_group, vat_number). Returns tax per line and total. Use before checkout or for quotes. |
+
+  </Tab>
+  <Tab title="Auth" icon="key">
+
+| Tool | Description |
+|------|-------------|
+| `login` | Authenticate a customer with email and password; returns a bearer token for subsequent requests |
+| `register` | Register a new customer account |
 
   </Tab>
 </Tabs>
@@ -256,13 +281,17 @@ Every connection is fully isolated by your API key. The server stores no keys �
 Once connected, try these prompts with your AI assistant:
 
 | Prompt | What it does |
-|--------|-------------|
-| "Show me all products in the Electronics category" | Uses `list_products` with category filter |
-| "Search for customers from Berlin" | Uses `search_customers` |
-| "What's the status of order #1234?" | Uses `get_order` with ID |
-| "Create a cart with 3x Product SKU-001 and 1x SKU-002" | Uses `create_cart` + `add_cart_item` |
-| "Show me all pending orders from this month" | Uses `list_orders` with status and date filters |
-| "Get the full details of product 42 including stock and pricing" | Uses `get_product` |
+|--------|--------------|
+| "Show me all products in the Electronics category" | `list_products` with category filter (e.g. anchor_category_id) |
+| "Search for customers from Berlin" | `search_customers` |
+| "What's the status of order #1234?" | `get_order` with ID |
+| "Create or update a cart with 3x Product SKU-001 and 1x SKU-002" | `upsert_cart` with cart_items |
+| "Show me the latest order" | `list_orders` with `sort=-id`, `per_page=1` |
+| "Get customer 42 with all addresses" | `get_customer` (returns shipping and billing addresses) |
+| "Show me the checkout total for cart 17 before I place the order" | `preview_checkout` with cart_id |
+| "Calculate tax for two line items (100 € and 50 €) for a customer in Germany" | `calculate_tax` with line_items and customer.country |
+| "Show me all pending orders from this month" | `list_orders` with status and date filters |
+| "Get the full details of product 42 including stock and pricing" | `get_product` |
 
 ## Troubleshooting
 
