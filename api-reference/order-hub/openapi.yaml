@@ -1,0 +1,1453 @@
+openapi: 3.0.0
+info:
+  title: OrderHub API
+  description: Cart, checkout, orders, quotes.
+  version: 1.0.0
+  contact:
+    name: B2Bware
+    url: https://syncspider.com
+servers:
+  - url: https://api.datahub.syncspider.com
+    description: Production
+tags:
+  - name: Public (URL-based installation key)
+    description: >-
+      Payment provider callbacks. Called by the PSP or by the customer's browser
+      via redirect. No headers required.
+  - name: Carts
+    description: >-
+      Cart lifecycle. Guest carts are identified by `session-uuid`; logged-in
+      carts are scoped to the customer.
+  - name: Cart Items
+    description: Line item CRUD against an existing cart.
+  - name: Checkout
+    description: Convert an active cart into an order.
+  - name: Orders
+    description: Read-only order access for the logged-in customer.
+  - name: Billing & Shipping Methods
+    description: Read-only — storefront fetches the list to render checkout method pickers.
+  - name: Customer Payment Methods
+    description: >-
+      Stored payment instruments for the logged-in customer (e.g. tokenized
+      cards from the PSP).
+  - name: Quotes (B2B)
+    description: >-
+      Request-for-quote workflow. Customer creates a quote; sales agent prices
+      it; customer accepts → converts to order.
+paths:
+  /api/v1/apps/order-hub/payment/webhook/{installationKey}/{provider}/{order_id}:
+    post:
+      tags:
+        - Public (URL-based installation key)
+      summary: Payment Webhook (PSP → DataHub)
+      description: >-
+        Generic payment webhook endpoint. Each PSP integration validates its own
+        payload format.
+
+
+        **No signature verification** is applied at the API layer today —
+        PSP-specific verification (e.g. HMAC) is delegated to the integration
+        handler. Treated as a known gap.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: provider
+          in: path
+          schema:
+            type: string
+          required: true
+          example: stripe
+        - name: order_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1234'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/order/payment/{installationKey}/{order_id}:
+    get:
+      tags:
+        - Public (URL-based installation key)
+      summary: Payment Redirect (browser → DataHub)
+      description: >-
+        Customer is redirected here by the PSP after completing payment. The
+        handler finalizes the order based on PSP-side status and redirects the
+        browser to the storefront success/cancel page.
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: order_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1234'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/carts:
+    get:
+      tags:
+        - Carts
+      summary: List Carts
+      description: >-
+        Returns carts visible to the caller. For a logged-in customer, this is
+        their carts (typically one active). For a guest with `session-uuid`, the
+        matching guest cart.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: cartItems.product.price,cartItems.product.mainMedia
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '10'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Carts
+      summary: Create Cart
+      description: >-
+        Explicitly create a cart. Most storefronts create lazily via `PATCH
+        /carts` (upsert).
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"customer_id\": null,\n  \"session_uuid\":
+                \"00000000-0000-0000-0000-000000000000\"\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Carts
+      summary: Upsert Cart (PATCH /carts)
+      description: >-
+        Idiomatic cart bootstrap: creates or returns the active cart for the
+        caller (logged-in customer or guest `session-uuid`). Body is optional
+        metadata.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/carts/{cart}:
+    get:
+      tags:
+        - Carts
+      summary: Show Cart
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: cartItems.product.price,cartItems.product.mainMedia
+        - name: cart
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Carts
+      summary: Update Cart
+      description: 'Update cart metadata: chosen billing/shipping method, addresses, notes.'
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"billing_method_id\": 1,\n  \"shipping_method_id\": 2,\n 
+                \"billing_address_id\": 5,\n  \"shipping_address_id\": 5\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cart
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Carts
+      summary: Delete Cart
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cart
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/carts/{cart}/rule-progress:
+    get:
+      tags:
+        - Carts
+      summary: Cart Rule Progress
+      description: >-
+        Returns the progress against active cart rules (e.g. "spend €20 more for
+        free shipping"). Useful for showing motivational messaging in the cart
+        UI.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cart
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/cart-items:
+    get:
+      tags:
+        - Cart Items
+      summary: List Cart Items
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[cart_id]
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: product.price,product.mainMedia
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Cart Items
+      summary: Add Cart Item
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"cart_id\": 1,\n  \"product_id\": 100,\n  \"quantity\":
+                2\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/cart-items/{cartItem}:
+    get:
+      tags:
+        - Cart Items
+      summary: Show Cart Item
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cartItem
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Cart Items
+      summary: Update Cart Item
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"quantity\": 3\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cartItem
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Cart Items
+      summary: Remove Cart Item
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cartItem
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/carts/{cart}/checkout:
+    get:
+      tags:
+        - Checkout
+      summary: Get Checkout Summary
+      description: >-
+        Returns the priced, tax-calculated, shipping-resolved view of the cart,
+        ready for confirmation.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cart
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Checkout
+      summary: Place Order
+      description: >-
+        Creates the order from the cart. If the chosen billing method requires
+        PSP redirection, the response contains a `redirect_url` for the
+        customer's browser.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"billing_method_id\": 1,\n  \"shipping_method_id\": 2,\n 
+                \"billing_address_id\": 5,\n  \"shipping_address_id\": 5,\n 
+                \"customer_payment_method_id\": null,\n  \"notes\": \"\"\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cart
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/orders:
+    get:
+      tags:
+        - Orders
+      summary: List Orders
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: orderLineItems,customer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '10'
+        - name: sort
+          in: query
+          schema:
+            type: string
+          example: '-_created_at'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/orders/{order}:
+    get:
+      tags:
+        - Orders
+      summary: Show Order
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: orderLineItems.product,customer,billingAddress,shippingAddress
+        - name: order
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/billing-methods:
+    get:
+      tags:
+        - Billing & Shipping Methods
+      summary: List Billing Methods
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[is_active]
+          in: query
+          schema:
+            type: integer
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/billing-methods/{method}:
+    get:
+      tags:
+        - Billing & Shipping Methods
+      summary: Show Billing Method
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: method
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/shipping-methods:
+    get:
+      tags:
+        - Billing & Shipping Methods
+      summary: List Shipping Methods
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[is_active]
+          in: query
+          schema:
+            type: integer
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/shipping-methods/{method}:
+    get:
+      tags:
+        - Billing & Shipping Methods
+      summary: Show Shipping Method
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: method
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/customer-payment-methods:
+    get:
+      tags:
+        - Customer Payment Methods
+      summary: List Payment Methods
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Customer Payment Methods
+      summary: Add Payment Method
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"billing_method_id\": 1,\n  \"provider_token\":
+                \"tok_xxxxxxxxxxxxxxxx\",\n  \"display_name\": \"Visa ending
+                4242\"\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/customer-payment-methods/{method}:
+    get:
+      tags:
+        - Customer Payment Methods
+      summary: Show Payment Method
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: method
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Customer Payment Methods
+      summary: Update Payment Method
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"display_name\": \"Primary card\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: method
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Customer Payment Methods
+      summary: Delete Payment Method
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: method
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/customer-payment-methods/sync:
+    post:
+      tags:
+        - Customer Payment Methods
+      summary: Sync Payment Methods
+      description: Re-pulls the customer's stored instruments from the configured PSP.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"billing_method_id\": 1\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/quotes:
+    get:
+      tags:
+        - Quotes (B2B)
+      summary: List Quotes
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: quoteItems
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '10'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Quotes (B2B)
+      summary: Create Quote (RFQ)
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"notes\": \"Please quote for 100 units.\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/quotes/{quote}:
+    get:
+      tags:
+        - Quotes (B2B)
+      summary: Show Quote
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: quoteItems.product,quoteItemsGroups
+        - name: quote
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Quotes (B2B)
+      summary: Update Quote
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"status\": \"submitted\",\n  \"notes\": \"\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: quote
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Quotes (B2B)
+      summary: Delete Quote
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: quote
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/quote-items:
+    get:
+      tags:
+        - Quotes (B2B)
+      summary: List Quote Items
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[quote_id]
+          in: query
+          schema:
+            type: integer
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Quotes (B2B)
+      summary: Add Quote Item
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"quote_id\": 1,\n  \"product_id\": 100,\n  \"quantity\":
+                100\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/quote-items/{item}:
+    put:
+      tags:
+        - Quotes (B2B)
+      summary: Update Quote Item
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"quantity\": 150\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: item
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Quotes (B2B)
+      summary: Delete Quote Item
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: item
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/quote-items-groups:
+    get:
+      tags:
+        - Quotes (B2B)
+      summary: List Quote Item Groups
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[quote_id]
+          in: query
+          schema:
+            type: integer
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/quote-items-groups/{group}:
+    get:
+      tags:
+        - Quotes (B2B)
+      summary: Show Quote Item Group
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

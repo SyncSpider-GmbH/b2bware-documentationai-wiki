@@ -77,8 +77,45 @@
         "icon": "code",
         "groups": [
           {
-            "group": "Endpoints",
-            "openapi": "api-reference/openapi.yaml",
+            "group": "AuthHub",
+            "icon": "lock",
+            "openapi": "api-reference/auth-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "ProductHub",
+            "icon": "box",
+            "openapi": "api-reference/product-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "OrderHub",
+            "icon": "shopping-cart",
+            "openapi": "api-reference/order-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "CustomerHub",
+            "icon": "users",
+            "openapi": "api-reference/customer-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "MediaHub",
+            "icon": "image",
+            "openapi": "api-reference/media-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "TaxHub",
+            "icon": "percent",
+            "openapi": "api-reference/tax-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "ContentHub",
+            "icon": "file-text",
+            "openapi": "api-reference/content-hub/openapi.yaml",
             "pages": []
           }
         ]

@@ -1,0 +1,1312 @@
+openapi: 3.0.0
+info:
+  title: ProductHub API
+  description: Catalog, prices, stock, media.
+  version: 1.0.0
+  contact:
+    name: B2Bware
+    url: https://syncspider.com
+servers:
+  - url: https://api.datahub.syncspider.com
+    description: Production
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Products
+  - name: Categories
+  - name: Warehouses
+  - name: Stock
+  - name: Prices
+  - name: Media
+  - name: Vendors
+  - name: Jurisdiction
+  - name: Tax Classes
+  - name: Translations
+  - name: Attributes (ProductHub)
+  - name: Attribute Values
+  - name: Attribute Groups
+  - name: Customer Groups
+  - name: Demo Data
+paths:
+  /products:
+    get:
+      tags:
+        - Products
+      summary: List Products
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          description: Page number
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          description: Results per page (max 50)
+          example: '20'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Products
+      summary: Create Product
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"Sample Product\",\n  \"sku\":
+                \"SKU-12345\",\n  \"product_type\": \"simple\",\n 
+                \"description\": \"Product description\",\n 
+                \"short_description\": \"Short description\",\n  \"status\":
+                \"active\",\n  \"visibility\": \"visible\",\n  \"manage_stock\":
+                true,\n  \"tax_class_id\": 1,\n  \"attributes\": [\n    {\n     
+                \"attribute_id\": 1,\n      \"value\": \"Red\",\n     
+                \"auto_create_value\": false\n    }\n  ],\n  \"prices\": [\n   
+                {\n      \"price_type\": \"regular\",\n      \"price\":
+                99.99\n    }\n  ],\n  \"stock\": [\n    {\n     
+                \"warehouse_id\": 1,\n      \"stock_quantity\": 100,\n     
+                \"stock_availability\": true,\n      \"backorders\":
+                \"no_backorders\"\n    }\n  ],\n  \"media\": [\n    {\n     
+                \"file\": \"base64_encoded_file_or_url\",\n      \"media_type\":
+                \"image\",\n      \"alt_text\": \"Product image\",\n     
+                \"is_primary\": true,\n      \"order\": 1\n    }\n  ]\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /products/1:
+    get:
+      tags:
+        - Products
+      summary: Get Product
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Products
+      summary: Update Product
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"Updated Product Name\",\n  \"description\":
+                \"Updated description\",\n  \"status\": \"active\",\n 
+                \"prices\": [\n    {\n      \"price_type\": \"regular\",\n     
+                \"price\": 149.99\n    }\n  ]\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Products
+      summary: Delete Product
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /products/upsert/single:
+    put:
+      tags:
+        - Products
+      summary: Upsert Product
+      description: >-
+        Create or update product by SKU. action can be: createOrUpdate,
+        onlyCreate, onlyUpdate
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"sku\": \"SKU-12345\",\n  \"name\": \"Product Name\",\n 
+                \"product_type\": \"simple\",\n  \"description\": \"Product
+                description\",\n  \"short_description\": \"Short
+                description\",\n  \"status\": \"active\",\n  \"visibility\":
+                \"visible\",\n  \"manage_stock\": true,\n  \"action\":
+                \"createOrUpdate\",\n  \"attributes\": [\n    {\n     
+                \"attribute_id\": 1,\n      \"value\": \"Blue\"\n    }\n  ],\n 
+                \"prices\": [\n    {\n      \"price_type\": \"regular\",\n     
+                \"price\": 199.99\n    }\n  ],\n  \"stock\": [\n    {\n     
+                \"warehouse_id\": 1,\n      \"stock_quantity\": 50,\n     
+                \"stock_availability\": true\n    }\n  ]\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /products/bulk/update:
+    put:
+      tags:
+        - Products
+      summary: Bulk Update Products
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "[\n  {\n    \"id\": 1,\n    \"name\": \"Updated Product
+                1\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\": 2,\n   
+                \"name\": \"Updated Product 2\",\n    \"status\":
+                \"inactive\"\n  }\n]"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /products/bulk/delete:
+    delete:
+      tags:
+        - Products
+      summary: Bulk Delete Products
+      description: >-
+        Delete multiple products by IDs or use delete_all: true to delete all
+        products
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /products/1/createVariations:
+    put:
+      tags:
+        - Products
+      summary: Create Variations
+      description: Create product variations based on attribute combinations
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"attributes\": [\n    {\n      \"attribute_id\":
+                1,\n      \"value\": [\"Red\", \"Blue\", \"Green\"]\n    },\n   
+                {\n      \"attribute_id\": 2,\n      \"value\": [\"S\", \"M\",
+                \"L\"]\n    }\n  ]\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /products/1/attachVariationsAttributes:
+    put:
+      tags:
+        - Products
+      summary: Attach Variations Attributes
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"attribute_ids\": [1, 2, 3]\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /products/1/child-products:
+    delete:
+      tags:
+        - Products
+      summary: Detach Child Products
+      description: Unlink child products from parent product
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /products/1/generateAIDescription:
+    put:
+      tags:
+        - Products
+      summary: Generate AI Description
+      description: Generate product description using AI from PDF attributes
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"language\": \"en_001\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /categories:
+    get:
+      tags:
+        - Categories
+      summary: List Categories
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          description: Max 200
+          example: '50'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Categories
+      summary: Create Category
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"Electronics\",\n  \"slug\":
+                \"electronics\",\n  \"description\": \"Electronic products
+                category\",\n  \"parent_id\": null,\n 
+                \"exclude_from_main_menu\": false,\n 
+                \"exclude_from_layer_navigation\": false,\n  \"media\": [\n   
+                {\n      \"file\": \"base64_or_url\",\n      \"media_type\":
+                \"image\",\n      \"alt_text\": \"Category image\",\n     
+                \"is_primary\": true,\n      \"order\": 1\n    }\n  ],\n 
+                \"attributes\": [\n    {\n      \"attribute_id\": 1,\n     
+                \"value\": \"Category Value\",\n      \"auto_create_value\":
+                false\n    }\n  ],\n  \"meta_data\": {\n    \"definition\":
+                [\n      {\n        \"name\": \"Meta Field\",\n        \"code\":
+                \"meta_field\",\n        \"type\": \"text\",\n       
+                \"values\": [],\n        \"visible_on_the_category_page\":
+                true,\n        \"required\": false\n      }\n    ],\n   
+                \"definition_values\": {}\n  },\n  \"seo\": {\n    \"title\":
+                \"Electronics - Shop Now\",\n    \"description\": \"Browse our
+                electronics collection\",\n    \"keywords\": \"electronics,
+                gadgets\"\n  }\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /categories/1:
+    get:
+      tags:
+        - Categories
+      summary: Get Category
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Categories
+      summary: Update Category
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"Updated Category Name\",\n  \"description\":
+                \"Updated description\",\n  \"slug\": \"updated-slug\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Categories
+      summary: Delete Category
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /categories/update/depths:
+    post:
+      tags:
+        - Categories
+      summary: Set Depths for All Categories
+      description: Recalculate and update depths for all categories
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /warehouses:
+    get:
+      tags:
+        - Warehouses
+      summary: List Warehouses
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          description: Max 50
+          example: '20'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Warehouses
+      summary: Create Warehouse
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"Main Warehouse\",\n  \"location\": \"New York,
+                USA\",\n  \"default_warehouse\": true\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /warehouses/1:
+    get:
+      tags:
+        - Warehouses
+      summary: Get Warehouse
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Warehouses
+      summary: Update Warehouse
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"Updated Warehouse Name\",\n  \"location\":
+                \"Los Angeles, USA\",\n  \"default_warehouse\": false\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Warehouses
+      summary: Delete Warehouse
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /stock:
+    get:
+      tags:
+        - Stock
+      summary: List Stock
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Stock
+      summary: Create Stock
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"product_id\": 1,\n  \"warehouse_id\": 1,\n 
+                \"stock_quantity\": 100,\n  \"stock_availability\": true,\n 
+                \"backorders\": \"no_backorders\",\n 
+                \"minimum_qty_allowed_in_shopping_cart\": 1,\n 
+                \"maximum_qty_allowed_in_shopping_cart\": 10,\n 
+                \"qty_for_items_status_to_become_out_of_stock\": 5,\n 
+                \"upcoming_qty\": [\n    {\n      \"date\":
+                \"2024-12-31\",\n      \"quantity\": 50\n    }\n  ]\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /stock/1:
+    get:
+      tags:
+        - Stock
+      summary: Get Stock
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Stock
+      summary: Update Stock
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"stock_quantity\": 75,\n  \"stock_availability\":
+                true,\n  \"backorders\": \"allow_qty_below_0\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Stock
+      summary: Delete Stock
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /stock/upsert/bulk:
+    post:
+      tags:
+        - Stock
+      summary: Upsert Bulk Stock
+      description: >-
+        Create or update multiple stock records. Include id for update, or
+        product_id+warehouse_id for create
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "[\n  {\n    \"product_id\": 1,\n    \"warehouse_id\": 1,\n   
+                \"stock_quantity\": 150,\n    \"stock_availability\": true,\n   
+                \"backorders\": \"no_backorders\"\n  },\n  {\n    \"id\":
+                2,\n    \"stock_quantity\": 200,\n    \"stock_availability\":
+                true\n  }\n]"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /prices:
+    get:
+      tags:
+        - Prices
+      summary: List Prices
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Prices
+      summary: Create Group Price
+      description: Special pricing for customer groups
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"product_id\": 1,\n  \"price_type\": \"group\",\n 
+                \"price\": 79.99,\n  \"customer_group_id\": 1\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /prices/1:
+    get:
+      tags:
+        - Prices
+      summary: Get Price
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Prices
+      summary: Update Price
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"price\": 109.99,\n  \"start_date\": \"2024-01-01\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Prices
+      summary: Delete Price
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /prices/upsert/bulk:
+    post:
+      tags:
+        - Prices
+      summary: Upsert Bulk Prices
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "[\n  {\n    \"product_id\": 1,\n    \"price_type\":
+                \"regular\",\n    \"price\": 99.99\n  },\n  {\n   
+                \"product_id\": 1,\n    \"price_type\": \"special\",\n   
+                \"price\": 79.99,\n    \"start_date\": \"2024-01-01\",\n   
+                \"end_date\": \"2024-01-31\"\n  },\n  {\n    \"id\": 5,\n   
+                \"price\": 89.99\n  }\n]"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /media:
+    get:
+      tags:
+        - Media
+      summary: List Media
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Media
+      summary: Create Media
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Product Image\",\n  \"type\": \"image\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /media/1:
+    get:
+      tags:
+        - Media
+      summary: Get Media
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Media
+      summary: Update Media
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"product_id\": 1,\n  \"media_type\": \"image\",\n 
+                \"media_url\": \"https://example.com/image.jpg\",\n 
+                \"alt_text\": \"Product image alt text\",\n  \"is_primary\":
+                true\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Media
+      summary: Delete Media
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /vendor:
+    get:
+      tags:
+        - Vendors
+      summary: List Vendors
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Vendors
+      summary: Create Vendor
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"Acme Corporation\",\n  \"email\":
+                \"contact@acme.com\",\n  \"phone\": \"+1234567890\",\n 
+                \"address\": \"123 Main Street, City, Country\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /vendor/1:
+    get:
+      tags:
+        - Vendors
+      summary: Get Vendor
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Vendors
+      summary: Update Vendor
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"Acme Corp Updated\",\n  \"email\":
+                \"info@acme.com\",\n  \"phone\": \"+1987654321\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Vendors
+      summary: Delete Vendor
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /jurisdiction:
+    get:
+      tags:
+        - Jurisdiction
+      summary: List Jurisdictions
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Jurisdiction
+      summary: Create Jurisdiction
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"New York State\",\n  \"contact_info\":
+                \"tax@ny.gov\",\n  \"address\": \"State Tax Office, Albany,
+                NY\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /jurisdiction/1:
+    get:
+      tags:
+        - Jurisdiction
+      summary: Get Jurisdiction
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Jurisdiction
+      summary: Update Jurisdiction
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"New York State Updated\",\n  \"contact_info\":
+                \"info@ny.gov\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Jurisdiction
+      summary: Delete Jurisdiction
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /taxClass:
+    get:
+      tags:
+        - Tax Classes
+      summary: List Tax Classes
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Tax Classes
+      summary: Create Tax Class
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"Standard Tax Class\",\n  \"contact_info\":
+                \"tax@example.com\",\n  \"address\": \"Tax Office Address\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /taxClass/1:
+    get:
+      tags:
+        - Tax Classes
+      summary: Get Tax Class
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Tax Classes
+      summary: Update Tax Class
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"Updated Tax Class\",\n  \"contact_info\":
+                \"info@example.com\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Tax Classes
+      summary: Delete Tax Class
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /translations:
+    get:
+      tags:
+        - Translations
+      summary: List Translations
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Translations
+      summary: Create Translation
+      description: 'Attribute codes for products: name, description, short_description'
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"model_id\": 1,\n  \"model_type\": \"product\",\n 
+                \"language_code\": \"de_DE\",\n  \"attribute_code\":
+                \"name\",\n  \"translated_value\": \"Produktname auf
+                Deutsch\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /translations/1:
+    get:
+      tags:
+        - Translations
+      summary: Get Translation
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Translations
+      summary: Update Translation
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"translated_value\": \"Aktualisierter Produktname\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Translations
+      summary: Delete Translation
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /translations/upsert/single:
+    put:
+      tags:
+        - Translations
+      summary: Upsert Translation
+      description: >-
+        Create or update translation based on model_id, language_code, and
+        attribute_code
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"model_id\": 1,\n  \"model_type\": \"product\",\n 
+                \"language_code\": \"fr_FR\",\n  \"attribute_code\":
+                \"description\",\n  \"translated_value\": \"Description du
+                produit en français\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /translations/upsert/bulk:
+    put:
+      tags:
+        - Translations
+      summary: Upsert Bulk Translations
+      description: Bulk create or update translations
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "[\n  {\n    \"model_id\": 1,\n    \"model_type\":
+                \"product\",\n    \"language_code\": \"de_DE\",\n   
+                \"attribute_code\": \"name\",\n    \"translated_value\":
+                \"Deutscher Produktname\"\n  },\n  {\n    \"model_id\": 1,\n   
+                \"model_type\": \"product\",\n    \"language_code\":
+                \"de_DE\",\n    \"attribute_code\": \"description\",\n   
+                \"translated_value\": \"Deutsche Produktbeschreibung\"\n  },\n 
+                {\n    \"model_id\": 2,\n    \"model_type\": \"product\",\n   
+                \"language_code\": \"fr_FR\",\n    \"attribute_code\":
+                \"name\",\n    \"translated_value\": \"Nom du produit
+                français\"\n  }\n]"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /translations/job/run:
+    post:
+      tags:
+        - Translations
+      summary: Run Translation Job
+      description: Queue AI translation job for products
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"installation_key\": \"your_installation_key\",\n 
+                \"language_codes\": [\"de_DE\", \"fr_FR\", \"es_ES\"],\n 
+                \"chunk\": 100,\n  \"dry_run\": false,\n  \"only_missing\":
+                true,\n  \"product_sku\": null,\n  \"model\":
+                \"gpt-4o-mini\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /translations/job/progress:
+    get:
+      tags:
+        - Translations
+      summary: Get Translation Job Progress
+      description: Check progress of translation job
+      parameters:
+        - name: installation_key
+          in: query
+          schema:
+            type: string
+          example: your_installation_key
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attributes:
+    get:
+      tags:
+        - Attributes (ProductHub)
+      summary: List Attributes
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attributeTypes:
+    get:
+      tags:
+        - Attributes (ProductHub)
+      summary: Get Attribute Types
+      description: Get available attribute types
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attributes/insert/bulk:
+    put:
+      tags:
+        - Attributes (ProductHub)
+      summary: Bulk Insert Attributes
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "[\n  {\n    \"name\": \"Color\",\n    \"code\": \"color\",\n   
+                \"type\": \"select\",\n    \"required\": false\n  },\n  {\n   
+                \"name\": \"Size\",\n    \"code\": \"size\",\n    \"type\":
+                \"select\",\n    \"required\": true\n  }\n]"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attributeValues:
+    get:
+      tags:
+        - Attribute Values
+      summary: List Attribute Values
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attributeGroups:
+    get:
+      tags:
+        - Attribute Groups
+      summary: List Attribute Groups
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attributeGroups/types/list:
+    get:
+      tags:
+        - Attribute Groups
+      summary: Get Attribute Group Types
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /customer/groups:
+    get:
+      tags:
+        - Customer Groups
+      summary: List Customer Groups
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /demoData/deploy:
+    post:
+      tags:
+        - Demo Data
+      summary: Deploy Demo Data
+      description: Deploy demo data for ProductHub
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

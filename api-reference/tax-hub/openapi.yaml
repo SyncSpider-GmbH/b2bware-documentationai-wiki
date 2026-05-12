@@ -1,0 +1,430 @@
+openapi: 3.0.0
+info:
+  title: TaxHub API
+  description: Tax calculation and read-only configuration.
+  version: 1.0.0
+  contact:
+    name: B2Bware
+    url: https://syncspider.com
+servers:
+  - url: https://api.datahub.syncspider.com
+    description: Production
+tags:
+  - name: Calculation
+    description: >-
+      Compute taxes for an arbitrary basket. Used by storefronts when local tax
+      estimation is needed before checkout.
+  - name: Read-only configuration
+    description: Lookups exposed for storefronts that render tax breakdowns.
+  - name: Settings (read-only for storefront)
+    description: >-
+      Storefront can read installation tax settings (e.g. tax-inclusive pricing
+      flag). Writes require admin.
+paths:
+  /api/v1/apps/tax-hub/calculate:
+    post:
+      tags:
+        - Calculation
+      summary: Calculate Tax
+      description: >-
+        Returns per-line and total tax amounts using the matching tax rules for
+        the given country, customer group, and tax class. The same calculation
+        runs server-side during checkout — calling this directly is only needed
+        for live preview in cart/PDP.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"country_code\": \"AT\",\n  \"customer_group_id\":
+                null,\n  \"items\": [\n    {\n      \"product_id\": 100,\n     
+                \"quantity\": 2,\n      \"unit_price\": 29.99,\n     
+                \"tax_class_id\": 1\n    }\n  ]\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-classes:
+    get:
+      tags:
+        - Read-only configuration
+      summary: List Tax Classes
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-classes/{taxClass}:
+    get:
+      tags:
+        - Read-only configuration
+      summary: Show Tax Class
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: taxClass
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/jurisdictions:
+    get:
+      tags:
+        - Read-only configuration
+      summary: List Jurisdictions
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[country_code]
+          in: query
+          schema:
+            type: string
+          example: AT
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/jurisdictions/{jurisdiction}:
+    get:
+      tags:
+        - Read-only configuration
+      summary: Show Jurisdiction
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: jurisdiction
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-class-jurisdictions:
+    get:
+      tags:
+        - Read-only configuration
+      summary: List Tax Class–Jurisdiction Mappings
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-class-jurisdictions/{mapping}:
+    get:
+      tags:
+        - Read-only configuration
+      summary: Show Tax Class–Jurisdiction Mapping
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: mapping
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-rules:
+    get:
+      tags:
+        - Read-only configuration
+      summary: List Tax Rules
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[country_code]
+          in: query
+          schema:
+            type: string
+          example: AT
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-rules/{taxRule}:
+    get:
+      tags:
+        - Read-only configuration
+      summary: Show Tax Rule
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: taxRule
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-rules/{taxRule}/conditions:
+    get:
+      tags:
+        - Read-only configuration
+      summary: List Tax Rule Conditions
+      description: >-
+        Returns the conditions (country, group, threshold) that gate a given
+        rule.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: taxRule
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/settings/groups/list:
+    get:
+      tags:
+        - Settings (read-only for storefront)
+      summary: List Setting Groups
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/settings:
+    get:
+      tags:
+        - Settings (read-only for storefront)
+      summary: List All Settings
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/settings/{group}:
+    get:
+      tags:
+        - Settings (read-only for storefront)
+      summary: Show Setting Group
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+          example: general
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

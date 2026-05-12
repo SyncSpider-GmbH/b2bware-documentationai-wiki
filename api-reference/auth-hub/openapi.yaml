@@ -1,0 +1,499 @@
+openapi: 3.0.0
+info:
+  title: AuthHub API
+  description: Storefront customer authentication.
+  version: 1.0.0
+  contact:
+    name: B2Bware
+    url: https://syncspider.com
+servers:
+  - url: https://api.datahub.syncspider.com
+    description: Production
+tags:
+  - name: Public (URL-based installation key)
+    description: >-
+      These endpoints are called from email links — `{installationKey}` is part
+      of the path, no auth headers are required.
+  - name: Customer auth (x-installation-key)
+    description: >-
+      Storefront customer endpoints. All require `x-installation-key`. `/me`,
+      `/logout`, and `/impersonate/*` additionally require `x-auth-token`.
+  - name: Impersonation (sales agent)
+    description: >-
+      Only customers whose role type is `agent` can use these endpoints.
+      Non-agent callers get 403.
+paths:
+  /api/v1/apps/auth-hub/{installationKey}/reset-password:
+    post:
+      tags:
+        - Public (URL-based installation key)
+      summary: Reset Password
+      description: >-
+        Completes a password reset started by `POST /forgot-password`.
+
+
+        - `code` — 6-char code from the reset email; expires after 1 hour.
+
+        - `password` — new password; must satisfy installation password policy.
+
+        - `password_confirmation` — must equal `password`.
+
+
+        Returns 200 with `{ "message": "Password reset successfully." }` on
+        success.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"code\": \"ABC123\",\n  \"password\":
+                \"new-strong-password\",\n  \"password_confirmation\":
+                \"new-strong-password\"\n}"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/{installationKey}/verify-email:
+    post:
+      tags:
+        - Public (URL-based installation key)
+      summary: Verify Email
+      description: >-
+        Confirms a customer's email using the 6-char code sent by `POST
+        /send-verification-email` or by `register`. Code expires after 24 hours.
+
+
+        If the installation does not require admin approval, the customer is
+        also activated.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"code\": \"ABC123\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/login:
+    post:
+      tags:
+        - Customer auth (x-installation-key)
+      summary: Login
+      description: >-
+        Exchanges email + password for an `x-auth-token`.
+
+
+        Response:
+
+        ```json
+
+        {
+          "token": "42.JDJ5JDEyJGFiY2RlZmdo...",
+          "customer": { "id": 42, "email": "jane.doe@example.com", ... }
+        }
+
+        ```
+
+
+        Specific 401 messages distinguish failure modes:
+
+        - `Email not found` — no customer with this email (also returned when
+        only a guest-checkout record exists; route the user to registration, not
+        password reset).
+
+        - `Password not valid` — password mismatch.
+
+        - `Account is inactive` — admin must approve.
+
+        - `Email not verified` — customer must complete `verify-email` first.
+
+
+        The test script auto-saves `token` into the `authToken` collection
+        variable.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"email\": \"jane.doe@example.com\",\n  \"password\":
+                \"correct-horse-battery-staple\"\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/register:
+    post:
+      tags:
+        - Customer auth (x-installation-key)
+      summary: Register
+      description: >-
+        Creates a B2B customer account.
+
+
+        - `company` is optional; include for B2B registrations.
+
+        - If the installation requires email verification, the response still
+        contains a `token` but the customer must verify before placing orders.
+
+        - If the installation requires admin approval, the response **omits**
+        `token` and the customer cannot log in until activated.
+
+        - **Guest upgrade:** if a guest-checkout record already exists for
+        `email` with no password, registration upgrades that record instead of
+        creating a new one (preserving prior orders).
+
+
+        Validation rules follow CommonFilterRepository conventions; unique check
+        uses MongoDB collection `items_{customer_entity}` with `_deleted_at IS
+        NULL`.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n 
+                \"email\": \"jane.doe@example.com\",\n  \"password\":
+                \"correct-horse-battery-staple\",\n  \"password_confirmation\":
+                \"correct-horse-battery-staple\",\n  \"phone\": \"+43 660
+                1234567\",\n  \"language\": \"en\",\n  \"company\": {\n   
+                \"name\": \"Acme GmbH\",\n    \"vat_id\": \"ATU12345678\",\n   
+                \"street\": \"Hauptstrasse 1\",\n    \"city\": \"Vienna\",\n   
+                \"zip\": \"1010\",\n    \"country_code\": \"AT\"\n  }\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/forgot-password:
+    post:
+      tags:
+        - Customer auth (x-installation-key)
+      summary: Forgot Password
+      description: >-
+        Sends a 6-character reset code to `email` (1 hour expiry). The customer
+        then completes the reset via `POST /{installationKey}/reset-password`.
+
+
+        Returns 200 with a generic message even if the email does not exist
+        (prevents email enumeration).
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"email\": \"jane.doe@example.com\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/send-verification-email:
+    post:
+      tags:
+        - Customer auth (x-installation-key)
+      summary: Send Verification Email
+      description: >-
+        (Re)sends a 6-character email-verification code (24 hour expiry). Used
+        when the customer did not receive or has lost the original code from
+        registration.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"email\": \"jane.doe@example.com\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/me:
+    get:
+      tags:
+        - Customer auth (x-installation-key)
+      summary: Get Me
+      description: >-
+        Returns the currently authenticated customer.
+
+
+        Unlike other endpoints, a missing/invalid `x-auth-token` returns a
+        specific 401 body:
+
+        ```json
+
+        {
+          "error": "unauthorized",
+          "messages": ["No x-auth-token header was provided."],
+          "code": 401
+        }
+
+        ```
+
+        Use this to distinguish 'token missing' from 'token expired'.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/logout:
+    post:
+      tags:
+        - Customer auth (x-installation-key)
+      summary: Logout
+      description: >-
+        Revokes the current `x-auth-token`. Subsequent requests with that token
+        return 401.
+
+
+        Logout-all (revoke every session for the customer) is **not yet
+        implemented** — tracked as a gap.
+      requestBody:
+        content: {}
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/impersonate/customers:
+    get:
+      tags:
+        - Impersonation (sales agent)
+      summary: List Impersonatable Customers
+      description: >-
+        Paginated list of customers the agent is allowed to impersonate.
+        Supports `filter[search]` against name/email/company.
+
+
+        Agents cannot impersonate other agents or admins.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '20'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/impersonate/{customerId}:
+    post:
+      tags:
+        - Impersonation (sales agent)
+      summary: Impersonate Customer
+      description: >-
+        Issues an impersonation token. The response includes a new `token` that
+        represents the target customer; the agent should use it in place of
+        their own `x-auth-token` for subsequent storefront requests, then call
+        `impersonate/leave` to return to their own session.
+      requestBody:
+        content: {}
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: customerId
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: ID of the customer to impersonate.
+          example: '42'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/impersonate/leave:
+    post:
+      tags:
+        - Impersonation (sales agent)
+      summary: Leave Impersonation
+      description: >-
+        Ends the current impersonation session and restores the agent's original
+        token.
+      requestBody:
+        content: {}
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

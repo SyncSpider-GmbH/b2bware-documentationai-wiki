@@ -1,0 +1,956 @@
+openapi: 3.0.0
+info:
+  title: CustomerHub API
+  description: Customer profile, addresses, favorites, companies.
+  version: 1.0.0
+  contact:
+    name: B2Bware
+    url: https://syncspider.com
+servers:
+  - url: https://api.datahub.syncspider.com
+    description: Production
+tags:
+  - name: Profile (customers)
+    description: >-
+      The logged-in customer's record. `index` lists only what the caller is
+      allowed to see.
+  - name: Shipping Addresses
+    description: Saved shipping addresses for the logged-in customer.
+  - name: Billing Addresses
+    description: Saved billing addresses for the logged-in customer.
+  - name: Favorites (wishlist)
+    description: >-
+      Per-customer favorite-product list. Stored as a single record per
+      customer.
+  - name: Companies
+    description: Read access to the B2B company linked to the customer.
+  - name: Customer Groups
+    description: Read-only — used for group-specific pricing.
+  - name: Settings (read-only for storefront)
+    description: >-
+      Storefront can read configured customer settings (e.g. enabled
+      registration fields, required-VAT flag). Writing settings requires admin
+      (blocked for shop customers via `shop.deny`).
+paths:
+  /api/v1/apps/customer-hub/customers:
+    get:
+      tags:
+        - Profile (customers)
+      summary: List Customers (scoped)
+      description: >-
+        For shop customers this returns just their own record. For agents it
+        lists impersonatable customers.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: company,role
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '10'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Profile (customers)
+      summary: Create Customer (admin)
+      description: >-
+        Admin/agent context. For self-registration, storefronts should use `POST
+        /auth-hub/register` instead.
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n 
+                \"email\": \"jane@example.com\"\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customers/{customer}:
+    get:
+      tags:
+        - Profile (customers)
+      summary: Show Customer
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: company,role,billingAddresses,shippingAddresses
+        - name: customer
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '42'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Profile (customers)
+      summary: Update Customer Profile
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n 
+                \"phone\": \"+43 660 7654321\",\n  \"language\": \"en\"\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: customer
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: >-
+            Must match the logged-in customer's ID. Updating another customer
+            returns 403.
+          example: '42'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Profile (customers)
+      summary: Delete Customer (admin)
+      description: >-
+        Admin/agent context. Self-deletion by a shop customer is not currently
+        supported (tracked as a gap).
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: customer
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '42'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/shippingAddresses:
+    get:
+      tags:
+        - Shipping Addresses
+      summary: List Shipping Addresses
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[customer_id]
+          in: query
+          schema:
+            type: integer
+          example: '42'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '20'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Shipping Addresses
+      summary: Create Shipping Address
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"customer_id\": 42,\n  \"first_name\": \"Jane\",\n 
+                \"last_name\": \"Doe\",\n  \"company\": \"Acme GmbH\",\n 
+                \"street\": \"Hauptstrasse 1\",\n  \"city\": \"Vienna\",\n 
+                \"zip\": \"1010\",\n  \"country_code\": \"AT\",\n  \"phone\":
+                \"+43 660 1234567\",\n  \"is_default\": true\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/shippingAddresses/{address}:
+    get:
+      tags:
+        - Shipping Addresses
+      summary: Show Shipping Address
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: address
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '5'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Shipping Addresses
+      summary: Update Shipping Address
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"street\": \"Hauptstrasse 2\",\n  \"is_default\":
+                true\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: address
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '5'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Shipping Addresses
+      summary: Delete Shipping Address
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: address
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '5'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/billingAddresses:
+    get:
+      tags:
+        - Billing Addresses
+      summary: List Billing Addresses
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[customer_id]
+          in: query
+          schema:
+            type: integer
+          example: '42'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '20'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Billing Addresses
+      summary: Create Billing Address
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"customer_id\": 42,\n  \"first_name\": \"Jane\",\n 
+                \"last_name\": \"Doe\",\n  \"company\": \"Acme GmbH\",\n 
+                \"vat_id\": \"ATU12345678\",\n  \"street\": \"Hauptstrasse
+                1\",\n  \"city\": \"Vienna\",\n  \"zip\": \"1010\",\n 
+                \"country_code\": \"AT\",\n  \"is_default\": true\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/billingAddresses/{address}:
+    get:
+      tags:
+        - Billing Addresses
+      summary: Show Billing Address
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: address
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '5'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Billing Addresses
+      summary: Update Billing Address
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"vat_id\": \"ATU87654321\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: address
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '5'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Billing Addresses
+      summary: Delete Billing Address
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: address
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '5'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/favorites:
+    get:
+      tags:
+        - Favorites (wishlist)
+      summary: Show My Favorites
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: products.price,products.mainMedia
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Favorites (wishlist)
+      summary: Update My Favorites
+      description: Replaces the favorites list with the given product IDs (idempotent set).
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"product_ids\": [\n    100,\n    101,\n    102\n  ]\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/companies:
+    get:
+      tags:
+        - Companies
+      summary: List Companies (scoped)
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: customers,billingAddresses,shippingAddresses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Companies
+      summary: Create Company (admin/agent)
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: >-
+                "{\n  \"name\": \"Acme GmbH\",\n  \"vat_id\":
+                \"ATU12345678\"\n}"
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/companies/{company}:
+    get:
+      tags:
+        - Companies
+      summary: Show Company
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: customers,billingAddresses,shippingAddresses
+        - name: company
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '7'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Companies
+      summary: Update Company (admin/agent)
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Acme International GmbH\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: company
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '7'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customerGroups:
+    get:
+      tags:
+        - Customer Groups
+      summary: List Customer Groups
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customerGroups/{group}:
+    get:
+      tags:
+        - Customer Groups
+      summary: Show Customer Group
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/settings/groups/list:
+    get:
+      tags:
+        - Settings (read-only for storefront)
+      summary: List Setting Groups
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/settings:
+    get:
+      tags:
+        - Settings (read-only for storefront)
+      summary: List All Settings
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/settings/{group}:
+    get:
+      tags:
+        - Settings (read-only for storefront)
+      summary: Show Setting Group
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+          example: registration
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

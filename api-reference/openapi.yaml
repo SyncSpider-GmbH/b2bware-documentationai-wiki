@@ -1,149 +1,5239 @@
-openapi: '3.0.0'
+openapi: 3.0.0
 info:
+  title: B2Bware DataHub API (Storefront)
   version: 1.0.0
-  title: B2Bware SyncSpider API
-  license:
-    name: MIT
+  description: >-
+    Storefront-facing endpoints for the B2Bware DataHub API. See
+    https://b2bware-documentationai-wiki/authentication for the authentication
+    model.
+
+
+    This spec aggregates the storefront-relevant endpoints of every hub.
+    Admin-only endpoints are deliberately excluded.
+  contact:
+    name: B2Bware
+    url: https://syncspider.com
 servers:
-  - url: http://petstore.swagger.io/v1
+  - url: https://api.datahub.syncspider.com
+    description: Production
+tags:
+  - name: AuthHub
+    description: Storefront customer authentication.
+  - name: ProductHub
+    description: Catalog, prices, stock, media.
+  - name: OrderHub
+    description: Cart, checkout, orders, quotes.
+  - name: CustomerHub
+    description: Customer profile, addresses, favorites, companies.
+  - name: MediaHub
+    description: Public CDN proxy.
+  - name: TaxHub
+    description: Tax calculation and read-only configuration.
+  - name: ContentHub
+    description: CMS pages, blocks, menus.
 paths:
-  /integrations:
-    get:
-      summary: List integrations
-      operationId: listIntegrations
-      parameters:
-        - name: limit
-          in: query
-          description: How many items to return at one time (max 100)
-          required: false
-          schema:
-            type: integer
-            format: int32
-      responses:
-        200:
-          description: An paged array of integrations
-          headers:
-            x-next:
-              description: A link to the next page of responses
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Integrations'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+  /api/v1/apps/auth-hub/{installationKey}/reset-password:
     post:
-      summary: Create integration
-      operationId: createIntegration
-      responses:
-        201:
-          description: Null response
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /integrations/{integrationId}:
-    get:
-      summary: Get integration
-      operationId: getIntegrationById
+      tags:
+        - Public (URL-based installation key)
+        - AuthHub
+      summary: Reset Password
+      description: >-
+        Completes a password reset started by `POST /forgot-password`.
+
+
+        - `code` — 6-char code from the reset email; expires after 1 hour.
+
+        - `password` — new password; must satisfy installation password policy.
+
+        - `password_confirmation` — must equal `password`.
+
+
+        Returns 200 with `{ "message": "Password reset successfully." }` on
+        success.
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"code\": \"ABC123\",\n  \"password\":
+                \"new-strong-password\",\n  \"password_confirmation\":
+                \"new-strong-password\"\n}"'
       parameters:
-        - name: integrationId
-          in: path
-          required: true
-          description: The id of the integration to retrieve
+        - name: Content-Type
+          in: header
           schema:
             type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
-        200:
-          description: Expected response to a valid request
+        "200":
+          description: Successful response
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Integrations'
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /tasks:
-    get:
-      summary: List tasks
-      operationId: listTasks
+            application/json: {}
+  /api/v1/apps/auth-hub/{installationKey}/verify-email:
+    post:
+      tags:
+        - Public (URL-based installation key)
+        - AuthHub
+      summary: Verify Email
+      description: >-
+        Confirms a customer's email using the 6-char code sent by `POST
+        /send-verification-email` or by `register`. Code expires after 24 hours.
+
+
+        If the installation does not require admin approval, the customer is
+        also activated.
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"code\": \"ABC123\"\n}"'
       parameters:
-        - name: limit
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/login:
+    post:
+      tags:
+        - Customer auth (x-installation-key)
+        - AuthHub
+      summary: Login
+      description: >-
+        Exchanges email + password for an `x-auth-token`.
+
+
+        Response:
+
+        ```json
+
+        {
+          "token": "42.JDJ5JDEyJGFiY2RlZmdo...",
+          "customer": { "id": 42, "email": "jane.doe@example.com", ... }
+        }
+
+        ```
+
+
+        Specific 401 messages distinguish failure modes:
+
+        - `Email not found` — no customer with this email (also returned when
+        only a guest-checkout record exists; route the user to registration, not
+        password reset).
+
+        - `Password not valid` — password mismatch.
+
+        - `Account is inactive` — admin must approve.
+
+        - `Email not verified` — customer must complete `verify-email` first.
+
+
+        The test script auto-saves `token` into the `authToken` collection
+        variable.
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"email\": \"jane.doe@example.com\",\n  \"password\":
+                \"correct-horse-battery-staple\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/register:
+    post:
+      tags:
+        - Customer auth (x-installation-key)
+        - AuthHub
+      summary: Register
+      description: >-
+        Creates a B2B customer account.
+
+
+        - `company` is optional; include for B2B registrations.
+
+        - If the installation requires email verification, the response still
+        contains a `token` but the customer must verify before placing orders.
+
+        - If the installation requires admin approval, the response **omits**
+        `token` and the customer cannot log in until activated.
+
+        - **Guest upgrade:** if a guest-checkout record already exists for
+        `email` with no password, registration upgrades that record instead of
+        creating a new one (preserving prior orders).
+
+
+        Validation rules follow CommonFilterRepository conventions; unique check
+        uses MongoDB collection `items_{customer_entity}` with `_deleted_at IS
+        NULL`.
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"first_name\": \"Jane\",\n  \"last_name\":
+                \"Doe\",\n  \"email\":
+                \"jane.doe@example.com\",\n  \"password\":
+                \"correct-horse-battery-staple\",\n  \"password_confirmation\":
+                \"correct-horse-battery-staple\",\n  \"phone\": \"+43 660
+                1234567\",\n  \"language\": \"en\",\n  \"company\":
+                {\n    \"name\": \"Acme GmbH\",\n    \"vat_id\":
+                \"ATU12345678\",\n    \"street\": \"Hauptstrasse
+                1\",\n    \"city\": \"Vienna\",\n    \"zip\":
+                \"1010\",\n    \"country_code\": \"AT\"\n  }\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/forgot-password:
+    post:
+      tags:
+        - Customer auth (x-installation-key)
+        - AuthHub
+      summary: Forgot Password
+      description: >-
+        Sends a 6-character reset code to `email` (1 hour expiry). The customer
+        then completes the reset via `POST /{installationKey}/reset-password`.
+
+
+        Returns 200 with a generic message even if the email does not exist
+        (prevents email enumeration).
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"email\": \"jane.doe@example.com\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/send-verification-email:
+    post:
+      tags:
+        - Customer auth (x-installation-key)
+        - AuthHub
+      summary: Send Verification Email
+      description: (Re)sends a 6-character email-verification code (24 hour expiry).
+        Used when the customer did not receive or has lost the original code
+        from registration.
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"email\": \"jane.doe@example.com\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/me:
+    get:
+      tags:
+        - Customer auth (x-installation-key)
+        - AuthHub
+      summary: Get Me
+      description: >-
+        Returns the currently authenticated customer.
+
+
+        Unlike other endpoints, a missing/invalid `x-auth-token` returns a
+        specific 401 body:
+
+        ```json
+
+        {
+          "error": "unauthorized",
+          "messages": ["No x-auth-token header was provided."],
+          "code": 401
+        }
+
+        ```
+
+        Use this to distinguish 'token missing' from 'token expired'.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/logout:
+    post:
+      tags:
+        - Customer auth (x-installation-key)
+        - AuthHub
+      summary: Logout
+      description: >-
+        Revokes the current `x-auth-token`. Subsequent requests with that token
+        return 401.
+
+
+        Logout-all (revoke every session for the customer) is **not yet
+        implemented** — tracked as a gap.
+      requestBody:
+        content: {}
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/impersonate/customers:
+    get:
+      tags:
+        - Impersonation (sales agent)
+        - AuthHub
+      summary: List Impersonatable Customers
+      description: >-
+        Paginated list of customers the agent is allowed to impersonate.
+        Supports `filter[search]` against name/email/company.
+
+
+        Agents cannot impersonate other agents or admins.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: per_page
           in: query
-          description: How many items to return at one time (max 100)
-          required: false
           schema:
             type: integer
-            format: int32
+          example: "20"
       responses:
-        200:
-          description: An paged array of tasks
-          headers:
-            x-next:
-              description: A link to the next page of responses
-              schema:
-                type: string
+        "200":
+          description: Successful response
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Tasks'
-        default:
-          description: unexpected error
+            application/json: {}
+  /api/v1/apps/auth-hub/impersonate/{customerId}:
+    post:
+      tags:
+        - Impersonation (sales agent)
+        - AuthHub
+      summary: Impersonate Customer
+      description: Issues an impersonation token. The response includes a new `token`
+        that represents the target customer; the agent should use it in place of
+        their own `x-auth-token` for subsequent storefront requests, then call
+        `impersonate/leave` to return to their own session.
+      requestBody:
+        content: {}
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: customerId
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: ID of the customer to impersonate.
+          example: "42"
+      responses:
+        "200":
+          description: Successful response
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+            application/json: {}
+  /api/v1/apps/auth-hub/impersonate/leave:
+    post:
+      tags:
+        - Impersonation (sales agent)
+        - AuthHub
+      summary: Leave Impersonation
+      description: Ends the current impersonation session and restores the agent's
+        original token.
+      requestBody:
+        content: {}
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /products:
+    get:
+      tags:
+        - Products
+        - ProductHub
+      summary: List Products
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          description: Page number
+          example: "1"
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          description: Results per page (max 50)
+          example: "20"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Products
+        - ProductHub
+      summary: Create Product
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Sample Product\",\n  \"sku\":
+                \"SKU-12345\",\n  \"product_type\":
+                \"simple\",\n  \"description\": \"Product
+                description\",\n  \"short_description\": \"Short
+                description\",\n  \"status\": \"active\",\n  \"visibility\":
+                \"visible\",\n  \"manage_stock\": true,\n  \"tax_class_id\":
+                1,\n  \"attributes\": [\n    {\n      \"attribute_id\":
+                1,\n      \"value\": \"Red\",\n      \"auto_create_value\":
+                false\n    }\n  ],\n  \"prices\":
+                [\n    {\n      \"price_type\": \"regular\",\n      \"price\":
+                99.99\n    }\n  ],\n  \"stock\":
+                [\n    {\n      \"warehouse_id\": 1,\n      \"stock_quantity\":
+                100,\n      \"stock_availability\": true,\n      \"backorders\":
+                \"no_backorders\"\n    }\n  ],\n  \"media\":
+                [\n    {\n      \"file\":
+                \"base64_encoded_file_or_url\",\n      \"media_type\":
+                \"image\",\n      \"alt_text\": \"Product
+                image\",\n      \"is_primary\": true,\n      \"order\":
+                1\n    }\n  ]\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /products/1:
+    get:
+      tags:
+        - Products
+        - ProductHub
+      summary: Get Product
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Products
+        - ProductHub
+      summary: Update Product
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Updated Product Name\",\n  \"description\":
+                \"Updated description\",\n  \"status\":
+                \"active\",\n  \"prices\": [\n    {\n      \"price_type\":
+                \"regular\",\n      \"price\": 149.99\n    }\n  ]\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Products
+        - ProductHub
+      summary: Delete Product
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /products/upsert/single:
+    put:
+      tags:
+        - Products
+        - ProductHub
+      summary: Upsert Product
+      description: "Create or update product by SKU. action can be: createOrUpdate,
+        onlyCreate, onlyUpdate"
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"sku\": \"SKU-12345\",\n  \"name\": \"Product
+                Name\",\n  \"product_type\": \"simple\",\n  \"description\":
+                \"Product description\",\n  \"short_description\": \"Short
+                description\",\n  \"status\": \"active\",\n  \"visibility\":
+                \"visible\",\n  \"manage_stock\": true,\n  \"action\":
+                \"createOrUpdate\",\n  \"attributes\":
+                [\n    {\n      \"attribute_id\": 1,\n      \"value\":
+                \"Blue\"\n    }\n  ],\n  \"prices\":
+                [\n    {\n      \"price_type\": \"regular\",\n      \"price\":
+                199.99\n    }\n  ],\n  \"stock\":
+                [\n    {\n      \"warehouse_id\": 1,\n      \"stock_quantity\":
+                50,\n      \"stock_availability\": true\n    }\n  ]\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /products/bulk/update:
+    put:
+      tags:
+        - Products
+        - ProductHub
+      summary: Bulk Update Products
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"[\n  {\n    \"id\": 1,\n    \"name\": \"Updated Product
+                1\",\n    \"status\": \"active\"\n  },\n  {\n    \"id\":
+                2,\n    \"name\": \"Updated Product 2\",\n    \"status\":
+                \"inactive\"\n  }\n]"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /products/bulk/delete:
+    delete:
+      tags:
+        - Products
+        - ProductHub
+      summary: Bulk Delete Products
+      description: "Delete multiple products by IDs or use delete_all: true to delete
+        all products"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /products/1/createVariations:
+    put:
+      tags:
+        - Products
+        - ProductHub
+      summary: Create Variations
+      description: Create product variations based on attribute combinations
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"attributes\": [\n    {\n      \"attribute_id\":
+                1,\n      \"value\": [\"Red\", \"Blue\",
+                \"Green\"]\n    },\n    {\n      \"attribute_id\":
+                2,\n      \"value\": [\"S\", \"M\", \"L\"]\n    }\n  ]\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /products/1/attachVariationsAttributes:
+    put:
+      tags:
+        - Products
+        - ProductHub
+      summary: Attach Variations Attributes
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"attribute_ids\": [1, 2, 3]\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /products/1/child-products:
+    delete:
+      tags:
+        - Products
+        - ProductHub
+      summary: Detach Child Products
+      description: Unlink child products from parent product
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /products/1/generateAIDescription:
+    put:
+      tags:
+        - Products
+        - ProductHub
+      summary: Generate AI Description
+      description: Generate product description using AI from PDF attributes
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"language\": \"en_001\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /categories:
+    get:
+      tags:
+        - Categories
+        - ProductHub
+      summary: List Categories
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: "1"
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          description: Max 200
+          example: "50"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Categories
+        - ProductHub
+      summary: Create Category
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Electronics\",\n  \"slug\":
+                \"electronics\",\n  \"description\": \"Electronic products
+                category\",\n  \"parent_id\":
+                null,\n  \"exclude_from_main_menu\":
+                false,\n  \"exclude_from_layer_navigation\":
+                false,\n  \"media\": [\n    {\n      \"file\":
+                \"base64_or_url\",\n      \"media_type\":
+                \"image\",\n      \"alt_text\": \"Category
+                image\",\n      \"is_primary\": true,\n      \"order\":
+                1\n    }\n  ],\n  \"attributes\":
+                [\n    {\n      \"attribute_id\": 1,\n      \"value\":
+                \"Category Value\",\n      \"auto_create_value\":
+                false\n    }\n  ],\n  \"meta_data\": {\n    \"definition\":
+                [\n      {\n        \"name\": \"Meta Field\",\n        \"code\":
+                \"meta_field\",\n        \"type\":
+                \"text\",\n        \"values\":
+                [],\n        \"visible_on_the_category_page\":
+                true,\n        \"required\":
+                false\n      }\n    ],\n    \"definition_values\":
+                {}\n  },\n  \"seo\": {\n    \"title\": \"Electronics - Shop
+                Now\",\n    \"description\": \"Browse our electronics
+                collection\",\n    \"keywords\": \"electronics,
+                gadgets\"\n  }\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /categories/1:
+    get:
+      tags:
+        - Categories
+        - ProductHub
+      summary: Get Category
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Categories
+        - ProductHub
+      summary: Update Category
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Updated Category Name\",\n  \"description\":
+                \"Updated description\",\n  \"slug\": \"updated-slug\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Categories
+        - ProductHub
+      summary: Delete Category
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /categories/update/depths:
+    post:
+      tags:
+        - Categories
+        - ProductHub
+      summary: Set Depths for All Categories
+      description: Recalculate and update depths for all categories
+      requestBody:
+        content: {}
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /warehouses:
+    get:
+      tags:
+        - Warehouses
+        - ProductHub
+      summary: List Warehouses
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: "1"
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          description: Max 50
+          example: "20"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Warehouses
+        - ProductHub
+      summary: Create Warehouse
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Main Warehouse\",\n  \"location\": \"New York,
+                USA\",\n  \"default_warehouse\": true\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /warehouses/1:
+    get:
+      tags:
+        - Warehouses
+        - ProductHub
+      summary: Get Warehouse
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Warehouses
+        - ProductHub
+      summary: Update Warehouse
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Updated Warehouse Name\",\n  \"location\": \"Los
+                Angeles, USA\",\n  \"default_warehouse\": false\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Warehouses
+        - ProductHub
+      summary: Delete Warehouse
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /stock:
+    get:
+      tags:
+        - Stock
+        - ProductHub
+      summary: List Stock
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Stock
+        - ProductHub
+      summary: Create Stock
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"product_id\": 1,\n  \"warehouse_id\":
+                1,\n  \"stock_quantity\": 100,\n  \"stock_availability\":
+                true,\n  \"backorders\":
+                \"no_backorders\",\n  \"minimum_qty_allowed_in_shopping_cart\":
+                1,\n  \"maximum_qty_allowed_in_shopping_cart\":
+                10,\n  \"qty_for_items_status_to_become_out_of_stock\":
+                5,\n  \"upcoming_qty\": [\n    {\n      \"date\":
+                \"2024-12-31\",\n      \"quantity\": 50\n    }\n  ]\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /stock/1:
+    get:
+      tags:
+        - Stock
+        - ProductHub
+      summary: Get Stock
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Stock
+        - ProductHub
+      summary: Update Stock
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"stock_quantity\": 75,\n  \"stock_availability\":
+                true,\n  \"backorders\": \"allow_qty_below_0\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Stock
+        - ProductHub
+      summary: Delete Stock
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /stock/upsert/bulk:
+    post:
+      tags:
+        - Stock
+        - ProductHub
+      summary: Upsert Bulk Stock
+      description: Create or update multiple stock records. Include id for update, or
+        product_id+warehouse_id for create
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"[\n  {\n    \"product_id\": 1,\n    \"warehouse_id\":
+                1,\n    \"stock_quantity\": 150,\n    \"stock_availability\":
+                true,\n    \"backorders\":
+                \"no_backorders\"\n  },\n  {\n    \"id\":
+                2,\n    \"stock_quantity\": 200,\n    \"stock_availability\":
+                true\n  }\n]"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /prices:
+    get:
+      tags:
+        - Prices
+        - ProductHub
+      summary: List Prices
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Prices
+        - ProductHub
+      summary: Create Group Price
+      description: Special pricing for customer groups
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"product_id\": 1,\n  \"price_type\": \"group\",\n  \"price\":
+                79.99,\n  \"customer_group_id\": 1\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /prices/1:
+    get:
+      tags:
+        - Prices
+        - ProductHub
+      summary: Get Price
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Prices
+        - ProductHub
+      summary: Update Price
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"price\": 109.99,\n  \"start_date\": \"2024-01-01\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Prices
+        - ProductHub
+      summary: Delete Price
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /prices/upsert/bulk:
+    post:
+      tags:
+        - Prices
+        - ProductHub
+      summary: Upsert Bulk Prices
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"[\n  {\n    \"product_id\": 1,\n    \"price_type\":
+                \"regular\",\n    \"price\":
+                99.99\n  },\n  {\n    \"product_id\": 1,\n    \"price_type\":
+                \"special\",\n    \"price\": 79.99,\n    \"start_date\":
+                \"2024-01-01\",\n    \"end_date\":
+                \"2024-01-31\"\n  },\n  {\n    \"id\": 5,\n    \"price\":
+                89.99\n  }\n]"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /media:
+    get:
+      tags:
+        - Media
+        - ProductHub
+      summary: List Media
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Media
+        - ProductHub
+      summary: Create Media
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Product Image\",\n  \"type\": \"image\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /media/1:
+    get:
+      tags:
+        - Media
+        - ProductHub
+      summary: Get Media
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Media
+        - ProductHub
+      summary: Update Media
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"product_id\": 1,\n  \"media_type\":
+                \"image\",\n  \"media_url\":
+                \"https://example.com/image.jpg\",\n  \"alt_text\": \"Product
+                image alt text\",\n  \"is_primary\": true\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Media
+        - ProductHub
+      summary: Delete Media
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /vendor:
+    get:
+      tags:
+        - Vendors
+        - ProductHub
+      summary: List Vendors
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Vendors
+        - ProductHub
+      summary: Create Vendor
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Acme Corporation\",\n  \"email\":
+                \"contact@acme.com\",\n  \"phone\":
+                \"+1234567890\",\n  \"address\": \"123 Main Street, City,
+                Country\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /vendor/1:
+    get:
+      tags:
+        - Vendors
+        - ProductHub
+      summary: Get Vendor
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Vendors
+        - ProductHub
+      summary: Update Vendor
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Acme Corp Updated\",\n  \"email\":
+                \"info@acme.com\",\n  \"phone\": \"+1987654321\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Vendors
+        - ProductHub
+      summary: Delete Vendor
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /jurisdiction:
+    get:
+      tags:
+        - Jurisdiction
+        - ProductHub
+      summary: List Jurisdictions
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Jurisdiction
+        - ProductHub
+      summary: Create Jurisdiction
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"New York State\",\n  \"contact_info\":
+                \"tax@ny.gov\",\n  \"address\": \"State Tax Office, Albany,
+                NY\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /jurisdiction/1:
+    get:
+      tags:
+        - Jurisdiction
+        - ProductHub
+      summary: Get Jurisdiction
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Jurisdiction
+        - ProductHub
+      summary: Update Jurisdiction
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"New York State Updated\",\n  \"contact_info\":
+                \"info@ny.gov\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Jurisdiction
+        - ProductHub
+      summary: Delete Jurisdiction
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /taxClass:
+    get:
+      tags:
+        - Tax Classes
+        - ProductHub
+      summary: List Tax Classes
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Tax Classes
+        - ProductHub
+      summary: Create Tax Class
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Standard Tax Class\",\n  \"contact_info\":
+                \"tax@example.com\",\n  \"address\": \"Tax Office Address\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /taxClass/1:
+    get:
+      tags:
+        - Tax Classes
+        - ProductHub
+      summary: Get Tax Class
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Tax Classes
+        - ProductHub
+      summary: Update Tax Class
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Updated Tax Class\",\n  \"contact_info\":
+                \"info@example.com\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Tax Classes
+        - ProductHub
+      summary: Delete Tax Class
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /translations:
+    get:
+      tags:
+        - Translations
+        - ProductHub
+      summary: List Translations
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Translations
+        - ProductHub
+      summary: Create Translation
+      description: "Attribute codes for products: name, description, short_description"
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"model_id\": 1,\n  \"model_type\":
+                \"product\",\n  \"language_code\":
+                \"de_DE\",\n  \"attribute_code\":
+                \"name\",\n  \"translated_value\": \"Produktname auf
+                Deutsch\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /translations/1:
+    get:
+      tags:
+        - Translations
+        - ProductHub
+      summary: Get Translation
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Translations
+        - ProductHub
+      summary: Update Translation
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"translated_value\": \"Aktualisierter Produktname\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Translations
+        - ProductHub
+      summary: Delete Translation
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /translations/upsert/single:
+    put:
+      tags:
+        - Translations
+        - ProductHub
+      summary: Upsert Translation
+      description: Create or update translation based on model_id, language_code, and
+        attribute_code
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"model_id\": 1,\n  \"model_type\":
+                \"product\",\n  \"language_code\":
+                \"fr_FR\",\n  \"attribute_code\":
+                \"description\",\n  \"translated_value\": \"Description du
+                produit en français\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /translations/upsert/bulk:
+    put:
+      tags:
+        - Translations
+        - ProductHub
+      summary: Upsert Bulk Translations
+      description: Bulk create or update translations
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"[\n  {\n    \"model_id\": 1,\n    \"model_type\":
+                \"product\",\n    \"language_code\":
+                \"de_DE\",\n    \"attribute_code\":
+                \"name\",\n    \"translated_value\": \"Deutscher
+                Produktname\"\n  },\n  {\n    \"model_id\":
+                1,\n    \"model_type\": \"product\",\n    \"language_code\":
+                \"de_DE\",\n    \"attribute_code\":
+                \"description\",\n    \"translated_value\": \"Deutsche
+                Produktbeschreibung\"\n  },\n  {\n    \"model_id\":
+                2,\n    \"model_type\": \"product\",\n    \"language_code\":
+                \"fr_FR\",\n    \"attribute_code\":
+                \"name\",\n    \"translated_value\": \"Nom du produit
+                français\"\n  }\n]"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /translations/job/run:
+    post:
+      tags:
+        - Translations
+        - ProductHub
+      summary: Run Translation Job
+      description: Queue AI translation job for products
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"installation_key\":
+                \"your_installation_key\",\n  \"language_codes\": [\"de_DE\",
+                \"fr_FR\", \"es_ES\"],\n  \"chunk\": 100,\n  \"dry_run\":
+                false,\n  \"only_missing\": true,\n  \"product_sku\":
+                null,\n  \"model\": \"gpt-4o-mini\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /translations/job/progress:
+    get:
+      tags:
+        - Translations
+        - ProductHub
+      summary: Get Translation Job Progress
+      description: Check progress of translation job
+      parameters:
+        - name: installation_key
+          in: query
+          schema:
+            type: string
+          example: your_installation_key
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /attributes:
+    get:
+      tags:
+        - Attributes (ProductHub)
+        - ProductHub
+      summary: List Attributes
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /attributeTypes:
+    get:
+      tags:
+        - Attributes (ProductHub)
+        - ProductHub
+      summary: Get Attribute Types
+      description: Get available attribute types
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /attributes/insert/bulk:
+    put:
+      tags:
+        - Attributes (ProductHub)
+        - ProductHub
+      summary: Bulk Insert Attributes
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"[\n  {\n    \"name\": \"Color\",\n    \"code\":
+                \"color\",\n    \"type\": \"select\",\n    \"required\":
+                false\n  },\n  {\n    \"name\": \"Size\",\n    \"code\":
+                \"size\",\n    \"type\": \"select\",\n    \"required\":
+                true\n  }\n]"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /attributeValues:
+    get:
+      tags:
+        - Attribute Values
+        - ProductHub
+      summary: List Attribute Values
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /attributeGroups:
+    get:
+      tags:
+        - Attribute Groups
+        - ProductHub
+      summary: List Attribute Groups
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /attributeGroups/types/list:
+    get:
+      tags:
+        - Attribute Groups
+        - ProductHub
+      summary: Get Attribute Group Types
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /customer/groups:
+    get:
+      tags:
+        - Customer Groups
+        - ProductHub
+      summary: List Customer Groups
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /demoData/deploy:
+    post:
+      tags:
+        - Demo Data
+        - ProductHub
+      summary: Deploy Demo Data
+      description: Deploy demo data for ProductHub
+      requestBody:
+        content: {}
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/payment/webhook/{installationKey}/{provider}/{order_id}:
+    post:
+      tags:
+        - Public (URL-based installation key)
+        - OrderHub
+      summary: Payment Webhook (PSP → DataHub)
+      description: >-
+        Generic payment webhook endpoint. Each PSP integration validates its own
+        payload format.
+
+
+        **No signature verification** is applied at the API layer today —
+        PSP-specific verification (e.g. HMAC) is delegated to the integration
+        handler. Treated as a known gap.
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: provider
+          in: path
+          schema:
+            type: string
+          required: true
+          example: stripe
+        - name: order_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1234"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/order/payment/{installationKey}/{order_id}:
+    get:
+      tags:
+        - Public (URL-based installation key)
+        - OrderHub
+      summary: Payment Redirect (browser → DataHub)
+      description: Customer is redirected here by the PSP after completing payment.
+        The handler finalizes the order based on PSP-side status and redirects
+        the browser to the storefront success/cancel page.
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: order_id
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1234"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/carts:
+    get:
+      tags:
+        - Carts
+        - OrderHub
+      summary: List Carts
+      description: Returns carts visible to the caller. For a logged-in customer, this
+        is their carts (typically one active). For a guest with `session-uuid`,
+        the matching guest cart.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: cartItems.product.price,cartItems.product.mainMedia
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: "10"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Carts
+        - OrderHub
+      summary: Create Cart
+      description: Explicitly create a cart. Most storefronts create lazily via `PATCH
+        /carts` (upsert).
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"customer_id\": null,\n  \"session_uuid\":
+                \"00000000-0000-0000-0000-000000000000\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Carts
+        - OrderHub
+      summary: Upsert Cart (PATCH /carts)
+      description: "Idiomatic cart bootstrap: creates or returns the active cart for
+        the caller (logged-in customer or guest `session-uuid`). Body is
+        optional metadata."
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/carts/{cart}:
+    get:
+      tags:
+        - Carts
+        - OrderHub
+      summary: Show Cart
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: cartItems.product.price,cartItems.product.mainMedia
+        - name: cart
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Carts
+        - OrderHub
+      summary: Update Cart
+      description: "Update cart metadata: chosen billing/shipping method, addresses, notes."
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"billing_method_id\": 1,\n  \"shipping_method_id\":
+                2,\n  \"billing_address_id\": 5,\n  \"shipping_address_id\":
+                5\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cart
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Carts
+        - OrderHub
+      summary: Delete Cart
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cart
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/carts/{cart}/rule-progress:
+    get:
+      tags:
+        - Carts
+        - OrderHub
+      summary: Cart Rule Progress
+      description: Returns the progress against active cart rules (e.g. "spend €20
+        more for free shipping"). Useful for showing motivational messaging in
+        the cart UI.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cart
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/cart-items:
+    get:
+      tags:
+        - Cart Items
+        - OrderHub
+      summary: List Cart Items
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[cart_id]
+          in: query
+          schema:
+            type: integer
+          example: "1"
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: product.price,product.mainMedia
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Cart Items
+        - OrderHub
+      summary: Add Cart Item
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"cart_id\": 1,\n  \"product_id\": 100,\n  \"quantity\": 2\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/cart-items/{cartItem}:
+    get:
+      tags:
+        - Cart Items
+        - OrderHub
+      summary: Show Cart Item
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cartItem
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Cart Items
+        - OrderHub
+      summary: Update Cart Item
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"quantity\": 3\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cartItem
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Cart Items
+        - OrderHub
+      summary: Remove Cart Item
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cartItem
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/carts/{cart}/checkout:
+    get:
+      tags:
+        - Checkout
+        - OrderHub
+      summary: Get Checkout Summary
+      description: Returns the priced, tax-calculated, shipping-resolved view of the
+        cart, ready for confirmation.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cart
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Checkout
+        - OrderHub
+      summary: Place Order
+      description: Creates the order from the cart. If the chosen billing method
+        requires PSP redirection, the response contains a `redirect_url` for the
+        customer's browser.
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"billing_method_id\": 1,\n  \"shipping_method_id\":
+                2,\n  \"billing_address_id\": 5,\n  \"shipping_address_id\":
+                5,\n  \"customer_payment_method_id\": null,\n  \"notes\":
+                \"\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cart
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/orders:
+    get:
+      tags:
+        - Orders
+        - OrderHub
+      summary: List Orders
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: orderLineItems,customer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: "10"
+        - name: sort
+          in: query
+          schema:
+            type: string
+          example: -_created_at
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/orders/{order}:
+    get:
+      tags:
+        - Orders
+        - OrderHub
+      summary: Show Order
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: orderLineItems.product,customer,billingAddress,shippingAddress
+        - name: order
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/billing-methods:
+    get:
+      tags:
+        - Billing & Shipping Methods
+        - OrderHub
+      summary: List Billing Methods
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[is_active]
+          in: query
+          schema:
+            type: integer
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/billing-methods/{method}:
+    get:
+      tags:
+        - Billing & Shipping Methods
+        - OrderHub
+      summary: Show Billing Method
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: method
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/shipping-methods:
+    get:
+      tags:
+        - Billing & Shipping Methods
+        - OrderHub
+      summary: List Shipping Methods
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[is_active]
+          in: query
+          schema:
+            type: integer
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/shipping-methods/{method}:
+    get:
+      tags:
+        - Billing & Shipping Methods
+        - OrderHub
+      summary: Show Shipping Method
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: method
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/customer-payment-methods:
+    get:
+      tags:
+        - Customer Payment Methods
+        - OrderHub
+      summary: List Payment Methods
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Customer Payment Methods
+        - OrderHub
+      summary: Add Payment Method
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"billing_method_id\": 1,\n  \"provider_token\":
+                \"tok_xxxxxxxxxxxxxxxx\",\n  \"display_name\": \"Visa ending
+                4242\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/customer-payment-methods/{method}:
+    get:
+      tags:
+        - Customer Payment Methods
+        - OrderHub
+      summary: Show Payment Method
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: method
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Customer Payment Methods
+        - OrderHub
+      summary: Update Payment Method
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"display_name\": \"Primary card\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: method
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Customer Payment Methods
+        - OrderHub
+      summary: Delete Payment Method
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: method
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/customer-payment-methods/sync:
+    post:
+      tags:
+        - Customer Payment Methods
+        - OrderHub
+      summary: Sync Payment Methods
+      description: Re-pulls the customer's stored instruments from the configured PSP.
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"billing_method_id\": 1\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/quotes:
+    get:
+      tags:
+        - Quotes (B2B)
+        - OrderHub
+      summary: List Quotes
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: quoteItems
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: "10"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Quotes (B2B)
+        - OrderHub
+      summary: Create Quote (RFQ)
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"notes\": \"Please quote for 100 units.\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/quotes/{quote}:
+    get:
+      tags:
+        - Quotes (B2B)
+        - OrderHub
+      summary: Show Quote
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: quoteItems.product,quoteItemsGroups
+        - name: quote
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Quotes (B2B)
+        - OrderHub
+      summary: Update Quote
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"status\": \"submitted\",\n  \"notes\": \"\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: quote
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Quotes (B2B)
+        - OrderHub
+      summary: Delete Quote
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: quote
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/quote-items:
+    get:
+      tags:
+        - Quotes (B2B)
+        - OrderHub
+      summary: List Quote Items
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[quote_id]
+          in: query
+          schema:
+            type: integer
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Quotes (B2B)
+        - OrderHub
+      summary: Add Quote Item
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"quote_id\": 1,\n  \"product_id\": 100,\n  \"quantity\":
+                100\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/quote-items/{item}:
+    put:
+      tags:
+        - Quotes (B2B)
+        - OrderHub
+      summary: Update Quote Item
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"quantity\": 150\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: item
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Quotes (B2B)
+        - OrderHub
+      summary: Delete Quote Item
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: item
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/quote-items-groups:
+    get:
+      tags:
+        - Quotes (B2B)
+        - OrderHub
+      summary: List Quote Item Groups
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[quote_id]
+          in: query
+          schema:
+            type: integer
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/quote-items-groups/{group}:
+    get:
+      tags:
+        - Quotes (B2B)
+        - OrderHub
+      summary: Show Quote Item Group
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customers:
+    get:
+      tags:
+        - Profile (customers)
+        - CustomerHub
+      summary: List Customers (scoped)
+      description: For shop customers this returns just their own record. For agents
+        it lists impersonatable customers.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: company,role
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: "10"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Profile (customers)
+        - CustomerHub
+      summary: Create Customer (admin)
+      description: Admin/agent context. For self-registration, storefronts should use
+        `POST /auth-hub/register` instead.
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"first_name\": \"Jane\",\n  \"last_name\":
+                \"Doe\",\n  \"email\": \"jane@example.com\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customers/{customer}:
+    get:
+      tags:
+        - Profile (customers)
+        - CustomerHub
+      summary: Show Customer
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: company,role,billingAddresses,shippingAddresses
+        - name: customer
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "42"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Profile (customers)
+        - CustomerHub
+      summary: Update Customer Profile
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"first_name\": \"Jane\",\n  \"last_name\":
+                \"Doe\",\n  \"phone\": \"+43 660 7654321\",\n  \"language\":
+                \"en\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: customer
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: Must match the logged-in customer's ID. Updating another customer
+            returns 403.
+          example: "42"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Profile (customers)
+        - CustomerHub
+      summary: Delete Customer (admin)
+      description: Admin/agent context. Self-deletion by a shop customer is not
+        currently supported (tracked as a gap).
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: customer
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "42"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/shippingAddresses:
+    get:
+      tags:
+        - Shipping Addresses
+        - CustomerHub
+      summary: List Shipping Addresses
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[customer_id]
+          in: query
+          schema:
+            type: integer
+          example: "42"
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: "20"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Shipping Addresses
+        - CustomerHub
+      summary: Create Shipping Address
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"customer_id\": 42,\n  \"first_name\":
+                \"Jane\",\n  \"last_name\": \"Doe\",\n  \"company\": \"Acme
+                GmbH\",\n  \"street\": \"Hauptstrasse 1\",\n  \"city\":
+                \"Vienna\",\n  \"zip\": \"1010\",\n  \"country_code\":
+                \"AT\",\n  \"phone\": \"+43 660 1234567\",\n  \"is_default\":
+                true\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/shippingAddresses/{address}:
+    get:
+      tags:
+        - Shipping Addresses
+        - CustomerHub
+      summary: Show Shipping Address
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: address
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "5"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Shipping Addresses
+        - CustomerHub
+      summary: Update Shipping Address
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"street\": \"Hauptstrasse 2\",\n  \"is_default\": true\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: address
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "5"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Shipping Addresses
+        - CustomerHub
+      summary: Delete Shipping Address
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: address
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "5"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/billingAddresses:
+    get:
+      tags:
+        - Billing Addresses
+        - CustomerHub
+      summary: List Billing Addresses
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[customer_id]
+          in: query
+          schema:
+            type: integer
+          example: "42"
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: "20"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Billing Addresses
+        - CustomerHub
+      summary: Create Billing Address
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"customer_id\": 42,\n  \"first_name\":
+                \"Jane\",\n  \"last_name\": \"Doe\",\n  \"company\": \"Acme
+                GmbH\",\n  \"vat_id\": \"ATU12345678\",\n  \"street\":
+                \"Hauptstrasse 1\",\n  \"city\": \"Vienna\",\n  \"zip\":
+                \"1010\",\n  \"country_code\": \"AT\",\n  \"is_default\":
+                true\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/billingAddresses/{address}:
+    get:
+      tags:
+        - Billing Addresses
+        - CustomerHub
+      summary: Show Billing Address
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: address
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "5"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Billing Addresses
+        - CustomerHub
+      summary: Update Billing Address
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"vat_id\": \"ATU87654321\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: address
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "5"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Billing Addresses
+        - CustomerHub
+      summary: Delete Billing Address
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: address
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "5"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/favorites:
+    get:
+      tags:
+        - Favorites (wishlist)
+        - CustomerHub
+      summary: Show My Favorites
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: products.price,products.mainMedia
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Favorites (wishlist)
+        - CustomerHub
+      summary: Update My Favorites
+      description: Replaces the favorites list with the given product IDs (idempotent set).
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"product_ids\": [\n    100,\n    101,\n    102\n  ]\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/companies:
+    get:
+      tags:
+        - Companies
+        - CustomerHub
+      summary: List Companies (scoped)
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: customers,billingAddresses,shippingAddresses
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Companies
+        - CustomerHub
+      summary: Create Company (admin/agent)
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Acme GmbH\",\n  \"vat_id\": \"ATU12345678\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/companies/{company}:
+    get:
+      tags:
+        - Companies
+        - CustomerHub
+      summary: Show Company
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: customers,billingAddresses,shippingAddresses
+        - name: company
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "7"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Companies
+        - CustomerHub
+      summary: Update Company (admin/agent)
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"name\": \"Acme International GmbH\"\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: company
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "7"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customerGroups:
+    get:
+      tags:
+        - Customer Groups
+        - CustomerHub
+      summary: List Customer Groups
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customerGroups/{group}:
+    get:
+      tags:
+        - Customer Groups
+        - CustomerHub
+      summary: Show Customer Group
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/settings/groups/list:
+    get:
+      tags:
+        - Settings (read-only for storefront)
+        - CustomerHub
+      summary: List Setting Groups
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/settings:
+    get:
+      tags:
+        - Settings (read-only for storefront)
+        - CustomerHub
+      summary: List All Settings
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/settings/{group}:
+    get:
+      tags:
+        - Settings (read-only for storefront)
+        - CustomerHub
+      summary: Show Setting Group
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+          example: registration
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /cdn/{domain}/{path}:
+    get:
+      tags:
+        - CDN
+        - MediaHub
+      summary: Fetch Media Asset
+      description: >-
+        Returns the raw media bytes. Resize/format variants (if enabled by the
+        installation) are encoded into the `:path` segment.
+
+
+        Cacheable on any standard CDN — responses include long `Cache-Control`
+        headers and are identical regardless of caller.
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: domain
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Tenant media domain (FQDN). Validated against
+            `[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}`.
+          example: gogatec.com
+        - name: path
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Object path inside the configured storage backend; may contain
+            slashes.
+          example: 01_files/Kataloge/GOGAEX.pdf
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/calculate:
+    post:
+      tags:
+        - Calculation
+        - TaxHub
+      summary: Calculate Tax
+      description: Returns per-line and total tax amounts using the matching tax rules
+        for the given country, customer group, and tax class. The same
+        calculation runs server-side during checkout — calling this directly is
+        only needed for live preview in cart/PDP.
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n  \"country_code\": \"AT\",\n  \"customer_group_id\":
+                null,\n  \"items\": [\n    {\n      \"product_id\":
+                100,\n      \"quantity\": 2,\n      \"unit_price\":
+                29.99,\n      \"tax_class_id\": 1\n    }\n  ]\n}"'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-classes:
+    get:
+      tags:
+        - Read-only configuration
+        - TaxHub
+      summary: List Tax Classes
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-classes/{taxClass}:
+    get:
+      tags:
+        - Read-only configuration
+        - TaxHub
+      summary: Show Tax Class
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: taxClass
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/jurisdictions:
+    get:
+      tags:
+        - Read-only configuration
+        - TaxHub
+      summary: List Jurisdictions
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[country_code]
+          in: query
+          schema:
+            type: string
+          example: AT
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/jurisdictions/{jurisdiction}:
+    get:
+      tags:
+        - Read-only configuration
+        - TaxHub
+      summary: Show Jurisdiction
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: jurisdiction
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-class-jurisdictions:
+    get:
+      tags:
+        - Read-only configuration
+        - TaxHub
+      summary: List Tax Class–Jurisdiction Mappings
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-class-jurisdictions/{mapping}:
+    get:
+      tags:
+        - Read-only configuration
+        - TaxHub
+      summary: Show Tax Class–Jurisdiction Mapping
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: mapping
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-rules:
+    get:
+      tags:
+        - Read-only configuration
+        - TaxHub
+      summary: List Tax Rules
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: filter[country_code]
+          in: query
+          schema:
+            type: string
+          example: AT
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-rules/{taxRule}:
+    get:
+      tags:
+        - Read-only configuration
+        - TaxHub
+      summary: Show Tax Rule
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: taxRule
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-rules/{taxRule}/conditions:
+    get:
+      tags:
+        - Read-only configuration
+        - TaxHub
+      summary: List Tax Rule Conditions
+      description: Returns the conditions (country, group, threshold) that gate a
+        given rule.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: taxRule
+          in: path
+          schema:
+            type: integer
+          required: true
+          example: "1"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/settings/groups/list:
+    get:
+      tags:
+        - Settings (read-only for storefront)
+        - TaxHub
+      summary: List Setting Groups
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/settings:
+    get:
+      tags:
+        - Settings (read-only for storefront)
+        - TaxHub
+      summary: List All Settings
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/settings/{group}:
+    get:
+      tags:
+        - Settings (read-only for storefront)
+        - TaxHub
+      summary: Show Setting Group
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: "{{installationKey}}"
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: "{{authToken}}"
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+          example: general
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /page-templates:
+    get:
+      tags:
+        - Page Templates
+        - ContentHub
+      summary: List Page Templates
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Page Templates
+        - ContentHub
+      summary: Create Page Template
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n    \"name\": \"Default 2-Column Left\",\n    \"identifier\":
+                \"2col-left\",\n    \"description\": \"Two column layout with
+                left sidebar\",\n    \"layout_type\":
+                \"2columns-left\",\n    \"sectors\": [\n        {\"code\":
+                \"header\", \"label\": \"Header\", \"position\": \"top\",
+                \"max_blocks\": null},\n        {\"code\": \"sidebar_left\",
+                \"label\": \"Left Sidebar\", \"position\": \"left\",
+                \"max_blocks\": 10},\n        {\"code\": \"main_content\",
+                \"label\": \"Main Content\", \"position\": \"center\",
+                \"max_blocks\": null},\n        {\"code\": \"footer\",
+                \"label\": \"Footer\", \"position\": \"bottom\", \"max_blocks\":
+                null}\n    ],\n    \"is_default\": true,\n    \"is_active\":
+                true\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /page-templates/1:
+    get:
+      tags:
+        - Page Templates
+        - ContentHub
+      summary: Get Page Template
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Page Templates
+        - ContentHub
+      summary: Update Page Template
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n    \"name\": \"Updated Template Name\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Page Templates
+        - ContentHub
+      summary: Delete Page Template
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /page-templates/layout-types/list:
+    get:
+      tags:
+        - Page Templates
+        - ContentHub
+      summary: Get Layout Types
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /pages:
+    get:
+      tags:
+        - Pages
+        - ContentHub
+      summary: List Pages
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Pages
+        - ContentHub
+      summary: Create Page
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n    \"title\": \"About Us\",\n    \"url_key\":
+                \"about-us\",\n    \"content_html\": \"<h1>About
+                Us</h1><p>Welcome to our company.</p>\",\n    \"content_json\":
+                {},\n    \"content_css\": \"\",\n    \"page_template_id\":
+                1,\n    \"status\": \"draft\",\n    \"meta_title\": \"About Us -
+                Company\",\n    \"meta_description\": \"Learn about our
+                company\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /pages/1:
+    get:
+      tags:
+        - Pages
+        - ContentHub
+      summary: Get Page
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Pages
+        - ContentHub
+      summary: Update Page
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n    \"status\": \"published\",\n    \"published_at\":
+                \"2026-03-04T00:00:00Z\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Pages
+        - ContentHub
+      summary: Delete Page
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /pages/statuses/list:
+    get:
+      tags:
+        - Pages
+        - ContentHub
+      summary: Get Statuses
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /pages/1/composed:
+    get:
+      tags:
+        - Pages
+        - ContentHub
+      summary: Get Composed Page
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /pages/resolve/about-us:
+    get:
+      tags:
+        - Pages
+        - ContentHub
+      summary: Resolve Page by URL Key
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /blocks:
+    get:
+      tags:
+        - Blocks
+        - ContentHub
+      summary: List Blocks
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Blocks
+        - ContentHub
+      summary: Create Block (Blade Rendered)
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n    \"identifier\": \"newsletter-signup\",\n    \"title\":
+                \"Newsletter Signup\",\n    \"block_type\":
+                \"global\",\n    \"render_type\":
+                \"blade\",\n    \"blade_path\":
+                \"contenthub::blocks.newsletter\",\n    \"sector\":
+                \"footer\",\n    \"sort_order\": 10,\n    \"is_active\":
+                true,\n    \"config\": {\"heading\": \"Subscribe to our
+                newsletter\"}\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /blocks/1:
+    get:
+      tags:
+        - Blocks
+        - ContentHub
+      summary: Get Block
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Blocks
+        - ContentHub
+      summary: Update Block
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n    \"title\": \"Updated Block Title\",\n    \"is_active\":
+                true\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Blocks
+        - ContentHub
+      summary: Delete Block
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /blocks/types/list:
+    get:
+      tags:
+        - Blocks
+        - ContentHub
+      summary: Get Block Types
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /blocks/render-types/list:
+    get:
+      tags:
+        - Blocks
+        - ContentHub
+      summary: Get Render Types
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /blocks/sectors/list:
+    get:
+      tags:
+        - Blocks
+        - ContentHub
+      summary: Get Sectors
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /blocks/global:
+    get:
+      tags:
+        - Blocks
+        - ContentHub
+      summary: Get Global Blocks
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /blocks/1/children:
+    get:
+      tags:
+        - Blocks
+        - ContentHub
+      summary: Get Block Children
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /blocks/1/render:
+    get:
+      tags:
+        - Blocks
+        - ContentHub
+      summary: Render Block
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /page-block-assignments:
+    get:
+      tags:
+        - Page Block Assignments
+        - ContentHub
+      summary: List Assignments
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Page Block Assignments
+        - ContentHub
+      summary: Create Assignment
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n    \"page_id\": 1,\n    \"block_id\": 1,\n    \"sector\":
+                \"main_content\",\n    \"sort_order\": 0,\n    \"is_active\":
+                true\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /page-block-assignments/1:
+    get:
+      tags:
+        - Page Block Assignments
+        - ContentHub
+      summary: Get Assignment
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Page Block Assignments
+        - ContentHub
+      summary: Update Assignment
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n    \"sort_order\": 5\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Page Block Assignments
+        - ContentHub
+      summary: Delete Assignment
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /page-block-assignments/page/1:
+    get:
+      tags:
+        - Page Block Assignments
+        - ContentHub
+      summary: Get Assignments by Page
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /block-nestings:
+    get:
+      tags:
+        - Block Nestings
+        - ContentHub
+      summary: List Nestings
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Block Nestings
+        - ContentHub
+      summary: Create Nesting
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n    \"parent_block_id\": 1,\n    \"child_block_id\":
+                2,\n    \"sort_order\": 0,\n    \"slot\": \"content\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /block-nestings/1:
+    get:
+      tags:
+        - Block Nestings
+        - ContentHub
+      summary: Get Nesting
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Block Nestings
+        - ContentHub
+      summary: Update Nesting
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              type: string
+              example: '"{\n    \"sort_order\": 1,\n    \"slot\": \"left\"\n}"'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Block Nestings
+        - ContentHub
+      summary: Delete Nesting
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
 components:
-  schemas:
-    Integration:
-      required:
-        - id
-        - name
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        status:
-          type: string
-    Integrations:
-      type: array
-      items:
-        $ref: '#/components/schemas/Integration'
-    Task:
-      required:
-        - id
-        - title
-      properties:
-        id:
-          type: integer
-          format: int64
-        title:
-          type: string
-        state:
-          type: string
-    Tasks:
-      type: array
-      items:
-        $ref: '#/components/schemas/Task'
-    Error:
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: integer
-          format: int32
-        message:
-          type: string
+  schemas: {}
+  securitySchemes:
+    InstallationKey:
+      type: apiKey
+      in: header
+      name: x-installation-key
+      description: Tenant identifier. Safe to expose in the browser.
+    CustomerAuthToken:
+      type: apiKey
+      in: header
+      name: x-auth-token
+      description: Issued by POST /api/v1/apps/auth-hub/login. Customer-scoped.
+    ServerBearer:
+      type: http
+      scheme: bearer
+      description: Server-only SpiderDesk API token. NEVER ship to a browser.
+security:
+  - InstallationKey: []

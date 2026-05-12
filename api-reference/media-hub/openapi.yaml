@@ -1,0 +1,56 @@
+openapi: 3.0.0
+info:
+  title: MediaHub API
+  description: Public CDN proxy.
+  version: 1.0.0
+  contact:
+    name: B2Bware
+    url: https://syncspider.com
+servers:
+  - url: https://api.datahub.syncspider.com
+    description: Production
+tags:
+  - name: CDN
+    description: Public media delivery — no authentication, no headers required.
+paths:
+  /cdn/{domain}/{path}:
+    get:
+      tags:
+        - CDN
+      summary: Fetch Media Asset
+      description: >-
+        Returns the raw media bytes. Resize/format variants (if enabled by the
+        installation) are encoded into the `:path` segment.
+
+
+        Cacheable on any standard CDN — responses include long `Cache-Control`
+        headers and are identical regardless of caller.
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: domain
+          in: path
+          schema:
+            type: string
+          required: true
+          description: >-
+            Tenant media domain (FQDN). Validated against
+            `[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}`.
+          example: gogatec.com
+        - name: path
+          in: path
+          schema:
+            type: string
+          required: true
+          description: >-
+            Object path inside the configured storage backend; may contain
+            slashes.
+          example: 01_files/Kataloge/GOGAEX.pdf
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
