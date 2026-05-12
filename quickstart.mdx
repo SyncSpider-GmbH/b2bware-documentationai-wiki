@@ -6,17 +6,20 @@ description: Make your first B2Bware DataHub API call in under 5 minutes.
 ## Prerequisites
 
 Before you begin, you need:
-- A B2Bware DataHub instance with an active domain
-- An API token (obtained through your DataHub admin panel)
+- A B2Bware DataHub installation (your DataHub administrator provides this).
+- An **installation key** — a UUID identifying the installation. Safe to use in browser code.
+- An optional **API token** if you are building a backend integration rather than a storefront. See [Authentication](/authentication) for the full overview of credentials.
 
 ## Your First API Call
 
+The example below uses the **storefront mode** (`x-installation-key`), which is what you want for browser- or mobile-based shops. For server-to-server integrations, replace the storefront header with `Authorization: Bearer YOUR_API_TOKEN` — see [Server-to-Server Tokens](/authentication/server-to-server).
+
 <Steps>
-  <Step title="Set up your token" icon="key">
-    Store your API token for use in requests:
+  <Step title="Set up your installation key" icon="key">
+    Store the installation key for use in requests:
 
 ```bash
-export DATAHUB_TOKEN="your-api-token-here"
+export DATAHUB_INSTALLATION_KEY="7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061"
 export DATAHUB_DOMAIN="api.datahub.syncspider.com"
 ```
   </Step>
@@ -27,31 +30,40 @@ export DATAHUB_DOMAIN="api.datahub.syncspider.com"
 ```bash
 curl -s -X GET \
   "https://${DATAHUB_DOMAIN}/api/v1/apps/product-hub/products?filter[status]=public&include=price,finalPrice,mainMedia&per_page=5&sort=-_created_at" \
-  -H "Authorization: Bearer ${DATAHUB_TOKEN}" \
+  -H "x-installation-key: ${DATAHUB_INSTALLATION_KEY}" \
   -H "Accept: application/json"
 ```
     </Request>
   </Step>
-  <Step title="List customers" icon="users">
-    Fetch customers with their company information:
+  <Step title="Log in a customer" icon="user">
+    Exchange email and password for an `x-auth-token`:
 
     <Request tabs="cURL">
 ```bash
-curl -s -X GET \
-  "https://${DATAHUB_DOMAIN}/api/v1/apps/customer-hub/customers?include=company,role&per_page=5&sort=-_created_at" \
-  -H "Authorization: Bearer ${DATAHUB_TOKEN}" \
-  -H "Accept: application/json"
+curl -s -X POST \
+  "https://${DATAHUB_DOMAIN}/api/v1/apps/auth-hub/login" \
+  -H "x-installation-key: ${DATAHUB_INSTALLATION_KEY}" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{ "email": "jane.doe@example.com", "password": "your-password" }'
 ```
     </Request>
+
+    Save the `token` value from the response — it is the `x-auth-token` for the next step.
+
+```bash
+export DATAHUB_AUTH_TOKEN="42.JDJ5JDEyJGFiY2RlZmdo..."
+```
   </Step>
-  <Step title="List recent orders" icon="shopping-cart">
-    Fetch the latest orders with line items:
+  <Step title="Fetch the logged-in customer's cart" icon="shopping-cart">
+    With both headers present, the cart endpoints return data scoped to the customer:
 
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
-  "https://${DATAHUB_DOMAIN}/api/v1/apps/order-hub/orders?include=customer,orderLineItems&per_page=5&sort=-_created_at" \
-  -H "Authorization: Bearer ${DATAHUB_TOKEN}" \
+  "https://${DATAHUB_DOMAIN}/api/v1/apps/order-hub/carts?include=cartItems.product.price,cartItems.product.mainMedia" \
+  -H "x-installation-key: ${DATAHUB_INSTALLATION_KEY}" \
+  -H "x-auth-token: ${DATAHUB_AUTH_TOKEN}" \
   -H "Accept: application/json"
 ```
     </Request>
@@ -87,14 +99,16 @@ All list endpoints return paginated responses:
 | Operation | Hub | Endpoint |
 |-----------|-----|----------|
 | List products | ProductHub | `GET /api/v1/apps/product-hub/products` |
-| Create an order | OrderHub | `POST /api/v1/apps/order-hub/orders` |
-| Search customers | CustomerHub | `GET /api/v1/apps/customer-hub/customers?filter[search]=term` |
+| Search customers (admin) | CustomerHub | `GET /api/v1/apps/customer-hub/customers?filter[search]=term` |
 | Check stock | ProductHub | `GET /api/v1/apps/product-hub/stock?filter[product_id]=...` |
 | Calculate tax | TaxHub | `POST /api/v1/apps/tax-hub/calculate` |
+| Log in a customer | AuthHub | `POST /api/v1/apps/auth-hub/login` |
+| Create an order | OrderHub | `POST /api/v1/apps/order-hub/orders` |
 
 ## Next Steps
 
-- [Authentication](/authentication) — Learn about token management
+- [Authentication](/authentication) — Understand storefront vs server-to-server modes
+- [Storefront Customer Auth](/authentication/storefront-customer) — Login, register, password reset
 - [Filtering](/core-concepts/filtering) — Master the filter system
 - [Hub Overview](/hubs/overview) — Explore all available hubs
 - [Checkout Flow](/advanced/checkout-flow) — Build a complete cart-to-order flow

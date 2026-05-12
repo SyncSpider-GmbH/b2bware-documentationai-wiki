@@ -20,7 +20,17 @@
             "pages": [
               { "title": "Introduction", "path": "introduction", "icon": "home" },
               { "title": "Quickstart", "path": "quickstart", "icon": "zap" },
-              { "title": "Authentication", "path": "authentication", "icon": "lock" }
+              {
+                "group": "Authentication",
+                "icon": "lock",
+                "pages": [
+                  { "title": "Overview", "path": "authentication", "icon": "lock" },
+                  { "title": "Storefront Customer Auth", "path": "authentication/storefront-customer", "icon": "user" },
+                  { "title": "Installation Key", "path": "authentication/installation-key", "icon": "key" },
+                  { "title": "Server-to-Server Tokens", "path": "authentication/server-to-server", "icon": "server" },
+                  { "title": "CORS and Browser Clients", "path": "authentication/cors-and-browsers", "icon": "globe" }
+                ]
+              }
             ]
           },
           {

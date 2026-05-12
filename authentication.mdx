@@ -1,73 +1,142 @@
 ---
 title: Authentication
-description: How to authenticate with the B2Bware DataHub API using Bearer tokens.
+description: How to authenticate with the B2Bware DataHub API. Storefront and server-to-server modes side-by-side.
 ---
 
-## Bearer Token Authentication
+## Two Modes, One API
 
-All DataHub API endpoints require Bearer token authentication (unless explicitly marked as public). Include your API token in the `Authorization` header of every request:
+DataHub supports two distinct authentication modes. Pick the one that matches your use case:
 
-```
-Authorization: Bearer {api_token}
-```
+| Use case | Required headers | Where it runs |
+|---|---|---|
+| **Storefront** (browse catalog, anonymous) | `x-installation-key` | Browser, mobile app, public-facing |
+| **Storefront with logged-in B2B customer** | `x-installation-key` + `x-auth-token` | Browser, mobile app, after `/auth-hub/login` |
+| **Server-to-server** (admin, ERP sync, integrator) | `Authorization: Bearer {api_token}` | Backend only — never in a browser |
+| **Public webhook / payment callback** | none (URL contains `{installationKey}`) | Provider callback (Stripe, PayPal, etc.) |
 
-All hub endpoints are protected by the `auth:api` middleware.
+<Callout kind="warning" title="Bearer token must stay on the server">
+The `Authorization: Bearer` token is a tenant-level secret. **Do not** ship it to a browser, mobile app, or any other untrusted client. Storefronts use `x-installation-key` (safe to expose) plus an optional per-customer `x-auth-token` (issued at login).
+</Callout>
 
-## Making Authenticated Requests
+## Quick Reference
 
-Every request must include the following headers:
+<Tabs>
+  <Tab title="Storefront (guest)" icon="globe">
+    ```bash
+    curl -s -X GET \
+      'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[status]=public' \
+      -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+      -H 'Accept: application/json'
+    ```
+  </Tab>
+  <Tab title="Storefront (logged-in customer)" icon="user">
+    ```bash
+    curl -s -X GET \
+      'https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts' \
+      -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+      -H 'x-auth-token: 42.JDJ5JDEyJGFiY2RlZmdo...' \
+      -H 'Accept: application/json'
+    ```
+  </Tab>
+  <Tab title="Server-to-server" icon="server">
+    ```bash
+    curl -s -X GET \
+      'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products' \
+      -H 'Authorization: Bearer YOUR_API_TOKEN' \
+      -H 'Accept: application/json'
+    ```
+  </Tab>
+</Tabs>
 
-<Request tabs="cURL">
-```bash
-curl -s -X GET \
-  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products' \
-  -H 'Authorization: Bearer YOUR_API_TOKEN' \
-  -H 'Accept: application/json'
-```
-</Request>
+## Headers in Detail
 
-For requests that send data (POST, PUT, PATCH), also include the `Content-Type` header:
+### `x-installation-key` (storefront, required)
 
-```
-Content-Type: application/json
-```
+Identifies the **tenant installation** (which DataHub shop the request is for). A UUID issued when the shop was provisioned. Safe to expose in browser code.
 
-## Required Headers Summary
+Without this header, storefront requests return `401 Unauthenticated`.
 
-| Header | Required | Value |
-|--------|----------|-------|
-| `Authorization` | Always | `Bearer {api_token}` |
-| `Accept` | Always | `application/json` |
-| `Content-Type` | For POST/PUT/PATCH | `application/json` |
+Learn more in [Installation Key](/authentication/installation-key).
 
-## Public Endpoints
+### `x-auth-token` (storefront, optional)
 
-A small number of endpoints do **not** require authentication:
+Identifies the **logged-in B2B customer**. Issued by `POST /api/v1/apps/auth-hub/login` and revoked by `POST /api/v1/apps/auth-hub/logout`.
 
-| Hub | Endpoint | Description |
-|-----|----------|-------------|
-| MediaHub | `GET /cdn/{domain}/{path}` | Public CDN proxy for media |
-| OrderHub | `GET /payment/webhook/{installationKey}/{provider}` | Payment provider webhook |
-| OrderHub | `GET /order/payment/{installationKey}/{order_id}` | Payment redirect |
+Include it on requests that need the customer's identity (cart, checkout, account, orders). Omit it for guest browsing.
+
+Tokens use a **sliding idle window**: each authenticated request refreshes the token's last-used timestamp. A token that goes unused for too long is rejected and the customer must log in again.
+
+Learn more in [Storefront Customer Auth](/authentication/storefront-customer).
+
+### `Authorization: Bearer {api_token}` (server-to-server, required)
+
+Identifies an **integrator or admin** acting on behalf of the tenant. Issued through the DataHub admin panel.
+
+Use this only from a trusted backend. Never expose it to end-users.
+
+Learn more in [Server-to-Server Tokens](/authentication/server-to-server).
+
+### `Accept: application/json` (always)
+
+Required on every request. Without it the API may return HTML for some error paths.
+
+### `Content-Type: application/json` (POST/PUT/PATCH)
+
+Required whenever the request has a body.
 
 ## Error Responses
 
-If authentication fails, the API returns a `401 Unauthorized` response:
+### 401 Unauthorized
 
-<Response tabs="401">
+Returned when authentication is missing or invalid.
+
+```json
+{ "message": "Unauthenticated." }
+```
+
+On `GET /api/v1/apps/auth-hub/me` the response is more specific:
+
 ```json
 {
-  "message": "Unauthenticated."
+  "error": "Unauthorized",
+  "messages": ["No x-auth-token header was provided."],
+  "code": 401
 }
 ```
-</Response>
 
-<Callout kind="alert" title="Token Security">
-Keep your API tokens secure. Never expose them in client-side code, public repositories, or URLs. Use environment variables or a secrets manager to store tokens.
-</Callout>
+Common causes:
+- Missing `x-installation-key` on a storefront request.
+- Missing `Authorization` header on a server-to-server request.
+- `x-auth-token` expired (no activity within the idle window) or revoked (logout).
+- Token copy/paste with extra whitespace or line breaks.
+
+### 403 Forbidden
+
+The credentials are valid but the caller is not allowed to perform this action.
+
+The most common case is a **shop customer trying to reach an admin-only endpoint** (back-office hubs such as SettingsHub, LicenseHub, NotificationHub admin routes). If `x-auth-token` resolves a shop customer, those endpoints reject the request with 403 even though `x-installation-key` is valid.
+
+Other cases:
+- Sales-agent-only endpoints (`/auth-hub/impersonate/*`) called by a non-agent.
+- Server-to-server token with insufficient scope (e.g. read-only token attempting a write).
+
+## CORS
+
+The API echoes the request `Origin` header back and supports credentials, which means storefront calls from any origin currently succeed. See [CORS and Browser Clients](/authentication/cors-and-browsers) for the current behavior and recommended deployment patterns.
 
 ## Next Steps
 
-- [Quickstart](/quickstart) — Make your first authenticated API call
-- [Common Patterns](/core-concepts/common-patterns) — Learn about pagination, sorting, and response formats
-- [Error Handling](/core-concepts/error-handling) — Handle authentication errors
+<Columns cols={2}>
+  <Card title="Storefront Customer Auth" icon="user" href="/authentication/storefront-customer">
+    Login, register, password reset, email verification.
+  </Card>
+  <Card title="Installation Key" icon="key" href="/authentication/installation-key">
+    What `installation_key` is and where it appears.
+  </Card>
+  <Card title="Server-to-Server Tokens" icon="server" href="/authentication/server-to-server">
+    Bearer tokens for integrators and admins.
+  </Card>
+  <Card title="CORS and Browser Clients" icon="globe" href="/authentication/cors-and-browsers">
+    What works in a browser today, and what to plan for.
+  </Card>
+</Columns>

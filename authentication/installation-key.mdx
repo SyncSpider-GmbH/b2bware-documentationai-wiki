@@ -1,0 +1,90 @@
+---
+title: Installation Key
+description: What x-installation-key is, where to find it, and where it appears in DataHub URLs.
+---
+
+## What It Is
+
+An **installation key** is a UUID that identifies a single DataHub shop installation. Every storefront request must send it as the `x-installation-key` header so the API knows which tenant the request belongs to.
+
+```
+x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061
+```
+
+The installation key is **safe to expose in browser code** — it is a tenant identifier, not a secret credential. (The customer-specific secret is the `x-auth-token` that is issued at login.)
+
+<Callout kind="info">
+The installation key is fixed for the lifetime of the shop installation. Storefront builds typically read it from an environment variable at build time, or load it from a configuration endpoint of your own backend.
+</Callout>
+
+## Where to Find It
+
+The installation key is shown in the DataHub admin panel, on the installation detail page. Your DataHub administrator provides it during onboarding.
+
+If your admin panel exposes more than one installation (for example, staging and production), use the matching key per environment.
+
+## Where It Appears
+
+Most of the time the installation key travels as the `x-installation-key` HTTP header. There are two places where it appears differently:
+
+### In the URL path — public callback endpoints
+
+A small set of endpoints are reachable without any header authentication because they are called by external providers (payment gateways, email links). For those, the installation key is part of the URL path so the API can still resolve the tenant:
+
+| Endpoint | Caller |
+|---|---|
+| `POST /api/v1/apps/auth-hub/{installationKey}/reset-password` | A logged-out customer clicking a password reset email link |
+| `POST /api/v1/apps/auth-hub/{installationKey}/verify-email` | A new customer clicking the email verification link |
+| `GET /api/v1/apps/order-hub/payment/webhook/{installationKey}/{provider}` | Payment provider (e.g. Stripe) webhook |
+| `GET /api/v1/apps/order-hub/order/payment/{installationKey}/{order_id}` | Payment provider redirect after checkout |
+
+For these URLs you do **not** need to send the header — the path is sufficient.
+
+### In the response body — webhook payloads
+
+Some webhook payloads include the installation key so the receiver can route the event correctly when a single backend serves multiple installations.
+
+## Sample Browser Setup
+
+```js
+// Read the installation key once at app boot.
+// Treat it like a public API key (Stripe publishable key, Algolia search key, etc.).
+const INSTALLATION_KEY = import.meta.env.VITE_DATAHUB_INSTALLATION_KEY;
+
+async function api(path, options = {}) {
+  return fetch(`https://api.datahub.syncspider.com${path}`, {
+    ...options,
+    headers: {
+      'x-installation-key': INSTALLATION_KEY,
+      'Accept': 'application/json',
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(localStorage.getItem('x-auth-token') && {
+        'x-auth-token': localStorage.getItem('x-auth-token'),
+      }),
+      ...options.headers,
+    },
+  });
+}
+```
+
+## Errors
+
+If `x-installation-key` is missing on a storefront request:
+
+```json
+{ "message": "Unauthenticated." }
+```
+
+If the value is malformed or refers to an installation that does not exist:
+
+```json
+{ "message": "Unauthenticated." }
+```
+
+The API does not distinguish between "missing key" and "wrong key" in the error body to avoid leaking installation existence to unauthenticated clients.
+
+## See Also
+
+- [Authentication overview](/authentication)
+- [Storefront Customer Auth](/authentication/storefront-customer)
+- [CORS and Browser Clients](/authentication/cors-and-browsers)

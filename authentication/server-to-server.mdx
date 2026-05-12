@@ -1,0 +1,79 @@
+---
+title: Server-to-Server Tokens
+description: Bearer tokens for integrators, ERP syncs, and admin tooling. Never use these from a browser.
+---
+
+## When to Use
+
+Use a Bearer token when your code runs on a trusted backend that you control:
+
+- ERP / PIM / OMS integrations syncing products, customers, orders.
+- Scheduled jobs and migrations.
+- AI tooling (MCP server, agents, code assistants) acting on the installation.
+- Your own BFF / proxy in front of a storefront, when you choose to forward requests as the tenant rather than as the end customer.
+
+<Callout kind="alert" title="Never ship a Bearer token to a browser">
+A Bearer token grants tenant-wide access, including back-office data and writes. If it leaks, the entire installation is compromised. For storefronts, use [`x-installation-key`](/authentication/installation-key) plus the customer's [`x-auth-token`](/authentication/storefront-customer) instead.
+</Callout>
+
+## How to Obtain a Token
+
+API tokens are issued through the DataHub admin panel. Each token belongs to one installation and may have a read-only flag.
+
+If you do not have access to the admin panel, ask your DataHub administrator. Tokens are tied to a specific installation — separate installations have separate tokens.
+
+## Making a Request
+
+```
+Authorization: Bearer YOUR_API_TOKEN
+Accept: application/json
+```
+
+<Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products' \
+  -H 'Authorization: Bearer YOUR_API_TOKEN' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+For requests with a body, also send `Content-Type: application/json`.
+
+## Read-Only Tokens
+
+Some tokens are issued as **read-only**. Such a token accepts `GET` requests but is rejected with `403` on `POST`, `PUT`, `PATCH`, `DELETE`:
+
+```json
+{ "message": "You don't have permission to write data." }
+```
+
+Use a read-only token for analytics pipelines, dashboards, and any consumer that does not need to mutate data.
+
+## Combining with the Storefront Headers
+
+A Bearer token **replaces** the storefront headers — do not mix them. If both `Authorization: Bearer` and `x-installation-key` are present, the API uses the Bearer token.
+
+There is no reason to send `x-auth-token` together with a Bearer token: the Bearer token already identifies the installation, and customer ownership is enforced by the integrator's own logic, not by the customer guard.
+
+## Storage and Rotation
+
+- Store the token in a secrets manager or environment variable, never in source control.
+- Use a separate token per environment (staging vs production) and per integration so a compromised key can be revoked without disrupting others.
+- Rotate proactively if a token may have been exposed (logs, screen shares, third-party services).
+
+To rotate: issue a new token in the admin panel, switch the integration over, then revoke the old one.
+
+## Error Responses
+
+| Status | Body | Cause |
+|---|---|---|
+| `401` | `{ "message": "Unauthenticated." }` | Missing, malformed, or revoked Bearer token |
+| `403` | `{ "message": "You don't have permission to write data." }` | Read-only token used for a write |
+| `403` | `{ "message": "Shop customers are not allowed to access this resource." }` | Should not occur for a Bearer token — see [Storefront Customer Auth](/authentication/storefront-customer) |
+
+## See Also
+
+- [Authentication overview](/authentication)
+- [Installation Key](/authentication/installation-key)
+- [Error Handling](/core-concepts/error-handling)

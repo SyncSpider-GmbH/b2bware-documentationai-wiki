@@ -1,0 +1,97 @@
+---
+title: CORS and Browser Clients
+description: What the DataHub API currently allows for browser-based storefronts, and how to deploy safely.
+---
+
+## Current Behavior
+
+The DataHub API currently responds to cross-origin browser requests with permissive CORS:
+
+| Setting | Value |
+|---|---|
+| Allowed origins | reflects the request `Origin` (effectively any origin) |
+| Allowed methods | all |
+| Allowed headers | all |
+| Exposed headers | `session-uuid` |
+| Credentials supported | yes |
+| Preflight max-age | 0 (browsers re-issue OPTIONS on every preflight-eligible call) |
+
+In practice this means:
+
+- A browser at any origin can call the API with `x-installation-key` and `x-auth-token`.
+- Cookies and credentialed `fetch` calls are accepted.
+- `OPTIONS` preflight responses are not cached client-side, so high-frequency endpoints generate one preflight per call from the browser.
+
+<Callout kind="warning" title="This is permissive on purpose, not by design">
+Because origins are not restricted today, the only thing standing between a malicious site and your tenant data is the secrecy of the `installation_key`. Treat the installation key as public-but-not-cheap: do not publish it on third-party properties you do not control, and rotate it if it leaks.
+</Callout>
+
+## Recommended Deployment Patterns
+
+### Pattern A — Direct browser calls (simplest)
+
+For a public catalog storefront that only reads products, categories, and other non-sensitive data, calling the API directly from the browser is acceptable:
+
+```js
+const INSTALLATION_KEY = import.meta.env.VITE_DATAHUB_INSTALLATION_KEY;
+
+fetch('https://api.datahub.syncspider.com/api/v1/apps/product-hub/products', {
+  headers: {
+    'x-installation-key': INSTALLATION_KEY,
+    'Accept': 'application/json',
+  },
+});
+```
+
+Trade-offs:
+- ✅ No backend to maintain.
+- ❌ The installation key sits in the JS bundle. Anyone who inspects the page can copy it.
+- ❌ Cannot intercept or transform requests centrally (rate limiting, caching, analytics).
+
+### Pattern B — Backend-for-Frontend (recommended for production)
+
+Put a thin server you control between the browser and the DataHub API:
+
+```
+Browser  →  Your BFF  →  api.datahub.syncspider.com
+            (Node, Laravel,
+             Cloudflare Worker, …)
+```
+
+Your BFF:
+1. Holds the installation key as a server-side secret (no longer in the JS bundle).
+2. Forwards storefront calls with `x-installation-key` and the user's `x-auth-token` (if any).
+3. Can enforce per-IP rate limits, response caching, and request shaping.
+4. Can host endpoints that mix DataHub with your own data (CMS pages, analytics).
+
+This is the same pattern Stripe, Algolia, and similar SaaS APIs recommend for non-trivial deployments.
+
+### Pattern C — Hybrid
+
+Use direct browser calls for read-heavy public endpoints (catalog browsing, search) and route checkout / account / order endpoints through your BFF. This balances cost against attack surface.
+
+## Preflight Behavior
+
+`max-age: 0` means browsers re-issue an `OPTIONS` request before every cross-origin call that triggers preflight (any call with `x-installation-key`, `x-auth-token`, or `Content-Type: application/json`). For storefronts that issue many small requests per page, this doubles the request count.
+
+Mitigations:
+- Same-origin proxy via Pattern B (no CORS, no preflight).
+- A CDN in front of your BFF that holds responses long enough to absorb preflight cost.
+
+The `max-age` value is global; storefronts cannot raise it on a per-request basis.
+
+## What `session-uuid` Does
+
+The header `session-uuid` is the one header the API explicitly **exposes** to browser JavaScript. When the storefront sends `session-uuid` on a request, the API echoes the same value back on the response.
+
+This is used to correlate guest cart actions across page reloads. See [Cart and Checkout](/advanced/checkout-flow) for the full pattern.
+
+## Known Gap
+
+CORS is currently global, not tenant-scoped. A per-tenant allow-list is on the roadmap — once available, each installation will be able to declare its own set of allowed origins in the admin panel. Until then, treat origin-based isolation as out of scope and rely on the secrecy of credentials.
+
+## See Also
+
+- [Authentication overview](/authentication)
+- [Installation Key](/authentication/installation-key)
+- [Server-to-Server Tokens](/authentication/server-to-server)

@@ -1,43 +1,107 @@
 ---
 title: Authentication Errors
-description: Troubleshoot common authentication issues with the DataHub API.
+description: Troubleshoot 401 and 403 responses from the DataHub API.
 ---
 
 ## 401 Unauthorized
 
-**Symptom:** API returns `{"message": "Unauthenticated."}`
+**Body:**
 
-**Causes:**
-- Missing `Authorization` header
-- Invalid or expired token
-- Incorrect token format (must be `Bearer {token}`, not just the token)
+```json
+{ "message": "Unauthenticated." }
+```
 
-**Solutions:**
-1. Verify the header: `Authorization: Bearer YOUR_TOKEN`
-2. Generate a new token if the current one has expired
-3. Check for extra spaces or line breaks in the token string
+On `GET /api/v1/apps/auth-hub/me` the response is more specific (e.g. `"No x-auth-token header was provided."`).
 
-## 403 Forbidden
+### Causes by mode
 
-**Symptom:** API returns a 403 status code
+**Storefront** (`x-installation-key` based):
 
-**Causes:**
-- Token is valid but lacks permissions for the requested resource
-- Attempting to access a hub or endpoint not included in your plan
+- `x-installation-key` header missing entirely.
+- Installation key is malformed or refers to an installation that does not exist.
+- Calling a customer-only endpoint (e.g. `GET /me`) without `x-auth-token`.
+- `x-auth-token` expired (sliding idle window — no activity for too long) or revoked (`POST /logout` was called).
+- Token contains hidden characters from a copy-paste.
 
-**Solutions:**
-1. Check your account permissions with your administrator
-2. Verify you're accessing the correct hub endpoint
+**Server-to-server** (Bearer based):
 
-## Token Not Working After Copy/Paste
+- Missing `Authorization` header.
+- Wrong header format — must be `Authorization: Bearer YOUR_TOKEN`, not `Authorization: YOUR_TOKEN`.
+- Token revoked in the admin panel.
+- Token contains hidden characters from a copy-paste.
 
-Ensure there are no hidden characters, trailing newlines, or URL encoding in your token. Test with a simple curl command:
+### Quick test
+
+Run a known-good request and verify the response:
 
 ```bash
+# Storefront — should return a product list
 curl -s -X GET \
   'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?per_page=1' \
-  -H 'Authorization: Bearer YOUR_TOKEN_HERE' \
+  -H 'x-installation-key: YOUR_INSTALLATION_KEY' \
+  -H 'Accept: application/json'
+
+# Server-to-server — should return a product list
+curl -s -X GET \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?per_page=1' \
+  -H 'Authorization: Bearer YOUR_API_TOKEN' \
   -H 'Accept: application/json'
 ```
 
-If this works but your integration doesn't, the issue is in how your integration sets the header.
+If this works but your integration does not, the issue is in how your code sets the header.
+
+## 403 Forbidden
+
+**Body:**
+
+```json
+{ "message": "Shop customers are not allowed to access this resource." }
+```
+
+or
+
+```json
+{ "message": "You don't have permission to write data." }
+```
+
+or another endpoint-specific message.
+
+### Causes
+
+- **Shop customer hitting an admin-only endpoint.** If your request carries `x-auth-token`, the API resolves a shop customer and rejects requests to back-office hubs (SettingsHub admin routes, NotificationHub admin routes, LicenseHub, RuleHub, integration adapters, …). For storefront use cases, the customer should never need these.
+- **Read-only Bearer token used for a write.** Some integrator tokens are issued read-only. `POST/PUT/PATCH/DELETE` return 403 with `"You don't have permission to write data."`. Reissue a writable token or restrict your integration to reads.
+- **Non-agent customer called `/auth-hub/impersonate/*`.** Only customers whose role type is `agent` may impersonate.
+- **Mixing token modes.** Sending both `Authorization: Bearer` and `x-auth-token` may produce 403 because the request resolves as a shop customer under the Bearer-authenticated tenant. Pick one mode per request.
+
+### Fixing the most common 403
+
+If your storefront receives `"Shop customers are not allowed to access this resource."`, you are calling an admin route from a customer-authenticated session. Look at the path — typical offenders are admin-only Settings, License, Rule, or Notification routes. Replace the call with the corresponding customer-facing endpoint (often under a different hub or a different sub-path).
+
+## Token Not Working After Copy-Paste
+
+Ensure there are no hidden characters, trailing newlines, or URL encoding. The token must match exactly. Compare with the value as stored in your secrets manager.
+
+A working request will return data; a token-related failure will return one of the `401` bodies above. If the body says `Unauthenticated.` but the token *looks* identical to the one in the admin panel, the difference is almost always whitespace.
+
+## CORS Errors in the Browser
+
+Symptoms:
+
+- `Access to fetch at '...' has been blocked by CORS policy`
+- `Response to preflight request doesn't pass access control check`
+
+The DataHub API itself is permissive — it reflects the request `Origin` and supports credentials. If you still see a CORS error, the cause is usually upstream of the API:
+
+- A misconfigured proxy or CDN in front of the API stripping CORS headers.
+- The request is going to the wrong URL (typo, missing `https`).
+- Your browser is sending preflight on a request that is failing with `401`/`403` *before* CORS headers are added — fix the auth error and the CORS message goes away.
+
+See [CORS and Browser Clients](/authentication/cors-and-browsers).
+
+## See Also
+
+- [Authentication overview](/authentication)
+- [Storefront Customer Auth](/authentication/storefront-customer)
+- [Server-to-Server Tokens](/authentication/server-to-server)
+- [CORS and Browser Clients](/authentication/cors-and-browsers)
+- [Authentication FAQ](/help-center/faq/datahub-authentication)

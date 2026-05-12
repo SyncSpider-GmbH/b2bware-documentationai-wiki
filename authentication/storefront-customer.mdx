@@ -1,0 +1,294 @@
+---
+title: Storefront Customer Auth
+description: Login, registration, password reset, and email verification flows for B2B customers on a DataHub storefront.
+---
+
+## Overview
+
+A B2B customer on the storefront authenticates via the **AuthHub** endpoints. After a successful login the API returns an `x-auth-token` that the storefront sends on every request alongside `x-installation-key`.
+
+```
+x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061    ← always
+x-auth-token:        42.JDJ5JDEyJGFiY2RlZmdo...               ← when logged in
+```
+
+Tokens use a **sliding idle window**: every authenticated request refreshes the token's last-used timestamp. A token that goes unused beyond the window is rejected, and the customer must log in again.
+
+## Endpoints
+
+All endpoints below are under the prefix `/api/v1/apps/auth-hub`.
+
+| Method | Path | Auth required | Purpose |
+|---|---|---|---|
+| `POST` | `/login` | `x-installation-key` | Issue an `x-auth-token` for an existing customer |
+| `POST` | `/register` | `x-installation-key` | Create a new customer account |
+| `POST` | `/logout` | `x-installation-key` + `x-auth-token` | Revoke the current token |
+| `GET` | `/me` | `x-installation-key` + `x-auth-token` | Return the currently logged-in customer |
+| `POST` | `/forgot-password` | `x-installation-key` | Send a password reset email |
+| `POST` | `/{installationKey}/reset-password` | none (key in URL) | Complete password reset from email link |
+| `POST` | `/send-verification-email` | `x-installation-key` | Resend the email verification message |
+| `POST` | `/{installationKey}/verify-email` | none (key in URL) | Complete email verification from email link |
+| `POST` | `/impersonate/{customerId}` | sales agent token | Sales agent: act as a customer |
+| `POST` | `/impersonate/leave` | sales agent token | Sales agent: stop impersonating |
+| `GET` | `/impersonate/customers` | sales agent token | Sales agent: list customers eligible for impersonation |
+
+## Login
+
+<Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/login' \
+  -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "email": "jane.doe@example.com",
+    "password": "correct horse battery staple"
+  }'
+```
+</Request>
+
+<Response tabs="200">
+```json
+{
+  "token": "42.JDJ5JDEyJGFiY2RlZmdo...",
+  "customer": {
+    "id": 42,
+    "email": "jane.doe@example.com",
+    "first_name": "Jane",
+    "last_name": "Doe",
+    "status": "active",
+    "company": { "id": 7, "name": "Acme Ltd." },
+    "role": { "id": 3, "name": "Buyer" }
+  }
+}
+```
+</Response>
+
+Store the `token` value in your client (for example `localStorage` or a secure cookie via your own BFF). Send it as `x-auth-token` on subsequent requests.
+
+### Login error cases
+
+| Body message | Meaning |
+|---|---|
+| `Email not found` | No account with that email, or the account is a guest-checkout record without a password set |
+| `Password not valid` | Email is registered but password is wrong |
+| `Your account is inactive. Please contact support.` | Admin disabled the account |
+| `Please verify your email address before logging in.` | Email verification is required and not yet completed |
+| `Your account is pending admin approval` | Admin approval is required and not yet granted |
+
+<Callout kind="info">
+The API intentionally does **not** reveal whether a `password not valid` response means "wrong password" vs "no such account" beyond the messages above — guest-checkout records with no password are reported as `Email not found` so client code can route the user to registration rather than password reset.
+</Callout>
+
+## Register
+
+<Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/register' \
+  -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "email": "jane.doe@example.com",
+    "password": "correct horse battery staple",
+    "first_name": "Jane",
+    "last_name": "Doe",
+    "phone": "+1-555-0100",
+    "salutation": "Ms.",
+    "company": {
+      "name": "Acme Ltd.",
+      "phone": "+1-555-0101",
+      "address_line_1": "1 Market St",
+      "city": "San Francisco",
+      "zip": "94105",
+      "country": "US"
+    }
+  }'
+```
+</Request>
+
+The `company` object is optional but, if present, requires `name`, `phone`, `address_line_1`, `city`, `zip`, and `country`. Password rules are configured per installation; the API returns 422 with field-level errors if a rule is violated.
+
+### Register responses
+
+**Immediate login (no admin approval, no email verification required):**
+
+```json
+{
+  "message": "Customer registered successfully",
+  "customer": { "id": 43, "email": "jane.doe@example.com", "status": "active" },
+  "token": "43.JDJ5JDEyJGFiY2RlZmdo...",
+  "requires_email_verification": false
+}
+```
+
+**Email verification required:**
+
+```json
+{
+  "message": "Customer registered successfully",
+  "customer": { "id": 43, "email": "jane.doe@example.com", "status": "pending" },
+  "token": "43.JDJ5JDEyJGFiY2RlZmdo...",
+  "requires_email_verification": true
+}
+```
+
+The customer receives an email with a 6-character code and a link of the form `/{installationKey}/verify-email?token=...&email=...`. Until verification, the token works for most read endpoints but checkout-style flows may reject the customer with 403 depending on installation policy.
+
+**Admin approval required:**
+
+```json
+{
+  "message": "Registration successful. Your account is pending admin approval.",
+  "customer": { "id": 43, "email": "jane.doe@example.com", "status": "pending" },
+  "pending_approval": true,
+  "requires_email_verification": true
+}
+```
+
+Note: no `token` is returned in this case — the customer cannot log in until the admin activates the account.
+
+### Guest-to-registered upgrade
+
+If the email belongs to an existing **guest** customer (created by a prior guest checkout, no password set), `POST /register` upgrades that record in place rather than rejecting with "email already exists". The same `customer.id` is preserved, so prior guest orders remain attached.
+
+## Get Current Customer
+
+<Request tabs="cURL">
+```bash
+curl -s -X GET \
+  'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/me' \
+  -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'x-auth-token: 42.JDJ5JDEyJGFiY2RlZmdo...' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+Returns the customer profile with company, role, and default addresses loaded.
+
+## Logout
+
+<Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/logout' \
+  -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'x-auth-token: 42.JDJ5JDEyJGFiY2RlZmdo...' \
+  -H 'Accept: application/json'
+```
+</Request>
+
+<Response tabs="200">
+```json
+{ "message": "Logged out" }
+```
+</Response>
+
+Revokes only the current token. Other devices the same customer is signed in on are not affected (per-session revocation is not currently exposed via the API).
+
+## Password Reset
+
+Two-step flow:
+
+### 1. Request a reset code
+
+<Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/forgot-password' \
+  -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'Content-Type: application/json' \
+  -d '{ "email": "jane.doe@example.com" }'
+```
+</Request>
+
+The API sends an email containing a 6-character code and a link of the form `/{installationKey}/reset-password?token=...&email=...`. Codes expire after 1 hour.
+
+### 2. Submit the new password
+
+This endpoint carries the installation key in the URL, so it works without headers (the user follows a link from an email):
+
+<Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061/reset-password' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "email": "jane.doe@example.com",
+    "token": "847391",
+    "password": "new correct horse battery staple"
+  }'
+```
+</Request>
+
+## Email Verification
+
+Two-step flow, same shape as password reset. After registration the customer receives an email with a 6-character code:
+
+### Resend verification email
+
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/send-verification-email' \
+  -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'Content-Type: application/json' \
+  -d '{ "email": "jane.doe@example.com" }'
+```
+
+### Submit the code
+
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061/verify-email' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "email": "jane.doe@example.com",
+    "token": "203847"
+  }'
+```
+
+If email verification was the only thing keeping the account in `pending` status, the API also flips the status to `active` so the customer can log in immediately.
+
+## Sales-Agent Impersonation
+
+Customers whose role type is `agent` can act on behalf of regular B2B customers (for example, a sales rep placing an order over the phone). The agent must already be logged in with their own `x-auth-token`.
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/impersonate/customers` | List customers the agent can impersonate (excludes agents and admins) |
+| `POST` | `/impersonate/{customerId}` | Start impersonating — returns a fresh `x-auth-token` for the target customer |
+| `POST` | `/impersonate/leave` | Stop impersonating — frontend swaps back to the agent's own token |
+
+The token issued by `/impersonate/{customerId}` carries the impersonator's identity for audit logging. From the API's perspective the impersonated customer is the active user for all subsequent calls.
+
+Non-agents receive `403` from any of these endpoints.
+
+## Guest Checkout
+
+Storefronts can let unauthenticated visitors place orders without registering. In that flow you do **not** include `x-auth-token`; the cart is identified by a `session_uuid` value the storefront generates and persists in the browser. See [Cart and Checkout](/advanced/storefront/cart-and-checkout) for the full guest flow.
+
+When such a guest later registers with the same email, the existing customer record is upgraded in place — prior guest orders stay attached.
+
+## Known Gaps
+
+The following customer-account capabilities are **not yet exposed** by the API. They are tracked as roadmap items:
+
+- Change password while logged in (the only path today is forgot-password → email link)
+- Change email address with re-verification
+- List active sessions (devices) for the current customer
+- Revoke a specific session or "log out all devices"
+- Explicit token refresh endpoint (the sliding idle window is the only refresh mechanism today)
+- Two-factor authentication
+- Social login (Google, Apple, …)
+- Customer-initiated account deletion
+
+If your integration depends on one of these, contact your DataHub representative.
+
+## See Also
+
+- [Authentication overview](/authentication)
+- [Installation Key](/authentication/installation-key)
+- [CORS and Browser Clients](/authentication/cors-and-browsers)
+- [Cart and Checkout](/advanced/checkout-flow)

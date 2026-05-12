@@ -3,31 +3,73 @@ title: Authentication FAQ
 description: Common questions about authenticating with the B2Bware DataHub API.
 ---
 
-## How do I authenticate with the DataHub API?
+## Which header do I use?
 
-All API endpoints require a Bearer token in the `Authorization` header:
+It depends on where your code runs.
 
-```
-Authorization: Bearer {api_token}
-```
+| You are building… | Send these headers |
+|---|---|
+| A storefront (browser, mobile app) — guest browsing | `x-installation-key` |
+| A storefront — logged-in B2B customer | `x-installation-key` + `x-auth-token` |
+| A backend integration (ERP, sync job, BFF, MCP server) | `Authorization: Bearer {api_token}` |
 
-See [Authentication](/authentication) for full details.
+The Bearer token must **never** be shipped to a browser. See the [Authentication overview](/authentication) for the full matrix.
 
-## Where do I get my API token?
+## Where do I get the installation key?
 
-API tokens are generated through your DataHub admin panel. Contact your system administrator if you don't have access.
+From the DataHub admin panel, on the installation detail page. Your DataHub administrator provides it during onboarding. The installation key is safe to include in browser code. See [Installation Key](/authentication/installation-key).
 
-## Does one token work across all hubs?
+## Where do I get an API token (Bearer)?
 
-Yes. A single Bearer token authenticates you across all 9 DataHub hubs (ProductHub, OrderHub, CustomerHub, etc.).
+API tokens are issued through the DataHub admin panel. Contact your administrator if you do not have access. See [Server-to-Server Tokens](/authentication/server-to-server).
 
-## Are there any public endpoints?
+## How does a customer get an `x-auth-token`?
 
-Yes, a few endpoints do not require authentication:
-- **MediaHub** CDN proxy: `GET /api/v1/apps/media-hub/cdn/{domain}/{path}`
-- **OrderHub** payment webhook: `GET /api/v1/apps/order-hub/payment/webhook/{installationKey}/{provider}`
-- **OrderHub** payment redirect: `GET /api/v1/apps/order-hub/order/payment/{installationKey}/{order_id}`
+Call `POST /api/v1/apps/auth-hub/login` with the customer's email and password (and `x-installation-key`). The response contains a `token` value — that is the `x-auth-token` for subsequent requests. See [Storefront Customer Auth](/authentication/storefront-customer).
 
-## What happens if my token expires?
+## Does one credential work across all hubs?
 
-You receive a `401 Unauthorized` response with the message `"Unauthenticated."`. Generate a new token to continue.
+Yes. A single `x-installation-key` (and, when logged in, `x-auth-token`) is valid against every storefront-facing hub. A single Bearer token is valid against every back-office hub. The hub-specific URL prefix (`/api/v1/apps/{hub-slug}/`) only chooses *which* endpoints you can reach — it does not require a hub-specific credential.
+
+## Are there any unauthenticated endpoints?
+
+A few:
+
+- `GET /api/v1/apps/media-hub/cdn/{domain}/{path}` — public CDN proxy for media.
+- `POST /api/v1/apps/auth-hub/{installationKey}/reset-password` — completed from an email link.
+- `POST /api/v1/apps/auth-hub/{installationKey}/verify-email` — completed from an email link.
+- `GET /api/v1/apps/order-hub/payment/webhook/{installationKey}/{provider}` — payment provider callback.
+- `GET /api/v1/apps/order-hub/order/payment/{installationKey}/{order_id}` — payment provider redirect.
+
+The installation key in the URL path replaces the header for these.
+
+## What happens when my customer's token expires?
+
+Customer tokens use a **sliding idle window** — every authenticated request refreshes the token's last-used timestamp. If the customer goes inactive for the configured window, the next request returns `401`. The customer must log in again to get a fresh token.
+
+There is no explicit refresh endpoint today.
+
+## Can I mix Bearer with `x-installation-key`?
+
+No. When a Bearer token is present the API uses it and ignores the storefront headers. Pick one mode per request.
+
+## I get `403`. What does it mean?
+
+The credentials are valid but the action is not allowed. Most common causes:
+
+- A logged-in shop customer (`x-auth-token` present) called a back-office endpoint (admin-only hub or admin-only route).
+- A read-only Bearer token attempted a write.
+- A non-agent customer called an `/impersonate/*` endpoint.
+
+See [Authentication Errors](/help-center/troubleshooting/authentication-errors) for full troubleshooting.
+
+## I get `401`. What does it mean?
+
+Authentication is missing or invalid:
+
+- `x-installation-key` missing, malformed, or unknown.
+- `Authorization` header missing on a server-to-server call.
+- `x-auth-token` expired (idle too long) or revoked (logout).
+- Extra whitespace, line breaks, or URL encoding in the token.
+
+See [Authentication Errors](/help-center/troubleshooting/authentication-errors).
