@@ -44,36 +44,38 @@ Three things to notice:
 
 ## Pagination
 
-The endpoint returns a Laravel paginator envelope:
+The endpoint returns a flat pagination envelope:
 
 ```json
 {
   "data": [ { "id": 101, "sku": "...", "name": "...", ... } ],
-  "links": {
-    "first": ".../products?page=1",
-    "last":  ".../products?page=12",
-    "prev":  null,
-    "next":  ".../products?page=2"
-  },
-  "meta": {
-    "current_page": 1,
-    "from": 1,
-    "last_page": 12,
-    "path": ".../products",
-    "per_page": 25,
-    "to": 25,
-    "total": 287
-  }
+  "current_page": 1,
+  "total_pages": 12,
+  "per_page": 25,
+  "total": 287
 }
 ```
 
-| Parameter | Effect |
+| Field | Meaning |
 |---|---|
-| `page` | Page number, 1-based. Walk by incrementing until `meta.current_page == meta.last_page`. |
-| `perPage` | Page size. Honored where supported; some endpoints clamp it. Default `25`. |
-| `per_page` (snake_case) | Ignored by most hubs — always use `perPage`. |
+| `data` | The page of items. |
+| `current_page` | 1-based. |
+| `total_pages` | Number of pages with the current `per_page`. |
+| `per_page` | The page size that was actually applied. |
+| `total` | Total matching rows, after filters. |
 
-Always navigate by following the `links.next` URL rather than building it yourself; that keeps the rest of the query string intact.
+Pagination is controlled via query parameters:
+
+| Parameter | Default | Notes |
+|---|---|---|
+| `page` | `1` | Page number. Walk by incrementing until `current_page == total_pages`. |
+| `per_page` | `25` | Page size. **Snake-case** is the supported name. |
+
+<Callout kind="warning" title="Use per_page (snake_case)">
+The camelCase variant `perPage` is **silently ignored** — the request falls back to the default 25. Always send `per_page`.
+</Callout>
+
+There are no `meta`, `links`, `from`, `to` keys — this is a DataHub-flavored envelope, not the default Laravel one. Build the "next page" URL yourself by incrementing `page`.
 
 ## Sorting
 
