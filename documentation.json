@@ -63,7 +63,10 @@
               { "title": "NotificationHub", "path": "hubs/notification-hub", "icon": "bell" },
               { "title": "TaxHub", "path": "hubs/tax-hub", "icon": "percent" },
               { "title": "SettingsHub", "path": "hubs/settings-hub", "icon": "settings" },
-              { "title": "LicenseHub", "path": "hubs/license-hub", "icon": "key" }
+              { "title": "LicenseHub", "path": "hubs/license-hub", "icon": "key" },
+              { "title": "AuthHub", "path": "hubs/auth-hub", "icon": "lock" },
+              { "title": "EventHub", "path": "hubs/event-hub", "icon": "rss" },
+              { "title": "RuleHub", "path": "hubs/rule-hub", "icon": "scale-balanced" }
             ]
           },
           {

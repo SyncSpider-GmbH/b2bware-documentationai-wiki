@@ -1,0 +1,128 @@
+---
+title: RuleHub
+description: Promotions, discounts, coupons, cart validation, and shipping-rate rules with a shared condition engine.
+---
+
+## Overview
+
+RuleHub is DataHub's pricing-and-promotions engine. It evaluates business rules against a cart, a product catalog, or a shipping context and produces price adjustments, validation failures, or shipping rates.
+
+It exposes five rule families plus coupons, all backed by a shared condition schema.
+
+**Base URL:** `api/v1/apps/rule-hub/`
+
+<Callout kind="info">
+Storefront clients (the `shop` role) get read-only access to rules and coupons — enough to render cart pricing and promotional badges. Write operations are admin-only.
+</Callout>
+
+## Rule Families
+
+| Family | Purpose |
+|---|---|
+| **Catalog Price Rules** | Adjust list/final price on products that match the condition (e.g. "10% off all `category=accessories` for B2B group"). Applied at catalog read time. |
+| **Cart Price Rules** | Apply discounts at the cart level (e.g. "spend €100, get €10 off", BOGO, fixed cart discount). |
+| **Cart Validation Rules** | Block checkout unless constraints hold (e.g. min order value, max quantity per SKU, restricted shipping country). |
+| **Shipping Rate Rules** | Compute shipping cost for a cart from zone, weight, value, and conditions. |
+| **Coupons** | Codes that activate one or more cart price rules. |
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Catalog Price Rules" icon="tag">
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET    | `/catalog-price-rules` | any | List rules. |
+| GET    | `/catalog-price-rules/{id}` | any | Show a rule. |
+| POST   | `/catalog-price-rules` | admin | Create a rule. |
+| PUT    | `/catalog-price-rules/{id}` | admin | Update a rule. |
+| DELETE | `/catalog-price-rules/{id}` | admin | Delete a rule. |
+| GET    | `/catalog-price-rules/statuses/list` | any | Allowed statuses. |
+| GET    | `/catalog-price-rules/action-types/list` | any | Action types (`percent_off`, `fixed_off`, `fixed_price`, …). |
+
+  </Tab>
+  <Tab title="Cart Price Rules" icon="shopping-cart">
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET    | `/cart-price-rules` | any | List rules. |
+| GET    | `/cart-price-rules/{id}` | any | Show a rule. |
+| POST   | `/cart-price-rules` | admin | Create. |
+| PUT    | `/cart-price-rules/{id}` | admin | Update. |
+| DELETE | `/cart-price-rules/{id}` | admin | Delete. |
+| GET    | `/cart-price-rules/statuses/list` | any | Allowed statuses. |
+| GET    | `/cart-price-rules/action-types/list` | any | Action types (cart-level). |
+| GET    | `/cart-price-rules/free-shipping-options/list` | any | Free-shipping toggle options. |
+
+  </Tab>
+  <Tab title="Cart Validation" icon="circle-check">
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET    | `/cart-validation-rules` | any | List rules. |
+| GET    | `/cart-validation-rules/{id}` | any | Show a rule. |
+| POST   | `/cart-validation-rules` | admin | Create. |
+| PUT    | `/cart-validation-rules/{id}` | admin | Update. |
+| DELETE | `/cart-validation-rules/{id}` | admin | Delete. |
+| GET    | `/cart-validation-rules/statuses/list` | any | Allowed statuses. |
+| GET    | `/cart-validation-rules/constraint-types/list` | any | Constraint types (`min_total`, `max_qty_per_sku`, `country_whitelist`, …). |
+
+  </Tab>
+  <Tab title="Shipping Rates" icon="truck">
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET    | `/shipping-rate-rules` | any | List rules. |
+| GET    | `/shipping-rate-rules/{id}` | any | Show a rule. |
+| GET    | `/shipping-rate-rules/zone/{zone}` | any | All rules for a specific shipping zone. |
+| POST   | `/shipping-rate-rules` | admin | Create. |
+| PUT    | `/shipping-rate-rules/{id}` | admin | Update. |
+| DELETE | `/shipping-rate-rules/{id}` | admin | Delete. |
+| GET    | `/shipping-rate-rules/statuses/list` | any | Allowed statuses. |
+| GET    | `/shipping-rate-rules/condition-types/list` | any | Condition types (`weight`, `value`, `country`, …). |
+
+  </Tab>
+  <Tab title="Coupons" icon="ticket">
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET    | `/coupons` | any | List coupons. |
+| GET    | `/coupons/{id}` | any | Show a coupon. |
+| GET    | `/coupons/rule/{ruleId}` | any | All coupons that activate a given cart price rule. |
+| POST   | `/coupons` | admin | Create. |
+| PUT    | `/coupons/{id}` | admin | Update. |
+| DELETE | `/coupons/{id}` | admin | Delete. |
+| GET    | `/coupons/coupon-types/list` | any | Coupon types (`single`, `auto_generated`, …). |
+
+  </Tab>
+  <Tab title="Condition Schema" icon="diagram-project">
+
+Schemas describe which fields a rule may compare against (e.g. `cart.subtotal`, `customer.group_id`, `product.sku`). The admin UI's condition builder reads them.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/conditions/schema` | All targets (`cart`, `catalog`, `shipping`, `validation`). |
+| GET | `/conditions/schema/{target}` | Fields available for one target. |
+
+  </Tab>
+  <Tab title="Usage Logs" icon="clock-rotate-left">
+
+Admin-only audit trail. Each row records "rule X applied to cart/order Y for customer Z at time T".
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/rule-usage-logs` | List entries (paginated, filterable). |
+| GET | `/rule-usage-logs/{id}` | Show a single entry. |
+| GET | `/rule-usage-logs/rule/{ruleId}` | Entries for a specific rule. |
+| GET | `/rule-usage-logs/customer/{customerId}` | Entries for a specific customer. |
+| GET | `/rule-usage-logs/order/{orderId}` | Entries attached to a specific order. |
+| GET | `/rule-usage-logs/rule-types/list` | Distinct rule types in the log. |
+
+  </Tab>
+</Tabs>
+
+## Related
+
+- [Pricing](/core-concepts/pricing) — how list / final / special prices are computed and where catalog rules slot in.
+- [Storefront / Cart & Checkout](/advanced/storefront/cart-and-checkout) — applying coupons and cart rules on the storefront.
+- [TaxHub](/hubs/tax-hub) — taxes are applied *after* RuleHub discounts.

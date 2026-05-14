@@ -1,0 +1,90 @@
+---
+title: EventHub
+description: Outbound webhook subscriptions, signed deliveries, retries, and per-tenant delivery logs.
+---
+
+## Overview
+
+EventHub is DataHub's webhook engine. Tenants subscribe to domain events (order created, customer registered, product updated, …); EventHub then signs and delivers an HTTP POST to each subscriber, retries on failure, and keeps a full delivery log.
+
+**Base URL:** `api/v1/apps/event-hub/`
+
+<Callout kind="info">
+For the delivery contract (signature header, payload shape, retry rules) see [Webhooks](/core-concepts/webhooks).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Subscriptions" icon="rss">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET    | `/event-subscriptions` | List subscriptions (paginated, filterable). |
+| POST   | `/event-subscriptions` | Create a subscription. |
+| GET    | `/event-subscriptions/{id}` | Show a subscription. |
+| PUT    | `/event-subscriptions/{id}` | Update a subscription. |
+| DELETE | `/event-subscriptions/{id}` | Delete a subscription. |
+| POST   | `/event-subscriptions/{id}/pause` | Stop dispatching deliveries. |
+| POST   | `/event-subscriptions/{id}/resume` | Resume dispatching. |
+| POST   | `/event-subscriptions/{id}/rotate-secret` | Rotate the HMAC signing secret. |
+| POST   | `/event-subscriptions/{id}/test` | Send a synthetic test delivery. |
+
+  </Tab>
+  <Tab title="Event Catalog" icon="list">
+
+These power the subscription form (event picker, condition builder, includes picker).
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/event-subscriptions/available-events/list` | All event slugs the tenant can subscribe to. |
+| GET | `/event-subscriptions/events/{slug}/schema` | Field schema for the event payload — used by the condition builder. |
+| GET | `/event-subscriptions/events/{slug}/available-includes` | Optional `include` fragments the payload can carry. |
+| GET | `/event-subscriptions/events/{slug}/sample-payload` | Reference payload for the event. |
+| GET | `/event-subscriptions/http-methods/list` | Allowed HTTP methods (`POST`, `PUT`, …). |
+| GET | `/event-subscriptions/statuses/list` | Allowed subscription statuses. |
+| GET | `/event-subscriptions/backoff-types/list` | Retry backoff strategies (`exponential`, `linear`, `fixed`). |
+
+  </Tab>
+  <Tab title="Activity & Stats" icon="chart-line">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/event-subscriptions/{id}/activities` | Lifecycle events (created, paused, secret rotated, …). |
+| GET | `/event-subscriptions/{id}/deliveries` | Deliveries attempted for this subscription. |
+| GET | `/event-subscriptions/{id}/stats` | Success / failure counters for this subscription. |
+| GET | `/event-subscriptions/stats/overview` | Tenant-wide overview across all subscriptions. |
+
+  </Tab>
+  <Tab title="Delivery Logs" icon="receipt">
+
+Read-only audit trail. Each row is one HTTP attempt — request headers/body, response status, response body, attempt number, next retry time.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/event-delivery-logs` | List delivery attempts (paginated, filterable). |
+| GET | `/event-delivery-logs/{id}` | Show a single attempt with full request/response. |
+
+  </Tab>
+  <Tab title="Settings" icon="cog">
+
+Hub-level defaults (max retries, default timeout, backoff curve). Edited via FormGenerator schemas. See [Hub Settings](/concepts/hub-settings).
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET  | `/settings/groups/list` | List setting groups. |
+| GET  | `/settings` | Read all settings. |
+| POST | `/settings` | Update all settings. |
+| POST | `/settings/reset` | Reset all settings to defaults. |
+| GET  | `/settings/{group}` | Read one group. |
+| POST | `/settings/{group}` | Update one group. |
+| POST | `/settings/{group}/reset` | Reset one group. |
+
+  </Tab>
+</Tabs>
+
+## Related
+
+- [Webhooks](/core-concepts/webhooks) — signing, retries, replay protection.
+- [Idempotency](/core-concepts/idempotency) — making your handler safe to retry.
+- [NotificationHub](/hubs/notification-hub) — outbound *user-facing* messaging (email/SMS/push). EventHub is for *system-to-system* webhooks.

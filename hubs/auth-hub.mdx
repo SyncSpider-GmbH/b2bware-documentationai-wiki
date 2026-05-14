@@ -1,0 +1,56 @@
+---
+title: AuthHub
+description: Authentication, registration, password resets, email verification, and sales-agent impersonation for storefronts and admin clients.
+---
+
+## Overview
+
+AuthHub issues and manages user sessions. It is the entry point for storefront customers (login, register, forgot password, verify email) and for sales agents who impersonate a customer to place orders on their behalf.
+
+**Base URL:** `api/v1/apps/auth-hub/`
+
+<Callout kind="info">
+Most endpoints sit behind `auth:api`. The two public flows — `reset-password` and `verify-email` — use the installation key in the URL instead of a bearer token, because the user is not logged in yet.
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Session" icon="key">
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/login` | `auth:api` | Exchange credentials for a personal access token. |
+| POST | `/register` | `auth:api` | Create a new customer account. |
+| POST | `/logout` | `auth:api` | Revoke the current token. |
+| GET  | `/me` | `auth:api` | Return the authenticated user with roles and customer profile. |
+
+  </Tab>
+  <Tab title="Password & Email" icon="envelope">
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/forgot-password` | `auth:api` | Send a password-reset email. |
+| POST | `/{installationKey}/reset-password` | installation key | Complete a password reset using the token from the email. |
+| POST | `/send-verification-email` | `auth:api` | (Re)send the address-verification email. |
+| POST | `/{installationKey}/verify-email` | installation key | Mark the email as verified using the token from the email. |
+
+  </Tab>
+  <Tab title="Impersonation" icon="user-secret">
+
+Used by sales agents to act on behalf of a specific customer (cart, checkout, order history all become that customer's).
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET  | `/impersonate/customers` | `auth:api` | List customers the agent is allowed to impersonate. |
+| POST | `/impersonate/{customerId}` | `auth:api` | Start impersonating the given customer. |
+| POST | `/impersonate/leave` | `auth:api` | Stop impersonating and return to the agent's own session. |
+
+  </Tab>
+</Tabs>
+
+## Related
+
+- [Authentication](/authentication) — token model, headers, and storefront vs. admin flows.
+- [Storefront / Customer Account](/advanced/storefront/customer-account) — end-to-end account lifecycle.
+- [CustomerHub](/hubs/customer-hub) — the underlying customer records that AuthHub authenticates.
