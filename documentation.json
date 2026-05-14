@@ -412,6 +412,11 @@
             "icon": "sparkles",
             "pages": [
               {
+                "title": "Download AI Skill",
+                "path": "ai-tools/download-skill",
+                "icon": "download"
+              },
+              {
                 "title": "AI Tools & Skills",
                 "path": "ai-tools/overview",
                 "icon": "cpu"

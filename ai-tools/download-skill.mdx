@@ -1,0 +1,129 @@
+---
+title: "Download the AI Skill"
+description: "Drop-in DataHub knowledge for Claude Code, Cursor, Copilot CLI, and other AI assistants."
+---
+
+The B2Bware DataHub docs are also published as **AI Skills** — self-contained
+Markdown + OpenAPI bundles that you drop into your AI assistant's skills
+directory. Once installed, the assistant automatically loads the relevant
+chunk of DataHub knowledge based on what you ask, without you having to
+paste docs into a prompt.
+
+We publish **three modular skills** so your assistant only loads what it
+needs:
+
+| Skill | What it contains | Install when… |
+|---|---|---|
+| `datahub-core` | Cross-cutting fundamentals: authentication, installation key, CORS, filtering, includes, pagination, pricing, media URLs, webhooks, idempotency, rate limiting, versioning, environments, error handling. Ships the AuthHub OpenAPI spec. | You are integrating with the DataHub API in any capacity. **Install this one first.** |
+| `datahub-hubs` | Endpoint reference for every hub — ProductHub, OrderHub, CustomerHub, AttributesHub, MediaHub, NotificationHub, TaxHub, SettingsHub, LicenseHub, AuthHub, EventHub, RuleHub. Ships the full OpenAPI 3.0 spec for each hub. | You are calling specific hub endpoints (catalog, orders, customers, attributes, …). |
+| `datahub-storefront` | End-to-end storefront playbook: catalog browsing, PDP, cart & checkout, customer account, post-purchase, variations, tax. | You are building a storefront or B2B portal on top of DataHub. |
+
+Each skill is a single `.zip` file attached to the latest GitHub Release of
+the docs repo. The download link below always points at the most recent
+build.
+
+## Download
+
+<Tabs>
+  <Tab title="datahub-core">
+    [Download datahub-core.zip](https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-core.zip)
+
+    Foundational reference — authentication, filtering, pagination, pricing,
+    webhooks, error handling, environments. Pair with `datahub-hubs` for
+    endpoint-level detail.
+  </Tab>
+  <Tab title="datahub-hubs">
+    [Download datahub-hubs.zip](https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-hubs.zip)
+
+    Per-hub endpoint reference plus OpenAPI 3.0 specs. Point your assistant
+    at `openapi/<hub>.yaml` for exact request/response shapes.
+  </Tab>
+  <Tab title="datahub-storefront">
+    [Download datahub-storefront.zip](https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-storefront.zip)
+
+    Storefront integration playbook — covers the exact headers
+    (`installation-key`, `x-auth-token`, `session-uuid`, `language-code`),
+    pagination, includes, and the cross-hub flows behind cart, checkout, and
+    customer account.
+  </Tab>
+</Tabs>
+
+## Install
+
+The install pattern is the same for every assistant: drop the unzipped skill
+folder into the assistant's `skills/` directory. The assistant picks it up on
+its next launch.
+
+<Tabs>
+  <Tab title="Claude Code">
+    ```bash
+    mkdir -p ~/.claude/skills && cd ~/.claude/skills \
+      && curl -L https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-core.zip -o datahub-core.zip \
+      && unzip -o datahub-core.zip && rm datahub-core.zip
+    ```
+
+    Repeat for `datahub-hubs.zip` and `datahub-storefront.zip` as needed.
+  </Tab>
+  <Tab title="GitHub Copilot CLI">
+    ```bash
+    mkdir -p ~/.copilot/skills && cd ~/.copilot/skills \
+      && curl -L https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-core.zip -o datahub-core.zip \
+      && unzip -o datahub-core.zip && rm datahub-core.zip
+    ```
+
+    Copilot CLI auto-loads skills from `~/.copilot/skills/`. Restart your
+    session to pick up new skills.
+  </Tab>
+  <Tab title="Cursor">
+    ```bash
+    mkdir -p ~/.cursor/skills && cd ~/.cursor/skills \
+      && curl -L https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-core.zip -o datahub-core.zip \
+      && unzip -o datahub-core.zip && rm datahub-core.zip
+    ```
+
+    Cursor reads skill bundles from `~/.cursor/skills/`. If your Cursor
+    version uses a different path, place the unzipped folder under your
+    assistant's documented skills directory.
+  </Tab>
+  <Tab title="Other assistants">
+    Any assistant that follows the "skills folder" convention works the same
+    way — unzip the bundle under that assistant's skills directory (commonly
+    `~/.config/<assistant>/skills/` or `~/<assistant>/skills/`). The skill is
+    plain Markdown plus OpenAPI YAML, so no special tooling is required.
+
+    ```bash
+    curl -L https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-core.zip -o datahub-core.zip
+    unzip -o datahub-core.zip -d /path/to/your/assistant/skills/
+    rm datahub-core.zip
+    ```
+  </Tab>
+</Tabs>
+
+## Manual installation
+
+If you prefer to track the docs repo directly instead of using the zipped
+release, clone the repo and symlink the skill output:
+
+```bash
+git clone https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki.git
+cd b2bware-documentationai-wiki
+python3 scripts/build-public-skills.py --version dev
+ln -sf "$(pwd)/dist/skills/datahub-core"       ~/.claude/skills/datahub-core
+ln -sf "$(pwd)/dist/skills/datahub-hubs"       ~/.claude/skills/datahub-hubs
+ln -sf "$(pwd)/dist/skills/datahub-storefront" ~/.claude/skills/datahub-storefront
+```
+
+Pull the repo to refresh; the symlinks always point at the freshly built
+skills.
+
+## Versioning
+
+Skills are versioned alongside the docs themselves. Every merge to `main`
+triggers a GitHub Action that rebuilds the three skills and publishes a new
+GitHub Release tagged `skills-vYYYY.MM.DD`. The `/releases/latest/download/`
+URL above always resolves to the most recent build, so reinstalling with the
+same command picks up the latest docs.
+
+If you need a specific historical version, browse the
+[Releases page](https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases)
+and download the dated asset directly.
