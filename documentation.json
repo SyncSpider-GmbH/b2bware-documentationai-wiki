@@ -18,17 +18,45 @@
             "group": "Getting Started",
             "icon": "rocket",
             "pages": [
-              { "title": "Introduction", "path": "introduction", "icon": "home" },
-              { "title": "Quickstart", "path": "quickstart", "icon": "zap" },
+              {
+                "title": "Introduction",
+                "path": "introduction",
+                "icon": "home"
+              },
+              {
+                "title": "Quickstart",
+                "path": "quickstart",
+                "icon": "zap"
+              },
               {
                 "group": "Authentication",
                 "icon": "lock",
                 "pages": [
-                  { "title": "Overview", "path": "authentication", "icon": "lock" },
-                  { "title": "Storefront Customer Auth", "path": "authentication/storefront-customer", "icon": "user" },
-                  { "title": "Installation Key", "path": "authentication/installation-key", "icon": "key" },
-                  { "title": "Server-to-Server Tokens", "path": "authentication/server-to-server", "icon": "server" },
-                  { "title": "CORS and Browser Clients", "path": "authentication/cors-and-browsers", "icon": "globe" }
+                  {
+                    "title": "Overview",
+                    "path": "authentication",
+                    "icon": "lock"
+                  },
+                  {
+                    "title": "Storefront Customer Auth",
+                    "path": "authentication/storefront-customer",
+                    "icon": "user"
+                  },
+                  {
+                    "title": "Installation Key",
+                    "path": "authentication/installation-key",
+                    "icon": "key"
+                  },
+                  {
+                    "title": "Server-to-Server Tokens",
+                    "path": "authentication/server-to-server",
+                    "icon": "server"
+                  },
+                  {
+                    "title": "CORS and Browser Clients",
+                    "path": "authentication/cors-and-browsers",
+                    "icon": "globe"
+                  }
                 ]
               }
             ]
@@ -37,56 +65,192 @@
             "group": "Core Concepts",
             "icon": "compass",
             "pages": [
-              { "title": "Common Patterns", "path": "core-concepts/common-patterns", "icon": "layers" },
-              { "title": "Filtering", "path": "core-concepts/filtering", "icon": "filter" },
-              { "title": "Includes & Relations", "path": "core-concepts/includes", "icon": "git-branch" },
-              { "title": "Recommended Includes", "path": "core-concepts/recommended-includes", "icon": "list" },
-              { "title": "Pricing", "path": "core-concepts/pricing", "icon": "tag" },
-              { "title": "Media URLs", "path": "core-concepts/media-urls", "icon": "image" },
-              { "title": "Webhooks", "path": "core-concepts/webhooks", "icon": "webhook" },
-              { "title": "Idempotency", "path": "core-concepts/idempotency", "icon": "repeat" },
-              { "title": "Versioning", "path": "core-concepts/versioning", "icon": "git-branch" },
-              { "title": "Environments", "path": "core-concepts/environments", "icon": "layers" },
-              { "title": "Error Handling", "path": "core-concepts/error-handling", "icon": "alert-circle" }
+              {
+                "title": "Common Patterns",
+                "path": "core-concepts/common-patterns",
+                "icon": "layers"
+              },
+              {
+                "title": "Filtering",
+                "path": "core-concepts/filtering",
+                "icon": "filter"
+              },
+              {
+                "title": "Includes & Relations",
+                "path": "core-concepts/includes",
+                "icon": "git-branch"
+              },
+              {
+                "title": "Recommended Includes",
+                "path": "core-concepts/recommended-includes",
+                "icon": "list"
+              },
+              {
+                "title": "Pricing",
+                "path": "core-concepts/pricing",
+                "icon": "tag"
+              },
+              {
+                "title": "Media URLs",
+                "path": "core-concepts/media-urls",
+                "icon": "image"
+              },
+              {
+                "title": "Webhooks",
+                "path": "core-concepts/webhooks",
+                "icon": "webhook"
+              },
+              {
+                "title": "Idempotency",
+                "path": "core-concepts/idempotency",
+                "icon": "repeat"
+              },
+              {
+                "title": "Versioning",
+                "path": "core-concepts/versioning",
+                "icon": "git-branch"
+              },
+              {
+                "title": "Environments",
+                "path": "core-concepts/environments",
+                "icon": "layers"
+              },
+              {
+                "title": "Error Handling",
+                "path": "core-concepts/error-handling",
+                "icon": "alert-circle"
+              }
             ]
           },
           {
             "group": "Hubs",
             "icon": "database",
             "pages": [
-              { "title": "Hub Overview", "path": "hubs/overview", "icon": "grid" },
-              { "title": "ProductHub", "path": "hubs/product-hub", "icon": "box" },
-              { "title": "OrderHub", "path": "hubs/order-hub", "icon": "shopping-cart" },
-              { "title": "CustomerHub", "path": "hubs/customer-hub", "icon": "users" },
-              { "title": "AttributesHub", "path": "hubs/attributes-hub", "icon": "sliders" },
-              { "title": "MediaHub", "path": "hubs/media-hub", "icon": "image" },
-              { "title": "NotificationHub", "path": "hubs/notification-hub", "icon": "bell" },
-              { "title": "TaxHub", "path": "hubs/tax-hub", "icon": "percent" },
-              { "title": "SettingsHub", "path": "hubs/settings-hub", "icon": "settings" },
-              { "title": "LicenseHub", "path": "hubs/license-hub", "icon": "key" },
-              { "title": "AuthHub", "path": "hubs/auth-hub", "icon": "lock" },
-              { "title": "EventHub", "path": "hubs/event-hub", "icon": "rss" },
-              { "title": "RuleHub", "path": "hubs/rule-hub", "icon": "scale-balanced" }
+              {
+                "title": "Hub Overview",
+                "path": "hubs/overview",
+                "icon": "grid"
+              },
+              {
+                "title": "ProductHub",
+                "path": "hubs/product-hub",
+                "icon": "box"
+              },
+              {
+                "title": "OrderHub",
+                "path": "hubs/order-hub",
+                "icon": "shopping-cart"
+              },
+              {
+                "title": "CustomerHub",
+                "path": "hubs/customer-hub",
+                "icon": "users"
+              },
+              {
+                "title": "AttributesHub",
+                "path": "hubs/attributes-hub",
+                "icon": "sliders"
+              },
+              {
+                "title": "MediaHub",
+                "path": "hubs/media-hub",
+                "icon": "image"
+              },
+              {
+                "title": "NotificationHub",
+                "path": "hubs/notification-hub",
+                "icon": "bell"
+              },
+              {
+                "title": "TaxHub",
+                "path": "hubs/tax-hub",
+                "icon": "percent"
+              },
+              {
+                "title": "SettingsHub",
+                "path": "hubs/settings-hub",
+                "icon": "settings"
+              },
+              {
+                "title": "LicenseHub",
+                "path": "hubs/license-hub",
+                "icon": "key"
+              },
+              {
+                "title": "AuthHub",
+                "path": "hubs/auth-hub",
+                "icon": "lock"
+              },
+              {
+                "title": "EventHub",
+                "path": "hubs/event-hub",
+                "icon": "rss"
+              },
+              {
+                "title": "RuleHub",
+                "path": "hubs/rule-hub",
+                "icon": "scale-balanced"
+              }
             ]
           },
           {
             "group": "Advanced",
             "icon": "code",
             "pages": [
-              { "title": "Bulk Operations", "path": "advanced/bulk-operations", "icon": "layers" },
-              { "title": "Checkout Flow", "path": "advanced/checkout-flow", "icon": "credit-card" },
-              { "title": "Tax Calculation", "path": "advanced/tax-calculation", "icon": "calculator" },
-              { "title": "Product Variations", "path": "advanced/product-variations", "icon": "copy" },
-              { "title": "AI Features", "path": "advanced/ai-features", "icon": "cpu" },
+              {
+                "title": "Bulk Operations",
+                "path": "advanced/bulk-operations",
+                "icon": "layers"
+              },
+              {
+                "title": "Checkout Flow",
+                "path": "advanced/checkout-flow",
+                "icon": "credit-card"
+              },
+              {
+                "title": "Tax Calculation",
+                "path": "advanced/tax-calculation",
+                "icon": "calculator"
+              },
+              {
+                "title": "Product Variations",
+                "path": "advanced/product-variations",
+                "icon": "copy"
+              },
+              {
+                "title": "AI Features",
+                "path": "advanced/ai-features",
+                "icon": "cpu"
+              },
               {
                 "group": "Storefront",
                 "icon": "shopping-bag",
                 "pages": [
-                  { "title": "Browse the Catalog", "path": "advanced/storefront/browse-catalog", "icon": "search" },
-                  { "title": "Product Detail", "path": "advanced/storefront/product-detail", "icon": "box" },
-                  { "title": "Cart and Checkout", "path": "advanced/storefront/cart-and-checkout", "icon": "shopping-cart" },
-                  { "title": "Customer Account", "path": "advanced/storefront/customer-account", "icon": "user" },
-                  { "title": "Post-Purchase", "path": "advanced/storefront/post-purchase", "icon": "receipt" }
+                  {
+                    "title": "Browse the Catalog",
+                    "path": "advanced/storefront/browse-catalog",
+                    "icon": "search"
+                  },
+                  {
+                    "title": "Product Detail",
+                    "path": "advanced/storefront/product-detail",
+                    "icon": "box"
+                  },
+                  {
+                    "title": "Cart and Checkout",
+                    "path": "advanced/storefront/cart-and-checkout",
+                    "icon": "shopping-cart"
+                  },
+                  {
+                    "title": "Customer Account",
+                    "path": "advanced/storefront/customer-account",
+                    "icon": "user"
+                  },
+                  {
+                    "title": "Post-Purchase",
+                    "path": "advanced/storefront/post-purchase",
+                    "icon": "receipt"
+                  }
                 ]
               }
             ]
@@ -134,9 +298,39 @@
             "pages": []
           },
           {
-            "group": "ContentHub",
-            "icon": "file-text",
-            "openapi": "api-reference/content-hub/openapi.yaml",
+            "group": "AttributesHub",
+            "icon": "sliders",
+            "openapi": "api-reference/attributes-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "NotificationHub",
+            "icon": "bell",
+            "openapi": "api-reference/notification-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "SettingsHub",
+            "icon": "settings",
+            "openapi": "api-reference/settings-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "LicenseHub",
+            "icon": "key",
+            "openapi": "api-reference/license-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "EventHub",
+            "icon": "rss",
+            "openapi": "api-reference/event-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "RuleHub",
+            "icon": "scale-balanced",
+            "openapi": "api-reference/rule-hub/openapi.yaml",
             "pages": []
           }
         ]
@@ -145,15 +339,28 @@
         "tab": "Help Center",
         "icon": "help-circle",
         "pages": [
-          { "title": "Help Center", "path": "help-center", "icon": "home" },
+          {
+            "title": "Help Center",
+            "path": "help-center",
+            "icon": "home"
+          },
           {
             "group": "FAQs",
             "icon": "help-circle",
             "expandable": false,
             "pages": [
-              { "title": "Authentication FAQ", "path": "help-center/faq/datahub-authentication" },
-              { "title": "Filtering FAQ", "path": "help-center/faq/filtering" },
-              { "title": "Pricing & Plans", "path": "help-center/faq/pricing" }
+              {
+                "title": "Authentication FAQ",
+                "path": "help-center/faq/datahub-authentication"
+              },
+              {
+                "title": "Filtering FAQ",
+                "path": "help-center/faq/filtering"
+              },
+              {
+                "title": "Pricing & Plans",
+                "path": "help-center/faq/pricing"
+              }
             ]
           },
           {
@@ -161,9 +368,18 @@
             "icon": "alert-triangle",
             "expandable": false,
             "pages": [
-              { "title": "Sync Failures", "path": "help-center/troubleshooting/datahub-sync-failures" },
-              { "title": "Authentication Errors", "path": "help-center/troubleshooting/authentication-errors" },
-              { "title": "Rate Limiting", "path": "help-center/troubleshooting/rate-limiting" }
+              {
+                "title": "Sync Failures",
+                "path": "help-center/troubleshooting/datahub-sync-failures"
+              },
+              {
+                "title": "Authentication Errors",
+                "path": "help-center/troubleshooting/authentication-errors"
+              },
+              {
+                "title": "Rate Limiting",
+                "path": "help-center/troubleshooting/rate-limiting"
+              }
             ]
           },
           {
@@ -171,9 +387,18 @@
             "icon": "book-open",
             "expandable": false,
             "pages": [
-              { "title": "SyncSpider Integration", "path": "help-center/guides/datahub-integration-setup" },
-              { "title": "ERP Sync Setup", "path": "help-center/guides/erp-sync-setup" },
-              { "title": "Product Import Guide", "path": "help-center/guides/product-import" }
+              {
+                "title": "SyncSpider Integration",
+                "path": "help-center/guides/datahub-integration-setup"
+              },
+              {
+                "title": "ERP Sync Setup",
+                "path": "help-center/guides/erp-sync-setup"
+              },
+              {
+                "title": "Product Import Guide",
+                "path": "help-center/guides/product-import"
+              }
             ]
           }
         ]
@@ -186,19 +411,47 @@
             "group": "Overview",
             "icon": "sparkles",
             "pages": [
-              { "title": "AI Tools & Skills", "path": "ai-tools/overview", "icon": "cpu" },
-              { "title": "MCP Server", "path": "ai-tools/mcp-server", "icon": "server" }
+              {
+                "title": "AI Tools & Skills",
+                "path": "ai-tools/overview",
+                "icon": "cpu"
+              },
+              {
+                "title": "MCP Server",
+                "path": "ai-tools/mcp-server",
+                "icon": "server"
+              }
             ]
           },
           {
             "group": "AI Coding Assistants",
             "icon": "code",
             "pages": [
-              { "title": "Claude Code", "path": "ai-tools/claude-code", "icon": "terminal" },
-              { "title": "Cursor", "path": "ai-tools/cursor", "icon": "mouse-pointer" },
-              { "title": "GitHub Copilot", "path": "ai-tools/github-copilot", "icon": "github" },
-              { "title": "Windsurf", "path": "ai-tools/windsurf", "icon": "wind" },
-              { "title": "Other Tools", "path": "ai-tools/other-tools", "icon": "plus-circle" }
+              {
+                "title": "Claude Code",
+                "path": "ai-tools/claude-code",
+                "icon": "terminal"
+              },
+              {
+                "title": "Cursor",
+                "path": "ai-tools/cursor",
+                "icon": "mouse-pointer"
+              },
+              {
+                "title": "GitHub Copilot",
+                "path": "ai-tools/github-copilot",
+                "icon": "github"
+              },
+              {
+                "title": "Windsurf",
+                "path": "ai-tools/windsurf",
+                "icon": "wind"
+              },
+              {
+                "title": "Other Tools",
+                "path": "ai-tools/other-tools",
+                "icon": "plus-circle"
+              }
             ]
           }
         ]
@@ -207,7 +460,11 @@
         "tab": "Changelog",
         "icon": "clock",
         "pages": [
-          { "title": "Release History", "path": "changelog", "icon": "history" }
+          {
+            "title": "Release History",
+            "path": "changelog",
+            "icon": "history"
+          }
         ]
       }
     ]
