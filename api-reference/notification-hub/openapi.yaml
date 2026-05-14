@@ -1,0 +1,2037 @@
+openapi: 3.0.0
+info:
+  title: NotificationHub API
+  description: >-
+    Comprehensive notification management system with multi-channel support,
+    user preferences, and advanced analytics. This collection covers all
+    endpoints for managing notifications, types, preferences, attempts, and
+    dashboard analytics.
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+tags:
+  - name: 🏠 Dashboard
+    description: >-
+      Dashboard endpoints provide comprehensive analytics, system health
+      monitoring, and performance metrics for the notification system.
+  - name: 🔔 Notifications
+    description: >-
+      Core notification management endpoints for creating, updating, sending,
+      and tracking notifications across multiple channels.
+  - name: 📝 Notification Types
+    description: >-
+      Manage notification type definitions, templates, supported channels, and
+      type-specific configurations.
+  - name: ⚙️ User Preferences
+    description: >-
+      Manage user notification preferences including channel selection, quiet
+      hours, frequency settings, and per-type configurations.
+  - name: 🔄 Delivery Attempts
+    description: >-
+      Monitor and manage notification delivery attempts across all channels with
+      retry logic and failure tracking.
+paths:
+  /dashboard/overview:
+    get:
+      tags:
+        - 🏠 Dashboard
+      summary: System Overview
+      description: >-
+        Get comprehensive system overview including notification stats, type
+        stats, preference stats, and attempt stats with timestamp.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /dashboard/channel-performance:
+    get:
+      tags:
+        - 🏠 Dashboard
+      summary: Channel Performance
+      description: >-
+        Analyze channel performance including success rates, total attempts, and
+        user preferences for each notification channel over specified time
+        period.
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+          description: Number of days to analyze (1-365)
+          example: '7'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /dashboard/recent-activity:
+    get:
+      tags:
+        - 🏠 Dashboard
+      summary: Recent Activity
+      description: >-
+        Get recent system activity including latest failures, successful
+        attempts, pending attempts, and retry-ready attempts.
+      parameters:
+        - name: hours
+          in: query
+          schema:
+            type: integer
+          description: Hours to look back for activity (1-168)
+          example: '24'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /dashboard/error-analysis:
+    get:
+      tags:
+        - 🏠 Dashboard
+      summary: Error Analysis
+      description: >-
+        Comprehensive error analysis including error codes, failures by channel,
+        failures by hour, and most common errors.
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+          description: Days to analyze for errors (1-365)
+          example: '7'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /dashboard/user-engagement:
+    get:
+      tags:
+        - 🏠 Dashboard
+      summary: User Engagement
+      description: >-
+        Analyze user engagement including preference statistics, channel
+        popularity, quiet hours usage, and digest preferences.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /dashboard/system-health:
+    get:
+      tags:
+        - 🏠 Dashboard
+      summary: System Health
+      description: >-
+        Real-time system health check with health score (0-100), status
+        (healthy/degraded/warning/critical), issues, and recommendations.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /dashboard/trends:
+    get:
+      tags:
+        - 🏠 Dashboard
+      summary: Trends Analysis
+      description: >-
+        Analyze trends including success rate trends, volume trends, and growth
+        indicators over specified time period.
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+          description: Days for trend analysis (7-365)
+          example: '30'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /dashboard/alerts:
+    get:
+      tags:
+        - 🏠 Dashboard
+      summary: System Alerts
+      description: >-
+        Get current system alerts with severity levels (critical/warning/info)
+        including high failure rates, pending queue issues, and retry
+        recommendations.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /notifications:
+    get:
+      tags:
+        - 🔔 Notifications
+      summary: List Notifications
+      description: >-
+        Retrieve paginated list of all notifications with basic statistics and
+        filtering support.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          description: Page number for pagination
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          description: Items per page (max 200)
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - 🔔 Notifications
+      summary: Create Notification
+      description: >-
+        Create a new notification with specified type, recipient, content, and
+        delivery channels. Supports polymorphic user models.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                notification_type_id: 1
+                notifiable_type: App\Models\User
+                notifiable_id: 123
+                creator_type: App\Models\System
+                creator_id: 1
+                title: New Order Created
+                message: 'Your order #12345 has been created successfully.'
+                channels:
+                  - email
+                  - database
+                priority: 5
+                data:
+                  order_id: 12345
+                  amount: 99.99
+                  customer_name: John Doe
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /notifications/1:
+    get:
+      tags:
+        - 🔔 Notifications
+      summary: Get Notification
+      description: >-
+        Retrieve detailed information about a specific notification including
+        content, status, delivery attempts, and metadata.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - 🔔 Notifications
+      summary: Update Notification
+      description: >-
+        Update notification content, priority, status, or associated data.
+        Cannot change recipient or type after creation.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                title: Updated Order Status
+                message: 'Your order #12345 has been updated.'
+                priority: 7
+                status: pending
+                data:
+                  order_id: 12345
+                  status: processing
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - 🔔 Notifications
+      summary: Delete Notification
+      description: >-
+        Delete a notification permanently. This action cannot be undone.
+        Consider updating status instead for audit trail.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /notifications/1/send:
+    post:
+      tags:
+        - 🔔 Notifications
+      summary: Send Notification
+      description: >-
+        Manually trigger sending of a notification through configured channels.
+        Checks user preferences and quiet hours before sending.
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /notifications/1/mark-read:
+    post:
+      tags:
+        - 🔔 Notifications
+      summary: Mark as Read
+      description: >-
+        Mark a specific notification as read by the recipient. Updates read
+        timestamp and status.
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /notifications/unread:
+    get:
+      tags:
+        - 🔔 Notifications
+      summary: Get Unread Notifications
+      description: >-
+        Get all unread notifications for a specific user. Supports polymorphic
+        user models.
+      parameters:
+        - name: user_type
+          in: query
+          schema:
+            type: string
+          description: Polymorphic user model class
+          example: App\Models\User
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+          description: User ID
+          example: '123'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /notifications/mark-all-read:
+    post:
+      tags:
+        - 🔔 Notifications
+      summary: Mark All as Read
+      description: >-
+        Mark all notifications as read for a specific user. Returns count of
+        updated notifications.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /notifications/create-for-user:
+    post:
+      tags:
+        - 🔔 Notifications
+      summary: Create for User
+      description: >-
+        Create notification for specific user using notification type slug.
+        Automatically applies user preferences and generates content from
+        templates.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+                notification_type_slug: order_created
+                data:
+                  order_number: ORD-001
+                  amount: 99.99
+                  customer_name: John Doe
+                creator_type: App\Models\System
+                creator_id: 1
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /notifications/stats:
+    get:
+      tags:
+        - 🔔 Notifications
+      summary: Get Statistics
+      description: >-
+        Get comprehensive notification statistics including counts by status,
+        channel distribution, and performance metrics.
+      parameters:
+        - name: user_type
+          in: query
+          schema:
+            type: string
+          description: 'Optional: Filter stats for specific user type'
+          example: App\Models\User
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+          description: 'Optional: Filter stats for specific user'
+          example: '123'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types:
+    get:
+      tags:
+        - 📝 Notification Types
+      summary: List Types
+      description: >-
+        Get paginated list of all notification types with their configurations,
+        templates, and channel support.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Create Type
+      description: >-
+        Create new notification type with templates, channel configuration, and
+        settings. Templates support variable substitution.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Order Created
+                slug: order_created
+                description: Notification sent when new order is created
+                template: >-
+                  Hello {{customer_name}}, your order #{{order_number}} for
+                  ${{amount}} has been created.
+                subject_template: 'Order #{{order_number}} Created'
+                supported_channels:
+                  - email
+                  - database
+                  - sms
+                default_channels:
+                  - email
+                  - database
+                is_active: true
+                is_user_configurable: true
+                settings:
+                  retry_attempts: 3
+                  retry_delay: 300
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/1:
+    get:
+      tags:
+        - 📝 Notification Types
+      summary: Get Type
+      description: >-
+        Get detailed information about specific notification type including
+        usage statistics and template examples.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - 📝 Notification Types
+      summary: Update Type
+      description: >-
+        Update notification type configuration, templates, or settings. Changes
+        apply to future notifications only.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Order Created - Updated
+                description: Updated description for order creation notifications
+                template: >-
+                  Hello {{customer_name}}, your order #{{order_number}} for
+                  ${{amount}} has been successfully created and is being
+                  processed.
+                is_active: true
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - 📝 Notification Types
+      summary: Delete Type
+      description: >-
+        Delete notification type. Only possible if no pending notifications
+        exist for this type.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/active:
+    get:
+      tags:
+        - 📝 Notification Types
+      summary: Get Active Types
+      description: >-
+        Get all currently active notification types that can be used for
+        creating notifications.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/user-configurable:
+    get:
+      tags:
+        - 📝 Notification Types
+      summary: Get User Configurable Types
+      description: >-
+        Get notification types that users can configure in their preferences
+        (enable/disable, channel selection).
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/channel/email:
+    get:
+      tags:
+        - 📝 Notification Types
+      summary: Get Types for Channel
+      description: >-
+        Get all notification types that support a specific channel (email,
+        database, broadcast, sms, push, slack).
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/1/activate:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Activate Type
+      description: >-
+        Activate a notification type to make it available for creating
+        notifications.
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/1/deactivate:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Deactivate Type
+      description: >-
+        Deactivate notification type. Existing notifications remain but no new
+        ones can be created.
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/1/add-channel:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Add Channel to Type
+      description: Add support for additional notification channel to existing type.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                channel: push
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/1/remove-channel:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Remove Channel from Type
+      description: >-
+        Remove channel support from notification type. Affects future
+        notifications only.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                channel: sms
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/1/update-template:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Update Template
+      description: >-
+        Update message and subject templates for notification type with variable
+        substitution support.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                template: >-
+                  Dear {{customer_name}}, we're excited to confirm that your
+                  order #{{order_number}} totaling ${{amount}} has been
+                  successfully placed!
+                subject_template: '✅ Order #{{order_number}} Confirmed'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/validate-template:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Validate Template
+      description: >-
+        Validate template syntax and test variable substitution with sample
+        data. Returns rendered output and validation results.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                template: >-
+                  Hello {{customer_name}}, your order #{{order_number}} for
+                  ${{amount}} is {{status}}.
+                test_data:
+                  customer_name: John Doe
+                  order_number: '12345'
+                  amount: '99.99'
+                  status: confirmed
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/create-predefined:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Create Predefined Types
+      description: >-
+        Create a set of common predefined notification types (welcome,
+        order_created, payment_received, etc.) with default templates.
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/search:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Search Types
+      description: >-
+        Search notification types by name, description, or slug. Minimum 2
+        characters required.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                query: order
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/bulk-activate:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Bulk Activate
+      description: >-
+        Activate multiple notification types in a single operation. Returns
+        count of activated types.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                ids:
+                  - 1
+                  - 2
+                  - 3
+                  - 4
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/bulk-deactivate:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Bulk Deactivate
+      description: >-
+        Deactivate multiple notification types in a single operation. Returns
+        count of deactivated types.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                ids:
+                  - 1
+                  - 2
+                  - 3
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/1/add-role:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Add Role to Type
+      description: >-
+        Add a role filter to notification type. For global types, adds role
+        restriction. For specific types, adds to role list. Role codes: admin,
+        agent, user, guest.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                role_code: admin
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/1/remove-role:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Remove Role from Type
+      description: >-
+        Remove a role from notification type. If global type becomes empty, it
+        becomes available to all users again.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                role_code: admin
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/1/set-roles:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Set Roles on Type
+      description: >-
+        Replace all roles on notification type. Empty array makes global type
+        available to all. Works for both global and specific types.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                role_codes:
+                  - admin
+                  - agent
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/1/make-global:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Make Type Global
+      description: >-
+        Convert notification type to global scope. Clears role restrictions.
+        Type becomes available to all users.
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/1/make-specific:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Make Type Specific
+      description: >-
+        Convert notification type to specific scope with optional roles. Can
+        provide empty array to create specific type without roles.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                role_codes:
+                  - admin
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/role/admin:
+    get:
+      tags:
+        - 📝 Notification Types
+      summary: Get Types for Role
+      description: >-
+        Get all active notification types for a role. Returns global types
+        without filter + global/specific types with role. Examples: admin,
+        agent, user, guest.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/roles:
+    post:
+      tags:
+        - 📝 Notification Types
+      summary: Get Types for Multiple Roles
+      description: >-
+        Get all active notification types for multiple roles. Returns union of
+        types for all provided roles.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                role_codes:
+                  - admin
+                  - agent
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /types/stats:
+    get:
+      tags:
+        - 📝 Notification Types
+      summary: Get Type Statistics
+      description: >-
+        Get comprehensive statistics about notification types including usage
+        counts, channel distribution, and performance metrics.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences:
+    get:
+      tags:
+        - ⚙️ User Preferences
+      summary: List Preferences
+      description: >-
+        Get paginated list of all user notification preferences with filtering
+        and search capabilities.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - ⚙️ User Preferences
+      summary: Create Preference
+      description: >-
+        Create notification preference for specific user and notification type
+        with channel selection, timing, and custom settings.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+                notification_type_id: 1
+                channels:
+                  - email
+                  - database
+                is_enabled: true
+                frequency: immediate
+                quiet_hours_start: '22:00'
+                quiet_hours_end: '08:00'
+                timezone: Europe/Belgrade
+                settings:
+                  email_html: true
+                  sound_enabled: false
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/1:
+    get:
+      tags:
+        - ⚙️ User Preferences
+      summary: Get Preference
+      description: >-
+        Get detailed information about specific notification preference
+        including all settings and configurations.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - ⚙️ User Preferences
+      summary: Update Preference
+      description: >-
+        Update user notification preference settings including channels,
+        frequency, and custom configuration options.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                channels:
+                  - email
+                  - database
+                  - push
+                is_enabled: true
+                frequency: daily_digest
+                settings:
+                  email_html: false
+                  digest_time: '09:00'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - ⚙️ User Preferences
+      summary: Delete Preference
+      description: >-
+        Delete user notification preference. User will fall back to system
+        defaults for that notification type.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/for-user:
+    get:
+      tags:
+        - ⚙️ User Preferences
+      summary: Get User Preferences
+      description: >-
+        Get all notification preferences for specific user including statistics
+        and preference coverage.
+      parameters:
+        - name: user_type
+          in: query
+          schema:
+            type: string
+          example: App\Models\User
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+          example: '123'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/enabled-for-user:
+    get:
+      tags:
+        - ⚙️ User Preferences
+      summary: Get Enabled Preferences
+      description: >-
+        Get only enabled notification preferences for user. Used when checking
+        if notifications should be sent.
+      parameters:
+        - name: user_type
+          in: query
+          schema:
+            type: string
+          example: App\Models\User
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+          example: '123'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/enable-for-user:
+    post:
+      tags:
+        - ⚙️ User Preferences
+      summary: Enable for User
+      description: >-
+        Enable specific notification type for user. Creates preference with
+        default settings if doesn't exist.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+                notification_type_id: 1
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/disable-for-user:
+    post:
+      tags:
+        - ⚙️ User Preferences
+      summary: Disable for User
+      description: >-
+        Disable specific notification type for user. User will not receive
+        notifications of this type.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+                notification_type_id: 1
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/add-channel-for-user:
+    post:
+      tags:
+        - ⚙️ User Preferences
+      summary: Add Channel for User
+      description: >-
+        Add notification channel to user's preference for specific notification
+        type. Channel must be supported by the type.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+                notification_type_id: 1
+                channel: push
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/remove-channel-for-user:
+    post:
+      tags:
+        - ⚙️ User Preferences
+      summary: Remove Channel for User
+      description: >-
+        Remove notification channel from user's preference. User will no longer
+        receive notifications via this channel.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+                notification_type_id: 1
+                channel: sms
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/set-frequency-for-user:
+    post:
+      tags:
+        - ⚙️ User Preferences
+      summary: Set Frequency for User
+      description: >-
+        Set notification frequency for user and type: immediate, daily_digest,
+        weekly_digest, or disabled.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+                notification_type_id: 1
+                frequency: daily_digest
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/set-quiet-hours-for-user:
+    post:
+      tags:
+        - ⚙️ User Preferences
+      summary: Set Quiet Hours for User
+      description: >-
+        Set quiet hours for user when notifications should not be sent. Applies
+        to all notification types for the user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+                start_time: '22:00'
+                end_time: '08:00'
+                timezone: Europe/Belgrade
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/create-defaults-for-user:
+    post:
+      tags:
+        - ⚙️ User Preferences
+      summary: Create Default Preferences
+      description: >-
+        Create default notification preferences for user covering all
+        user-configurable notification types.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/reset-to-defaults:
+    post:
+      tags:
+        - ⚙️ User Preferences
+      summary: Reset to Defaults
+      description: >-
+        Reset user preferences to system defaults. Can reset all preferences or
+        specific type (omit notification_type_id for all).
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+                notification_type_id: 1
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/bulk-update-for-user:
+    post:
+      tags:
+        - ⚙️ User Preferences
+      summary: Bulk Update for User
+      description: >-
+        Update multiple notification preferences for user in single operation.
+        Key is notification_type_id.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+                preferences:
+                  '1':
+                    is_enabled: true
+                    channels:
+                      - email
+                      - database
+                    frequency: immediate
+                  '2':
+                    is_enabled: false
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/export-user-preferences:
+    post:
+      tags:
+        - ⚙️ User Preferences
+      summary: Export User Preferences
+      description: >-
+        Export all user notification preferences in portable format for backup
+        or migration purposes.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/import-user-preferences:
+    post:
+      tags:
+        - ⚙️ User Preferences
+      summary: Import User Preferences
+      description: >-
+        Import user notification preferences from exported data. Overwrites
+        existing preferences.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                user_type: App\Models\User
+                user_id: 123
+                preferences:
+                  - notification_type_slug: order_created
+                    is_enabled: true
+                    channels:
+                      - email
+                      - database
+                    frequency: immediate
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/users-for-digest:
+    get:
+      tags:
+        - ⚙️ User Preferences
+      summary: Get Users for Digest
+      description: >-
+        Get all users who have enabled digest notifications for specified
+        frequency. Used by digest processing jobs.
+      parameters:
+        - name: frequency
+          in: query
+          schema:
+            type: string
+          description: daily_digest or weekly_digest
+          example: daily_digest
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/users-in-quiet-hours:
+    get:
+      tags:
+        - ⚙️ User Preferences
+      summary: Get Users in Quiet Hours
+      description: >-
+        Get all users currently in their quiet hours period. Used to suppress
+        immediate notifications.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/channel-stats:
+    get:
+      tags:
+        - ⚙️ User Preferences
+      summary: Get Channel Statistics
+      description: >-
+        Get statistics about channel preferences showing which channels are
+        most/least popular among users.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /preferences/stats:
+    get:
+      tags:
+        - ⚙️ User Preferences
+      summary: Get Preference Statistics
+      description: >-
+        Get comprehensive preference statistics including adoption rates,
+        popular settings, and usage patterns.
+      parameters:
+        - name: user_type
+          in: query
+          schema:
+            type: string
+          description: 'Optional: Filter for specific user type'
+          example: App\Models\User
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+          description: 'Optional: Filter for specific user'
+          example: '123'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: List Attempts
+      description: >-
+        Get paginated list of all notification delivery attempts with filtering
+        by status, channel, and time period.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Create Attempt
+      description: >-
+        Create new delivery attempt record. Usually called by notification
+        delivery services to track sending progress.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                notification_id: 1
+                channel: email
+                status: pending
+                attempt_number: 1
+                response_data: {}
+                next_retry_at: '2024-01-01T15:30:00Z'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/1:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Get Attempt
+      description: >-
+        Get detailed information about specific delivery attempt including
+        response data and error details.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Update Attempt
+      description: >-
+        Update delivery attempt status and response data. Used to record success
+        or failure information.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                status: success
+                response_data:
+                  message_id: email-12345
+                  sent_at: '2024-01-01T14:30:00Z'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Delete Attempt
+      description: >-
+        Delete delivery attempt record. Usually done during cleanup of old
+        attempt data.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/notification/1:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Get Attempts for Notification
+      description: >-
+        Get all delivery attempts for specific notification across all channels
+        with success/failure statistics.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/pending:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Get Pending Attempts
+      description: >-
+        Get all pending delivery attempts that are waiting to be processed by
+        delivery workers.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/ready-for-retry:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Get Ready for Retry
+      description: >-
+        Get failed attempts that are ready for retry based on retry schedule and
+        attempt count limits.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/failures:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Get Failed Attempts
+      description: >-
+        Get all failed delivery attempts within specified time period for
+        analysis and troubleshooting.
+      parameters:
+        - name: hours
+          in: query
+          schema:
+            type: integer
+          description: Hours to look back (1-168)
+          example: '24'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/recent-failures:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Get Recent Failures
+      description: >-
+        Get recently failed attempts for immediate attention and alerting. Used
+        for monitoring dashboards.
+      parameters:
+        - name: hours
+          in: query
+          schema:
+            type: integer
+          description: Hours to look back (1-24)
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/successful:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Get Successful Attempts
+      description: >-
+        Get all successful delivery attempts within time period for performance
+        analysis and reporting.
+      parameters:
+        - name: hours
+          in: query
+          schema:
+            type: integer
+          example: '24'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/channel/email:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Get Attempts for Channel
+      description: >-
+        Get all delivery attempts for specific channel (email, database,
+        broadcast, sms, push, slack) with channel-specific statistics.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/1/mark-processing:
+    post:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Mark as Processing
+      description: >-
+        Mark delivery attempt as currently being processed. Prevents duplicate
+        processing by multiple workers.
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/1/mark-success:
+    post:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Mark as Success
+      description: >-
+        Mark delivery attempt as successful with optional response data from
+        delivery provider.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                response_data:
+                  message_id: email-12345
+                  delivered_at: '2024-01-01T14:30:00Z'
+                  provider_response: Message delivered successfully
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/1/mark-failed:
+    post:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Mark as Failed
+      description: >-
+        Mark delivery attempt as failed with error details. May schedule for
+        retry if attempts remain.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                error_message: SMTP server rejected message
+                error_code: SMTP_REJECTED
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/1/mark-retry:
+    post:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Mark for Retry
+      description: >-
+        Schedule failed attempt for retry at specified time or calculate next
+        retry time automatically.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                retry_at: '2024-01-01T15:30:00Z'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/retry-failed:
+    post:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Retry Failed Attempts
+      description: >-
+        Bulk retry all failed attempts from specified time period that haven't
+        exceeded retry limits.
+      requestBody:
+        content: {}
+      parameters:
+        - name: hours
+          in: query
+          schema:
+            type: integer
+          description: Hours to look back for failed attempts (1-168)
+          example: '24'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/clean-old:
+    post:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Clean Old Attempts
+      description: >-
+        Clean up old delivery attempt records to maintain database performance.
+        Typically run as scheduled maintenance.
+      requestBody:
+        content: {}
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+          description: Age in days for attempts to delete (1-365)
+          example: '7'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/channel-stats:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Get Channel Statistics
+      description: >-
+        Get comprehensive statistics for all channels including attempt counts,
+        success rates, and average response times.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/success-rates:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Get Success Rates
+      description: >-
+        Calculate success rates by channel for specified time period. Used for
+        performance monitoring and SLA reporting.
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+          description: Days to analyze (1-365)
+          example: '7'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/error-codes:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Get Error Code Statistics
+      description: >-
+        Analyze error patterns by error code and frequency. Helps identify
+        systemic issues and improve retry strategies.
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+          example: '7'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/average-retry-time:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Get Average Retry Time
+      description: >-
+        Calculate average time between failure and successful retry. Used for
+        optimizing retry intervals.
+      parameters:
+        - name: channel
+          in: query
+          schema:
+            type: string
+          description: 'Optional: Filter by specific channel'
+          example: email
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /attempts/stats:
+    get:
+      tags:
+        - 🔄 Delivery Attempts
+      summary: Get Attempt Statistics
+      description: >-
+        Get comprehensive attempt statistics with optional filtering by
+        notification or channel.
+      parameters:
+        - name: notification_id
+          in: query
+          schema:
+            type: integer
+          description: 'Optional: Filter for specific notification'
+          example: '1'
+        - name: channel
+          in: query
+          schema:
+            type: string
+          description: 'Optional: Filter for specific channel'
+          example: email
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

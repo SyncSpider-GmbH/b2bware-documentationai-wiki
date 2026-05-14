@@ -1,0 +1,909 @@
+openapi: 3.0.0
+info:
+  title: RuleHub API
+  description: >-
+    Complete API collection for RuleHub — Promotion, Pricing & Shipping Rule
+    Engine
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Condition Schema
+  - name: Catalog Price Rules
+  - name: Cart Price Rules
+  - name: Cart Validation Rules
+  - name: Coupons
+  - name: Rule Usage Logs
+  - name: Shipping Rate Rules
+  - name: Cart Rule Progress (OrderHub)
+paths:
+  /api/v1/apps/rule-hub/conditions/schema:
+    get:
+      tags:
+        - Condition Schema
+      summary: Get Full Schema
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/conditions/schema/product:
+    get:
+      tags:
+        - Condition Schema
+      summary: Get Product Schema
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/conditions/schema/cart:
+    get:
+      tags:
+        - Condition Schema
+      summary: Get Cart Schema
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/conditions/schema/customer:
+    get:
+      tags:
+        - Condition Schema
+      summary: Get Customer Schema
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/catalog-price-rules/statuses/list:
+    get:
+      tags:
+        - Catalog Price Rules
+      summary: Get Statuses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/catalog-price-rules/action-types/list:
+    get:
+      tags:
+        - Catalog Price Rules
+      summary: Get Action Types
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/catalog-price-rules:
+    get:
+      tags:
+        - Catalog Price Rules
+      summary: List Catalog Price Rules
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+        - name: filter[status]
+          in: query
+          schema:
+            type: string
+          example: active
+        - name: filter[name]
+          in: query
+          schema:
+            type: string
+          example: VIP
+        - name: sort
+          in: query
+          schema:
+            type: string
+          example: priority
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Catalog Price Rules
+      summary: Create Catalog Price Rule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: VIP Customer – 15% off SKU 5875
+                description: 15% discount for VIP customers on product SKU 5875
+                status: active
+                priority: 10
+                conditions:
+                  type: combine
+                  operator: all
+                  conditions:
+                    - type: attribute
+                      target: product
+                      attribute: sku
+                      operator: '=='
+                      value: '5875'
+                    - type: attribute
+                      target: customer
+                      attribute: customer_group_id
+                      operator: '=='
+                      value: '1'
+                action_type: by_percent
+                action_amount: 15
+                customer_group_ids:
+                  - 1
+                stop_further_rules: false
+                date_from: null
+                date_to: null
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/catalog-price-rules/1:
+    get:
+      tags:
+        - Catalog Price Rules
+      summary: Get Catalog Price Rule
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Catalog Price Rules
+      summary: Update Catalog Price Rule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: VIP – 20% off SKU 5875
+                action_amount: 20
+                status: active
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Catalog Price Rules
+      summary: Delete Catalog Price Rule
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/cart-price-rules/statuses/list:
+    get:
+      tags:
+        - Cart Price Rules
+      summary: Get Statuses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/cart-price-rules/action-types/list:
+    get:
+      tags:
+        - Cart Price Rules
+      summary: Get Action Types
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/cart-price-rules/free-shipping-options/list:
+    get:
+      tags:
+        - Cart Price Rules
+      summary: Get Free Shipping Options
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/cart-price-rules:
+    get:
+      tags:
+        - Cart Price Rules
+      summary: List Cart Price Rules
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+        - name: filter[status]
+          in: query
+          schema:
+            type: string
+          example: active
+        - name: filter[action_type]
+          in: query
+          schema:
+            type: string
+          example: by_percent
+        - name: sort
+          in: query
+          schema:
+            type: string
+          example: priority
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Cart Price Rules
+      summary: Create Cart Rule – Per Unit Attribute
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: 5p/Litre Discount – 540L+ Threshold
+                description: 5p per litre discount when total litres >= 540
+                status: active
+                priority: 10
+                conditions:
+                  type: combine
+                  operator: all
+                  conditions:
+                    - type: cart_items_aggregate
+                      source: product_custom_attribute
+                      attribute: weight
+                      aggregate: sum
+                      quantity_aware: true
+                      operator: '>='
+                      value: 540
+                action_type: per_unit_attribute_fixed
+                action_amount: 0.05
+                action_attribute: weight
+                action_attribute_source: product_custom_attribute
+                free_shipping: 'no'
+                stop_further_rules: false
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/cart-price-rules/1:
+    get:
+      tags:
+        - Cart Price Rules
+      summary: Get Cart Price Rule
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Cart Price Rules
+      summary: Update Cart Price Rule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Updated Rule Name
+                action_amount: 15
+                status: active
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Cart Price Rules
+      summary: Delete Cart Price Rule
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/cart-validation-rules/statuses/list:
+    get:
+      tags:
+        - Cart Validation Rules
+      summary: Get Statuses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/cart-validation-rules/constraint-types/list:
+    get:
+      tags:
+        - Cart Validation Rules
+      summary: Get Constraint Types
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/cart-validation-rules:
+    get:
+      tags:
+        - Cart Validation Rules
+      summary: List Validation Rules
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+        - name: filter[status]
+          in: query
+          schema:
+            type: string
+          example: active
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Cart Validation Rules
+      summary: Create Validation Rule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Bulk vs Standard Mutual Exclusion
+                description: Cannot mix Bulk and Standard Aspen fuel products
+                status: active
+                constraint_type: mutual_exclusion
+                group_a:
+                  type: combine
+                  operator: all
+                  conditions:
+                    - type: attribute
+                      target: product
+                      attribute: sku
+                      operator: contains
+                      value: BULK
+                group_b:
+                  type: combine
+                  operator: all
+                  conditions:
+                    - type: attribute
+                      target: product
+                      attribute: sku
+                      operator: contains
+                      value: STD
+                error_message: Cannot mix Bulk and Standard fuel products in the same cart
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/cart-validation-rules/1:
+    get:
+      tags:
+        - Cart Validation Rules
+      summary: Get Validation Rule
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Cart Validation Rules
+      summary: Update Validation Rule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                status: inactive
+                error_message: Updated message
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Cart Validation Rules
+      summary: Delete Validation Rule
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/coupons/coupon-types/list:
+    get:
+      tags:
+        - Coupons
+      summary: Get Coupon Types
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/coupons/rule/1:
+    get:
+      tags:
+        - Coupons
+      summary: Get Coupons by Rule
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/coupons:
+    get:
+      tags:
+        - Coupons
+      summary: List Coupons
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+        - name: filter[code]
+          in: query
+          schema:
+            type: string
+          example: SAVE10
+        - name: filter[rule_id]
+          in: query
+          schema:
+            type: integer
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Coupons
+      summary: Create Coupon
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                rule_id: 1
+                code: SAVE10
+                coupon_type: specific
+                usage_limit: 100
+                usage_per_customer: 1
+                is_primary: true
+                expiration_date: '2026-12-31'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/coupons/generate:
+    post:
+      tags:
+        - Coupons
+      summary: Generate Auto-Coupons
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                rule_id: 1
+                quantity: 50
+                prefix: PROMO-
+                length: 8
+                usage_limit: 1
+                expiration_date: '2026-06-30'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/coupons/validate:
+    post:
+      tags:
+        - Coupons
+      summary: Validate Coupon
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                code: SAVE10
+                customer_id: 1
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/coupons/1:
+    get:
+      tags:
+        - Coupons
+      summary: Get Coupon
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Coupons
+      summary: Update Coupon
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                usage_limit: 200
+                expiration_date: '2027-12-31'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Coupons
+      summary: Delete Coupon
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/rule-usage-logs/rule-types/list:
+    get:
+      tags:
+        - Rule Usage Logs
+      summary: Get Rule Types
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/rule-usage-logs/rule/1:
+    get:
+      tags:
+        - Rule Usage Logs
+      summary: Logs by Rule
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/rule-usage-logs/customer/1:
+    get:
+      tags:
+        - Rule Usage Logs
+      summary: Logs by Customer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/rule-usage-logs/order/55:
+    get:
+      tags:
+        - Rule Usage Logs
+      summary: Logs by Order
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/rule-usage-logs:
+    get:
+      tags:
+        - Rule Usage Logs
+      summary: List All Logs
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+        - name: filter[rule_type]
+          in: query
+          schema:
+            type: string
+          example: cart_price_rule
+        - name: filter[customer_id]
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: sort
+          in: query
+          schema:
+            type: string
+          example: '-applied_at'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/rule-usage-logs/1:
+    get:
+      tags:
+        - Rule Usage Logs
+      summary: Get Single Log
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/shipping-rate-rules/statuses/list:
+    get:
+      tags:
+        - Shipping Rate Rules
+      summary: Get Statuses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/shipping-rate-rules/condition-types/list:
+    get:
+      tags:
+        - Shipping Rate Rules
+      summary: Get Condition Types
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/shipping-rate-rules/zone/zone-a:
+    get:
+      tags:
+        - Shipping Rate Rules
+      summary: Rules by Zone
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/shipping-rate-rules:
+    get:
+      tags:
+        - Shipping Rate Rules
+      summary: List Shipping Rate Rules
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+        - name: filter[status]
+          in: query
+          schema:
+            type: string
+          example: active
+        - name: filter[country]
+          in: query
+          schema:
+            type: string
+          example: GB
+        - name: filter[condition_type]
+          in: query
+          schema:
+            type: string
+          example: weight
+        - name: sort
+          in: query
+          schema:
+            type: string
+          example: priority
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Shipping Rate Rules
+      summary: Create Shipping Rate Rule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: UK Mainland – Weight Rate
+                status: active
+                shipping_method_id: 1
+                country: GB
+                zone: zone-a
+                zip_from: ''
+                zip_to: ''
+                condition_type: weight
+                min_value: 0
+                max_value: 50
+                price: 12.99
+                priority: 10
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/rule-hub/shipping-rate-rules/1:
+    get:
+      tags:
+        - Shipping Rate Rules
+      summary: Get Shipping Rate Rule
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Shipping Rate Rules
+      summary: Update Shipping Rate Rule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                price: 14.99
+                max_value: 75
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Shipping Rate Rules
+      summary: Delete Shipping Rate Rule
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/carts/41/rule-progress:
+    get:
+      tags:
+        - Cart Rule Progress (OrderHub)
+      summary: Get Cart Rule Progress
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

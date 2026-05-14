@@ -1,0 +1,819 @@
+openapi: 3.0.0
+info:
+  title: EventHub API
+  description: >-
+    Complete API collection for EventHub — outgoing webhooks driven by hub
+    events.
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Event Subscriptions
+  - name: Activities & Deliveries
+  - name: Statistics
+  - name: Dropdown Options
+  - name: Hub Settings
+paths:
+  /api/v1/apps/event-hub/event-subscriptions:
+    get:
+      tags:
+        - Event Subscriptions
+      summary: List subscriptions
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+        - name: filter[event_slug]
+          in: query
+          schema:
+            type: string
+          example: orderhub.order.created
+        - name: filter[status]
+          in: query
+          schema:
+            type: string
+          example: active
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Event Subscriptions
+      summary: Create subscription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Order created -> partner ERP
+                description: Forwards every order.created event to the partner ERP webhook.
+                event_slug: orderhub.order.created
+                target_url: https://partner.example.com/webhooks/orders
+                http_method: POST
+                headers:
+                  X-Partner-Token: abc123
+                payload_includes:
+                  - customer
+                  - orderLineItems
+                  - orderLineItems.product
+                conditions:
+                  type: combine
+                  operator: all
+                  conditions:
+                    - type: field
+                      path: total_price
+                      operator: '>='
+                      value: 100
+                    - type: array_any
+                      path: orderLineItems
+                      conditions:
+                        type: combine
+                        operator: all
+                        conditions:
+                          - type: field
+                            path: product_id
+                            operator: '=='
+                            value: 2
+                          - type: field
+                            path: qty
+                            operator: '>'
+                            value: 5
+                status: active
+                timeout_seconds: 15
+                max_tries: 3
+                retry_backoff_type: exponential
+                initial_backoff_seconds: 10
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/1:
+    get:
+      tags:
+        - Event Subscriptions
+      summary: Get subscription
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Event Subscriptions
+      summary: Update subscription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Order created -> partner ERP (v2)
+                max_tries: 5
+                status: active
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Event Subscriptions
+      summary: Delete subscription
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/1/pause:
+    post:
+      tags:
+        - Event Subscriptions
+      summary: Pause subscription
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/1/resume:
+    post:
+      tags:
+        - Event Subscriptions
+      summary: Resume subscription
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/1/rotate-secret:
+    post:
+      tags:
+        - Event Subscriptions
+      summary: Rotate signing secret
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/1/test:
+    post:
+      tags:
+        - Event Subscriptions
+      summary: Send test webhook
+      description: >-
+        Fetches the latest record of the event's root model, loads the
+        subscription's payload_includes, and dispatches a real webhook with
+        is_test=true. Returns 422 with a 'create at least one record' message
+        when the model has no rows.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/events/orderhub.order.created/schema:
+    get:
+      tags:
+        - Event Subscriptions
+      summary: Event schema (drilled)
+      description: >-
+        Walks the dotted path on the event's root model graph and returns the
+        terminal node's fields/relations along with the cardinality chain. Used
+        to render scoped builders inside array_any/array_all/array_none nodes.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: path
+          in: query
+          schema:
+            type: string
+          example: orderLineItems.product
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/events/orderhub.order.created/available-includes:
+    get:
+      tags:
+        - Event Subscriptions
+      summary: Event available payload includes
+      description: >-
+        Customer-facing whitelist of dotted include paths for the event's root
+        model (sourced from the repository's $includes property, depth-capped to
+        3). Drives the payload_includes multi-select.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/events/orderhub.order.created/sample-payload:
+    get:
+      tags:
+        - Event Subscriptions
+      summary: Event sample payload
+      description: >-
+        Returns the latest record of the event's root model with the requested
+        includes loaded, so the customer can preview what the live webhook will
+        send. 422 when no records exist yet.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: payload_includes[]
+          in: query
+          schema:
+            type: string
+          example: customer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/1/activities:
+    get:
+      tags:
+        - Activities & Deliveries
+      summary: Subscription activity log
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/1/deliveries:
+    get:
+      tags:
+        - Activities & Deliveries
+      summary: Subscription delivery log
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-delivery-logs:
+    get:
+      tags:
+        - Activities & Deliveries
+      summary: All delivery logs (installation-wide)
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-delivery-logs/1:
+    get:
+      tags:
+        - Activities & Deliveries
+      summary: Delivery log detail
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/1/stats:
+    get:
+      tags:
+        - Statistics
+      summary: Per-subscription stats
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: days
+          in: query
+          schema:
+            type: integer
+          example: '7'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/stats/overview:
+    get:
+      tags:
+        - Statistics
+      summary: Installation-wide overview
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: days
+          in: query
+          schema:
+            type: integer
+          example: '7'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/available-events/list:
+    get:
+      tags:
+        - Dropdown Options
+      summary: Available events (filtered by installed hubs)
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/http-methods/list:
+    get:
+      tags:
+        - Dropdown Options
+      summary: HTTP methods
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/statuses/list:
+    get:
+      tags:
+        - Dropdown Options
+      summary: Statuses
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/event-subscriptions/backoff-types/list:
+    get:
+      tags:
+        - Dropdown Options
+      summary: Backoff types
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/settings/groups/list:
+    get:
+      tags:
+        - Hub Settings
+      summary: List groups
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/settings:
+    get:
+      tags:
+        - Hub Settings
+      summary: Index (all groups)
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/settings/webhook_delivery:
+    get:
+      tags:
+        - Hub Settings
+      summary: Show group
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Hub Settings
+      summary: Update group
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                webhook_timeout_seconds: 10
+                webhook_max_tries: 3
+                webhook_retry_backoff_type: exponential
+                webhook_initial_backoff_seconds: 10
+                webhook_signing_algorithm: sha256
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/settings/webhook_delivery/reset:
+    post:
+      tags:
+        - Hub Settings
+      summary: Reset group
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/event-hub/settings/reset:
+    post:
+      tags:
+        - Hub Settings
+      summary: Reset all
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
