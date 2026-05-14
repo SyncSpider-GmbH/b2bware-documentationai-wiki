@@ -1,0 +1,142 @@
+---
+title: Environments
+description: Local, debug, staging, and production — base URLs, credentials, and migration between them.
+---
+
+## Overview
+
+DataHub runs in multiple environments to keep development, integration testing, and customer traffic isolated. This page lists the environments, what each is for, and the practical differences integrators need to know.
+
+## Environment Matrix
+
+| Environment | Base URL | Purpose | Stability |
+|---|---|---|---|
+| **Local** | `http://hub.test` (per developer) | Single-developer sandbox running on the engineer's laptop. | Reset frequently. |
+| **Debug** | `https://datahub-debug.syncspider.com` | Integrator sandbox + internal QA. Latest `dev` branch. | Resets weekly; data may be reset without notice. |
+| **Staging** | `https://datahub-staging.syncspider.com` | Pre-production smoke testing for releases. Mirrors production. | Stable between releases. |
+| **Production** | `https://api.datahub.syncspider.com` | Customer traffic. | SLA-bound. |
+
+Exact host names vary per tenant in production — read the value from your installation paperwork or the admin panel. Single-tenant deployments may live under `https://<tenant>.datahub.syncspider.com`.
+
+## Per-Environment Credentials
+
+Credentials **do not transfer** between environments. Each environment has:
+
+- Its own **installation key** (different UUID per environment).
+- Its own **Bearer API tokens**.
+- Its own **customer accounts** and `x-auth-token` values.
+
+A token created on debug returns `401 Unauthenticated` on production and vice versa. Always store credentials per-environment in your config:
+
+```env
+# .env.production
+DATAHUB_BASE_URL=https://api.datahub.syncspider.com
+DATAHUB_INSTALLATION_KEY=<prod-uuid>
+DATAHUB_API_TOKEN=<prod-token>
+
+# .env.staging
+DATAHUB_BASE_URL=https://datahub-staging.syncspider.com
+DATAHUB_INSTALLATION_KEY=<staging-uuid>
+DATAHUB_API_TOKEN=<staging-token>
+```
+
+## CDN and Media
+
+Each environment has its own CDN pull zone. The `media_url` field returned by the API reflects the environment:
+
+- Debug / staging: `https://datahubdev.b-cdn.net/...`
+- Production: `https://<pullzone>.b-cdn.net/...`
+
+Never hardcode the CDN host — it changes between environments and even between tenants. Read `media_url` from the response. See [Media URLs](/core-concepts/media-urls).
+
+## Email Behavior
+
+| Environment | Outbound email |
+|---|---|
+| Local | Disabled by default; can route to MailHog/Mailpit. |
+| Debug | Sent only to allow-listed addresses; everything else is silently dropped. |
+| Staging | Sent to the addresses on file. Use disposable mailboxes. |
+| Production | Real email to real customers. |
+
+Verify your integration's email flows on **debug** with allow-listed addresses before any staging or production test. NotificationHub respects the per-environment configuration.
+
+## Webhooks and Payment Providers
+
+Payment provider sandboxes (Mollie test, Stripe test) only ever call back into the matching environment. Configuring a Mollie test-mode webhook against the production URL silently fails — the callback URL must be the same environment as the provider mode.
+
+For EventHub outbound webhooks, point your subscription target URLs at environment-matched receivers. Avoid pointing debug subscriptions at production receivers — the payload shapes are versioned together but the data is unrelated.
+
+## Background Jobs and Horizon
+
+Each environment has its own queue worker fleet:
+
+- Local: single-worker `php artisan queue:work`.
+- Debug: 2–4 workers; Horizon dashboard available internally.
+- Staging / production: scaled horizontally; Horizon behind admin auth.
+
+Some long-running jobs (catalog rebuild, license CSV import) are noticeably slower on debug because the worker fleet is small. Set generous timeouts on your integration tests.
+
+## Data Resets
+
+| Environment | Reset policy |
+|---|---|
+| Local | Whenever the developer runs `php artisan migrate:fresh`. |
+| Debug | Periodic; database snapshots may be restored without notice for shared scenarios. |
+| Staging | Only on intentional refresh from production (with PII scrubbed). |
+| Production | Never reset. |
+
+Tag any test orders / customers you create on debug so you can recover quickly after a reset. Never rely on a specific debug record being present long-term.
+
+## Verifying Which Environment You're On
+
+Three signals:
+
+1. **Base URL.** Always log it during boot.
+2. **`/me` response** — the customer's company name will be the test or real one.
+3. **A health endpoint** — `GET /api/v1/health` (when exposed) returns the environment name.
+
+A good integration boot log line:
+
+```
+DataHub  env=production  base_url=https://api.datahub.syncspider.com  installation_key=7f1c…5061
+```
+
+Make this visible in your error tracker so a misconfigured deploy is obvious immediately.
+
+## Migrating Code Between Environments
+
+Recommended path:
+
+1. Develop and unit-test against **local**.
+2. End-to-end on **debug** with real DataHub data.
+3. Smoke test on **staging** against the upcoming release.
+4. Deploy to **production**.
+
+Run the same integration test suite against debug and staging — fixture-based mocks miss the kind of bugs that only show up against real responses (status codes, pagination quirks, locale differences).
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Token works on debug, fails on production | Cross-environment token reuse. | Always store credentials per-environment. |
+| Broken images after promoting code | Hardcoded debug CDN host. | Read `media_url` from the response. |
+| Real customer received a test email | Tested on production with a real address. | Test on debug or staging with disposable mailboxes. |
+| Webhooks silently dropped | Subscription target points at the wrong environment. | Match environment ↔ subscription URL ↔ receiver. |
+| Jobs "slow" on debug | Small worker fleet. | Increase timeouts on slow operations; do not infer production latency from debug. |
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Authentication" icon="key" href="/authentication">
+    How to get per-environment credentials.
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/core-concepts/webhooks">
+    Match subscriptions to the right environment.
+  </Card>
+  <Card title="Media URLs" icon="image" href="/core-concepts/media-urls">
+    Per-environment CDN behavior.
+  </Card>
+  <Card title="Versioning" icon="git-branch" href="/core-concepts/versioning">
+    Deprecation rules apply per environment.
+  </Card>
+</Columns>

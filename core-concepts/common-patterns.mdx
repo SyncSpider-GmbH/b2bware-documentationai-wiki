@@ -27,28 +27,79 @@ The default API domain is `api.datahub.syncspider.com`. Replace `{hub-slug}` wit
 
 ## Pagination
 
-All list (index) endpoints return paginated results. Control pagination with these query parameters:
+All list (index) endpoints return Laravel-style paginated responses. Control pagination with:
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `page` | integer | 1 | Page number (1-based) |
-| `per_page` | integer | 25 | Items per page (max varies, typically 50-200) |
+| Parameter | Default | Notes |
+|---|---|---|
+| `page` | `1` | Page number, 1-based. Walk by incrementing until `meta.current_page == meta.last_page`. |
+| `perPage` | `25` | Page size. **Camel-case** is the supported name. |
+| `per_page` | — | Snake-case is **ignored by most hubs**. Always use `perPage`. |
 
-<Expandable title="Paginated Response Structure" default-open="true">
+The maximum `perPage` is `200` on most endpoints. Larger values are silently clamped.
+
+<Callout kind="warning" title="Always use perPage (camelCase)">
+The legacy snake-case `per_page` is honored only as a fallback on a small number of routes. New integrations should always send `perPage` to avoid the surprise of falling back to the default 25.
+</Callout>
+
+### Paginated Response Shape
 
 ```json
 {
-  "data": [ ... ],
-  "current_page": 1,
-  "last_page": 10,
-  "per_page": 25,
-  "total": 250,
-  "from": 1,
-  "to": 25
+  "data": [ { "id": 1, "name": "..." }, ... ],
+  "links": {
+    "first": ".../products?page=1",
+    "last":  ".../products?page=12",
+    "prev":  null,
+    "next":  ".../products?page=2"
+  },
+  "meta": {
+    "current_page": 1,
+    "from": 1,
+    "last_page": 12,
+    "path": ".../products",
+    "per_page": 25,
+    "to": 25,
+    "total": 287
+  }
 }
 ```
 
-</Expandable>
+Some older endpoints still return the flat shape (`current_page`, `last_page`, ... at the top level instead of inside `meta`). Read both defensively:
+
+```js
+const meta = response.meta ?? response;
+const currentPage = meta.current_page;
+const lastPage    = meta.last_page;
+```
+
+### Walking Pages Efficiently
+
+For bulk reads, prefer following `links.next` over building URLs yourself — it preserves filters, sort, and includes:
+
+```js
+let url = '/products?filter[status]=[{"condition":"=","value":"public"}]&include=mainMedia&perPage=200';
+while (url) {
+  const res  = await api.get(url);
+  for (const product of res.data) process(product);
+  url = res.links?.next;
+}
+```
+
+### Cursor-style Sync
+
+When you need to incrementally pull a changing dataset (catalog sync, order replication), do not paginate by `page`. Use a sort + filter on `_updated_at` instead:
+
+```
+?sort=_updated_at
+&filter[_updated_at]=[{"condition":">","value":"2024-09-01T10:00:00Z"}]
+&perPage=200
+```
+
+Store the highest `_updated_at` you saw and use it as the next cursor. This survives mid-walk changes (inserts/updates) that would otherwise cause page-based walks to skip or duplicate rows.
+
+### Total Counts
+
+`meta.total` is the count after filters, before pagination. It is expensive on large collections — request it once and cache the result if the UI needs a "Showing X of Y" label. Pages 2..N also include `meta.total` but recomputing it is the same DB cost each time.
 
 ## Sorting
 

@@ -1,0 +1,227 @@
+---
+title: Webhooks
+description: How DataHub delivers events to your endpoints — subscriptions, signatures, retries, and the payment-callback flow.
+---
+
+## Overview
+
+DataHub has **two** webhook channels with different audiences:
+
+1. **EventHub subscriptions** — outbound webhooks the integrator configures to receive DataHub events (`order_paid`, `product_updated`, `customer_registered`, ...). HMAC-signed, retried with exponential backoff, observable through a delivery log.
+2. **Payment provider callbacks** — inbound webhooks the integrator points at DataHub. Used by Mollie, Stripe, etc. to mark orders paid. The URL embeds the installation key for tenant resolution.
+
+This page covers both.
+
+## EventHub Subscriptions (Outbound)
+
+EventHub lets a tenant subscribe any external URL to any DataHub event. The hub:
+
+- Resolves the event payload (including the configured `payload_includes`).
+- Signs the body with the subscription's per-tenant secret.
+- POSTs to the target URL via a background queue.
+- Retries on failure with exponential backoff.
+- Auto-pauses subscriptions after too many consecutive failures.
+
+### Creating a Subscription
+
+```bash
+POST /api/v1/apps/event-hub/event-subscriptions
+{
+  "name":          "Order paid → ERP",
+  "event_slug":    "order_paid",
+  "target_url":    "https://erp.example.com/datahub/webhooks/order-paid",
+  "http_method":   "POST",
+  "headers":       { "X-ERP-Tenant": "ACME" },
+  "payload_includes": ["orderLineItems", "orderLineItems.product", "customer"],
+  "conditions":    [],
+  "timeout_seconds": 10,
+  "max_tries":     5,
+  "retry_backoff_type": "exponential",
+  "initial_backoff_seconds": 30
+}
+```
+
+Response includes a one-time `secret`:
+
+```json
+{
+  "data": {
+    "id": 14,
+    "secret": "whsec_a4f2c1b3e9...",
+    "status": "active",
+    ...
+  }
+}
+```
+
+**The secret is shown only on creation.** Store it on your side. Use `POST /event-subscriptions/{id}/rotate-secret` to generate a new one (and invalidate the old).
+
+### Discoverable Event Slugs
+
+```bash
+GET /api/v1/apps/event-hub/event-subscriptions/available-events/list
+```
+
+Common slugs (the exact list is per installation):
+
+| Slug | Fired when |
+|---|---|
+| `order_created` | A new order is committed (post-checkout). |
+| `order_paid` | Order status moves to `paid`. |
+| `order_status_changed` | Any legal status transition. Payload includes `from`, `to`, `previous_status`. |
+| `order_cancelled` | Order moved to `canceled` / `cancelled`. |
+| `order_refunded` | Order moved to `refunded`. |
+| `product_created` | New product in the catalog. |
+| `product_updated` | Any product field changed. |
+| `customer_registered` | New customer signed up via AuthHub. |
+| `license_key_generated` | A license key was issued. |
+| `license_key_revoked` | A license key was revoked. |
+
+Use `GET /events/{slug}/schema` to see the payload shape and `GET /events/{slug}/sample-payload` for a literal example.
+
+### Conditions
+
+`conditions` is an array describing when the subscription should fire. Conditions match against the event payload (after `payload_includes` are resolved):
+
+```json
+"conditions": [
+  { "path": "order.grand_total", "operator": ">",  "value": 1000 },
+  { "path": "order.currency",    "operator": "=",  "value": "EUR", "logic": "AND" }
+]
+```
+
+The matching engine is the same one used in EventConditionBuilder in the admin UI.
+
+### Delivery Headers
+
+Every outbound webhook carries:
+
+| Header | Purpose |
+|---|---|
+| `Content-Type: application/json` | Always. |
+| `X-EventHub-Event` | The event slug (e.g. `order_paid`). |
+| `X-EventHub-Subscription-Id` | The subscription id. Use it for idempotency on your side. |
+| `X-EventHub-Test` | `1` if dispatched from the "Test" button in the admin, `0` for real events. |
+| `Signature` | HMAC-SHA256 of the raw request body with your subscription secret. Hex-encoded. |
+| `User-Agent` | `GuzzleHttp/...`. Not stable; do not key on it. |
+
+Plus any custom headers you set on the subscription's `headers` field.
+
+### Verifying the Signature
+
+```js
+// Node.js
+import crypto from 'crypto';
+
+function verify(rawBody, signatureHeader, secret) {
+  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signatureHeader));
+}
+```
+
+```python
+# Python
+import hmac, hashlib
+
+def verify(raw_body: bytes, signature_header: str, secret: str) -> bool:
+    expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature_header)
+```
+
+```php
+// PHP
+function verify(string $rawBody, string $signatureHeader, string $secret): bool {
+    $expected = hash_hmac('sha256', $rawBody, $secret);
+    return hash_equals($expected, $signatureHeader);
+}
+```
+
+**Use the raw body**, not a re-serialized JSON. Whitespace and key order matter.
+
+Reject the request with `401` if the signature does not match.
+
+### Retries and Backoff
+
+A delivery is "successful" when the target URL returns a 2xx status within `timeout_seconds`. Anything else (timeout, network error, 4xx, 5xx) counts as a failure.
+
+| Setting | Default | Notes |
+|---|---|---|
+| `max_tries` | 5 | Total attempts including the first. |
+| `timeout_seconds` | 10 | Per-attempt. |
+| `retry_backoff_type` | `exponential` | Doubles with each retry. |
+| `initial_backoff_seconds` | 30 | First retry waits this long. |
+
+With the defaults: 0s, 30s, 60s, 120s, 240s — total ~7.5 minutes before giving up.
+
+After `consecutive_failures` exceeds a tenant-configured threshold the subscription is **auto-paused** (`status: auto_paused`). The admin must inspect the delivery log and `POST /event-subscriptions/{id}/resume` to re-enable.
+
+### Delivery Log
+
+Every dispatch is recorded:
+
+```bash
+GET /api/v1/apps/event-hub/event-delivery-logs
+  ?filter[subscription_id]=[{"condition":"=","value":"14"}]
+  &filter[outcome]=[{"condition":"=","value":"failed"}]
+  &sort=-_created_at
+```
+
+Each entry contains `request_headers`, `request_body`, `response_status`, `response_body_excerpt`, `attempt`, and `outcome` (`success`, `failed`, `pending`). Useful for debugging.
+
+### Idempotency on Your Side
+
+Webhooks may be delivered **more than once** (retry of a delivery that actually succeeded but timed out, or replays after auto-pause is lifted). Deduplicate on your side:
+
+- Use `X-EventHub-Subscription-Id` + payload's `event_id` (every payload carries one) as the dedupe key.
+- Store processed ids for at least a week.
+
+See [Idempotency](/core-concepts/idempotency) for general patterns.
+
+## Payment Provider Callbacks (Inbound)
+
+Payment providers (Mollie, Stripe, manual) call back into DataHub to flip the order from `proccesing` / `pending` to `paid`. The route is:
+
+```
+POST /api/v1/apps/order-hub/payment/webhook/{installationKey}/{provider}/{order_id}
+```
+
+The integrator configures this URL at the provider's dashboard when setting up the billing method. The `installationKey` segment is how DataHub identifies the tenant on inbound traffic — no auth header is involved.
+
+### Lifecycle
+
+1. Customer completes payment at the provider.
+2. Provider POSTs to the webhook URL with its own signed body.
+3. DataHub validates the body against the provider's signature scheme (provider-specific).
+4. DataHub resolves the order, transitions its status (through the OrderHub state machine), and dispatches downstream events — including any EventHub subscriptions on `order_paid`.
+
+### Why It Matters for the Storefront
+
+The customer's redirect back from the provider lands on `redirect_after_payment` regardless of the actual payment outcome. The order does not flip to `paid` until the webhook has been processed. Show "Payment pending" on the order page until the status changes; poll or subscribe to outbound webhooks for the update.
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Signature verification fails | Body re-serialized before hashing. | Hash the raw body bytes. |
+| Webhook never arrives | Subscription paused / auto-paused. | `GET /event-subscriptions/{id}` and check `status`. |
+| Webhook fires twice | Retry of a delivery the target processed but did not 2xx in time. | Deduplicate on `X-EventHub-Subscription-Id` + payload event id. |
+| Order stays "pending" | Payment provider webhook URL has the wrong installation key. | The URL is per-installation. Reconfigure at the provider. |
+| `4xx` from your endpoint counts as failure | Validation rejection. | Return 200 for "ignored on purpose" events; only return error status for real failures. |
+| Auto-pause after a deploy | Brief downtime exhausted retries. | Tune `max_tries` higher, or `POST /resume` after deploys. |
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Idempotency" icon="repeat" href="/core-concepts/idempotency">
+    Handling duplicate deliveries safely.
+  </Card>
+  <Card title="Event Hub" icon="rss" href="/hubs/event-hub">
+    Full subscription model and admin UI.
+  </Card>
+  <Card title="Cart and Checkout" icon="shopping-cart" href="/advanced/storefront/cart-and-checkout">
+    Where payment-provider callbacks fit into the order lifecycle.
+  </Card>
+  <Card title="Order Hub" icon="receipt" href="/hubs/order-hub">
+    Order status transitions and the state machine.
+  </Card>
+</Columns>

@@ -1,0 +1,122 @@
+---
+title: Versioning
+description: How DataHub versions its API, what counts as a breaking change, and how to track deprecations.
+---
+
+## URL Versioning
+
+Every DataHub endpoint is prefixed with `/api/v1/`:
+
+```
+https://api.datahub.syncspider.com/api/v1/apps/product-hub/products
+```
+
+The version segment is **part of the URL** — there is no `Accept-Version` header, no query parameter override. A single tenant uses one major version at a time.
+
+`v1` is the only published version. `v2` will be introduced when a backwards-incompatible change is required and will run side-by-side with `v1` for the deprecation window.
+
+## What Counts as a Breaking Change
+
+A change is **breaking** if it requires a working `v1` integration to ship new code. The following are always breaking:
+
+- Removing or renaming a field in a response.
+- Removing or renaming a request parameter.
+- Changing the type of a field (`string` → `number`, etc.).
+- Removing an endpoint.
+- Tightening validation that used to accept a value.
+- Changing an enum's allowed values (removing one, renaming one).
+- Changing the response status code for an existing condition.
+
+The following are **not** breaking and ship in `v1`:
+
+- Adding a new endpoint.
+- Adding a new optional request parameter.
+- Adding a new field in a response.
+- Adding a new value to an open-ended enum (e.g. order statuses — tenants can already define their own).
+- Adding a new include relation.
+- Bug fixes — even when they change observable behavior, as long as the new behavior matches the documented contract.
+- Performance changes.
+
+Clients should be written defensively: ignore unknown response fields, accept new enum values, and never block on the count of items in an array.
+
+## Deprecation Policy
+
+When something in `v1` is destined for removal it goes through:
+
+1. **Announce** — added to the [Changelog](/changelog) with a "Deprecated" tag and a replacement.
+2. **Header signal** — affected responses carry a `Deprecation` and `Sunset` header (RFC 8594 / 9745):
+   ```
+   Deprecation: true
+   Sunset: Wed, 31 Dec 2025 23:59:59 GMT
+   Link: <https://docs.datahub.syncspider.com/changelog#YYYY-MM-DD>; rel="deprecation"
+   ```
+3. **Grace period** — minimum of 6 months between the announcement and removal.
+4. **Removal** — only in a major version bump (`v2`).
+
+Integrators should:
+
+- Monitor the changelog page.
+- Surface any `Deprecation: true` header in their observability tooling.
+- Schedule migration before `Sunset` lands.
+
+## Discovering the Current Surface
+
+Every hub exposes an OpenAPI spec at `/api-reference/<hub>/openapi.yaml`. Treat that file as the source of truth for what `v1` currently looks like:
+
+- `/api-reference/openapi.yaml` — global aggregate.
+- `/api-reference/order-hub/openapi.yaml`, `/customer-hub/openapi.yaml`, etc. — per-hub.
+
+For dynamic information (per-tenant statuses, custom attributes, available events), use the in-API "list" endpoints:
+
+| Endpoint | Returns |
+|---|---|
+| `GET /orders/statuses/list` | Order statuses configured on this installation. |
+| `GET /apps/event-hub/event-subscriptions/available-events/list` | Event slugs available for subscriptions. |
+| `GET /apps/notification-hub/settings/{group}` | Per-tenant notification configuration. |
+
+## Backwards Compatibility for Webhooks
+
+EventHub payloads also follow `v1` rules:
+
+- New fields may be added at any time.
+- Existing fields are not removed or renamed without going through the deprecation path.
+
+Use `payload_includes` to lock down what fields you receive: even if DataHub later adds more relations, your subscription will keep the explicit set you chose.
+
+## Compatibility Quick Reference
+
+| Action | Breaking? | Where it ships |
+|---|---|---|
+| Add a new field to `Product` response | No | `v1` |
+| Add a new `include` value | No | `v1` |
+| Add a new enum value to `product.status` | No | `v1` (clients should ignore unknown) |
+| Rename `name` → `title` on `Product` | Yes | Deprecated in `v1`, removed in `v2` |
+| Change `qty` from int to decimal | Yes | Deprecated in `v1`, removed in `v2` |
+| New endpoint `/products/search` | No | `v1` |
+| Drop `/products/legacy-export` | Yes | Deprecated then removed |
+| Tighten validation: SKU must be uppercase | Yes (rejects previously-valid input) | Deprecated with a soft-warn period |
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Integration breaks after a deploy that "shouldn't have" | Client schema rejected an additive field. | Switch to a lenient parser that ignores unknown fields. |
+| Hard-coded enum check fires on a new status | Tenant added a custom status. | Treat statuses as open-ended; load the canonical list from `/statuses/list`. |
+| Tests fail after a routine release | Test fixtures pinned to exact field count / order. | Assert on the fields you actually use, not on shape equality. |
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Changelog" icon="history" href="/changelog">
+    Per-release notes including deprecations.
+  </Card>
+  <Card title="Environments" icon="layers" href="/core-concepts/environments">
+    Per-environment base URLs and how to run staging side-by-side.
+  </Card>
+  <Card title="Error Handling" icon="triangle-alert" href="/core-concepts/error-handling">
+    What to do when validation tightens.
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/core-concepts/webhooks">
+    Same versioning rules apply to event payloads.
+  </Card>
+</Columns>

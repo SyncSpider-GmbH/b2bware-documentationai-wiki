@@ -1,25 +1,124 @@
 ---
 title: Rate Limiting
-description: Understanding and handling API rate limits in DataHub.
+description: DataHub's request rate limits, how to detect them, and how to back off gracefully.
 ---
 
-## Rate Limit Behavior
+## The Limit
 
-DataHub may limit the number of API requests per time period to ensure platform stability. When you exceed the rate limit, you'll receive a `429 Too Many Requests` response.
+DataHub applies a single rate limit to the entire API:
 
-## Handling Rate Limits
+| Scope | Limit |
+|---|---|
+| Per authenticated caller (user/customer id) | **400 requests per minute** |
+| Unauthenticated requests | **400 requests per minute per IP** |
 
-Implement exponential backoff in your integration:
+The window is a sliding 60-second bucket maintained by the `throttle:api` middleware. Crossing it returns `429 Too Many Requests` until the bucket clears.
 
-1. When you receive a 429 response, wait before retrying
-2. Double the wait time with each consecutive 429
-3. Start with a 1-second delay, then 2s, 4s, 8s, etc.
-4. Cap the maximum wait time at 60 seconds
+## Response Headers
 
-## Best Practices
+Every API response carries the standard Laravel throttle headers:
 
-- **Use bulk endpoints** where available to reduce total request count
-- **Cache responses** that don't change frequently (categories, attributes, settings)
-- **Use the upsert endpoint** (`PUT /products/upsert/single`) instead of separate GET + POST/PUT calls
-- **Paginate efficiently** — request only the data you need with appropriate `per_page` values
-- **Avoid polling** — don't repeatedly call endpoints to check for changes; use reasonable intervals
+| Header | Meaning |
+|---|---|
+| `X-RateLimit-Limit` | The bucket size (`400`). |
+| `X-RateLimit-Remaining` | Requests left in this window. |
+| `Retry-After` | Seconds until the bucket resets (only on `429`). |
+| `X-RateLimit-Reset` | UNIX timestamp of the next reset (only on `429`). |
+
+Watch `X-RateLimit-Remaining` proactively — when it drops below ~50, slow the integration down before you ever see a 429.
+
+## Detecting a 429
+
+```json
+HTTP/1.1 429 Too Many Requests
+Retry-After: 23
+X-RateLimit-Limit: 400
+X-RateLimit-Reset: 1731676820
+
+{ "message": "Too Many Attempts." }
+```
+
+Respect `Retry-After`. Do **not** retry sooner — repeated 429s extend the lockout in some configurations.
+
+## Backoff Strategy
+
+A reasonable retry loop:
+
+```js
+async function requestWithBackoff(fn, maxAttempts = 5) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const res = await fn();
+    if (res.status !== 429) return res;
+    const wait = Number(res.headers.get('Retry-After') ?? Math.min(60, 2 ** attempt));
+    await new Promise(r => setTimeout(r, wait * 1000));
+  }
+  throw new Error('Rate limit exhausted');
+}
+```
+
+Rules of thumb:
+
+1. **Always honor `Retry-After`.** Fall back to exponential (1s, 2s, 4s, 8s, …) only when missing.
+2. **Cap at 60 seconds.** Anything longer suggests a misconfiguration on your side.
+3. **Apply backoff per scope.** A 429 on one customer's token does not affect another's.
+4. **Stop after 5 attempts.** Bubble the error up — keeping the queue alive against a wall is worse than failing fast.
+
+## Reducing Request Volume
+
+Most "rate limit" tickets are caused by a chatty integration, not by genuine load. Audit your patterns:
+
+| Anti-pattern | Better |
+|---|---|
+| GET each product by id in a loop | One `GET /products?filter[id]=[{"condition":"IN","value":[...]}]` |
+| Poll every second for order status | Subscribe to the `order_status_changed` event ([Webhooks](/core-concepts/webhooks)). |
+| Fetch the full catalog every hour | Use `?sort=-_updated_at` + a stored cursor for delta sync. |
+| POST/PUT one cart-item at a time | Upsert the cart with all items in one `PATCH /carts`. |
+| Re-fetch categories/attributes per page render | Cache them client-side for the session (rarely change). |
+
+## Bulk Endpoints
+
+Use the bulk variants where they exist — each counts as **one** request regardless of payload size:
+
+| Bulk endpoint | Replaces |
+|---|---|
+| `PUT /api/v1/apps/product-hub/products/bulk/update` | N × `PUT /products/{id}` |
+| `DELETE /api/v1/apps/product-hub/products/bulk/delete` | N × `DELETE /products/{id}` |
+| `POST /api/v1/apps/product-hub/stock/upsert/bulk` | N × stock writes |
+| `POST /api/v1/apps/product-hub/prices/upsert/bulk` | N × price writes |
+| `PUT /api/v1/apps/product-hub/translations/upsert/bulk` | N × translation writes |
+| `PUT /api/v1/apps/product-hub/attributes/insert/bulk` | N × attribute creates |
+
+## Concurrency
+
+400 req/min is **~6.6 req/s**. With 4 concurrent workers your safe throughput is one request per worker every ~600 ms. If you need more, raise the limit in coordination with the DataHub admin (the rate is server-configured), or split your integration across multiple API tokens.
+
+## Server-to-Server vs Storefront
+
+The same 400/min applies to both. For a storefront, the limit is per logged-in customer; a single browser session is unlikely to hit it. For a server-to-server integration, the limit is per API token — concentrate retries and bulk operations on a single token to keep the budget predictable.
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Random 429 in production after a deploy | Cold caches caused a burst of catalog re-fetches. | Warm caches with a single bulk request, not a fan-out. |
+| One customer floods the API | Storefront polling `/me` every second. | Cache `/me` client-side; refresh on auth-relevant actions only. |
+| Webhook handler 429s back to EventHub | Handler re-fetches data from DataHub for every event. | Cache the related data; or fetch lazily only when the payload is insufficient. |
+| Bulk import stalls mid-way | One write per row instead of bulk. | Group up to ~500 rows per bulk call. |
+| 429 right after token rotation | New + old tokens used in parallel doubled the rate. | Use one at a time. |
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Idempotency" icon="repeat" href="/core-concepts/idempotency">
+    Retry safely after a 429 without creating duplicates.
+  </Card>
+  <Card title="Bulk Operations" icon="layers" href="/advanced/bulk-operations">
+    Full reference for the bulk endpoints.
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/core-concepts/webhooks">
+    Stop polling; subscribe instead.
+  </Card>
+  <Card title="Error Handling" icon="triangle-alert" href="/core-concepts/error-handling">
+    Distinguish 429 from other transient errors.
+  </Card>
+</Columns>

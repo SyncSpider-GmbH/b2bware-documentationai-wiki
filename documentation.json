@@ -40,6 +40,13 @@
               { "title": "Common Patterns", "path": "core-concepts/common-patterns", "icon": "layers" },
               { "title": "Filtering", "path": "core-concepts/filtering", "icon": "filter" },
               { "title": "Includes & Relations", "path": "core-concepts/includes", "icon": "git-branch" },
+              { "title": "Recommended Includes", "path": "core-concepts/recommended-includes", "icon": "list" },
+              { "title": "Pricing", "path": "core-concepts/pricing", "icon": "tag" },
+              { "title": "Media URLs", "path": "core-concepts/media-urls", "icon": "image" },
+              { "title": "Webhooks", "path": "core-concepts/webhooks", "icon": "webhook" },
+              { "title": "Idempotency", "path": "core-concepts/idempotency", "icon": "repeat" },
+              { "title": "Versioning", "path": "core-concepts/versioning", "icon": "git-branch" },
+              { "title": "Environments", "path": "core-concepts/environments", "icon": "layers" },
               { "title": "Error Handling", "path": "core-concepts/error-handling", "icon": "alert-circle" }
             ]
           },
@@ -67,7 +74,18 @@
               { "title": "Checkout Flow", "path": "advanced/checkout-flow", "icon": "credit-card" },
               { "title": "Tax Calculation", "path": "advanced/tax-calculation", "icon": "calculator" },
               { "title": "Product Variations", "path": "advanced/product-variations", "icon": "copy" },
-              { "title": "AI Features", "path": "advanced/ai-features", "icon": "cpu" }
+              { "title": "AI Features", "path": "advanced/ai-features", "icon": "cpu" },
+              {
+                "group": "Storefront",
+                "icon": "shopping-bag",
+                "pages": [
+                  { "title": "Browse the Catalog", "path": "advanced/storefront/browse-catalog", "icon": "search" },
+                  { "title": "Product Detail", "path": "advanced/storefront/product-detail", "icon": "box" },
+                  { "title": "Cart and Checkout", "path": "advanced/storefront/cart-and-checkout", "icon": "shopping-cart" },
+                  { "title": "Customer Account", "path": "advanced/storefront/customer-account", "icon": "user" },
+                  { "title": "Post-Purchase", "path": "advanced/storefront/post-purchase", "icon": "receipt" }
+                ]
+              }
             ]
           }
         ]

@@ -1,0 +1,151 @@
+---
+title: Idempotency
+description: How to make integrations safe to retry — upsert endpoints, natural keys, and webhook deduplication.
+---
+
+## Overview
+
+Networks fail. Background jobs retry. A payment provider redelivers the same callback. Without idempotency, a retried operation creates duplicate orders, double-counts stock, or sends two confirmation emails.
+
+DataHub does **not** support a generic `Idempotency-Key` header (the way Stripe does). Instead it gives you three building blocks: **upsert endpoints**, **natural unique keys**, and **deterministic event ids** for inbound webhooks.
+
+## Pattern 1 — Upsert by Natural Key
+
+The catalog hubs expose dedicated `upsert` endpoints that look up the record by a natural key (typically `sku` for products, `code` for tax classes, `email` for customers) and either create or update it.
+
+| Endpoint | Key |
+|---|---|
+| `PUT /api/v1/apps/product-hub/products/upsert/single` | `sku` |
+| `POST /api/v1/apps/product-hub/stock/upsert/bulk` | `product_id` + `warehouse_id` |
+| `POST /api/v1/apps/product-hub/prices/upsert/bulk` | `product_id` + `customer_group_id` (when present) |
+| `PUT /api/v1/apps/product-hub/translations/upsert/single` | `mediable_type` + `mediable_id` + `locale` |
+| `PATCH /api/v1/apps/order-hub/carts` | the cart UUID / customer id |
+
+Retry these endpoints freely — the same input always produces the same row.
+
+```bash
+# Importing the same product twice creates one record, not two.
+curl -s -X PUT 'https://api.../product-hub/products/upsert/single' \
+  -H 'Authorization: Bearer ...' \
+  -d '{"sku":"ACME-DRILL-18V","name":"Acme Drill","price":{"price":199.00}}'
+```
+
+## Pattern 2 — Validate Uniqueness Server-Side
+
+Where an upsert is not available, lean on the database-level uniqueness checks:
+
+| Resource | Unique field(s) |
+|---|---|
+| Product | `sku` per installation |
+| Customer | `email` per installation |
+| Category | `seo.slug` per installation |
+| Attribute | `code` per installation |
+| Order | `order_number` per installation |
+| License key | `key` per installation |
+
+Re-issuing a `POST` with the same unique value returns `422 Validation failed` rather than creating a duplicate. Treat the 422 as "already created" and re-fetch by the natural key:
+
+```js
+const res = await fetch('/api/v1/apps/customer-hub/customers', { method: 'POST', body: ... });
+if (res.status === 422 && err.errors?.email?.[0]?.includes('unique')) {
+  // Already exists. Look it up.
+  const existing = await fetch(`/customers?filter[email]=[{"condition":"=","value":"${email}"}]`);
+}
+```
+
+## Pattern 3 — Idempotency on Inbound Webhooks
+
+EventHub deliveries include two stable identifiers:
+
+| Header / Field | Meaning |
+|---|---|
+| `X-EventHub-Subscription-Id` | The subscription that generated the delivery. |
+| `event_id` (in payload) | Unique per event occurrence. Stable across retries. |
+
+Use the pair `(subscription_id, event_id)` as a dedupe key on your side:
+
+```js
+async function handle(req, res) {
+  const subId   = req.header('X-EventHub-Subscription-Id');
+  const eventId = req.body.event_id;
+  const dedupeKey = `${subId}:${eventId}`;
+
+  if (await alreadyProcessed(dedupeKey)) {
+    return res.status(200).end();        // 200 so EventHub stops retrying
+  }
+  await markProcessing(dedupeKey);
+
+  try {
+    await applyEvent(req.body);
+    await markDone(dedupeKey);
+    res.status(200).end();
+  } catch (e) {
+    await markFailed(dedupeKey);
+    res.status(500).end();               // triggers backoff retry
+  }
+}
+```
+
+Keep dedupe keys for at least a week — long enough to outlast EventHub's retry window and any auto-pause/resume cycle. See [Webhooks](/core-concepts/webhooks) for the full retry rules.
+
+## Pattern 4 — Cart and Checkout
+
+The cart-to-order conversion is **not** safely re-runnable. Specifically:
+
+- `POST /carts/{cart}/checkout` creates the order and consumes stock. A retry creates a second order on the same cart only if the cart still has items. Empty carts return `422`.
+- `GET  /carts/{cart}/checkout` (preview) is fully idempotent — safe to call repeatedly.
+
+The storefront pattern is:
+
+1. Lock the checkout button as soon as the user presses it.
+2. POST the checkout exactly once.
+3. On network error / timeout, re-fetch the cart by id. If it has no items (consumed) or it returned an `order_id`, the order exists — show the order page.
+
+The state machine guard (see OrderHub settings → State Machine) further protects against repeated status flips, e.g. paid→paid is a no-op.
+
+## Pattern 5 — Outbound to Payment Providers
+
+When DataHub forwards a payment intent to Mollie/Stripe, the provider's own idempotency model takes over. The webhook callback flows back to:
+
+```
+POST /api/v1/apps/order-hub/payment/webhook/{installationKey}/{provider}/{order_id}
+```
+
+DataHub recognizes a repeated callback for an already-paid order and short-circuits to a 200 without double-applying the side effects.
+
+## What DataHub Does **Not** Have
+
+| Capability | Status |
+|---|---|
+| `Idempotency-Key` request header | Not supported. Use the patterns above. |
+| Cross-request transaction id | Not supported. Each request stands alone. |
+| Replay protection for the Bearer token | The token itself is replay-safe (TLS), but operations are not. Idempotency is the caller's job. |
+
+If you need a true `Idempotency-Key` (e.g. integrating from a system that already uses it), implement it in a thin proxy in front of DataHub: hash the body, store `(key, response)` for 24 h, and replay the cached response on collision.
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Duplicate orders after a network blip | Storefront retried the POST checkout. | Disable the submit button until a response arrives; verify by cart id before retrying. |
+| Duplicate customers after registration retry | POST /register returned 5xx, retried. | Check `email` uniqueness with a GET first, or treat 422 as "exists". |
+| Two stock decrements on the same order | Custom integration POSTed status update twice. | Use the OrderHub state machine; repeats are no-ops. |
+| Double emails | Webhook processed twice. | Implement `(subscription_id, event_id)` dedupe. |
+| Lost event after dedupe | Marked "processed" before the work actually finished. | Use a two-step state (`processing` → `done`); only short-circuit on `done`. |
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Webhooks" icon="webhook" href="/core-concepts/webhooks">
+    The retry rules behind inbound and outbound webhooks.
+  </Card>
+  <Card title="Rate Limiting" icon="gauge" href="/help-center/troubleshooting/rate-limiting">
+    Retry safely without tripping rate limits.
+  </Card>
+  <Card title="Error Handling" icon="triangle-alert" href="/core-concepts/error-handling">
+    422 vs 5xx — when to retry and when to surface.
+  </Card>
+  <Card title="Cart and Checkout" icon="shopping-cart" href="/advanced/storefront/cart-and-checkout">
+    The single most retry-sensitive flow in DataHub.
+  </Card>
+</Columns>
