@@ -15,9 +15,9 @@ On `GET /api/v1/apps/auth-hub/me` the response is more specific (e.g. `"No x-aut
 
 ### Causes by mode
 
-**Storefront** (`x-installation-key` based):
+**Storefront** (`installation-key` based):
 
-- `x-installation-key` header missing entirely.
+- `installation-key` header missing entirely.
 - Installation key is malformed or refers to an installation that does not exist.
 - Calling a customer-only endpoint (e.g. `GET /me`) without `x-auth-token`.
 - `x-auth-token` expired (sliding idle window — no activity for too long) or revoked (`POST /logout` was called).
@@ -38,7 +38,7 @@ Run a known-good request and verify the response:
 # Storefront — should return a product list
 curl -s -X GET \
   'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?per_page=1' \
-  -H 'x-installation-key: YOUR_INSTALLATION_KEY' \
+  -H 'installation-key: YOUR_INSTALLATION_KEY' \
   -H 'Accept: application/json'
 
 # Server-to-server — should return a product list

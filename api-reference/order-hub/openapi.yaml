@@ -128,7 +128,7 @@ paths:
         their carts (typically one active). For a guest with `session-uuid`, the
         matching guest cart.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -174,7 +174,7 @@ paths:
                 "{\n  \"customer_id\": null,\n  \"session_uuid\":
                 \"00000000-0000-0000-0000-000000000000\"\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -214,7 +214,7 @@ paths:
               type: string
               example: '"{}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -245,7 +245,7 @@ paths:
         - Carts
       summary: Show Cart
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -290,7 +290,7 @@ paths:
                 "{\n  \"billing_method_id\": 1,\n  \"shipping_method_id\": 2,\n 
                 \"billing_address_id\": 5,\n  \"shipping_address_id\": 5\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -326,7 +326,7 @@ paths:
         - Carts
       summary: Delete Cart
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -362,7 +362,7 @@ paths:
         free shipping"). Useful for showing motivational messaging in the cart
         UI.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -394,7 +394,7 @@ paths:
         - Cart Items
       summary: List Cart Items
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -437,7 +437,7 @@ paths:
                 "{\n  \"cart_id\": 1,\n  \"product_id\": 100,\n  \"quantity\":
                 2\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -468,7 +468,7 @@ paths:
         - Cart Items
       summary: Show Cart Item
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -505,7 +505,7 @@ paths:
               type: string
               example: '"{\n  \"quantity\": 3\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -541,7 +541,7 @@ paths:
         - Cart Items
       summary: Remove Cart Item
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -576,7 +576,7 @@ paths:
         Returns the priced, tax-calculated, shipping-resolved view of the cart,
         ready for confirmation.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -620,7 +620,7 @@ paths:
                 \"billing_address_id\": 5,\n  \"shipping_address_id\": 5,\n 
                 \"customer_payment_method_id\": null,\n  \"notes\": \"\"\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -657,7 +657,7 @@ paths:
         - Orders
       summary: List Orders
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -698,7 +698,7 @@ paths:
         - Orders
       summary: Show Order
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -735,7 +735,7 @@ paths:
         - Billing & Shipping Methods
       summary: List Billing Methods
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -766,7 +766,7 @@ paths:
         - Billing & Shipping Methods
       summary: Show Billing Method
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -798,7 +798,7 @@ paths:
         - Billing & Shipping Methods
       summary: List Shipping Methods
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -829,7 +829,7 @@ paths:
         - Billing & Shipping Methods
       summary: Show Shipping Method
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -861,7 +861,7 @@ paths:
         - Customer Payment Methods
       summary: List Payment Methods
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -895,7 +895,7 @@ paths:
                 \"tok_xxxxxxxxxxxxxxxx\",\n  \"display_name\": \"Visa ending
                 4242\"\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -926,7 +926,7 @@ paths:
         - Customer Payment Methods
       summary: Show Payment Method
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -963,7 +963,7 @@ paths:
               type: string
               example: '"{\n  \"display_name\": \"Primary card\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -999,7 +999,7 @@ paths:
         - Customer Payment Methods
       summary: Delete Payment Method
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1038,7 +1038,7 @@ paths:
               type: string
               example: '"{\n  \"billing_method_id\": 1\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1069,7 +1069,7 @@ paths:
         - Quotes (B2B)
       summary: List Quotes
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1110,7 +1110,7 @@ paths:
               type: string
               example: '"{\n  \"notes\": \"Please quote for 100 units.\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1141,7 +1141,7 @@ paths:
         - Quotes (B2B)
       summary: Show Quote
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1183,7 +1183,7 @@ paths:
               type: string
               example: '"{\n  \"status\": \"submitted\",\n  \"notes\": \"\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1219,7 +1219,7 @@ paths:
         - Quotes (B2B)
       summary: Delete Quote
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1251,7 +1251,7 @@ paths:
         - Quotes (B2B)
       summary: List Quote Items
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1289,7 +1289,7 @@ paths:
                 "{\n  \"quote_id\": 1,\n  \"product_id\": 100,\n  \"quantity\":
                 100\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1326,7 +1326,7 @@ paths:
               type: string
               example: '"{\n  \"quantity\": 150\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1362,7 +1362,7 @@ paths:
         - Quotes (B2B)
       summary: Delete Quote Item
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1394,7 +1394,7 @@ paths:
         - Quotes (B2B)
       summary: List Quote Item Groups
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1425,7 +1425,7 @@ paths:
         - Quotes (B2B)
       summary: Show Quote Item Group
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string

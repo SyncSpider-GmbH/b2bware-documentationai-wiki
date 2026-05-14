@@ -1,14 +1,14 @@
 ---
 title: Installation Key
-description: What x-installation-key is, where to find it, and where it appears in DataHub URLs.
+description: What installation-key is, where to find it, and where it appears in DataHub URLs.
 ---
 
 ## What It Is
 
-An **installation key** is a UUID that identifies a single DataHub shop installation. Every storefront request must send it as the `x-installation-key` header so the API knows which tenant the request belongs to.
+An **installation key** is a UUID that identifies a single DataHub shop installation. Every storefront request must send it as the `installation-key` header so the API knows which tenant the request belongs to.
 
 ```
-x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061
+installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061
 ```
 
 The installation key is **safe to expose in browser code** — it is a tenant identifier, not a secret credential. (The customer-specific secret is the `x-auth-token` that is issued at login.)
@@ -25,7 +25,7 @@ If your admin panel exposes more than one installation (for example, staging and
 
 ## Where It Appears
 
-Most of the time the installation key travels as the `x-installation-key` HTTP header. There are two places where it appears differently:
+Most of the time the installation key travels as the `installation-key` HTTP header. There are two places where it appears differently:
 
 ### In the URL path — public callback endpoints
 
@@ -55,7 +55,7 @@ async function api(path, options = {}) {
   return fetch(`https://api.datahub.syncspider.com${path}`, {
     ...options,
     headers: {
-      'x-installation-key': INSTALLATION_KEY,
+      'installation-key': INSTALLATION_KEY,
       'Accept': 'application/json',
       ...(options.body ? { 'Content-Type': 'application/json' } : {}),
       ...(localStorage.getItem('x-auth-token') && {
@@ -69,7 +69,7 @@ async function api(path, options = {}) {
 
 ## Errors
 
-If `x-installation-key` is missing on a storefront request:
+If `installation-key` is missing on a storefront request:
 
 ```json
 { "message": "Unauthenticated." }

@@ -9,8 +9,8 @@ It depends on where your code runs.
 
 | You are building… | Send these headers |
 |---|---|
-| A storefront (browser, mobile app) — guest browsing | `x-installation-key` |
-| A storefront — logged-in B2B customer | `x-installation-key` + `x-auth-token` |
+| A storefront (browser, mobile app) — guest browsing | `installation-key` |
+| A storefront — logged-in B2B customer | `installation-key` + `x-auth-token` |
 | A backend integration (ERP, sync job, BFF, MCP server) | `Authorization: Bearer {api_token}` |
 
 The Bearer token must **never** be shipped to a browser. See the [Authentication overview](/authentication) for the full matrix.
@@ -25,11 +25,11 @@ API tokens are issued through the DataHub admin panel. Contact your administrato
 
 ## How does a customer get an `x-auth-token`?
 
-Call `POST /api/v1/apps/auth-hub/login` with the customer's email and password (and `x-installation-key`). The response contains a `token` value — that is the `x-auth-token` for subsequent requests. See [Storefront Customer Auth](/authentication/storefront-customer).
+Call `POST /api/v1/apps/auth-hub/login` with the customer's email and password (and `installation-key`). The response contains a `token` value — that is the `x-auth-token` for subsequent requests. See [Storefront Customer Auth](/authentication/storefront-customer).
 
 ## Does one credential work across all hubs?
 
-Yes. A single `x-installation-key` (and, when logged in, `x-auth-token`) is valid against every storefront-facing hub. A single Bearer token is valid against every back-office hub. The hub-specific URL prefix (`/api/v1/apps/{hub-slug}/`) only chooses *which* endpoints you can reach — it does not require a hub-specific credential.
+Yes. A single `installation-key` (and, when logged in, `x-auth-token`) is valid against every storefront-facing hub. A single Bearer token is valid against every back-office hub. The hub-specific URL prefix (`/api/v1/apps/{hub-slug}/`) only chooses *which* endpoints you can reach — it does not require a hub-specific credential.
 
 ## Are there any unauthenticated endpoints?
 
@@ -49,7 +49,7 @@ Customer tokens use a **sliding idle window** — every authenticated request re
 
 There is no explicit refresh endpoint today.
 
-## Can I mix Bearer with `x-installation-key`?
+## Can I mix Bearer with `installation-key`?
 
 No. When a Bearer token is present the API uses it and ignores the storefront headers. Pick one mode per request.
 
@@ -67,7 +67,7 @@ See [Authentication Errors](/help-center/troubleshooting/authentication-errors) 
 
 Authentication is missing or invalid:
 
-- `x-installation-key` missing, malformed, or unknown.
+- `installation-key` missing, malformed, or unknown.
 - `Authorization` header missing on a server-to-server call.
 - `x-auth-token` expired (idle too long) or revoked (logout).
 - Extra whitespace, line breaks, or URL encoding in the token.

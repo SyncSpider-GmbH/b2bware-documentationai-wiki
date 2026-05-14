@@ -12,7 +12,7 @@ Before you begin, you need:
 
 ## Your First API Call
 
-The example below uses the **storefront mode** (`x-installation-key`), which is what you want for browser- or mobile-based shops. For server-to-server integrations, replace the storefront header with `Authorization: Bearer YOUR_API_TOKEN` — see [Server-to-Server Tokens](/authentication/server-to-server).
+The example below uses the **storefront mode** (`installation-key`), which is what you want for browser- or mobile-based shops. For server-to-server integrations, replace the storefront header with `Authorization: Bearer YOUR_API_TOKEN` — see [Server-to-Server Tokens](/authentication/server-to-server).
 
 <Steps>
   <Step title="Set up your installation key" icon="key">
@@ -30,7 +30,7 @@ export DATAHUB_DOMAIN="api.datahub.syncspider.com"
 ```bash
 curl -s -X GET \
   "https://${DATAHUB_DOMAIN}/api/v1/apps/product-hub/products?filter[status]=public&include=price,finalPrice,mainMedia&per_page=5&sort=-_created_at" \
-  -H "x-installation-key: ${DATAHUB_INSTALLATION_KEY}" \
+  -H "installation-key: ${DATAHUB_INSTALLATION_KEY}" \
   -H "Accept: application/json"
 ```
     </Request>
@@ -42,7 +42,7 @@ curl -s -X GET \
 ```bash
 curl -s -X POST \
   "https://${DATAHUB_DOMAIN}/api/v1/apps/auth-hub/login" \
-  -H "x-installation-key: ${DATAHUB_INSTALLATION_KEY}" \
+  -H "installation-key: ${DATAHUB_INSTALLATION_KEY}" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
   -d '{ "email": "jane.doe@example.com", "password": "your-password" }'
@@ -62,7 +62,7 @@ export DATAHUB_AUTH_TOKEN="42.JDJ5JDEyJGFiY2RlZmdo..."
 ```bash
 curl -s -X GET \
   "https://${DATAHUB_DOMAIN}/api/v1/apps/order-hub/carts?include=cartItems.product.price,cartItems.product.mainMedia" \
-  -H "x-installation-key: ${DATAHUB_INSTALLATION_KEY}" \
+  -H "installation-key: ${DATAHUB_INSTALLATION_KEY}" \
   -H "x-auth-token: ${DATAHUB_AUTH_TOKEN}" \
   -H "Accept: application/json"
 ```

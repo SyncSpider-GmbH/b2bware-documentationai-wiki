@@ -13,7 +13,7 @@ Use a Bearer token when your code runs on a trusted backend that you control:
 - Your own BFF / proxy in front of a storefront, when you choose to forward requests as the tenant rather than as the end customer.
 
 <Callout kind="alert" title="Never ship a Bearer token to a browser">
-A Bearer token grants tenant-wide access, including back-office data and writes. If it leaks, the entire installation is compromised. For storefronts, use [`x-installation-key`](/authentication/installation-key) plus the customer's [`x-auth-token`](/authentication/storefront-customer) instead.
+A Bearer token grants tenant-wide access, including back-office data and writes. If it leaks, the entire installation is compromised. For storefronts, use [`installation-key`](/authentication/installation-key) plus the customer's [`x-auth-token`](/authentication/storefront-customer) instead.
 </Callout>
 
 ## How to Obtain a Token
@@ -52,7 +52,7 @@ Use a read-only token for analytics pipelines, dashboards, and any consumer that
 
 ## Combining with the Storefront Headers
 
-A Bearer token **replaces** the storefront headers — do not mix them. If both `Authorization: Bearer` and `x-installation-key` are present, the API uses the Bearer token.
+A Bearer token **replaces** the storefront headers — do not mix them. If both `Authorization: Bearer` and `installation-key` are present, the API uses the Bearer token.
 
 There is no reason to send `x-auth-token` together with a Bearer token: the Bearer token already identifies the installation, and customer ownership is enforced by the integrator's own logic, not by the customer guard.
 

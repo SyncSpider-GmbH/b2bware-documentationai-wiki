@@ -18,7 +18,7 @@ The DataHub API currently responds to cross-origin browser requests with permiss
 
 In practice this means:
 
-- A browser at any origin can call the API with `x-installation-key` and `x-auth-token`.
+- A browser at any origin can call the API with `installation-key` and `x-auth-token`.
 - Cookies and credentialed `fetch` calls are accepted.
 - `OPTIONS` preflight responses are not cached client-side, so high-frequency endpoints generate one preflight per call from the browser.
 
@@ -37,7 +37,7 @@ const INSTALLATION_KEY = import.meta.env.VITE_DATAHUB_INSTALLATION_KEY;
 
 fetch('https://api.datahub.syncspider.com/api/v1/apps/product-hub/products', {
   headers: {
-    'x-installation-key': INSTALLATION_KEY,
+    'installation-key': INSTALLATION_KEY,
     'Accept': 'application/json',
   },
 });
@@ -60,7 +60,7 @@ Browser  →  Your BFF  →  api.datahub.syncspider.com
 
 Your BFF:
 1. Holds the installation key as a server-side secret (no longer in the JS bundle).
-2. Forwards storefront calls with `x-installation-key` and the user's `x-auth-token` (if any).
+2. Forwards storefront calls with `installation-key` and the user's `x-auth-token` (if any).
 3. Can enforce per-IP rate limits, response caching, and request shaping.
 4. Can host endpoints that mix DataHub with your own data (CMS pages, analytics).
 
@@ -72,7 +72,7 @@ Use direct browser calls for read-heavy public endpoints (catalog browsing, sear
 
 ## Preflight Behavior
 
-`max-age: 0` means browsers re-issue an `OPTIONS` request before every cross-origin call that triggers preflight (any call with `x-installation-key`, `x-auth-token`, or `Content-Type: application/json`). For storefronts that issue many small requests per page, this doubles the request count.
+`max-age: 0` means browsers re-issue an `OPTIONS` request before every cross-origin call that triggers preflight (any call with `installation-key`, `x-auth-token`, or `Content-Type: application/json`). For storefronts that issue many small requests per page, this doubles the request count.
 
 Mitigations:
 - Same-origin proxy via Pattern B (no CORS, no preflight).

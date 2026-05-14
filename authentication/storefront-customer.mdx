@@ -5,10 +5,10 @@ description: Login, registration, password reset, and email verification flows f
 
 ## Overview
 
-A B2B customer on the storefront authenticates via the **AuthHub** endpoints. After a successful login the API returns an `x-auth-token` that the storefront sends on every request alongside `x-installation-key`.
+A B2B customer on the storefront authenticates via the **AuthHub** endpoints. After a successful login the API returns an `x-auth-token` that the storefront sends on every request alongside `installation-key`.
 
 ```
-x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061    ← always
+installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061    ← always
 x-auth-token:        42.JDJ5JDEyJGFiY2RlZmdo...               ← when logged in
 ```
 
@@ -20,13 +20,13 @@ All endpoints below are under the prefix `/api/v1/apps/auth-hub`.
 
 | Method | Path | Auth required | Purpose |
 |---|---|---|---|
-| `POST` | `/login` | `x-installation-key` | Issue an `x-auth-token` for an existing customer |
-| `POST` | `/register` | `x-installation-key` | Create a new customer account |
-| `POST` | `/logout` | `x-installation-key` + `x-auth-token` | Revoke the current token |
-| `GET` | `/me` | `x-installation-key` + `x-auth-token` | Return the currently logged-in customer |
-| `POST` | `/forgot-password` | `x-installation-key` | Send a password reset email |
+| `POST` | `/login` | `installation-key` | Issue an `x-auth-token` for an existing customer |
+| `POST` | `/register` | `installation-key` | Create a new customer account |
+| `POST` | `/logout` | `installation-key` + `x-auth-token` | Revoke the current token |
+| `GET` | `/me` | `installation-key` + `x-auth-token` | Return the currently logged-in customer |
+| `POST` | `/forgot-password` | `installation-key` | Send a password reset email |
 | `POST` | `/{installationKey}/reset-password` | none (key in URL) | Complete password reset from email link |
-| `POST` | `/send-verification-email` | `x-installation-key` | Resend the email verification message |
+| `POST` | `/send-verification-email` | `installation-key` | Resend the email verification message |
 | `POST` | `/{installationKey}/verify-email` | none (key in URL) | Complete email verification from email link |
 | `POST` | `/impersonate/{customerId}` | sales agent token | Sales agent: act as a customer |
 | `POST` | `/impersonate/leave` | sales agent token | Sales agent: stop impersonating |
@@ -38,7 +38,7 @@ All endpoints below are under the prefix `/api/v1/apps/auth-hub`.
 ```bash
 curl -s -X POST \
   'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/login' \
-  -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -87,7 +87,7 @@ The API intentionally does **not** reveal whether a `password not valid` respons
 ```bash
 curl -s -X POST \
   'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/register' \
-  -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -160,7 +160,7 @@ If the email belongs to an existing **guest** customer (created by a prior guest
 ```bash
 curl -s -X GET \
   'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/me' \
-  -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
   -H 'x-auth-token: 42.JDJ5JDEyJGFiY2RlZmdo...' \
   -H 'Accept: application/json'
 ```
@@ -174,7 +174,7 @@ Returns the customer profile with company, role, and default addresses loaded.
 ```bash
 curl -s -X POST \
   'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/logout' \
-  -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
   -H 'x-auth-token: 42.JDJ5JDEyJGFiY2RlZmdo...' \
   -H 'Accept: application/json'
 ```
@@ -198,7 +198,7 @@ Two-step flow:
 ```bash
 curl -s -X POST \
   'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/forgot-password' \
-  -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
   -H 'Content-Type: application/json' \
   -d '{ "email": "jane.doe@example.com" }'
 ```
@@ -232,7 +232,7 @@ Two-step flow, same shape as password reset. After registration the customer rec
 ```bash
 curl -s -X POST \
   'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/send-verification-email' \
-  -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
   -H 'Content-Type: application/json' \
   -d '{ "email": "jane.doe@example.com" }'
 ```
@@ -267,7 +267,7 @@ Non-agents receive `403` from any of these endpoints.
 
 ## Guest Checkout
 
-Storefronts can let unauthenticated visitors place orders without registering. In that flow you do **not** include `x-auth-token`; the cart is identified by a `session_uuid` value the storefront generates and persists in the browser. See [Cart and Checkout](/advanced/storefront/cart-and-checkout) for the full guest flow.
+Storefronts can let unauthenticated visitors place orders without registering. In that flow you do **not** include `x-auth-token`; the cart is identified by the `session-uuid` header the storefront generates on first visit and persists in the browser (typically in `localStorage`). The API echoes the same `session-uuid` back on every response so the client can pick up server-side rotations. After login the guest cart is merged onto the customer account; the same `session-uuid` can still be sent and is ignored where not relevant. See [Cart and Checkout](/advanced/storefront/cart-and-checkout) for the full guest flow.
 
 When such a guest later registers with the same email, the existing customer record is upgraded in place — prior guest orders stay attached.
 

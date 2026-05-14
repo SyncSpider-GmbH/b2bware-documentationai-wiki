@@ -123,7 +123,7 @@ paths:
   /api/v1/apps/auth-hub/login:
     post:
       tags:
-        - Customer auth (x-installation-key)
+        - Customer auth (installation-key)
         - AuthHub
       summary: Login
       description: >-
@@ -165,7 +165,7 @@ paths:
               example: '"{\n  \"email\": \"jane.doe@example.com\",\n  \"password\":
                 \"correct-horse-battery-staple\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -188,7 +188,7 @@ paths:
   /api/v1/apps/auth-hub/register:
     post:
       tags:
-        - Customer auth (x-installation-key)
+        - Customer auth (installation-key)
         - AuthHub
       summary: Register
       description: >-
@@ -227,7 +227,7 @@ paths:
                 1\",\n    \"city\": \"Vienna\",\n    \"zip\":
                 \"1010\",\n    \"country_code\": \"AT\"\n  }\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -250,7 +250,7 @@ paths:
   /api/v1/apps/auth-hub/forgot-password:
     post:
       tags:
-        - Customer auth (x-installation-key)
+        - Customer auth (installation-key)
         - AuthHub
       summary: Forgot Password
       description: >-
@@ -267,7 +267,7 @@ paths:
               type: string
               example: '"{\n  \"email\": \"jane.doe@example.com\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -290,7 +290,7 @@ paths:
   /api/v1/apps/auth-hub/send-verification-email:
     post:
       tags:
-        - Customer auth (x-installation-key)
+        - Customer auth (installation-key)
         - AuthHub
       summary: Send Verification Email
       description: (Re)sends a 6-character email-verification code (24 hour expiry).
@@ -303,7 +303,7 @@ paths:
               type: string
               example: '"{\n  \"email\": \"jane.doe@example.com\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -326,7 +326,7 @@ paths:
   /api/v1/apps/auth-hub/me:
     get:
       tags:
-        - Customer auth (x-installation-key)
+        - Customer auth (installation-key)
         - AuthHub
       summary: Get Me
       description: >-
@@ -348,7 +348,7 @@ paths:
 
         Use this to distinguish 'token missing' from 'token expired'.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -371,7 +371,7 @@ paths:
   /api/v1/apps/auth-hub/logout:
     post:
       tags:
-        - Customer auth (x-installation-key)
+        - Customer auth (installation-key)
         - AuthHub
       summary: Logout
       description: >-
@@ -384,7 +384,7 @@ paths:
       requestBody:
         content: {}
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -417,7 +417,7 @@ paths:
 
         Agents cannot impersonate other agents or admins.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -455,7 +455,7 @@ paths:
       requestBody:
         content: {}
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -493,7 +493,7 @@ paths:
       requestBody:
         content: {}
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1942,7 +1942,7 @@ paths:
         is their carts (typically one active). For a guest with `session-uuid`,
         the matching guest cart.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -1987,7 +1987,7 @@ paths:
               example: '"{\n  \"customer_id\": null,\n  \"session_uuid\":
                 \"00000000-0000-0000-0000-000000000000\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2027,7 +2027,7 @@ paths:
               type: string
               example: '"{}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2059,7 +2059,7 @@ paths:
         - OrderHub
       summary: Show Cart
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2105,7 +2105,7 @@ paths:
                 2,\n  \"billing_address_id\": 5,\n  \"shipping_address_id\":
                 5\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2142,7 +2142,7 @@ paths:
         - OrderHub
       summary: Delete Cart
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2178,7 +2178,7 @@ paths:
         more for free shipping"). Useful for showing motivational messaging in
         the cart UI.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2211,7 +2211,7 @@ paths:
         - OrderHub
       summary: List Cart Items
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2253,7 +2253,7 @@ paths:
               type: string
               example: '"{\n  \"cart_id\": 1,\n  \"product_id\": 100,\n  \"quantity\": 2\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2285,7 +2285,7 @@ paths:
         - OrderHub
       summary: Show Cart Item
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2323,7 +2323,7 @@ paths:
               type: string
               example: '"{\n  \"quantity\": 3\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2360,7 +2360,7 @@ paths:
         - OrderHub
       summary: Remove Cart Item
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2395,7 +2395,7 @@ paths:
       description: Returns the priced, tax-calculated, shipping-resolved view of the
         cart, ready for confirmation.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2439,7 +2439,7 @@ paths:
                 5,\n  \"customer_payment_method_id\": null,\n  \"notes\":
                 \"\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2477,7 +2477,7 @@ paths:
         - OrderHub
       summary: List Orders
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2519,7 +2519,7 @@ paths:
         - OrderHub
       summary: Show Order
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2557,7 +2557,7 @@ paths:
         - OrderHub
       summary: List Billing Methods
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2589,7 +2589,7 @@ paths:
         - OrderHub
       summary: Show Billing Method
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2622,7 +2622,7 @@ paths:
         - OrderHub
       summary: List Shipping Methods
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2654,7 +2654,7 @@ paths:
         - OrderHub
       summary: Show Shipping Method
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2687,7 +2687,7 @@ paths:
         - OrderHub
       summary: List Payment Methods
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2721,7 +2721,7 @@ paths:
                 \"tok_xxxxxxxxxxxxxxxx\",\n  \"display_name\": \"Visa ending
                 4242\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2753,7 +2753,7 @@ paths:
         - OrderHub
       summary: Show Payment Method
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2791,7 +2791,7 @@ paths:
               type: string
               example: '"{\n  \"display_name\": \"Primary card\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2828,7 +2828,7 @@ paths:
         - OrderHub
       summary: Delete Payment Method
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2868,7 +2868,7 @@ paths:
               type: string
               example: '"{\n  \"billing_method_id\": 1\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2900,7 +2900,7 @@ paths:
         - OrderHub
       summary: List Quotes
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2942,7 +2942,7 @@ paths:
               type: string
               example: '"{\n  \"notes\": \"Please quote for 100 units.\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -2974,7 +2974,7 @@ paths:
         - OrderHub
       summary: Show Quote
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3017,7 +3017,7 @@ paths:
               type: string
               example: '"{\n  \"status\": \"submitted\",\n  \"notes\": \"\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3054,7 +3054,7 @@ paths:
         - OrderHub
       summary: Delete Quote
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3087,7 +3087,7 @@ paths:
         - OrderHub
       summary: List Quote Items
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3125,7 +3125,7 @@ paths:
               example: '"{\n  \"quote_id\": 1,\n  \"product_id\": 100,\n  \"quantity\":
                 100\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3163,7 +3163,7 @@ paths:
               type: string
               example: '"{\n  \"quantity\": 150\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3200,7 +3200,7 @@ paths:
         - OrderHub
       summary: Delete Quote Item
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3233,7 +3233,7 @@ paths:
         - OrderHub
       summary: List Quote Item Groups
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3265,7 +3265,7 @@ paths:
         - OrderHub
       summary: Show Quote Item Group
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3300,7 +3300,7 @@ paths:
       description: For shop customers this returns just their own record. For agents
         it lists impersonatable customers.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3345,7 +3345,7 @@ paths:
               example: '"{\n  \"first_name\": \"Jane\",\n  \"last_name\":
                 \"Doe\",\n  \"email\": \"jane@example.com\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3377,7 +3377,7 @@ paths:
         - CustomerHub
       summary: Show Customer
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3422,7 +3422,7 @@ paths:
                 \"Doe\",\n  \"phone\": \"+43 660 7654321\",\n  \"language\":
                 \"en\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3463,7 +3463,7 @@ paths:
       description: Admin/agent context. Self-deletion by a shop customer is not
         currently supported (tracked as a gap).
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3496,7 +3496,7 @@ paths:
         - CustomerHub
       summary: List Shipping Addresses
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3543,7 +3543,7 @@ paths:
                 \"AT\",\n  \"phone\": \"+43 660 1234567\",\n  \"is_default\":
                 true\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3575,7 +3575,7 @@ paths:
         - CustomerHub
       summary: Show Shipping Address
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3613,7 +3613,7 @@ paths:
               type: string
               example: '"{\n  \"street\": \"Hauptstrasse 2\",\n  \"is_default\": true\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3650,7 +3650,7 @@ paths:
         - CustomerHub
       summary: Delete Shipping Address
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3683,7 +3683,7 @@ paths:
         - CustomerHub
       summary: List Billing Addresses
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3730,7 +3730,7 @@ paths:
                 \"1010\",\n  \"country_code\": \"AT\",\n  \"is_default\":
                 true\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3762,7 +3762,7 @@ paths:
         - CustomerHub
       summary: Show Billing Address
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3800,7 +3800,7 @@ paths:
               type: string
               example: '"{\n  \"vat_id\": \"ATU87654321\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3837,7 +3837,7 @@ paths:
         - CustomerHub
       summary: Delete Billing Address
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3870,7 +3870,7 @@ paths:
         - CustomerHub
       summary: Show My Favorites
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3908,7 +3908,7 @@ paths:
               type: string
               example: '"{\n  \"product_ids\": [\n    100,\n    101,\n    102\n  ]\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3940,7 +3940,7 @@ paths:
         - CustomerHub
       summary: List Companies (scoped)
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -3977,7 +3977,7 @@ paths:
               type: string
               example: '"{\n  \"name\": \"Acme GmbH\",\n  \"vat_id\": \"ATU12345678\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4009,7 +4009,7 @@ paths:
         - CustomerHub
       summary: Show Company
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4052,7 +4052,7 @@ paths:
               type: string
               example: '"{\n  \"name\": \"Acme International GmbH\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4090,7 +4090,7 @@ paths:
         - CustomerHub
       summary: List Customer Groups
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4117,7 +4117,7 @@ paths:
         - CustomerHub
       summary: Show Customer Group
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4150,7 +4150,7 @@ paths:
         - CustomerHub
       summary: List Setting Groups
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4177,7 +4177,7 @@ paths:
         - CustomerHub
       summary: List All Settings
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4204,7 +4204,7 @@ paths:
         - CustomerHub
       summary: Show Setting Group
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4290,7 +4290,7 @@ paths:
                 100,\n      \"quantity\": 2,\n      \"unit_price\":
                 29.99,\n      \"tax_class_id\": 1\n    }\n  ]\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4322,7 +4322,7 @@ paths:
         - TaxHub
       summary: List Tax Classes
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4349,7 +4349,7 @@ paths:
         - TaxHub
       summary: Show Tax Class
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4382,7 +4382,7 @@ paths:
         - TaxHub
       summary: List Jurisdictions
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4414,7 +4414,7 @@ paths:
         - TaxHub
       summary: Show Jurisdiction
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4447,7 +4447,7 @@ paths:
         - TaxHub
       summary: List Tax Class–Jurisdiction Mappings
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4474,7 +4474,7 @@ paths:
         - TaxHub
       summary: Show Tax Class–Jurisdiction Mapping
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4507,7 +4507,7 @@ paths:
         - TaxHub
       summary: List Tax Rules
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4539,7 +4539,7 @@ paths:
         - TaxHub
       summary: Show Tax Rule
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4574,7 +4574,7 @@ paths:
       description: Returns the conditions (country, group, threshold) that gate a
         given rule.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4607,7 +4607,7 @@ paths:
         - TaxHub
       summary: List Setting Groups
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4634,7 +4634,7 @@ paths:
         - TaxHub
       summary: List All Settings
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -4661,7 +4661,7 @@ paths:
         - TaxHub
       summary: Show Setting Group
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -5224,7 +5224,7 @@ components:
     InstallationKey:
       type: apiKey
       in: header
-      name: x-installation-key
+      name: installation-key
       description: Tenant identifier. Safe to expose in the browser.
     CustomerAuthToken:
       type: apiKey

@@ -9,13 +9,13 @@ DataHub supports two distinct authentication modes. Pick the one that matches yo
 
 | Use case | Required headers | Where it runs |
 |---|---|---|
-| **Storefront** (browse catalog, anonymous) | `x-installation-key` | Browser, mobile app, public-facing |
-| **Storefront with logged-in B2B customer** | `x-installation-key` + `x-auth-token` | Browser, mobile app, after `/auth-hub/login` |
+| **Storefront** (browse catalog, anonymous) | `installation-key` (+ `session-uuid` if cart) | Browser, mobile app, public-facing |
+| **Storefront with logged-in B2B customer** | `installation-key` + `x-auth-token` (+ `session-uuid`) | Browser, mobile app, after `/auth-hub/login` |
 | **Server-to-server** (admin, ERP sync, integrator) | `Authorization: Bearer {api_token}` | Backend only — never in a browser |
 | **Public webhook / payment callback** | none (URL contains `{installationKey}`) | Provider callback (Stripe, PayPal, etc.) |
 
 <Callout kind="warning" title="Bearer token must stay on the server">
-The `Authorization: Bearer` token is a tenant-level secret. **Do not** ship it to a browser, mobile app, or any other untrusted client. Storefronts use `x-installation-key` (safe to expose) plus an optional per-customer `x-auth-token` (issued at login).
+The `Authorization: Bearer` token is a tenant-level secret. **Do not** ship it to a browser, mobile app, or any other untrusted client. Storefronts use `installation-key` (safe to expose) plus an optional per-customer `x-auth-token` (issued at login).
 </Callout>
 
 ## Quick Reference
@@ -25,7 +25,7 @@ The `Authorization: Bearer` token is a tenant-level secret. **Do not** ship it t
     ```bash
     curl -s -X GET \
       'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products?filter[status]=public' \
-      -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+      -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
       -H 'Accept: application/json'
     ```
   </Tab>
@@ -33,8 +33,10 @@ The `Authorization: Bearer` token is a tenant-level secret. **Do not** ship it t
     ```bash
     curl -s -X GET \
       'https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts' \
-      -H 'x-installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
-      -H 'x-auth-token: 42.JDJ5JDEyJGFiY2RlZmdo...' \
+      -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+      -H 'x-auth-token: 1.JDJ5JDEyJDR5VGJEQThxcUdROVNQQ1Rn...' \
+      -H 'session-uuid: 35cfd665-064a-48b0-b411-03a4f7af44d6' \
+      -H 'language-code: en-US' \
       -H 'Accept: application/json'
     ```
   </Tab>
@@ -50,7 +52,7 @@ The `Authorization: Bearer` token is a tenant-level secret. **Do not** ship it t
 
 ## Headers in Detail
 
-### `x-installation-key` (storefront, required)
+### `installation-key` (storefront, required)
 
 Identifies the **tenant installation** (which DataHub shop the request is for). A UUID issued when the shop was provisioned. Safe to expose in browser code.
 
@@ -76,6 +78,16 @@ Use this only from a trusted backend. Never expose it to end-users.
 
 Learn more in [Server-to-Server Tokens](/authentication/server-to-server).
 
+### `session-uuid` (storefront, recommended)
+
+Identifies a **guest cart / browsing session** that survives login. The storefront generates a UUID on first visit, stores it in `localStorage`, and sends it on every request. The API echoes it back on the response so the client can pick up server-side rotations.
+
+Required when the storefront supports guest checkout — the cart is keyed by this UUID until the customer logs in, at which point the guest cart is merged onto the customer account. After login it can still be sent; it is ignored where it is not relevant.
+
+### `language-code` (storefront, optional)
+
+Two-letter or BCP-47 locale (e.g. `en-US`, `de-AT`, `sr-RS`) used to select localized strings — product names, descriptions, notification templates, attribute values. Falls back to the installation's default locale when missing.
+
 ### `Accept: application/json` (always)
 
 Required on every request. Without it the API may return HTML for some error paths.
@@ -83,6 +95,24 @@ Required on every request. Without it the API may return HTML for some error pat
 ### `Content-Type: application/json` (POST/PUT/PATCH)
 
 Required whenever the request has a body.
+
+## Full Storefront Request Example
+
+A typical request from a logged-in customer browsing a shop in German looks like:
+
+```http
+GET /api/v1/apps/order-hub/carts HTTP/1.1
+Host: api.datahub.syncspider.com
+Accept: application/json
+Content-Type: application/json
+installation-key: 7e26723d-6b84-493d-8f62-7add54b94470
+x-auth-token: 1.JDJ5JDEyJDR5VGJEQThxcUdROVNQQ1Rn...
+session-uuid: 35cfd665-064a-48b0-b411-03a4f7af44d6
+language-code: de-AT
+Origin: https://shop.example.com
+```
+
+Server-to-server callers replace `installation-key` + `x-auth-token` with a single `Authorization: Bearer {api_token}` header and typically omit `session-uuid` and `Origin`.
 
 ## Error Responses
 
@@ -105,7 +135,7 @@ On `GET /api/v1/apps/auth-hub/me` the response is more specific:
 ```
 
 Common causes:
-- Missing `x-installation-key` on a storefront request.
+- Missing `installation-key` on a storefront request.
 - Missing `Authorization` header on a server-to-server request.
 - `x-auth-token` expired (no activity within the idle window) or revoked (logout).
 - Token copy/paste with extra whitespace or line breaks.
@@ -114,7 +144,7 @@ Common causes:
 
 The credentials are valid but the caller is not allowed to perform this action.
 
-The most common case is a **shop customer trying to reach an admin-only endpoint** (back-office hubs such as SettingsHub, LicenseHub, NotificationHub admin routes). If `x-auth-token` resolves a shop customer, those endpoints reject the request with 403 even though `x-installation-key` is valid.
+The most common case is a **shop customer trying to reach an admin-only endpoint** (back-office hubs such as SettingsHub, LicenseHub, NotificationHub admin routes). If `x-auth-token` resolves a shop customer, those endpoints reject the request with 403 even though `installation-key` is valid.
 
 Other cases:
 - Sales-agent-only endpoints (`/auth-hub/impersonate/*`) called by a non-agent.

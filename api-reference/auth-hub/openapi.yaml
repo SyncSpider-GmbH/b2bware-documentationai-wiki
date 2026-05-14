@@ -14,9 +14,9 @@ tags:
     description: >-
       These endpoints are called from email links — `{installationKey}` is part
       of the path, no auth headers are required.
-  - name: Customer auth (x-installation-key)
+  - name: Customer auth (installation-key)
     description: >-
-      Storefront customer endpoints. All require `x-installation-key`. `/me`,
+      Storefront customer endpoints. All require `installation-key`. `/me`,
       `/logout`, and `/impersonate/*` additionally require `x-auth-token`.
   - name: Impersonation (sales agent)
     description: >-
@@ -113,7 +113,7 @@ paths:
   /api/v1/apps/auth-hub/login:
     post:
       tags:
-        - Customer auth (x-installation-key)
+        - Customer auth (installation-key)
       summary: Login
       description: >-
         Exchanges email + password for an `x-auth-token`.
@@ -155,7 +155,7 @@ paths:
                 "{\n  \"email\": \"jane.doe@example.com\",\n  \"password\":
                 \"correct-horse-battery-staple\"\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -178,7 +178,7 @@ paths:
   /api/v1/apps/auth-hub/register:
     post:
       tags:
-        - Customer auth (x-installation-key)
+        - Customer auth (installation-key)
       summary: Register
       description: >-
         Creates a B2B customer account.
@@ -215,7 +215,7 @@ paths:
                 \"street\": \"Hauptstrasse 1\",\n    \"city\": \"Vienna\",\n   
                 \"zip\": \"1010\",\n    \"country_code\": \"AT\"\n  }\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -238,7 +238,7 @@ paths:
   /api/v1/apps/auth-hub/forgot-password:
     post:
       tags:
-        - Customer auth (x-installation-key)
+        - Customer auth (installation-key)
       summary: Forgot Password
       description: >-
         Sends a 6-character reset code to `email` (1 hour expiry). The customer
@@ -254,7 +254,7 @@ paths:
               type: string
               example: '"{\n  \"email\": \"jane.doe@example.com\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -277,7 +277,7 @@ paths:
   /api/v1/apps/auth-hub/send-verification-email:
     post:
       tags:
-        - Customer auth (x-installation-key)
+        - Customer auth (installation-key)
       summary: Send Verification Email
       description: >-
         (Re)sends a 6-character email-verification code (24 hour expiry). Used
@@ -290,7 +290,7 @@ paths:
               type: string
               example: '"{\n  \"email\": \"jane.doe@example.com\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -313,7 +313,7 @@ paths:
   /api/v1/apps/auth-hub/me:
     get:
       tags:
-        - Customer auth (x-installation-key)
+        - Customer auth (installation-key)
       summary: Get Me
       description: >-
         Returns the currently authenticated customer.
@@ -334,7 +334,7 @@ paths:
 
         Use this to distinguish 'token missing' from 'token expired'.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -357,7 +357,7 @@ paths:
   /api/v1/apps/auth-hub/logout:
     post:
       tags:
-        - Customer auth (x-installation-key)
+        - Customer auth (installation-key)
       summary: Logout
       description: >-
         Revokes the current `x-auth-token`. Subsequent requests with that token
@@ -369,7 +369,7 @@ paths:
       requestBody:
         content: {}
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -401,7 +401,7 @@ paths:
 
         Agents cannot impersonate other agents or admins.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -439,7 +439,7 @@ paths:
       requestBody:
         content: {}
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -477,7 +477,7 @@ paths:
       requestBody:
         content: {}
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string

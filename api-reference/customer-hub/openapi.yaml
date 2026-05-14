@@ -41,7 +41,7 @@ paths:
         For shop customers this returns just their own record. For agents it
         lists impersonatable customers.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -87,7 +87,7 @@ paths:
                 "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n 
                 \"email\": \"jane@example.com\"\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -118,7 +118,7 @@ paths:
         - Profile (customers)
       summary: Show Customer
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -162,7 +162,7 @@ paths:
                 "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n 
                 \"phone\": \"+43 660 7654321\",\n  \"language\": \"en\"\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -204,7 +204,7 @@ paths:
         Admin/agent context. Self-deletion by a shop customer is not currently
         supported (tracked as a gap).
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -236,7 +236,7 @@ paths:
         - Shipping Addresses
       summary: List Shipping Addresses
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -282,7 +282,7 @@ paths:
                 \"zip\": \"1010\",\n  \"country_code\": \"AT\",\n  \"phone\":
                 \"+43 660 1234567\",\n  \"is_default\": true\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -313,7 +313,7 @@ paths:
         - Shipping Addresses
       summary: Show Shipping Address
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -352,7 +352,7 @@ paths:
                 "{\n  \"street\": \"Hauptstrasse 2\",\n  \"is_default\":
                 true\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -388,7 +388,7 @@ paths:
         - Shipping Addresses
       summary: Delete Shipping Address
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -420,7 +420,7 @@ paths:
         - Billing Addresses
       summary: List Billing Addresses
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -466,7 +466,7 @@ paths:
                 1\",\n  \"city\": \"Vienna\",\n  \"zip\": \"1010\",\n 
                 \"country_code\": \"AT\",\n  \"is_default\": true\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -497,7 +497,7 @@ paths:
         - Billing Addresses
       summary: Show Billing Address
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -534,7 +534,7 @@ paths:
               type: string
               example: '"{\n  \"vat_id\": \"ATU87654321\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -570,7 +570,7 @@ paths:
         - Billing Addresses
       summary: Delete Billing Address
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -602,7 +602,7 @@ paths:
         - Favorites (wishlist)
       summary: Show My Favorites
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -639,7 +639,7 @@ paths:
               type: string
               example: '"{\n  \"product_ids\": [\n    100,\n    101,\n    102\n  ]\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -670,7 +670,7 @@ paths:
         - Companies
       summary: List Companies (scoped)
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -708,7 +708,7 @@ paths:
                 "{\n  \"name\": \"Acme GmbH\",\n  \"vat_id\":
                 \"ATU12345678\"\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -739,7 +739,7 @@ paths:
         - Companies
       summary: Show Company
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -781,7 +781,7 @@ paths:
               type: string
               example: '"{\n  \"name\": \"Acme International GmbH\"\n}"'
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -818,7 +818,7 @@ paths:
         - Customer Groups
       summary: List Customer Groups
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -844,7 +844,7 @@ paths:
         - Customer Groups
       summary: Show Customer Group
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -876,7 +876,7 @@ paths:
         - Settings (read-only for storefront)
       summary: List Setting Groups
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -902,7 +902,7 @@ paths:
         - Settings (read-only for storefront)
       summary: List All Settings
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -928,7 +928,7 @@ paths:
         - Settings (read-only for storefront)
       summary: Show Setting Group
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string

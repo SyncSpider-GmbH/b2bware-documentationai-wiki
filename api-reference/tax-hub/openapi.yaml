@@ -42,7 +42,7 @@ paths:
                 \"quantity\": 2,\n      \"unit_price\": 29.99,\n     
                 \"tax_class_id\": 1\n    }\n  ]\n}"
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -73,7 +73,7 @@ paths:
         - Read-only configuration
       summary: List Tax Classes
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -99,7 +99,7 @@ paths:
         - Read-only configuration
       summary: Show Tax Class
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -131,7 +131,7 @@ paths:
         - Read-only configuration
       summary: List Jurisdictions
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -162,7 +162,7 @@ paths:
         - Read-only configuration
       summary: Show Jurisdiction
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -194,7 +194,7 @@ paths:
         - Read-only configuration
       summary: List Tax Class–Jurisdiction Mappings
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -220,7 +220,7 @@ paths:
         - Read-only configuration
       summary: Show Tax Class–Jurisdiction Mapping
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -252,7 +252,7 @@ paths:
         - Read-only configuration
       summary: List Tax Rules
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -283,7 +283,7 @@ paths:
         - Read-only configuration
       summary: Show Tax Rule
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -318,7 +318,7 @@ paths:
         Returns the conditions (country, group, threshold) that gate a given
         rule.
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -350,7 +350,7 @@ paths:
         - Settings (read-only for storefront)
       summary: List Setting Groups
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -376,7 +376,7 @@ paths:
         - Settings (read-only for storefront)
       summary: List All Settings
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
@@ -402,7 +402,7 @@ paths:
         - Settings (read-only for storefront)
       summary: Show Setting Group
       parameters:
-        - name: x-installation-key
+        - name: installation-key
           in: header
           schema:
             type: string
