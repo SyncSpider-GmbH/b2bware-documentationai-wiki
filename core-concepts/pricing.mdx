@@ -1,0 +1,181 @@
+---
+title: Pricing
+description: Net vs gross, tier prices, group prices, special prices, and how `finalPrice` is computed.
+---
+
+## Overview
+
+DataHub stores **net prices** (excluding tax) in the catalog and lets the cart/checkout pipeline resolve a final, customer-aware price. This page explains the price types, the order of precedence, and what storefronts should display.
+
+## Price Types
+
+| Type | Relation include | Purpose |
+|---|---|---|
+| Regular price | `price` | Catalog list price. Always present. |
+| Special price | `specialPrice` | Promotion price, valid between `valid_from` and `valid_to`. Optional. |
+| Tier prices | `tierPrices` | Quantity breaks ("buy 5 for X, 10 for Y"). |
+| Group prices | `groupPrices` | Per-customer-group base price. Used by B2B tenants with negotiated rates. |
+| Final price | `finalPrice` | The price the API applies on checkout. **Use this on the storefront.** |
+| Final tier prices | `finalTierPrices` | Tier prices after the logged-in customer's group is applied. |
+| Cost price | `costPrice` | Internal cost. Admin-only. **Never display.** |
+
+All price objects share the shape:
+
+```json
+{
+  "price": 169.00,
+  "currency": "EUR",
+  "valid_from": null,
+  "valid_to": null,
+  "qty_from": null,
+  "customer_group_id": null
+}
+```
+
+## How `finalPrice` Is Computed
+
+For a logged-in customer, the API walks the following precedence (highest wins):
+
+1. **Active special price** for this product, if `now` is inside `[valid_from, valid_to]`.
+2. **Group price** matching the customer's `customer_group_id` (if the customer is logged in).
+3. **Regular price**.
+
+Tier price selection runs separately on top of that base:
+
+1. Find all tier prices where `qty_from <= cart_qty`.
+2. From the customer's group, take the highest `qty_from` matching tier (else from "all customers").
+3. The cart applies that price to **all units** of the line item (not a per-bracket markup).
+
+So `finalPrice` on the catalog response is the "1-unit price" — the price the customer would pay if they bought one. As they raise the quantity, the cart preview returns the relevant tier price.
+
+## Displaying Prices on a PDP
+
+The minimum include set is:
+
+```
+include=price,specialPrice,finalPrice,tierPrices,finalTierPrices
+```
+
+Rendering rules:
+
+| Condition | What to render |
+|---|---|
+| `finalPrice == price` | Just `finalPrice`. |
+| `finalPrice < price` | `finalPrice` big, `price` crossed out. |
+| `specialPrice` active and `specialPrice == finalPrice` | Add "Sale" / "Promo" badge. |
+| `finalTierPrices` non-empty | Show a tier table. Use `finalTierPrices` over `tierPrices` when the customer is logged in. |
+
+Example:
+
+```jsx
+<div>
+  <span className="price">{format(product.final_price)}</span>
+  {product.final_price.price < product.price.price && (
+    <span className="strikethrough">{format(product.price)}</span>
+  )}
+  {product.special_price && isActive(product.special_price) && (
+    <Badge>Sale</Badge>
+  )}
+</div>
+```
+
+## Tier Prices
+
+`finalTierPrices` is an array sorted by `qty_from` ascending:
+
+```json
+[
+  { "qty_from": 5,  "price": 159.00, "currency": "EUR" },
+  { "qty_from": 10, "price": 149.00, "currency": "EUR" },
+  { "qty_from": 25, "price": 139.00, "currency": "EUR" }
+]
+```
+
+A "save more when you buy more" table:
+
+```jsx
+<table>
+  <thead><tr><th>Quantity</th><th>Price</th><th>Save</th></tr></thead>
+  <tbody>
+    {product.final_tier_prices.map(t => (
+      <tr key={t.qty_from}>
+        <td>≥ {t.qty_from}</td>
+        <td>{format({ price: t.price, currency: t.currency })}</td>
+        <td>{((1 - t.price / product.final_price.price) * 100).toFixed(0)}%</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+```
+
+## Net vs Gross (Taxes)
+
+The catalog stores **net** prices. Tax is applied by **TaxHub** during checkout, based on:
+
+- The product's tax class.
+- The shipping address country (and region).
+- The customer's tax-exempt status (B2B with verified VAT ID).
+
+What the storefront sees:
+
+- **Catalog endpoints** (`/products`) return net prices only.
+- **Checkout preview** (`GET /carts/{cart}/checkout`) returns `subtotal` (net), `tax_total`, `grand_total` (gross).
+- **Completed order** returns the same breakdown on the order record.
+
+If the storefront needs gross prices on the PDP for B2C tenants:
+
+1. The tenant sets a "Default display tax" in TaxHub (typically the shipping origin country's standard rate).
+2. The storefront multiplies catalog net prices by `1 + display_rate` for display purposes.
+
+The exact rate is exposed via:
+
+```bash
+GET /api/v1/apps/tax-hub/tax-classes/{id}
+```
+
+and the product's `tax_class_id` is on the product record.
+
+See [Tax Calculation](/advanced/tax-calculation) for the full rules.
+
+## Currency
+
+Currency is per-price. A multi-currency tenant returns different `currency` values per customer / cart / region. Never assume the installation's default currency on the storefront — read it from the price object.
+
+When two currencies appear on the same screen (rare), use the cart's currency for totals and the product's currency for the catalog line. Mixing currencies in a single cart is rejected at preview time.
+
+## Coupons and Cart Rules
+
+Coupon discounts are **not** part of `finalPrice` — they apply at the cart level. Render coupon savings on the cart/checkout page, not the PDP:
+
+```bash
+GET /carts/{cart}?include=cartItems,cartItems.appliedDiscounts,cartRules
+```
+
+`applied_discounts` on a line item lists which rules touched it; `cart_rules` lists the cart-wide ones.
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Logged-in customer sees public price | Request missing `x-auth-token`. | Send the token; verify it has not expired. |
+| Strikethrough always on | Comparing `price` vs `specialPrice` instead of `finalPrice`. | Always compare `finalPrice` against `price`. |
+| Tier price not applied at cart | Customer group rule set on `groupPrices` only, not on `tierPrices`. | Use `finalTierPrices` for display; cart resolves correctly on its own. |
+| Price drops to 0 | `cost_price` accidentally included and used. | Never display `costPrice` — it is admin-only. |
+| Mismatched VAT total on checkout | Storefront pre-computed tax with the wrong rate. | Always trust the checkout preview's `tax_total`; do not pre-compute. |
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Product Detail" icon="box" href="/advanced/storefront/product-detail">
+    See pricing in context on a PDP.
+  </Card>
+  <Card title="Cart and Checkout" icon="shopping-cart" href="/advanced/storefront/cart-and-checkout">
+    Where `finalPrice` becomes `grand_total`.
+  </Card>
+  <Card title="Tax Calculation" icon="calculator" href="/advanced/tax-calculation">
+    How TaxHub turns net into gross.
+  </Card>
+  <Card title="Recommended Includes" icon="list" href="/core-concepts/recommended-includes">
+    Minimum price-related include sets.
+  </Card>
+</Columns>

@@ -1,0 +1,192 @@
+---
+title: Media URLs
+description: How DataHub stores, serves, and references product images and other media on the storefront.
+---
+
+## Overview
+
+Media (product images, attribute images, category banners, attachments) lives in MediaHub as a polymorphic resource. Every attached media record exposes a `media_url` field that is **absolute and storefront-safe** — drop it straight into an `<img>` tag.
+
+This page covers the shape of the data, the CDN behind the URL, the included relations on common models, and the proxy endpoint used for cross-domain files.
+
+## The Media Shape
+
+A media record looks like:
+
+```json
+{
+  "id": 9001,
+  "mediable_type": "Apps\\ProductHub\\Models\\Product",
+  "mediable_id": 12345,
+  "media_type": "image",
+  "media_url": "https://datahubprod.b-cdn.net/products/12345/abc.jpg",
+  "alt_text": "Acme Cordless Drill 18V — front view",
+  "is_primary": true,
+  "sort_order": 1
+}
+```
+
+| Field | Notes |
+|---|---|
+| `media_url` | Absolute, public URL. CDN-backed (BunnyCDN by default). |
+| `media_type` | `image`, `video`, `document`, or `attachment`. |
+| `mediable_type` + `mediable_id` | The owner (product, category, attribute value, etc.). Storefronts never touch these — read media via the owner's `media` relation. |
+| `is_primary` | One per owner. Convenience flag. |
+| `sort_order` | 1-based, ascending. The owner's `media` array is already sorted. |
+| `alt_text` | Render as `<img alt>`. Falls back to the owner's name when empty. |
+
+## Where Media Comes From on the Storefront
+
+Read media via the owner's relation. For products:
+
+| Include | Returns |
+|---|---|
+| `media` | All media records, sorted. |
+| `mainMedia` | The single `is_primary` record (or the first one). Convenience for cards and thumbnails. |
+
+```bash
+GET /products/{id}?include=media,mainMedia
+```
+
+For categories and attribute values:
+
+```bash
+GET /categories/{id}?include=media
+GET /attributeValues/{id}?include=media
+```
+
+## The CDN
+
+DataHub serves media from a per-installation pull zone (BunnyCDN, AWS CloudFront, or Cloudflare R2 depending on the deployment). The exact host is in the `media_url` field and varies between environments:
+
+- Local dev: `http://hub.test/storage/...`
+- Debug / staging: `https://datahubdev.b-cdn.net/...`
+- Production: `https://datahub<...>.b-cdn.net/...` (per tenant)
+
+**Treat the host as opaque.** Do not hardcode it. The host can change when the tenant moves CDN providers, and the URL travels with the record so client code keeps working.
+
+## Resizing
+
+The CDN supports query-string resizing. The most common params:
+
+| Param | Example | Effect |
+|---|---|---|
+| `width` | `?width=400` | Resize to width N, preserving aspect ratio. |
+| `height` | `?height=400` | Resize to height N, preserving aspect ratio. |
+| `crop` | `?width=400&height=400&crop=1` | Crop to exact box. |
+| `quality` | `?quality=80` | JPEG/WebP quality, 1–100. |
+| `format` | `?format=webp` | Force format. |
+
+Examples:
+
+```html
+<!-- PLP card thumbnail -->
+<img src="https://cdn.../products/12345/abc.jpg?width=300&quality=80&format=webp" />
+
+<!-- PDP hero -->
+<img src="https://cdn.../products/12345/abc.jpg?width=1200&quality=85" />
+
+<!-- Square thumbnail -->
+<img src="https://cdn.../products/12345/abc.jpg?width=200&height=200&crop=1" />
+```
+
+<Callout kind="info">
+Resize is performed at the edge and cached. The first request for a new size is slower; subsequent requests are CDN-fast. Pick a small fixed set of sizes (e.g. 200, 400, 800, 1200) and reuse them across the storefront for cache efficiency.
+</Callout>
+
+## Responsive Images
+
+Build a `srcset` from the same `media_url` with multiple widths:
+
+```jsx
+function ProductImage({ media, sizes }) {
+  const src = (w) => `${media.media_url}?width=${w}&quality=82&format=webp`;
+  return (
+    <img
+      src={src(800)}
+      srcSet={[400, 600, 800, 1200, 1600].map(w => `${src(w)} ${w}w`).join(', ')}
+      sizes={sizes ?? '(max-width: 768px) 100vw, 50vw'}
+      alt={media.alt_text}
+      loading="lazy"
+    />
+  );
+}
+```
+
+## Videos
+
+`media_type: "video"` records contain either a direct video URL (mp4, webm) or a YouTube/Vimeo embed URL. Inspect the URL and render the right element:
+
+```jsx
+if (media.media_url.match(/youtu(\.be|be\.com)/)) {
+  return <iframe src={toEmbedUrl(media.media_url)} />;
+}
+return <video src={media.media_url} controls />;
+```
+
+## Documents and Attachments
+
+`media_type: "document"` is typically a PDF spec sheet. Render as a download link:
+
+```jsx
+<a href={media.media_url} download>
+  {media.alt_text || 'Download PDF'}
+</a>
+```
+
+## Cross-Domain Proxy
+
+Some installations host media on a customer-owned domain that the CDN does not have direct access to. For those cases the API exposes a public proxy:
+
+```
+GET /cdn/{domain}/{path}
+```
+
+Example: `https://api.datahub.../cdn/gogatec.com/01_files/Kataloge/GOGAEX.pdf`
+
+The proxy fetches the file from the upstream domain and streams it through the API. No auth is required. Useful when the storefront needs to serve a PDF or image from a tenant's legacy file server without browser CORS pain.
+
+## Caching
+
+CDN responses include long-lived `Cache-Control: public, max-age=...` headers. When media is updated:
+
+1. The CDN cache for the affected URL is purged automatically.
+2. The `_updated_at` on the media record changes.
+
+If you must bust the browser cache (rare), append a small version query like `?v=${media._updated_at}` to the URL.
+
+## Uploading from the Storefront
+
+Uploads are an admin-only operation. Storefronts cannot upload product media. The customer-facing exceptions are:
+
+- **Account avatar** — depends on the tenant's CustomerHub configuration.
+- **Quote attachments** — when QuoteHub is enabled and `attachments` are configured.
+
+See the respective hub docs for those flows.
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Broken images on a new environment | Hardcoded the dev/prod CDN host. | Always read `media_url` from the API response. |
+| Slow first image load | Asked for a new resize variant. | Pre-warm the CDN by requesting the common sizes after deploy. |
+| `srcset` ignored by browser | Comma missing between entries or wrong `sizes` value. | Use the snippet above as a template. |
+| CORS error on `<img>` | Direct cross-origin image fetch with `crossorigin="anonymous"`. | Remove the attribute, or proxy via the `/cdn/{domain}/{path}` route. |
+| Wrong primary image after re-order | Storefront relied on `media[0]` instead of `mainMedia`. | Use `mainMedia` for cards; use `media` (sorted) for galleries. |
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Product Detail" icon="box" href="/advanced/storefront/product-detail">
+    Where these media URLs land on screen.
+  </Card>
+  <Card title="Recommended Includes" icon="list" href="/core-concepts/recommended-includes">
+    Minimum media-related include sets.
+  </Card>
+  <Card title="Pricing" icon="tag" href="/core-concepts/pricing">
+    Companion guide for the other half of a product card.
+  </Card>
+  <Card title="MediaHub" icon="image" href="/hubs/media-hub">
+    Full reference for the media model.
+  </Card>
+</Columns>

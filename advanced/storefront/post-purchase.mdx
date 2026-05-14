@@ -1,0 +1,204 @@
+---
+title: Post-Purchase
+description: Order history, invoices, license keys, and refunds — what the customer sees after the order is placed.
+---
+
+## Overview
+
+After a customer completes a checkout, the storefront becomes a window into the order's lifecycle: status changes, invoices, delivered license keys, and the occasional refund. This guide walks through the post-purchase touch points and how to render them.
+
+All endpoints below require `installation-key` + `x-auth-token`. The API filters every list to the logged-in customer automatically — passing another customer's id returns 403.
+
+## Order History
+
+```bash
+curl -s -G \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/orders' \
+  --data-urlencode 'include=orderLineItems,orderLineItems.product.mainMedia,billingMethod,shippingMethod,shippingAddress,billingAddress' \
+  --data-urlencode 'sort=-_created_at' \
+  --data-urlencode 'page=1' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'x-auth-token: 1.JDJ5JDEyJDR5VGJEQThxcUdROVNQQ1Rn...' \
+  -H 'Accept: application/json'
+```
+
+Response is a standard paginator. Each order has:
+
+```json
+{
+  "id": 1042,
+  "order_number": "EX-2024-00142",
+  "status": "paid",
+  "previous_status": "proccesing",
+  "grand_total": 417.48,
+  "currency": "EUR",
+  "_created_at": "2024-09-04T12:11:08Z",
+  "order_line_items": [ { "product_id": 12346, "qty": 2, "price": 169.00, ... } ],
+  "billing_method": { "id": 2, "name": "Mollie Card" },
+  "shipping_method": { "id": 5, "name": "UPS Standard" },
+  "shipping_address": { ... },
+  "billing_address": { ... }
+}
+```
+
+`previous_status` records the last status before the most recent transition — useful for "recently paid", "just shipped" badges.
+
+## Order Detail
+
+```bash
+GET /api/v1/apps/order-hub/orders/{id}
+?include=orderLineItems,orderLineItems.product.mainMedia,orderLineItems.licenseKeys,
+         orderComments,billingMethod,shippingMethod,
+         shippingAddress,billingAddress,customer,invoices
+```
+
+This is the request the customer's "Order #1042" page makes. Notice three extra includes vs the listing:
+
+- `orderLineItems.licenseKeys` — when the order contains license products (see [License keys](#license-keys) below).
+- `orderComments` — the activity log entries the customer is allowed to see (status changes, shipping notes, etc.). Comments with `type=internal` are filtered out.
+- `invoices` — see below.
+
+## Status Lifecycle (Customer View)
+
+A small status badge with a tooltip is enough on the storefront. Suggested mapping:
+
+| Backend status | Customer label | Color |
+|---|---|---|
+| `pending`, `proccesing` | "Awaiting payment" | grey |
+| `paid` | "Paid" | green |
+| `shipped` | "Shipped" | blue |
+| `invoiced` | "Invoiced" | blue |
+| `completed`, `delivered` | "Completed" | green |
+| `canceled`, `cancelled` | "Cancelled" | red |
+| `refunded` | "Refunded" | red |
+| `failed` | "Payment failed" | red |
+
+Status names vary by tenant (some shops use the legacy `proccesing` spelling). Always read the full list from:
+
+```bash
+GET /api/v1/apps/order-hub/orders/statuses/list
+```
+
+and look up the label from that response — do not hardcode the set.
+
+## Invoices
+
+When an order reaches a billing-method-configured status (typically `paid` or `invoiced`), an invoice document is generated and attached. Render it via:
+
+```bash
+GET /api/v1/apps/order-hub/orders/{id}?include=invoices
+```
+
+```json
+"invoices": [
+  {
+    "id": 612,
+    "invoice_number": "INV-2024-00298",
+    "issued_at": "2024-09-04T12:11:09Z",
+    "total": 417.48,
+    "download_url": "https://cdn.datahub.../invoices/INV-2024-00298.pdf"
+  }
+]
+```
+
+`download_url` is a signed CDN URL — give it directly to an `<a download>` link.
+
+## License Keys
+
+If an order line item is a license product, keys are generated either immediately at the order's terminal status or via a background job. The keys appear under the line item:
+
+```json
+"order_line_items": [
+  {
+    "id": 8001,
+    "product_id": 1234,
+    "qty": 3,
+    "license_keys": [
+      { "id": 90001, "key": "ACME-XXXX-YYYY-ZZZZ", "status": "active",  "valid_until": "2025-09-04" },
+      { "id": 90002, "key": "ACME-AAAA-BBBB-CCCC", "status": "active",  "valid_until": "2025-09-04" },
+      { "id": 90003, "key": "ACME-DDDD-EEEE-FFFF", "status": "pending", "valid_until": null }
+    ]
+  }
+]
+```
+
+Possible storefront-visible statuses:
+
+| Status | Meaning |
+|---|---|
+| `pending` | Order not yet at the terminal status — key will be generated. |
+| `active` | Customer can use the key. |
+| `revoked` | Key was revoked (typically because the order was cancelled/refunded). |
+| `expired` | `valid_until` passed. |
+
+A typical UX is a "Reveal key" button that copies the key to the clipboard, plus the expiry date and a "Download as PDF" link if the storefront generates one.
+
+<Callout kind="info" title="When a cancelled order is reopened">
+If a paid order is cancelled and later resurrected (paid again), the previously-revoked keys are reactivated and the assigned stock decrement is restored automatically. The storefront does not need to handle this — just re-read the order.
+</Callout>
+
+## Order Notes / Activity
+
+`orderComments` returns the activity log entries the customer is allowed to see:
+
+- Status transitions (`status_transition`)
+- Shipping carrier + tracking number entries
+- Refund records
+- Storefront-issued notes (the customer's own messages, if the storefront exposes a comment box)
+
+Internal back-office notes are filtered out before reaching the storefront.
+
+## Re-order / Repeat Purchase
+
+There is no dedicated "reorder" endpoint. The storefront pattern is:
+
+1. Read the source order's line items.
+2. For each line item, `POST /cart-items` with `product_id` + `qty`.
+3. Send the customer to the cart.
+
+This keeps current pricing, stock validation, and any cart rules in play (rather than copying stale prices from the old order).
+
+## Refunds
+
+The customer cannot initiate refunds directly — that is an admin action. When the back office refunds an order:
+
+- Order status moves to `refunded`.
+- Affected license keys move to `revoked`.
+- The activity log records the refund.
+
+The storefront simply re-reads the order; no special handling is needed. Show the customer a "Contact support" link if they want a refund.
+
+## Subscribing to Updates
+
+Three options for keeping the order page fresh:
+
+1. **Polling** — re-fetch `GET /orders/{id}` every 30–60 seconds while the page is open. Simplest, works everywhere.
+2. **Webhooks → push** — backend listens for OrderHub webhooks ([Webhooks](/core-concepts/webhooks)) and pushes to the browser over your own WebSocket / SSE channel.
+3. **Email notifications** — NotificationHub sends status emails (`order_paid`, `order_shipped`, `order_cancelled`); the customer notices status via inbox even without re-opening the storefront.
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| License keys not shown | `orderLineItems.licenseKeys` missing from include. | Add it. |
+| Invoice 404 right after payment | Invoice is generated by a background job. | Poll the order after a short delay (5–15 s) or refresh when the status transitions to `paid`. |
+| Customer sees "internal" comments | `order-comments` queried directly, bypassing order-detail filter. | Use `include=orderComments` on the order endpoint, not `/order-comments` directly. |
+| Re-order grants old discount | Storefront copied `price` from the source order. | Add by `product_id` + `qty` and let the cart price it. |
+| Status badge says "Unknown" | Hardcoded status map missing tenant-specific statuses. | Load the list from `/orders/statuses/list` and fall back gracefully. |
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Webhooks" icon="webhook" href="/core-concepts/webhooks">
+    Push order-status changes into your storefront backend.
+  </Card>
+  <Card title="Customer Account" icon="user" href="/advanced/storefront/customer-account">
+    Manage profile, addresses, password.
+  </Card>
+  <Card title="Cart and Checkout" icon="shopping-cart" href="/advanced/storefront/cart-and-checkout">
+    The checkout flow that produced these orders.
+  </Card>
+  <Card title="License Hub" icon="key" href="/hubs/license-hub">
+    Full reference for the license-key lifecycle.
+  </Card>
+</Columns>

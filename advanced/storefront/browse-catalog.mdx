@@ -1,0 +1,265 @@
+---
+title: Browse the Catalog
+description: List products, paginate, filter, sort, and include related data from the storefront.
+---
+
+## Overview
+
+The product listing page (PLP) is the most-hit endpoint of any storefront. This guide shows how to fetch a paginated catalog using the **ProductHub** API, what filters and includes the storefront needs, and how to keep payloads small.
+
+All examples use storefront headers (`installation-key` + optional `x-auth-token`); the same endpoint works with a server-to-server Bearer token. See [Authentication](/authentication) for the header rules.
+
+## The Endpoint
+
+```
+GET /api/v1/apps/product-hub/products
+```
+
+This is a public storefront endpoint. Anonymous visitors can call it with just `installation-key`. Logged-in customers add `x-auth-token` so per-customer pricing (tier prices, group prices) is applied.
+
+<Callout kind="warning" title="Always filter on status">
+The catalog table contains drafts, archived items, and unpublished products in addition to public ones. Storefront listings should always filter on `status` so non-public items never reach the customer.
+</Callout>
+
+## Minimum Storefront Request
+
+```bash
+curl -s -X GET \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products' \
+  -G \
+  --data-urlencode 'filter[status]=[{"condition":"=","value":"public"}]' \
+  --data-urlencode 'include=price,finalPrice,mainMedia' \
+  --data-urlencode 'sort=-_created_at' \
+  --data-urlencode 'page=1' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'session-uuid: 35cfd665-064a-48b0-b411-03a4f7af44d6' \
+  -H 'language-code: en-US' \
+  -H 'Accept: application/json'
+```
+
+Three things to notice:
+- **Filters are JSON-encoded**, not flat key=value. The full filter grammar is in [Filtering](/core-concepts/filtering).
+- **Always pass `include`.** ProductHub does not eagerly load prices, media, attributes, or categories. A bare `GET /products` returns rows without prices.
+- **`sort` accepts a leading `-` for descending order.** Multi-column sorts use a comma (`sort=-_created_at,name`).
+
+## Pagination
+
+The endpoint returns a Laravel paginator envelope:
+
+```json
+{
+  "data": [ { "id": 101, "sku": "...", "name": "...", ... } ],
+  "links": {
+    "first": ".../products?page=1",
+    "last":  ".../products?page=12",
+    "prev":  null,
+    "next":  ".../products?page=2"
+  },
+  "meta": {
+    "current_page": 1,
+    "from": 1,
+    "last_page": 12,
+    "path": ".../products",
+    "per_page": 25,
+    "to": 25,
+    "total": 287
+  }
+}
+```
+
+| Parameter | Effect |
+|---|---|
+| `page` | Page number, 1-based. Walk by incrementing until `meta.current_page == meta.last_page`. |
+| `perPage` | Page size. Honored where supported; some endpoints clamp it. Default `25`. |
+| `per_page` (snake_case) | Ignored by most hubs — always use `perPage`. |
+
+Always navigate by following the `links.next` URL rather than building it yourself; that keeps the rest of the query string intact.
+
+## Sorting
+
+ProductHub allows the following sort columns:
+
+| Column | Notes |
+|---|---|
+| `id` | Insertion order. |
+| `parent_id` | Configurable parent grouping. |
+| `name` | String sort, locale-sensitive. |
+| `sku` | String sort. |
+| `product_type` | `simple`, `configurable`, `bundle`, `virtual`, `license`. |
+| `_created_at` | Most useful for "Newest" facets. |
+| `_updated_at` | Most useful for cache invalidation queries. |
+
+Prefix with `-` for descending: `sort=-name`, `sort=-_updated_at`.
+
+<Callout kind="info">
+Sort by price or by attribute value is not supported on this endpoint. Implement price sorting client-side after fetching the page, or expose your own search service (Algolia, Meilisearch, ElasticSearch) in front of the catalog.
+</Callout>
+
+## Filtering
+
+Filter values are JSON-encoded arrays of condition objects. See [Filtering](/core-concepts/filtering) for the full grammar.
+
+### Filterable fields on `/products`
+
+| Field | Type | Typical use |
+|---|---|---|
+| `id` | number | Lookup by primary key (or a small set with `IN`). |
+| `name` | text | Search box (`LIKE` with `%search%`). |
+| `sku` | text | SKU lookup, supports `LIKE`. |
+| `status` | text | **Always set to `public` on storefront.** |
+| `product_type` | text | Hide bundles, licenses, etc. from PLPs that only show simple items. |
+| `seo_slug` | text | Lookup product by URL slug. |
+| `stock.warehouse_id` | number | Restrict to a specific warehouse (multi-warehouse shops). |
+| `stock.stock_quantity` | number | Show only in-stock: `[{"condition":">","value":0}]`. |
+| `defaultStock.stock_quantity` | number | Same, using the installation's default warehouse. |
+| `price` | number | Net regular price (`>= 100` etc.). |
+| `specialPrice` | number | Promotion price. |
+| `finalPrice` | number | Effective price after rules and customer-specific overrides. |
+| `categories.category_id` | number | Category page filter — usually with `IN`. |
+| `attributeValues.value.attribute_id` | number | "Has attribute" facets. |
+| `attributeValues.value.attribute_value` | text | "Has attribute value X" facets. |
+| `attributeValues.attribute_value_id` | number | Same, by value ID — fastest for facet filtering. |
+| `_created_at` / `_updated_at` | date | "Recently added", change feeds. |
+
+### Common combinations
+
+**Public, in-stock products in category 12:**
+
+```
+?filter[status]=[{"condition":"=","value":"public"}]
+&filter[categories.category_id]=[{"condition":"=","value":12}]
+&filter[defaultStock.stock_quantity]=[{"condition":">","value":0}]
+```
+
+**Search box (name OR sku contains "screw"):**
+
+```
+?filter[status]=[{"condition":"=","value":"public"}]
+&filter[name]=[{"condition":"LIKE","value":"%screw%"}]
+&filter[sku]=[{"condition":"LIKE","value":"%screw%","operator":"OR"}]
+```
+
+The first condition has no `operator`; subsequent ones default to `AND` unless you set `"operator":"OR"`.
+
+**Faceted attribute filter (color = "red" AND size IN [42, 44]):**
+
+```
+?filter[attributeValues.attribute_value_id]=[
+  {"condition":"=","value":501},
+  {"condition":"IN","value":[612,614],"operator":"AND"}
+]
+```
+
+(URL-encode the JSON. The example is pretty-printed for readability.)
+
+## Includes
+
+`include` is a comma-separated list of relations to eager-load. Storefronts should send the **smallest set** they actually render — every relation is an extra MongoDB lookup.
+
+### Recommended PLP set
+
+For a product listing card (image + name + price + badge):
+
+```
+include=mainMedia,price,specialPrice,finalPrice,categories.category
+```
+
+Add `attributeValues.value` only if the PLP shows attribute chips.
+
+### Recommended PDP set
+
+For a product detail page:
+
+```
+include=media,price,specialPrice,finalPrice,tierPrices,finalTierPrices,groupPrices,
+        attributeValues.value.attribute.group,attributeValues.value.translation,
+        categories.category,translation,
+        crossSells.crossSellProduct.mainMedia,crossSells.crossSellProduct.price,
+        upSells.upSellProduct.mainMedia,upSells.upSellProduct.price,
+        childProducts.childProduct.attributeValues.value,
+        childProducts.childProduct.mainMedia,childProducts.childProduct.price,
+        variationAttributes,stockSum
+```
+
+The full list of supported includes is in [Recommended Includes](/core-concepts/recommended-includes).
+
+<Callout kind="info">
+Configurable products: the parent's `childProducts` relation contains the variants. Storefronts typically render the parent as the PDP and use `variationAttributes` + `childProducts.childProduct` to drive the variant selector.
+</Callout>
+
+## Localization
+
+Pass `language-code` (e.g. `de-AT`, `en-US`, `fr-FR`) so name, description, attribute labels, and category names come back in the right locale. When `translation` is in the include set, the API attaches translated values directly. The installation's default locale is used when the header is missing or the requested locale has no entry.
+
+## Stock visibility
+
+Stock is multi-warehouse. Three relevant relations:
+
+| Relation | Returns |
+|---|---|
+| `stock` | All warehouse rows for the product. |
+| `defaultStock` | The installation's default warehouse only. Cheapest for a single in-stock badge. |
+| `stockSum` | Computed sum across visible warehouses. Useful for "X in stock" labels. |
+
+For a storefront that does not split warehouses, `include=defaultStock` + filter on `defaultStock.stock_quantity` is the simplest path.
+
+## Pricing visibility
+
+Always include **`finalPrice`** for display. It is the price the API applies on checkout — already net of customer-group discounts, tier rules, and active promotions.
+
+If the storefront shows a strikethrough (was/now), also include `price` (regular) and `specialPrice` (promo). When `finalPrice` equals `price`, no strikethrough is shown.
+
+Tier prices (quantity breaks) are returned in `tierPrices` and customer-group-resolved tier prices in `finalTierPrices`.
+
+See [Pricing](/core-concepts/pricing) for the full pricing model.
+
+## Categories Endpoint
+
+Most PLPs need a category tree on the side:
+
+```bash
+GET /api/v1/apps/product-hub/categories
+  ?include=translation,parent
+  &filter[status]=[{"condition":"=","value":"public"}]
+  &sort=position
+```
+
+To resolve a URL slug path (e.g. `/laptops/15-inch`) to a category id:
+
+```
+GET /api/v1/apps/product-hub/categories/by-path/find?path=laptops/15-inch
+```
+
+## Caching
+
+ProductHub responses are cache-tagged per installation. Two storefront-friendly behaviors:
+
+1. **Build a stale ETag** by hashing `meta.total + max(_updated_at)` of the first page. Refresh when either changes.
+2. **`sort=-_updated_at`** + a stored cursor gives you a simple incremental sync for offline storefronts or CDN warmers.
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Wrong filter format` (HTTP 400) | A filter value was sent flat (`filter[status]=public`) instead of JSON. | Wrap every filter value in `[{"condition":"=","value":"..."}]`. |
+| Empty `data` array on category page | Category id filter sent as text. | `categories.category_id` is `number` — send numeric value. |
+| Missing prices in response | `include` did not list a price relation. | Add `price,finalPrice` (and `specialPrice` if used). |
+| Sort by `position` ignored | `position` is not in the allowed sorts list. | Sort client-side, or order categories instead. |
+| Drafts visible to customers | `status` filter missing. | Always send `filter[status]=[{"condition":"=","value":"public"}]`. |
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Product Detail" icon="box" href="/advanced/storefront/product-detail">
+    Render a PDP with media, variants, attributes, and related products.
+  </Card>
+  <Card title="Cart and Checkout" icon="shopping-cart" href="/advanced/storefront/cart-and-checkout">
+    Convert a browse session into a paid order.
+  </Card>
+  <Card title="Filtering" icon="filter" href="/core-concepts/filtering">
+    Full filter grammar with every operator and example.
+  </Card>
+  <Card title="Pricing" icon="tag" href="/core-concepts/pricing">
+    Net vs gross, tier prices, group prices, and how `finalPrice` is computed.
+  </Card>
+</Columns>

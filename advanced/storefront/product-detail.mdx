@@ -1,0 +1,250 @@
+---
+title: Product Detail Page
+description: Render a single product (PDP) — variants, attributes, media, prices, cross-sells.
+---
+
+## Overview
+
+The product detail page (PDP) renders one product with everything the customer needs to evaluate and buy it: media, descriptions, prices, stock, variant selectors, related products, and add-to-cart controls. This guide shows the API calls behind a working PDP, what to include, and how to resolve the URL.
+
+## The Endpoints
+
+```
+GET /api/v1/apps/product-hub/products/{id}
+GET /api/v1/apps/product-hub/products?filter[seo_slug]=[...]
+```
+
+Two ways to load a PDP:
+
+1. **By id** — when the URL contains the numeric product id.
+2. **By slug** — when the URL is human-readable (`/p/{slug}`). Use the listing endpoint with a slug filter and read the first result.
+
+Slug example:
+
+```bash
+curl -s -G \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products' \
+  --data-urlencode 'filter[seo_slug]=[{"condition":"=","value":"acme-cordless-drill-18v"}]' \
+  --data-urlencode 'filter[status]=[{"condition":"=","value":"public"}]' \
+  --data-urlencode 'include=mainMedia,price' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'Accept: application/json'
+```
+
+Take `data[0].id` from the response and load the full PDP by id.
+
+## Full PDP Request
+
+```bash
+curl -s -G \
+  "https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/${id}" \
+  --data-urlencode 'include=media,mainMedia,price,specialPrice,finalPrice,tierPrices,finalTierPrices,groupPrices,attributeValues.value.attribute.group,attributeValues.value.attribute.translation,attributeValues.value.translation,categories.category,translation,crossSells.crossSellProduct.mainMedia,crossSells.crossSellProduct.price,crossSells.crossSellProduct.finalPrice,upSells.upSellProduct.mainMedia,upSells.upSellProduct.price,upSells.upSellProduct.finalPrice,childProducts.childProduct.attributeValues.value,childProducts.childProduct.mainMedia,childProducts.childProduct.price,childProducts.childProduct.finalPrice,childProducts.childProduct.stock,variationAttributes,stockSum,parentProducts.parentProduct.mainMedia' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'x-auth-token: 1.JDJ5JDEyJDR5VGJEQThxcUdROVNQQ1Rn...' \
+  -H 'session-uuid: 35cfd665-064a-48b0-b411-03a4f7af44d6' \
+  -H 'language-code: en-US' \
+  -H 'Accept: application/json'
+```
+
+`x-auth-token` matters here. When a customer is logged in, the API applies their **customer group** and **tier prices** to `finalPrice` and `finalTierPrices`. Guests see public prices only.
+
+## Response Shape
+
+```json
+{
+  "id": 12345,
+  "sku": "ACME-DRILL-18V",
+  "name": "Acme Cordless Drill 18V",
+  "product_type": "configurable",
+  "status": "public",
+  "seo": { "slug": "acme-cordless-drill-18v", "meta_title": "...", "meta_description": "..." },
+  "translation": [ /* per-locale name + description */ ],
+
+  "main_media": { "id": 9001, "url": "https://cdn.../main.jpg", "thumb": "..." },
+  "media":      [ { "id": 9001, "url": "...", "position": 0 }, ... ],
+
+  "price":         { "price": 199.00, "currency": "EUR" },
+  "special_price": { "price": 169.00, "currency": "EUR", "valid_from": "...", "valid_to": "..." },
+  "final_price":   { "price": 169.00, "currency": "EUR" },
+  "tier_prices":   [ { "qty_from": 5, "price": 159.00 }, { "qty_from": 10, "price": 149.00 } ],
+  "final_tier_prices": [ /* customer-group-resolved */ ],
+
+  "stock_sum": 27,
+  "variation_attributes": [
+    { "attribute_id": 51, "code": "color", "label": "Color" },
+    { "attribute_id": 52, "code": "voltage", "label": "Voltage" }
+  ],
+  "child_products": [
+    {
+      "child_product": {
+        "id": 12346, "sku": "ACME-DRILL-18V-RED", "name": "Acme Cordless Drill 18V Red",
+        "attribute_values": [
+          { "value": { "attribute_id": 51, "value": "red" } },
+          { "value": { "attribute_id": 52, "value": "18V" } }
+        ],
+        "main_media": { ... },
+        "price": { ... },
+        "final_price": { ... },
+        "stock": [ { "warehouse_id": 1, "stock_quantity": 12 } ]
+      }
+    }
+  ],
+
+  "attribute_values": [
+    { "value": { "attribute_id": 70, "attribute": { "code": "weight", "group": { ... } }, "value": "1.4kg" } }
+  ],
+  "categories": [ { "category": { "id": 7, "name": "Power Tools" } } ],
+  "cross_sells": [ { "cross_sell_product": { ... } } ],
+  "up_sells":    [ { "up_sell_product": { ... } } ]
+}
+```
+
+The keys above are the camelCase includes flattened to snake_case in the response (DataHub convention). Use the exact relation name when reading — for example `child_products[].child_product`, not `childProducts[].childProduct`.
+
+## Configurable Variants
+
+For products where `product_type` is `configurable`:
+
+1. **`variation_attributes`** lists the attributes the customer selects (e.g. color, size).
+2. **`child_products[]`** lists every concrete variant. Each variant has its own `sku`, `price`, `final_price`, `main_media`, `stock`, and `attribute_values`.
+
+Build the variant selector by:
+
+```js
+// Map each variation attribute to its available values from the children.
+const optionMap = {};
+for (const attr of product.variation_attributes) optionMap[attr.attribute_id] = new Set();
+for (const wrapper of product.child_products) {
+  for (const av of wrapper.child_product.attribute_values) {
+    if (optionMap[av.value.attribute_id]) optionMap[av.value.attribute_id].add(av.value.value);
+  }
+}
+
+// When the customer picks a combination, find the matching child:
+function findVariant(selection) {
+  return product.child_products
+    .map(w => w.child_product)
+    .find(child => Object.entries(selection).every(([attrId, val]) =>
+      child.attribute_values.some(av => av.value.attribute_id == attrId && av.value.value === val)
+    ));
+}
+```
+
+Add the **child's** id to the cart, not the parent's.
+
+<Callout kind="info" title="Bundle and license products">
+Bundle (`product_type=bundle`) and license (`product_type=license` or `product_type=virtual` with a `licenseConfiguration`) products have additional structure. Bundles expose `parent_product_attributes` to drive a bundle picker, and license products expose `license_configuration` describing key generation. Both are added to the cart by the parent id.
+</Callout>
+
+## Media
+
+`media` is an ordered array. `mainMedia` is a convenience pointer to the primary asset (the "hero" image used on listings and as the first slide on a PDP).
+
+URLs are absolute CDN URLs and safe to pass into an `<img>` tag. Resizing parameters are documented in [Media URLs](/core-concepts/media-urls).
+
+## Prices
+
+Use these rules on the PDP:
+
+| Field | Display |
+|---|---|
+| `final_price.price` | The big price the customer pays. **Always show.** |
+| `price.price` (regular) | Shown crossed out only when `final_price < price`. |
+| `special_price.price` | Same as `final_price` when an active promotion exists. |
+| `tier_prices[]` | Quantity break table ("Buy 5 for X, 10 for Y"). |
+| `final_tier_prices[]` | Same table after applying the logged-in customer's group rules. Prefer this over `tier_prices` when the customer is logged in. |
+| `group_prices[]` | Raw per-customer-group prices. Usually for admin UIs, not storefront. |
+
+Currency is on the price object itself; the storefront should not assume the installation's default.
+
+## Stock
+
+Three ways to show "in stock":
+
+| Strategy | Fields | When to use |
+|---|---|---|
+| **Sum of all warehouses** | `stock_sum` | Simple "X in stock" badge. |
+| **Default warehouse only** | `default_stock[0].stock_quantity` | Single-warehouse shops. |
+| **Per-warehouse** | `stock[].stock_quantity` + warehouse names | Multi-warehouse "store finder" experiences. |
+
+Customers cannot add more than the available quantity — the cart endpoint validates and returns a 422 if the requested qty exceeds stock.
+
+## Attributes
+
+Display attributes via `attribute_values[].value`. The shape is intentionally nested so you can group attributes by their attribute group on screen:
+
+```js
+const groups = {};
+for (const av of product.attribute_values) {
+  const g = av.value.attribute.group;
+  (groups[g.code] ??= { label: g.name, items: [] }).items.push({
+    code:  av.value.attribute.code,
+    label: av.value.attribute.translation?.find(t => t.locale === locale)?.label ?? av.value.attribute.code,
+    value: av.value.translation?.find(t => t.locale === locale)?.value ?? av.value.value,
+  });
+}
+```
+
+## Related Products
+
+| Relation | Purpose |
+|---|---|
+| `cross_sells` | "Customers also bought" — items shown on the cart page. |
+| `up_sells` | "You might also like" — premium alternatives shown on the PDP. |
+
+Each entry is a wrapper with the same product shape inside (`cross_sell_product`, `up_sell_product`). Cards render the same way as PLP cards — see [Browse the Catalog](/advanced/storefront/browse-catalog).
+
+## SEO
+
+```json
+"seo": {
+  "slug": "acme-cordless-drill-18v",
+  "meta_title": "Acme Cordless Drill 18V — Power Tools",
+  "meta_description": "...",
+  "canonical_url": "..."
+}
+```
+
+Render `meta_title` into `<title>`, `meta_description` into `<meta name="description">`, and use the slug to build canonical URLs. Translations of the SEO block come back when `include=translation` is in the request.
+
+## Add to Cart
+
+PDP "Add to Cart" calls go to OrderHub, not ProductHub:
+
+```bash
+POST /api/v1/apps/order-hub/cart-items
+{
+  "cart_uuid": "<session-uuid value>",   // for guests
+  "product_id": 12346,                   // the child id for configurable variants
+  "qty": 1
+}
+```
+
+See [Cart and Checkout](/advanced/storefront/cart-and-checkout) for the complete flow.
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Variant selector empty | `childProducts.childProduct.attributeValues.value` not in `include`. | Add it. |
+| Strikethrough price always shown | Comparing `price` vs `special_price` instead of `final_price`. | Compare `price` vs `final_price`. |
+| Logged-in price equals guest price | Request sent without `x-auth-token`. | Include the token; verify it has not expired. |
+| Wrong language on attributes | Missing `language-code` header or `translation` not in include. | Add both. |
+| `404 Not Found` on slug load | Drafts and archived products have unique slugs too. | Always combine the slug filter with `filter[status]=[{"condition":"=","value":"public"}]`. |
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Cart and Checkout" icon="shopping-cart" href="/advanced/storefront/cart-and-checkout">
+    Add items, preview totals, complete the purchase.
+  </Card>
+  <Card title="Pricing" icon="tag" href="/core-concepts/pricing">
+    Tier prices, group prices, taxes, currency.
+  </Card>
+  <Card title="Media URLs" icon="image" href="/core-concepts/media-urls">
+    Hosting, resizing, CDN behavior.
+  </Card>
+  <Card title="Recommended Includes" icon="list" href="/core-concepts/recommended-includes">
+    The minimum include sets for PLP, PDP, cart, and account.
+  </Card>
+</Columns>

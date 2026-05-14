@@ -1,0 +1,258 @@
+---
+title: Cart and Checkout
+description: Build a cart, preview the checkout, and complete the purchase from the storefront.
+---
+
+## Overview
+
+The cart-to-order flow is the heart of any storefront. This guide focuses on the **storefront perspective**: guest vs logged-in carts, the `session-uuid` header, picking shipping/billing methods, previewing totals, and completing the order.
+
+The underlying API is shared with admin/server-to-server callers and is documented end-to-end in [Checkout Flow](/advanced/checkout-flow). Read that page if you need every parameter; this one is the storefront-shaped subset.
+
+## Cart Identification
+
+A cart is identified by either:
+
+- **`session-uuid` header** — for guests. Generate a UUID on first visit, persist it in `localStorage`, and send it on every request. The API uses it as the cart key.
+- **`x-auth-token`** — for logged-in customers. The cart is keyed by the customer record; `session-uuid` may still be sent and is used to merge a pre-login guest cart on login.
+
+```
+GET /api/v1/apps/order-hub/carts
+Authorization headers:
+  installation-key: 7f1c9a40-...                ← always
+  session-uuid:     35cfd665-064a-...           ← always (storefront)
+  x-auth-token:     1.JDJ5JDEyJ...              ← when logged in
+```
+
+<Callout kind="info" title="Guest cart merge on login">
+When a guest with `session-uuid` X logs in, the backend looks for an existing cart by X and reassigns it to the freshly authenticated customer. Subsequent calls (with `x-auth-token` set) see the same line items.
+</Callout>
+
+## Flow at a Glance
+
+```
+1. Add items          POST   /cart-items
+2. Read cart          GET    /carts/{cart}
+3. Pick methods       GET    /shipping-methods / GET /billing-methods
+4. Preview totals     GET    /carts/{cart}/checkout
+5. Complete order     POST   /carts/{cart}/checkout
+6. Pay (if online)    follow returned payment_url
+```
+
+## Step 1 — Add Items
+
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/cart-items' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'session-uuid: 35cfd665-064a-48b0-b411-03a4f7af44d6' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "product_id": 12346,
+    "qty": 2
+  }'
+```
+
+The API resolves the cart from the headers (creating one if it does not exist), applies current pricing and stock validation, and returns the updated line item. For configurable products, pass the **child** product id, not the parent's.
+
+### Updating a quantity
+
+```bash
+PUT  /api/v1/apps/order-hub/cart-items/{id}    { "qty": 3 }
+```
+
+### Removing a line item
+
+```bash
+DELETE /api/v1/apps/order-hub/cart-items/{id}
+```
+
+## Step 2 — Read the Cart
+
+```bash
+curl -s -G \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts' \
+  --data-urlencode 'include=cartItems,cartItems.product,cartItems.product.mainMedia,cartItems.product.finalPrice' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'session-uuid: 35cfd665-064a-48b0-b411-03a4f7af44d6' \
+  -H 'Accept: application/json'
+```
+
+The endpoint is plural (`/carts`) but on the storefront returns at most one active cart for the caller. Use the first element of `data` as the current cart. Its `id` is the `{cart}` value you pass to subsequent calls.
+
+Useful storefront includes:
+
+| Include | Why |
+|---|---|
+| `cartItems` | The line items themselves. |
+| `cartItems.product.mainMedia` | Thumbnail in the mini-cart. |
+| `cartItems.product.finalPrice` | Live per-unit price. |
+| `cartItems.appliedDiscounts` | Cart rules / coupons applied to that line. |
+| `cartRules` | Cart-wide promotions in effect. |
+| `customer.addresses` | Address picker. |
+
+## Step 3 — Pick Shipping and Billing Methods
+
+The storefront fetches the available methods filtered by what the cart supports:
+
+```bash
+GET /api/v1/apps/order-hub/shipping-methods?filter[status]=[{"condition":"=","value":"public"}]
+GET /api/v1/apps/order-hub/billing-methods?filter[status]=[{"condition":"=","value":"public"}]
+```
+
+Billing methods include attributes that determine the storefront UX:
+
+- `payment_provider` (e.g. `mollie`, `stripe`, `manual`) — drives the post-checkout redirect.
+- `new_order_status` — the initial status the order is created in for this method (set in the admin).
+- `failed_order_status` — used when the payment provider reports failure.
+
+You do not need to handle those yourself; the cart's preview/complete steps return the relevant payment URL when needed.
+
+## Step 4 — Preview the Checkout
+
+Once the cart has items and the customer has chosen methods + addresses, preview:
+
+```bash
+curl -s -G \
+  "https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts/${cartId}/checkout" \
+  --data-urlencode "shipping_method_id=5" \
+  --data-urlencode "billing_method_id=2" \
+  --data-urlencode "shipping_address_id=18" \
+  --data-urlencode "billing_address_id=18" \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'session-uuid: 35cfd665-064a-48b0-b411-03a4f7af44d6' \
+  -H 'x-auth-token: 1.JDJ5JDEyJDR5VGJEQThxcUdROVNQQ1Rn...' \
+  -H 'Accept: application/json'
+```
+
+Response (truncated):
+
+```json
+{
+  "data": {
+    "subtotal": 338.00,
+    "shipping_cost": 9.90,
+    "tax_total": 69.58,
+    "grand_total": 417.48,
+    "currency": "EUR",
+    "line_items": [ ... ],
+    "applied_rules": [ ... ],
+    "warnings": []
+  }
+}
+```
+
+Render this directly on the checkout review screen. Re-issue the preview every time the customer changes a method or address — `tax_total` and `shipping_cost` depend on both.
+
+## Step 5 — Complete the Checkout
+
+```bash
+curl -s -X POST \
+  "https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts/${cartId}/checkout" \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'session-uuid: 35cfd665-064a-48b0-b411-03a4f7af44d6' \
+  -H 'x-auth-token: 1.JDJ5JDEyJDR5VGJEQThxcUdROVNQQ1Rn...' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "shipping_method_id":  5,
+    "billing_method_id":   2,
+    "shipping_address_id": 18,
+    "billing_address_id":  18,
+    "customer_note":       "Please leave at the front desk."
+  }'
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "order_id": 1042,
+    "order_status": "proccesing",
+    "payment_url": "https://www.mollie.com/checkout/select-method/...",
+    "redirect_after_payment": "https://shop.example.com/order/1042/thanks"
+  }
+}
+```
+
+What the storefront does next depends on `payment_url`:
+
+- **URL present** — redirect the browser to it. The provider handles the payment and POSTs back to the webhook URL embedded in the order. The customer eventually lands on `redirect_after_payment`.
+- **URL absent** — the order is fully created; route the customer straight to the order confirmation page.
+
+<Callout kind="warning" title="Do not consider the order paid until the webhook fires">
+The redirect back from the payment provider only means the customer finished the flow. The actual `paid` status is set by the asynchronous webhook. Show "Payment pending" until the order status flips. See [Webhooks](/core-concepts/webhooks).
+</Callout>
+
+## Guest Checkout
+
+Guest checkout uses the same endpoints. Differences:
+
+- No `x-auth-token` header — the cart is keyed only by `session-uuid`.
+- `POST /carts/{cart}/checkout` accepts inline `customer` + `shipping_address` + `billing_address` objects instead of id references.
+- After payment, the order is associated with the email submitted in the customer block. If that email later registers, the order is auto-linked.
+
+```json
+{
+  "shipping_method_id": 5,
+  "billing_method_id":  2,
+  "customer": {
+    "email":      "guest@example.com",
+    "first_name": "Jane",
+    "last_name":  "Doe",
+    "company":    "Example GmbH"
+  },
+  "shipping_address": { "country_code": "AT", "city": "Vienna", ... },
+  "billing_address":  { "country_code": "AT", "city": "Vienna", ... }
+}
+```
+
+See [Checkout Flow](/advanced/checkout-flow) for the full schema.
+
+## Coupons and Promotions
+
+```bash
+POST /api/v1/apps/order-hub/carts/{cart}/apply-coupon   { "code": "SUMMER10" }
+POST /api/v1/apps/order-hub/carts/{cart}/remove-coupon  { "code": "SUMMER10" }
+```
+
+The cart's `applied_rules` include reflects what the engine matched. The preview totals already incorporate the discount.
+
+## Order Status After Checkout
+
+Most installations create orders in a billing-method-specific initial status (commonly `proccesing` or `pending`). The progression — `paid`, `shipped`, `canceled`, `refunded` — happens asynchronously, driven by:
+
+- Payment provider webhooks (Mollie, Stripe, etc.).
+- Admin actions in the back office.
+- Stock + license side effects.
+
+The storefront should poll `GET /orders/{id}` or subscribe to webhooks for the status it cares about. The state machine governing legal transitions is described in the OrderHub settings under "Order Lifecycle / State Machine".
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `422` "Insufficient stock" on POST /cart-items | Requested qty exceeds available stock. | Read `defaultStock.stock_quantity` on the PDP and clamp. |
+| Two carts after login | Guest used different `session-uuid` than the one stored at sign-up. | Always send the `localStorage` UUID on the login request too. |
+| Preview totals differ from completed order | Method or address changed between preview and POST. | Re-issue preview right before POST, or block the button until preview is fresh. |
+| Webhook never marks order paid | Payment provider configured with the wrong installation key in the webhook URL. | Webhook URL is `/payment/webhook/{installationKey}/{provider}/{order_id}` — verify the key matches. |
+| Customer sees a stale price at checkout | Pricing changed after cart was created. | Preview re-resolves all prices server-side; trust the preview number, not the cart line item snapshot. |
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Checkout Flow (full reference)" icon="route" href="/advanced/checkout-flow">
+    Every parameter, every response shape, including admin-initiated checkouts.
+  </Card>
+  <Card title="Post-Purchase" icon="receipt" href="/advanced/storefront/post-purchase">
+    Order history, invoices, license keys, refunds.
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/core-concepts/webhooks">
+    How payment status flips from "pending" to "paid".
+  </Card>
+  <Card title="Customer Account" icon="user" href="/advanced/storefront/customer-account">
+    Addresses, password reset, profile — what the customer manages themselves.
+  </Card>
+</Columns>

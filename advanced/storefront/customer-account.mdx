@@ -1,0 +1,214 @@
+---
+title: Customer Account
+description: Profile, addresses, password, email verification — what a logged-in B2B customer manages from the storefront.
+---
+
+## Overview
+
+Once a B2B customer logs in (see [Storefront Customer Auth](/authentication/storefront-customer)), the storefront exposes an "Account" area. This guide covers the endpoints behind that area: reading the profile, editing it, managing shipping/billing addresses, changing the password, and re-verifying email.
+
+All endpoints require the storefront headers (`installation-key` + `x-auth-token`).
+
+## Read the Current Customer
+
+```bash
+curl -s -X GET \
+  'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/me' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'x-auth-token: 1.JDJ5JDEyJDR5VGJEQThxcUdROVNQQ1Rn...' \
+  -H 'Accept: application/json'
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "id": 184,
+    "email": "jane.doe@example.com",
+    "first_name": "Jane",
+    "last_name": "Doe",
+    "company": { "id": 22, "name": "Example GmbH" },
+    "role": { "id": 4, "name": "Customer", "type": "customer" },
+    "customer_group": { "id": 3, "name": "Wholesale" },
+    "email_verified_at": "2024-08-12T09:14:21Z",
+    "is_active": true,
+    "language_code": "en-US"
+  }
+}
+```
+
+Use this on app boot (after restoring the token from `localStorage`) to:
+
+1. Confirm the token is still valid (401 → re-login).
+2. Populate the navbar with the customer's name.
+3. Decide whether to show "Verify your email" banners (`email_verified_at` is `null`).
+
+## Update Profile
+
+```bash
+PUT /api/v1/apps/customer-hub/customers/{id}
+{
+  "first_name": "Jane",
+  "last_name":  "Doe",
+  "language_code": "de-AT",
+  "phone": "+43 1 234 5678"
+}
+```
+
+The customer can only update their own record. Server-side authorization rejects attempts to PUT another customer's id with 403.
+
+## Addresses
+
+Two separate resources:
+
+| Resource | Endpoint |
+|---|---|
+| Shipping addresses | `/api/v1/apps/customer-hub/shippingAddresses` |
+| Billing addresses | `/api/v1/apps/customer-hub/billingAddresses` |
+
+Both are standard CRUD apiResources. List, create, update, delete:
+
+```bash
+# List
+GET    /api/v1/apps/customer-hub/shippingAddresses?filter[customer_id]=[{"condition":"=","value":184}]&include=country
+
+# Create
+POST   /api/v1/apps/customer-hub/shippingAddresses
+{
+  "customer_id":   184,
+  "first_name":    "Jane",
+  "last_name":     "Doe",
+  "company":       "Example GmbH",
+  "address_line1": "Stephansplatz 1",
+  "address_line2": "",
+  "postal_code":   "1010",
+  "city":          "Vienna",
+  "country_code":  "AT",
+  "phone":         "+43 1 234 5678",
+  "is_default":    true
+}
+
+# Update
+PUT    /api/v1/apps/customer-hub/shippingAddresses/{id}
+
+# Delete
+DELETE /api/v1/apps/customer-hub/shippingAddresses/{id}
+```
+
+`is_default` on a new or updated address unsets the flag on the customer's other addresses of the same type — there is always at most one default per type.
+
+The same address ids are what you pass to the checkout (`shipping_address_id`, `billing_address_id`).
+
+## Favorites / Wishlist
+
+```bash
+GET /api/v1/apps/customer-hub/favorites
+PUT /api/v1/apps/customer-hub/favorites
+{
+  "product_ids": [101, 102, 105]
+}
+```
+
+The PUT is **idempotent and absolute** — the body is the complete new list. To remove one item, PUT the array without it.
+
+## Change Password
+
+There are two paths:
+
+### From the account (knows current password)
+
+```bash
+PUT /api/v1/apps/customer-hub/customers/{id}
+{
+  "current_password": "old-secret",
+  "password":         "new-secret",
+  "password_confirmation": "new-secret"
+}
+```
+
+### Forgot password (email link)
+
+```bash
+POST /api/v1/apps/auth-hub/forgot-password
+{ "email": "jane.doe@example.com" }
+```
+
+The API responds 200 regardless of whether the email exists (to avoid leaking account enumeration). NotificationHub sends the reset email; the link target is on the storefront and posts to:
+
+```bash
+POST /api/v1/apps/auth-hub/{installationKey}/reset-password
+{
+  "email":    "jane.doe@example.com",
+  "token":    "<from the email>",
+  "password": "new-secret",
+  "password_confirmation": "new-secret"
+}
+```
+
+Note this endpoint takes `installationKey` in the **URL path**, because the customer is not authenticated when clicking the email link.
+
+## Email Verification
+
+After registration the API issues an unverified token (logins still work, but some flows can require verification). To resend:
+
+```bash
+POST /api/v1/apps/auth-hub/send-verification-email
+```
+
+The link in the email posts to:
+
+```bash
+POST /api/v1/apps/auth-hub/{installationKey}/verify-email
+{ "email": "jane.doe@example.com", "token": "<from the email>" }
+```
+
+On success the customer record's `email_verified_at` is set and the "verify your email" banner can be dismissed.
+
+## Logout
+
+```bash
+POST /api/v1/apps/auth-hub/logout
+```
+
+Revokes the current `x-auth-token`. The storefront should also clear it from `localStorage` and any in-memory cache.
+
+Tokens are also revoked automatically when they go unused for too long (sliding idle window) — see [Storefront Customer Auth](/authentication/storefront-customer#sliding-idle-window).
+
+## Impersonation (Sales Agent)
+
+Customers whose `role.type` is `agent` can act on behalf of another customer:
+
+```bash
+GET  /api/v1/apps/auth-hub/impersonate/customers   # list impersonatable customers
+POST /api/v1/apps/auth-hub/impersonate/{customerId}   # start — returns a new x-auth-token
+POST /api/v1/apps/auth-hub/impersonate/leave          # return to the agent's own token
+```
+
+The returned token belongs to the impersonated customer for the duration of the session. Use it like any other `x-auth-token`. The audit log retains the originating agent.
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `403` on `PUT /customers/{id}` | Trying to edit another customer. | Read the id from `/auth-hub/me`, not from a form field. |
+| New address not picked at checkout | `is_default` not set, and checkout reads default. | Either set `is_default: true` or pass `shipping_address_id` explicitly. |
+| Reset link returns 422 "invalid token" | Token already used or expired. | Tokens are single-use and time-boxed; request a new one. |
+| Customer language stays English | `language-code` header set, but customer record has `en-US`. | Either update the customer's `language_code` (persisted) or trust the header. Header wins per-request. |
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Cart and Checkout" icon="shopping-cart" href="/advanced/storefront/cart-and-checkout">
+    Use the saved addresses to complete an order.
+  </Card>
+  <Card title="Post-Purchase" icon="receipt" href="/advanced/storefront/post-purchase">
+    Order history, invoices, returns.
+  </Card>
+  <Card title="Storefront Customer Auth" icon="user" href="/authentication/storefront-customer">
+    Login, register, forgot password — what happens before the account area.
+  </Card>
+  <Card title="Customer Hub" icon="users" href="/hubs/customer-hub">
+    Full reference for everything customer-related.
+  </Card>
+</Columns>

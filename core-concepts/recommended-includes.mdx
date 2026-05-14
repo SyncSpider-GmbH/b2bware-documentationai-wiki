@@ -1,0 +1,215 @@
+---
+title: Recommended Includes
+description: Copy-paste include sets for PLP, PDP, cart, account, and admin screens — small enough to be fast, complete enough to render.
+---
+
+## Overview
+
+`include` controls which related resources the API joins into the response. Too few and you spend extra round trips; too many and you ship a 200KB JSON blob to a phone over 4G. This page gives you **opinionated, copy-paste include strings** for each common screen.
+
+For the general syntax, see [Includes & Relations](/core-concepts/includes).
+
+## ProductHub
+
+### Product Listing Page (PLP)
+
+Cards with image, name, price, and a "Sale" badge:
+
+```
+include=mainMedia,price,specialPrice,finalPrice,categories.category
+```
+
+Add only when the design requires:
+
+| Add | If you also render |
+|---|---|
+| `defaultStock` | An in-stock badge. |
+| `attributeValues.value` | Attribute chips on the card. |
+| `tierPrices` | "From X €" hints. |
+
+### Product Detail Page (PDP)
+
+```
+include=media,mainMedia,
+        price,specialPrice,finalPrice,tierPrices,finalTierPrices,groupPrices,
+        attributeValues.value.attribute.group,
+        attributeValues.value.attribute.translation,
+        attributeValues.value.translation,
+        categories.category,
+        translation,
+        crossSells.crossSellProduct.mainMedia,
+        crossSells.crossSellProduct.price,
+        crossSells.crossSellProduct.finalPrice,
+        upSells.upSellProduct.mainMedia,
+        upSells.upSellProduct.price,
+        upSells.upSellProduct.finalPrice,
+        childProducts.childProduct.attributeValues.value,
+        childProducts.childProduct.mainMedia,
+        childProducts.childProduct.price,
+        childProducts.childProduct.finalPrice,
+        childProducts.childProduct.stock,
+        variationAttributes,stockSum,
+        parentProducts.parentProduct.mainMedia
+```
+
+Strip these if the product is not configurable / has no related products / is not a bundle:
+
+- `childProducts.*` — only for configurable products.
+- `crossSells.*` / `upSells.*` — only if the design shows them.
+- `parentProducts.parentProduct.mainMedia` — only for variant PDPs that link "see parent".
+
+### Category Tree (Side Nav)
+
+```
+include=translation,parent
+```
+
+For a flat sidebar, `translation` is enough.
+
+### Search / Autocomplete
+
+Lighter than a PLP card — just enough to render a dropdown row:
+
+```
+include=mainMedia,finalPrice
+```
+
+## OrderHub
+
+### Cart (Mini)
+
+The dropdown next to the cart icon:
+
+```
+include=cartItems,cartItems.product.mainMedia,cartItems.product.finalPrice
+```
+
+### Cart (Full Page)
+
+```
+include=cartItems,cartItems.product.mainMedia,cartItems.product.finalPrice,
+        cartItems.appliedDiscounts,
+        cartRules,
+        customer,customer.addresses,
+        shippingMethod,billingMethod
+```
+
+### Order Listing (My Orders)
+
+```
+include=orderLineItems,orderLineItems.product.mainMedia,
+        billingMethod,shippingMethod
+```
+
+`previous_status` is on the order itself — no include needed.
+
+### Order Detail
+
+```
+include=orderLineItems,orderLineItems.product.mainMedia,
+        orderLineItems.licenseKeys,
+        orderComments,
+        billingMethod,shippingMethod,
+        shippingAddress,billingAddress,
+        customer,invoices
+```
+
+### Checkout Preview / Complete
+
+The preview/complete endpoints already return totals and a denormalized cart; the only useful add-on is `appliedDiscounts` if your UI breaks down which rules applied:
+
+```
+include=cartItems.appliedDiscounts,cartRules
+```
+
+## CustomerHub
+
+### Account Header (Navbar)
+
+Just enough to greet the customer and show "Cart (N)":
+
+```
+GET /auth-hub/me      ← no include needed
+```
+
+### Profile Page
+
+```
+include=company,role,customerGroup
+```
+
+### Address Book
+
+```
+include=country
+```
+
+### Favorites
+
+```
+GET /customer-hub/favorites?include=products.mainMedia,products.finalPrice
+```
+
+## LicenseHub
+
+### Customer-Visible License List
+
+Storefront-facing licenses are exposed via the order line item, not directly:
+
+```
+GET /order-hub/orders/{id}?include=orderLineItems.licenseKeys
+```
+
+### Admin License Detail
+
+```
+include=product,customer,order
+```
+
+## Rules of Thumb
+
+1. **Start from the screen.** List every value the UI renders, then look up the relation that provides it. Anything not on screen has no business being in `include`.
+2. **`mainMedia` over `media`** for cards. `media` for galleries.
+3. **`finalPrice` over `price` + `specialPrice`** if you only show the effective price. Add the others when you need strikethrough or "Sale" logic.
+4. **Avoid `.translation` on listings.** It multiplies the row count. Use `language-code` header + the localized fields the resource exposes natively.
+5. **Compose responsibly.** `childProducts.childProduct.attributeValues.value.translation` is a 5-level join — fine on a PDP, ruinous on a PLP.
+6. **Measure before adding.** Open the network tab, run the request, look at the size. Anything over ~200 KB on a listing is a red flag.
+
+## Performance Reference
+
+Rough cost on a tenant with ~10k products / 5k images:
+
+| Include set | Response size (page of 25) | Notable cost |
+|---|---|---|
+| `mainMedia,finalPrice` | ~30 KB | Cheap. |
+| PLP (above) | ~80 KB | Acceptable. |
+| PDP (above) | ~150 KB | Per-product, run on demand. |
+| PLP + `media` (gallery) | ~250 KB | Avoid. |
+| PLP + `translation` | ~200 KB | Avoid. |
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Empty fields on PDP | Missing nested include. | Add the deepest dotted include the field requires. |
+| Slow PLP | `media` instead of `mainMedia`, or `translation` joined on every row. | Use the PLP recipe above. |
+| `400` "include not allowed" | Relation not whitelisted on this endpoint. | The endpoint only allows its declared `allowedIncludes`. Drop the unsupported one. |
+| Customer-specific prices wrong | Request missing `x-auth-token`. | Add it; `finalPrice` is per-customer. |
+| Different attribute order across pages | Order depends on insertion. | Sort attributes client-side by `attribute.group.position` + `attribute.position`. |
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Includes & Relations" icon="link" href="/core-concepts/includes">
+    Full syntax: comma-separated, dot notation, multi-level.
+  </Card>
+  <Card title="Pricing" icon="tag" href="/core-concepts/pricing">
+    Which price relations to include when.
+  </Card>
+  <Card title="Media URLs" icon="image" href="/core-concepts/media-urls">
+    `mainMedia` vs `media`, when to use each.
+  </Card>
+  <Card title="Filtering" icon="filter" href="/core-concepts/filtering">
+    The other half of an efficient query.
+  </Card>
+</Columns>
