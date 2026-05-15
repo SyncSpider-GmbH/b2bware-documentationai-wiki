@@ -16,14 +16,44 @@ The default API domain is `api.datahub.syncspider.com`. Replace `{hub-slug}` wit
 | Hub | Slug |
 |-----|------|
 | AttributesHub | `attributes-hub` |
+| AuthHub | `auth-hub` |
 | CustomerHub | `customer-hub` |
+| EventHub | `event-hub` |
 | LicenseHub | `license-hub` |
 | MediaHub | `media-hub` |
 | NotificationHub | `notification-hub` |
 | OrderHub | `order-hub` |
 | ProductHub | `product-hub` |
+| RuleHub | `rule-hub` |
 | SettingsHub | `settings-hub` |
 | TaxHub | `tax-hub` |
+
+## Path Notation in this Documentation
+
+Documentation uses two styles depending on context — and they always mean the same thing:
+
+| Style | Where you see it | Example |
+|---|---|---|
+| **Absolute URL** | curl snippets, HTTP request samples, runnable code | `https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts` |
+| **Relative path** | endpoint tables on a hub page, prose like "call `GET /products`" | `GET /carts` (on the OrderHub page) |
+
+Relative paths in a hub page's tables are **always relative to that hub's base URL** declared at the top of the page. Two endpoints written as `GET /carts` on the OrderHub page and `GET /products` on the ProductHub page resolve to:
+
+```
+https://api.datahub.syncspider.com/api/v1/apps/order-hub/carts
+https://api.datahub.syncspider.com/api/v1/apps/product-hub/products
+```
+
+## Header Naming vs JSON Field Naming
+
+DataHub follows standard HTTP and JSON conventions, which means the **same value** appears with different casing depending on where it lives:
+
+| Location | Convention | Example |
+|---|---|---|
+| HTTP request/response header | **kebab-case** | `session-uuid: 35cfd665-...` |
+| JSON request/response body field | **snake_case** | `"session_uuid": "35cfd665-..."` |
+
+The most common pair is `session-uuid` (header — for guest carts) ↔ `session_uuid` (body — the cart's stored field). They identify the **same** guest session; the casing difference is purely the HTTP-vs-JSON convention. Other affected pairs include `language-code` ↔ `language_code` and `installation-key` ↔ `installation_key` (rarely seen in bodies).
 
 ## Pagination
 

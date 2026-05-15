@@ -1,6 +1,6 @@
 ---
 title: Hub Overview
-description: Overview of all 9 DataHub hubs with their base URLs, key entities, and capabilities.
+description: Overview of all DataHub hubs with their base URLs, key entities, and capabilities.
 ---
 
 ## What Are Hubs?
@@ -9,6 +9,10 @@ DataHub organizes its API into specialized **Hubs**, each managing a distinct do
 
 <Callout kind="info">
 All hubs share the same [authentication](/authentication), [filtering](/core-concepts/filtering), [includes](/core-concepts/includes), and [response formats](/core-concepts/common-patterns). Learn these patterns once and apply them everywhere.
+</Callout>
+
+<Callout kind="info" title="What lives where in the docs">
+Each hub page in this section covers the most common endpoints in tables, along with prose on filters, includes, gotchas, and storefront cross-references. For the **complete machine-readable specification** of every endpoint — exact path parameters, query strings, request bodies, response schemas — open the [API Reference](/api-reference) tab. The two views are kept in sync from the same Postman collections.
 </Callout>
 
 ## All Hubs
@@ -24,6 +28,10 @@ All hubs share the same [authentication](/authentication), [filtering](/core-con
 | [TaxHub](/hubs/tax-hub) | `api/v1/apps/tax-hub/` | Tax classes, jurisdictions, rules, calculation engine, rate imports |
 | [SettingsHub](/hubs/settings-hub) | `api/v1/apps/settings-hub/` | Platform configuration, translations, locales, currencies, cache, indexing |
 | [LicenseHub](/hubs/license-hub) | `api/v1/apps/license-hub/` | License key lifecycle, pools, rules, usage tracking, configurations |
+| [AuthHub](/hubs/auth-hub) | `api/v1/apps/auth-hub/` | Login, register, password reset, email verification, sales-agent impersonation |
+| [EventHub](/hubs/event-hub) | `api/v1/apps/event-hub/` | Webhook subscriptions, signed deliveries, retries, delivery logs |
+| [RuleHub](/hubs/rule-hub) | `api/v1/apps/rule-hub/` | Promotions, coupons, cart validation, shipping-rate rules, condition engine |
+
 
 ## Hub Capabilities
 

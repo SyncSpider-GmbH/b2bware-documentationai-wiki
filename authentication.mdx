@@ -18,6 +18,26 @@ DataHub supports two distinct authentication modes. Pick the one that matches yo
 The `Authorization: Bearer` token is a tenant-level secret. **Do not** ship it to a browser, mobile app, or any other untrusted client. Storefronts use `installation-key` (safe to expose) plus an optional per-customer `x-auth-token` (issued at login).
 </Callout>
 
+## What Each Endpoint Class Needs
+
+The headers you must send depend on what the endpoint *does* — not just where you call from. Use this matrix as a quick check before issuing a request.
+
+| Endpoint class | Examples | `installation-key` | `x-auth-token` | `session-uuid` | Bearer | Notes |
+|---|---|:-:|:-:|:-:|:-:|---|
+| Public catalog read | `GET /product-hub/products`, `GET /product-hub/categories`, `GET /settings-hub/locales` | ✅ | — | — | — | Anyone with the installation key can read public catalog data. |
+| Storefront login | `POST /auth-hub/login`, `POST /auth-hub/register` | ✅ | — | optional | — | Returns the `x-auth-token` you use on subsequent calls. |
+| Guest cart / checkout | `PATCH /order-hub/carts`, `POST /order-hub/checkout/preview` | ✅ | — | ✅ | — | Cart is keyed by `session-uuid` until the customer logs in. |
+| Logged-in customer | `GET /auth-hub/me`, `GET /customer-hub/customers/{id}`, `GET /order-hub/orders` | ✅ | ✅ | optional | — | Customer identity comes from `x-auth-token`. |
+| Admin / ERP / integrator | All write operations on tenant-wide resources (`POST /product-hub/products`, bulk imports, settings writes) | — | — | — | ✅ | A single `Authorization: Bearer` token replaces installation-key + x-auth-token. |
+| Inbound webhook (provider → DataHub) | `POST /order-hub/payment/webhook/{installationKey}/{provider}/{order_id}` | — | — | — | — | No headers needed — the installation key is in the URL. The provider signs the body. |
+
+A few rules implied by the matrix:
+
+- The `installation-key` header alone is enough for **reads** of public storefront data, but **never** for writes against tenant-wide resources.
+- The `x-auth-token` header **requires** `installation-key` too — the two are checked together. A token without an installation key returns `401`.
+- `Authorization: Bearer` **replaces** the storefront pair. Do not send both — the API picks one and ignores the other, which makes 401s confusing.
+- On the auth-hub itself, **don't** send a Bearer token. AuthHub endpoints are designed for the storefront flow; mixing in a server-to-server token will return `401`.
+
 ## Quick Reference
 
 <Tabs>
@@ -83,6 +103,10 @@ Learn more in [Server-to-Server Tokens](/authentication/server-to-server).
 Identifies a **guest cart / browsing session** that survives login. The storefront generates a UUID on first visit, stores it in `localStorage`, and sends it on every request. The API echoes it back on the response so the client can pick up server-side rotations.
 
 Required when the storefront supports guest checkout — the cart is keyed by this UUID until the customer logs in, at which point the guest cart is merged onto the customer account. After login it can still be sent; it is ignored where it is not relevant.
+
+<Callout kind="info" title="Header vs body field naming">
+This value travels as the kebab-case header `session-uuid` but appears inside JSON bodies and responses as the snake_case field `session_uuid` — same value, two casings to follow standard HTTP and JSON conventions. See [Header Naming vs JSON Field Naming](/core-concepts/common-patterns#header-naming-vs-json-field-naming) for the full convention.
+</Callout>
 
 ### `language-code` (storefront, optional)
 
