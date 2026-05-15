@@ -99,31 +99,34 @@ its next launch.
   </Tab>
 </Tabs>
 
-## Manual installation
+## Manual installation (advanced)
 
-If you prefer to track the docs repo directly instead of using the zipped
-release, clone the repo and symlink the skill output:
+Packaged skills are **built and released** from the
+[`datahub-skills`](https://github.com/SyncSpider-GmbH/datahub-skills) repository
+(the wiki repo no longer contains the skill build pipeline).
+
+**Option A — track the skill repo and build locally**
 
 ```bash
-git clone https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki.git
-cd b2bware-documentationai-wiki
+git clone https://github.com/SyncSpider-GmbH/datahub-skills.git
+cd datahub-skills
 python3 scripts/build-public-skills.py --version dev
-ln -sf "$(pwd)/dist/skills/datahub-core"       ~/.claude/skills/datahub-core
-ln -sf "$(pwd)/dist/skills/datahub-hubs"       ~/.claude/skills/datahub-hubs
-ln -sf "$(pwd)/dist/skills/datahub-storefront" ~/.claude/skills/datahub-storefront
+ln -sf "$(pwd)/dist/skills/datahub-core"       ~/.cursor/skills/datahub-core
+ln -sf "$(pwd)/dist/skills/datahub-hubs"       ~/.cursor/skills/datahub-hubs
+ln -sf "$(pwd)/dist/skills/datahub-storefront" ~/.cursor/skills/datahub-storefront
 ```
 
-Pull the repo to refresh; the symlinks always point at the freshly built
-skills.
+**Option B — use the pre-built ZIPs** (same as the [Download](#download) section
+above); no Python checkout required.
 
 ## Versioning
 
-Skills are versioned alongside the docs themselves. Every merge to `main`
-triggers a GitHub Action that rebuilds the three skills and publishes a new
-GitHub Release tagged `skills-vYYYY.MM.DD`. The `/releases/latest/download/`
-URL above always resolves to the most recent build, so reinstalling with the
-same command picks up the latest docs.
+New skill bundles are published as GitHub Releases on
+[`datahub-skills`](https://github.com/SyncSpider-GmbH/datahub-skills/releases),
+typically tagged `skills-vYYYY.MM.DD`. The `/releases/latest/download/` URLs in
+this page always resolve to the newest ZIP, so re-running the install commands
+pulls the latest docs snapshot.
 
-If you need a specific historical version, browse the
-[Releases page](https://github.com/SyncSpider-GmbH/datahub-skills/releases)
-and download the dated asset directly.
+If you need a specific historical version, open the
+[Releases page](https://github.com/SyncSpider-GmbH/datahub-skills/releases) and
+download the dated asset directly.
