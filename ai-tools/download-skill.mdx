@@ -26,20 +26,20 @@ build.
 
 <Tabs>
   <Tab title="datahub-core">
-    [Download datahub-core.zip](https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-core.zip)
+    [Download datahub-core.zip](https://github.com/SyncSpider-GmbH/datahub-skills/releases/latest/download/datahub-core.zip)
 
     Foundational reference — authentication, filtering, pagination, pricing,
     webhooks, error handling, environments. Pair with `datahub-hubs` for
     endpoint-level detail.
   </Tab>
   <Tab title="datahub-hubs">
-    [Download datahub-hubs.zip](https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-hubs.zip)
+    [Download datahub-hubs.zip](https://github.com/SyncSpider-GmbH/datahub-skills/releases/latest/download/datahub-hubs.zip)
 
     Per-hub endpoint reference plus OpenAPI 3.0 specs. Point your assistant
     at `openapi/<hub>.yaml` for exact request/response shapes.
   </Tab>
   <Tab title="datahub-storefront">
-    [Download datahub-storefront.zip](https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-storefront.zip)
+    [Download datahub-storefront.zip](https://github.com/SyncSpider-GmbH/datahub-skills/releases/latest/download/datahub-storefront.zip)
 
     Storefront integration playbook — covers the exact headers
     (`installation-key`, `x-auth-token`, `session-uuid`, `language-code`),
@@ -58,7 +58,7 @@ its next launch.
   <Tab title="Claude Code">
     ```bash
     mkdir -p ~/.claude/skills && cd ~/.claude/skills \
-      && curl -L https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-core.zip -o datahub-core.zip \
+      && curl -L https://github.com/SyncSpider-GmbH/datahub-skills/releases/latest/download/datahub-core.zip -o datahub-core.zip \
       && unzip -o datahub-core.zip && rm datahub-core.zip
     ```
 
@@ -67,7 +67,7 @@ its next launch.
   <Tab title="GitHub Copilot CLI">
     ```bash
     mkdir -p ~/.copilot/skills && cd ~/.copilot/skills \
-      && curl -L https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-core.zip -o datahub-core.zip \
+      && curl -L https://github.com/SyncSpider-GmbH/datahub-skills/releases/latest/download/datahub-core.zip -o datahub-core.zip \
       && unzip -o datahub-core.zip && rm datahub-core.zip
     ```
 
@@ -77,7 +77,7 @@ its next launch.
   <Tab title="Cursor">
     ```bash
     mkdir -p ~/.cursor/skills && cd ~/.cursor/skills \
-      && curl -L https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-core.zip -o datahub-core.zip \
+      && curl -L https://github.com/SyncSpider-GmbH/datahub-skills/releases/latest/download/datahub-core.zip -o datahub-core.zip \
       && unzip -o datahub-core.zip && rm datahub-core.zip
     ```
 
@@ -92,7 +92,7 @@ its next launch.
     plain Markdown plus OpenAPI YAML, so no special tooling is required.
 
     ```bash
-    curl -L https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases/latest/download/datahub-core.zip -o datahub-core.zip
+    curl -L https://github.com/SyncSpider-GmbH/datahub-skills/releases/latest/download/datahub-core.zip -o datahub-core.zip
     unzip -o datahub-core.zip -d /path/to/your/assistant/skills/
     rm datahub-core.zip
     ```
@@ -125,5 +125,5 @@ URL above always resolves to the most recent build, so reinstalling with the
 same command picks up the latest docs.
 
 If you need a specific historical version, browse the
-[Releases page](https://github.com/SyncSpider-GmbH/b2bware-documentationai-wiki/releases)
+[Releases page](https://github.com/SyncSpider-GmbH/datahub-skills/releases)
 and download the dated asset directly.
