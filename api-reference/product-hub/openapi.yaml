@@ -390,7 +390,23 @@ paths:
               type: string
               example: >-
                 "{\n  \"name\": \"Updated Category Name\",\n  \"description\":
-                \"Updated description\",\n  \"slug\": \"updated-slug\"\n}"
+                \"Updated description\",\n  \"slug\": \"updated-slug\",\n 
+                \"parent_id\": 5,\n  \"exclude_from_main_menu\": true,\n 
+                \"exclude_from_layer_navigation\": false,\n  \"media\": [\n   
+                {\n      \"media_url\":
+                \"https://cdn.example.com/categories/electronics.jpg\",\n     
+                \"media_type\": \"image\",\n      \"alt_text\": \"Category
+                image\",\n      \"is_primary\": true,\n      \"order\": 1\n   
+                }\n  ],\n  \"attributes\": [\n    {\n      \"attribute_id\":
+                1,\n      \"value\": \"Updated Value\"\n    }\n  ],\n 
+                \"meta_data\": {\n    \"definition\": [\n      {\n       
+                \"name\": \"Meta Field\",\n        \"code\": \"meta_field\",\n 
+                \"type\": \"text\",\n        \"values\": [],\n       
+                \"visible_on_the_category_page\": true,\n        \"required\":
+                false\n      }\n    ],\n    \"definition_values\": {}\n  },\n 
+                \"seo\": {\n    \"title\": \"Updated Title\",\n   
+                \"description\": \"Updated meta description\",\n   
+                \"keywords\": \"updated, keywords\"\n  }\n}"
       parameters:
         - name: Content-Type
           in: header

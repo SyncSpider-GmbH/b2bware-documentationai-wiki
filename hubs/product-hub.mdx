@@ -479,15 +479,20 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 
 **Media (nested array)**
 
+See [Product & Category Media Uploads](/core-concepts/product-media-uploads) for the full URL-vs-CDN-upload flow and per-item semantics.
+
 | Field | Rules |
 |-------|-------|
 | `media` | array |
-| `media.*.file` | file upload (binary) |
-| `media.*.media_type` | string (image, video, document) |
-| `media.*.media_url` | string (URL for external media) |
+| `media.*.file` | file upload (binary, base64 string, or remote URL) — triggers CDN upload via `media/validateAndStoreMedia` |
+| `media.*.file_name` | string (used as the CDN filename) |
+| `media.*.replace_images` | boolean (overwrite existing CDN object instead of versioning) |
+| `media.*.media_type` | string (image, video, document); auto-detected from URL extension if omitted |
+| `media.*.media_url` | string (external URL — stored verbatim when `file` is not provided) |
 | `media.*.alt_text` | string |
-| `media.*.is_primary` | boolean |
+| `media.*.is_primary` | boolean (auto-unsets other primaries on the same owner) |
 | `media.*.order` | numeric (display order) |
+| `media.*.media_id` | numeric (re-link an existing MediaHub record) |
 
 **Relations**
 
@@ -563,6 +568,64 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 | `*.customer_group_id` | nullable |
 | `*.start_date` | nullable, date |
 | `*.end_date` | nullable, date |
+
+</Expandable>
+
+<Expandable title="Create / Update Category" default-open="false">
+
+**Top-Level Fields**
+
+| Field | Rules | Notes |
+|-------|-------|-------|
+| `name` | required on create, string, min:1 | Category display name |
+| `slug` | nullable, string, min:1 | Auto-generated from `name` if omitted; collisions are de-duplicated |
+| `description` | nullable, string | Long description / HTML |
+| `parent_id` | nullable, numeric | Parent category ID; `null` = root |
+| `exclude_from_main_menu` | sometimes, boolean | Hide from main navigation menu |
+| `exclude_from_layer_navigation` | sometimes, boolean | Hide from layered (faceted) navigation |
+| `seo` | sometimes, nullable, array | SEO metadata (`title`, `description`, `keywords`, `meta_title`, `meta_description`) |
+
+**Meta Data (dynamic per-category fields)**
+
+| Field | Rules |
+|-------|-------|
+| `meta_data` | sometimes, array |
+| `meta_data.definition` | sometimes, array of field definitions |
+| `meta_data.definition.*.name` | required, string |
+| `meta_data.definition.*.code` | required, string (machine name) |
+| `meta_data.definition.*.type` | required, string (`text`, `number`, `select`, ...) |
+| `meta_data.definition.*.values` | array (options for `select`) |
+| `meta_data.definition.*.visible_on_the_category_page` | sometimes, boolean |
+| `meta_data.definition.*.required` | sometimes, boolean |
+| `meta_data.definition_values` | sometimes, array (key → value pairs keyed by `code`) |
+
+**Attributes (nested array)**
+
+| Field | Rules |
+|-------|-------|
+| `attributes` | nullable, array |
+| `attributes.*.attribute_id` | required, numeric |
+| `attributes.*.value` | nullable |
+| `attributes.*.auto_create_value` | boolean |
+
+**Media (nested array)**
+
+See [Product & Category Media Uploads](/core-concepts/product-media-uploads) for the full URL-vs-CDN-upload flow.
+
+| Field | Rules |
+|-------|-------|
+| `media` | nullable, array |
+| `media.*.file` | nullable; required when `media_url` is not provided |
+| `media.*.media_url` | nullable, string (external/CDN URL) |
+| `media.*.media_type` | nullable, string (`image`, `video`, `document`) |
+| `media.*.alt_text` | nullable, string |
+| `media.*.is_primary` | boolean |
+| `media.*.order` | nullable, numeric |
+| `media.*.id` / `media.*.media_id` | nullable, numeric (re-link existing media) |
+
+<Callout kind="info">
+On **update** (`PUT /categories/{id}`), the `id` field in the body is prohibited — the ID comes from the URL. Sending `image` instead of `media` is accepted as a deprecated alias and will be remapped automatically.
+</Callout>
 
 </Expandable>
 

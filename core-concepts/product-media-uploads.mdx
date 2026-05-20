@@ -1,0 +1,255 @@
+---
+title: Product & Category Media Uploads
+description: How to attach media to products and categories — choose between referencing an external URL or uploading a file to the DataHub CDN — and what the API actually does under the hood.
+---
+
+## Overview
+
+Products and categories accept a nested `media` array on **create** (`POST /products`, `POST /categories`) and **update** (`PUT /products/{id}`, `PUT /categories/{id}`, `PUT /products/upsert/single`). Each item in the array represents one media record (image, video, document).
+
+The API supports **two modes** in the same array — pick per-item based on whether the asset is already hosted somewhere or still needs to be uploaded:
+
+| Mode | When to use | Required fields | What DataHub does |
+|---|---|---|---|
+| **URL only** | The file is already publicly reachable (you host it, or it's on a 3rd-party CDN). | `media_url` | Stores the URL as-is on the media record. No file transfer. |
+| **CDN upload** | You want DataHub to host the file on its own CDN (BunnyCDN by default). | `file` | Calls `media/validateAndStoreMedia` to push the asset to the CDN, then stores the returned CDN URL. |
+
+Both modes use the **same endpoint** — there is no separate upload step. Mixing modes inside one `media` array is fully supported.
+
+<Callout kind="info">
+For the *output* side — how to read `media_url`, generate `srcset`, and use the CDN's resize query string — see [Media URLs](/core-concepts/media-urls).
+</Callout>
+
+## The Media Item Shape
+
+Every entry in the `media` array (regardless of mode) accepts the following keys:
+
+| Field | Required | Type | Notes |
+|---|---|---|---|
+| `media_url` | Yes if `file` is omitted | string | Public URL to the asset. Used directly in URL-only mode; ignored when `file` is present (overwritten by the CDN URL). |
+| `file` | Yes if `media_url` is omitted | string | Base64-encoded file content **or** a remote URL the API should fetch. Triggers CDN upload. |
+| `file_name` | No | string | Original filename. Used when generating the CDN path. |
+| `replace_images` | No | boolean | When `true`, overwrites the previous CDN object at the same key instead of versioning. |
+| `media_type` | No | string | `image`, `video`, `document`. Auto-detected from URL extension if omitted. |
+| `alt_text` | No | string | `<img alt>` value. |
+| `is_primary` | No | boolean | Marks this as the owner's primary media. Setting this to `true` automatically unsets the flag on all other media of the same owner. |
+| `order` | No | integer | 1-based display order. If omitted, an order is assigned on save. |
+| `media_id` | No | numeric | Re-link an existing MediaHub record by ID instead of creating a new one. |
+| `id` | No | numeric | Update an existing media row on this owner. |
+
+The validation rule that enforces "one of `file` or `media_url`" is `nullable|required_without:media.*.media_url` (per `CategoryController` and `ProductRepository::getValidationRules`).
+
+## Mode 1 — URL Only (no CDN upload)
+
+Send the absolute URL of an asset that's already public. The record is stored verbatim.
+
+### Example — create a product with two external images
+
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Acme Cordless Drill 18V",
+    "sku": "ACME-DRL-18V",
+    "product_type": "simple",
+    "status": "public",
+    "media": [
+      {
+        "media_url": "https://images.acme.com/drills/18v-front.jpg",
+        "media_type": "image",
+        "alt_text": "Acme 18V drill — front view",
+        "is_primary": true,
+        "order": 1
+      },
+      {
+        "media_url": "https://images.acme.com/drills/18v-side.jpg",
+        "media_type": "image",
+        "alt_text": "Acme 18V drill — side view",
+        "order": 2
+      }
+    ]
+  }'
+```
+
+What happens server-side:
+
+1. `ProductRepository::handleMedia` forwards the `media` array to `MediaRepository::updateOrCreate`.
+2. `file` is empty → no upload is attempted.
+3. `media_type` is taken from the request, or guessed from the URL extension (`.jpg` → `image/jpeg` → `image`).
+4. `Media::updateOrCreate` writes the row keyed by `(mediable_type, mediable_id, media_url)` — re-posting the same URL is idempotent.
+
+### When to use URL-only mode
+
+- The asset already lives on your CDN, S3 bucket, or supplier's image server.
+- You're migrating data and the URLs are stable.
+- You're syncing from an external PIM that owns the canonical asset.
+
+<Callout kind="warning">
+The storefront serves whatever URL you store. If the upstream host disappears, the image breaks. Use CDN upload mode when you need DataHub to own the file.
+</Callout>
+
+## Mode 2 — CDN Upload
+
+Send the file as `file` and DataHub pushes it to the CDN, then stores the returned URL on the media record.
+
+The `file` value can be either:
+
+- **A remote URL** — DataHub fetches the file from that URL and re-hosts it on its own CDN. Useful for migrating assets out of a 3rd-party host.
+- **A base64 data URI / raw base64 string** — for direct uploads from a UI.
+
+### Example — create a category and upload its hero image to the CDN
+
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/categories' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Power Tools",
+    "slug": "power-tools",
+    "exclude_from_main_menu": false,
+    "exclude_from_layer_navigation": false,
+    "media": [
+      {
+        "file": "https://suppliers.acme.com/banners/power-tools-hero.jpg",
+        "file_name": "power-tools-hero.jpg",
+        "media_type": "image",
+        "alt_text": "Power Tools category banner",
+        "is_primary": true,
+        "order": 1
+      }
+    ]
+  }'
+```
+
+### Example — update a product, uploading one new image and keeping one existing URL
+
+```bash
+curl -s -X PUT \
+  'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/42' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "media": [
+      {
+        "file": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAA...",
+        "file_name": "new-front-photo.jpg",
+        "media_type": "image",
+        "alt_text": "Updated front view",
+        "is_primary": true,
+        "order": 1
+      },
+      {
+        "media_url": "https://images.acme.com/drills/18v-side.jpg",
+        "media_type": "image",
+        "alt_text": "Side view",
+        "order": 2
+      }
+    ]
+  }'
+```
+
+### What happens server-side
+
+1. `ProductRepository::handleMedia` → `MediaRepository::updateOrCreate`.
+2. For each item where `file` is a non-empty string, the API calls:
+
+   ```
+   POST media/validateAndStoreMedia
+   {
+     "value": {
+       "platform_id": 2,
+       "company_id": <tenant team_id>,
+       "public_url": "<the file payload>",
+       "file_name": "<file_name or null>",
+       "replaceImages": <replace_images or false>
+     },
+     "key": "file",
+     "platform_id": 2
+   }
+   ```
+
+3. The CDN response (`id`, `name`, `public_url`, `private_url`, `private`, `size`) is folded back into the request item:
+   - `media_url` is **overwritten** with the CDN's `public_url`.
+   - `file` is replaced with a structured object for downstream consumers.
+4. `Media::updateOrCreate` then persists the row using the CDN URL as the de-duplication key.
+5. If the upload fails for a specific URL, the API collects the failures and throws a `MediaException` at the end of the batch with a per-URL summary — partial successes are kept. The client receives an HTTP error listing the bad URLs.
+
+### When to use CDN upload mode
+
+- A user is uploading an image from your admin UI.
+- You're migrating assets off a 3rd-party host and want DataHub to take ownership.
+- You need the CDN's resize / WebP conversion (see [Media URLs § Resizing](/core-concepts/media-urls#resizing)).
+
+## Replacing Media on Update
+
+The behavior of `PUT /products/{id}` and `PUT /categories/{id}` depends on a request-level flag:
+
+| Request flag | Behavior |
+|---|---|
+| `usingProductHub: true` (in the request body or query) | **Replace mode** — media not present in the request payload are **deleted** from the owner after the update. Used by the DataHub admin UI to mirror the form state. |
+| flag absent or `false` | **Append/upsert mode** — only the items in the payload are upserted; existing media are left untouched. Safer for API integrations. |
+
+If you want to clear all media without sending any items, send an empty `media: []` with `usingProductHub: true`.
+
+## `image` is Accepted as a Deprecated Alias
+
+For backwards compatibility on `PUT /categories/{id}`, the API accepts `image` instead of `media`. It is silently remapped to `media` before validation. Prefer `media` in new integrations.
+
+```bash
+# Deprecated but still works:
+curl -X PUT '.../categories/7' \
+  -d '{ "image": [{ "media_url": "https://...", "is_primary": true }] }'
+
+# Equivalent and preferred:
+curl -X PUT '.../categories/7' \
+  -d '{ "media": [{ "media_url": "https://...", "is_primary": true }] }'
+```
+
+## Re-using an Existing MediaHub Record
+
+If a media row already exists in MediaHub (e.g. attached to another product), reference it by `media_id`. The API looks it up via `GET media/{media_id}` and re-uses its CDN URL:
+
+```json
+{
+  "media": [
+    { "media_id": 9001, "is_primary": true, "order": 1 }
+  ]
+}
+```
+
+## Common Pitfalls
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `media_url` field is required | Sent neither `file` nor `media_url`. | Provide one of the two per item. |
+| Image uploaded but `media_url` still points to the source URL | You sent `media_url` **alongside** `file`. | When `file` is present, drop `media_url` — the API overwrites it with the CDN URL. |
+| Previous images vanished after an update | `usingProductHub: true` was set and the payload omitted them. | Either include all media in the payload, or omit the `usingProductHub` flag. |
+| `MediaException: One or more media URLs are either not in a valid format or could not be fetched` | The `media/validateAndStoreMedia` call failed for at least one item (404, unreachable host, invalid mime). | Check the per-URL list in the error message; verify upstream availability. |
+| `media_type` is wrong on the storefront | Neither `media_type` nor a recognizable file extension was provided. | Always send `media_type` explicitly for non-image assets (`document`, `video`). |
+| Two primary images at once | Sent `is_primary: true` on multiple items in one request. | The last one wins; the others are unset automatically. Set the flag on exactly one item. |
+
+## Reference Code
+
+- `packages/Apps/ProductHub/src/Repository/ProductRepository.php` — `handleMedia()` (called by `create()` and `update()`).
+- `packages/Apps/ProductHub/src/Repository/CategoryRepository.php` — same pattern for categories.
+- `packages/Apps/ProductHub/src/Repository/MediaRepository.php` — `updateOrCreate()` (URL vs CDN branching), `handleMediaTypes()`, `guessMimeFromExtension()`.
+
+## Related
+
+<Columns cols={2}>
+  <Card title="Media URLs" icon="image" href="/core-concepts/media-urls">
+    Reading media on the storefront: CDN hosts, resize query string, srcset patterns.
+  </Card>
+  <Card title="MediaHub" icon="image" href="/hubs/media-hub">
+    Full reference for the underlying media model and its standalone endpoints.
+  </Card>
+  <Card title="ProductHub" icon="box" href="/hubs/product-hub">
+    Full validation rules for product create/update.
+  </Card>
+  <Card title="Recommended Includes" icon="list" href="/core-concepts/recommended-includes">
+    Which `include` sets to request for products with media.
+  </Card>
+</Columns>

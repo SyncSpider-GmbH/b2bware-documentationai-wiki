@@ -96,6 +96,11 @@
                 "icon": "image"
               },
               {
+                "title": "Product & Category Media Uploads",
+                "path": "core-concepts/product-media-uploads",
+                "icon": "upload"
+              },
+              {
                 "title": "Webhooks",
                 "path": "core-concepts/webhooks",
                 "icon": "webhook"
