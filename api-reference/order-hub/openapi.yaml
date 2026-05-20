@@ -34,6 +34,11 @@ tags:
     description: >-
       Request-for-quote workflow. Customer creates a quote; sales agent prices
       it; customer accepts → converts to order.
+  - name: Dashboard
+    description: >-
+      Read-only aggregates over OrderHub data consumed by DashboardHub
+      widgets. All endpoints accept a `period` query parameter (7, 30, 90 or
+      365 — defaults to 30; some also accept `all` / `custom`).
 paths:
   /api/v1/apps/order-hub/payment/webhook/{installationKey}/{provider}/{order_id}:
     post:
@@ -1446,6 +1451,239 @@ paths:
             type: integer
           required: true
           example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/dashboard/revenue:
+    get:
+      tags:
+        - Dashboard
+      summary: Revenue Trend
+      description: >-
+        Returns a time-series of revenue and order counts bucketed by day or
+        week. Excludes cancelled / failed / refunded orders.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: period
+          in: query
+          schema:
+            type: integer
+          description: One of 7, 30, 90, 365. Defaults to 30.
+          example: '30'
+        - name: granularity
+          in: query
+          schema:
+            type: string
+          description: One of `day`, `week`. Defaults to `day`.
+          example: day
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/dashboard/lifetime-sales:
+    get:
+      tags:
+        - Dashboard
+      summary: Lifetime Sales
+      description: >-
+        All-time totals over non-cancelled orders. Returns total order count,
+        total revenue, currency code (from the first order), and first/last
+        order timestamps.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/dashboard/average-sale:
+    get:
+      tags:
+        - Dashboard
+      summary: Average Sale (AOV)
+      description: >-
+        Average Order Value over the selected period, restricted to
+        non-cancelled orders. Returns `orders_count`, `total_revenue`,
+        `average_sale`, `min_sale`, `max_sale` and `currency_code`.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: period
+          in: query
+          schema:
+            type: integer
+          description: One of 7, 30, 90, 365. Defaults to 30.
+          example: '30'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/dashboard/orders-by-country:
+    get:
+      tags:
+        - Dashboard
+      summary: Orders by Country
+      description: >-
+        Aggregates revenue or order count by shipping (or billing) country.
+        Supports rolling periods (7/30/90/365), `all`, or `custom` with
+        `from` / `to` ISO dates capped at 365 days.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: metric
+          in: query
+          schema:
+            type: string
+          description: One of `revenue`, `orders`. Defaults to `revenue`.
+          example: revenue
+        - name: address_type
+          in: query
+          schema:
+            type: string
+          description: One of `shipping`, `billing`. Defaults to `shipping`.
+          example: shipping
+        - name: period
+          in: query
+          schema:
+            type: string
+          description: 7, 30, 90, 365, `all`, or `custom`. Defaults to 30.
+          example: '30'
+        - name: from
+          in: query
+          schema:
+            type: string
+          description: ISO date — only used when `period=custom`.
+          example: '2025-01-01'
+        - name: to
+          in: query
+          schema:
+            type: string
+          description: ISO date — only used when `period=custom`.
+          example: '2025-03-31'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/dashboard/orders-by-location:
+    get:
+      tags:
+        - Dashboard
+      summary: Orders by Location
+      description: >-
+        Aggregates orders by country, city or zip using the address rows'
+        geocoded latitude/longitude. Rows without geocoding data are excluded
+        and counted in `excluded_ungeocoded`.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: metric
+          in: query
+          schema:
+            type: string
+          description: One of `revenue`, `orders`. Defaults to `revenue`.
+          example: revenue
+        - name: address_type
+          in: query
+          schema:
+            type: string
+          description: One of `shipping`, `billing`. Defaults to `shipping`.
+          example: shipping
+        - name: granularity
+          in: query
+          schema:
+            type: string
+          description: One of `country`, `city`, `zip`. Defaults to `country`.
+          example: city
+        - name: period
+          in: query
+          schema:
+            type: string
+          description: 7, 30, 90, 365, `all`, or `custom`. Defaults to 30.
+          example: '30'
+        - name: from
+          in: query
+          schema:
+            type: string
+          description: ISO date — only used when `period=custom`.
+          example: '2025-01-01'
+        - name: to
+          in: query
+          schema:
+            type: string
+          description: ISO date — only used when `period=custom`.
+          example: '2025-03-31'
       responses:
         '200':
           description: Successful response

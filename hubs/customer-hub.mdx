@@ -95,6 +95,52 @@ For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts
 | DELETE | `/notes/{id}` | Delete a note |
 
   </Tab>
+  <Tab title="Favorites" icon="heart">
+
+Per-customer wishlist. The favorites payload is stored as a single record on the customer and supports multiple named lists with an `active_list_id` pointer.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/favorites` | Get the current customer's favorites state |
+| PUT | `/favorites` | Replace the current customer's favorites state (idempotent) |
+
+The PUT body is normalized server-side to:
+
+```json
+{
+  "lists": [
+    {
+      "id": "<uuid>",
+      "name": "My wishlist",
+      "items": [
+        { "id": 105, "name": "...", "sku": "...", "slug": "...", "price": 29.99, "image_url": "...", "added_at": "ISO8601", "quantity": 1 }
+      ],
+      "created_at": "ISO8601",
+      "updated_at": "ISO8601"
+    }
+  ],
+  "active_list_id": "<uuid>"
+}
+```
+
+Authentication is by `x-auth-token` (shop guard). A customer can only read or write their own favorites.
+
+  </Tab>
+  <Tab title="Dashboard" icon="bar-chart">
+
+Read-only aggregates over CustomerHub data. Used by DashboardHub widgets but stay enabled even when DashboardHub is absent.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/dashboard/customers-overview` | Totals + verified-email count + period-over-period delta |
+| GET | `/dashboard/customer-growth` | Daily new-customer series (optionally with a companies series) |
+| GET | `/dashboard/top-customer-groups` | Top N customer groups by member count, plus ungrouped count |
+| GET | `/dashboard/recent-signups` | N most-recent customers with name, email, company and verification flag |
+| GET | `/dashboard/verification-funnel` | Email / phone / both verified counts and percentages |
+
+All dashboard endpoints accept a `period` query parameter — one of `7`, `30`, `90`, `365` (defaults to `30`) where applicable.
+
+  </Tab>
   <Tab title="Settings" icon="settings">
 
 | Method | Endpoint | Description |
@@ -225,18 +271,24 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 
 | Field | Rules |
 |-------|-------|
-| `customer_number` | sometimes, string, unique (MongoDB) |
-| `email` | sometimes, email, unique (MongoDB) |
-| `phone` | string, nullable, unique (MongoDB) |
+| `customer_number` | sometimes, string, unique (MongoDB, excluding soft-deleted) |
+| `email` | sometimes, email, unique (MongoDB, excluding soft-deleted) |
+| `phone` | string, nullable |
 | `first_name` | string |
 | `last_name` | string |
 | `salutation` | in: `Mr.`, `Ms.`, `Other` |
 | `status` | in: `active`, `inactive`, `pending` |
 | `password` | string |
+| `token` | string |
 | `company_id` | numeric, nullable |
 | `role_id` | numeric, nullable |
-| `customer_group_id` | numeric, nullable |
+| `customer_group_id` | numeric, nullable — must reference a group of type `customer` |
+| `language_code` | string, nullable — preferred locale (e.g. `de_DE`) |
+| `send_notification` | sometimes, boolean — when true, triggers the registration notification through NotificationHub |
 | `attributes` | array, nullable |
+| `attributes.*.attribute_id` | required, numeric |
+| `attributes.*.value` | nullable |
+| `attributes.*.auto_create_value` | boolean |
 
 </Expandable>
 

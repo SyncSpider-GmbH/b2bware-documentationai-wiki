@@ -31,6 +31,11 @@ tags:
       Storefront can read configured customer settings (e.g. enabled
       registration fields, required-VAT flag). Writing settings requires admin
       (blocked for shop customers via `shop.deny`).
+  - name: Dashboard
+    description: >-
+      Read-only aggregates over CustomerHub data consumed by DashboardHub
+      widgets. All endpoints accept a `period` query parameter (7, 30, 90 or
+      365 — defaults to 30) where applicable.
 paths:
   /api/v1/apps/customer-hub/customers:
     get:
@@ -949,6 +954,182 @@ paths:
             type: string
           required: true
           example: registration
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/dashboard/customers-overview:
+    get:
+      tags:
+        - Dashboard
+      summary: Customers Overview
+      description: >-
+        Counts of total customers, verified emails, active companies, new
+        signups in the selected period, and the period-over-period delta.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: period
+          in: query
+          schema:
+            type: integer
+          description: One of 7, 30, 90, 365. Defaults to 30.
+          example: '30'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/dashboard/customer-growth:
+    get:
+      tags:
+        - Dashboard
+      summary: Customer Growth
+      description: >-
+        Daily counts of new customers (and optionally new companies) across
+        the selected period. Returns `xAxis` (ISO dates) and `series` arrays
+        ready for charting.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: period
+          in: query
+          schema:
+            type: integer
+          description: One of 7, 30, 90, 365. Defaults to 30.
+          example: '30'
+        - name: include_companies
+          in: query
+          schema:
+            type: boolean
+          description: When truthy, adds a Companies series alongside Customers.
+          example: 'false'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/dashboard/top-customer-groups:
+    get:
+      tags:
+        - Dashboard
+      summary: Top Customer Groups
+      description: >-
+        Ranks customer groups by member count and returns the top N along
+        with the total population and the number of ungrouped customers.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: count
+          in: query
+          schema:
+            type: integer
+          description: Max groups to return (1–20). Defaults to 5.
+          example: '5'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/dashboard/recent-signups:
+    get:
+      tags:
+        - Dashboard
+      summary: Recent Signups
+      description: >-
+        Most recently created customers with display name, email, company,
+        verification flag and creation timestamp.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: count
+          in: query
+          schema:
+            type: integer
+          description: Number of rows to return (1–20). Defaults to 5.
+          example: '5'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/dashboard/verification-funnel:
+    get:
+      tags:
+        - Dashboard
+      summary: Verification Funnel
+      description: >-
+        Counts and percentages for email-verified, phone-verified and
+        both-verified customers across the whole tenant.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
       responses:
         '200':
           description: Successful response

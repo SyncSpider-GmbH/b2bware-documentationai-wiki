@@ -79,6 +79,82 @@ Common slugs (the exact list is per installation):
 
 Use `GET /events/{slug}/schema` to see the payload shape and `GET /events/{slug}/sample-payload` for a literal example.
 
+<Callout kind="info" title="Canonical slug format">
+The slugs in the table above are the human-friendly short names you'll see in the EventHub admin UI. Internally each hub registers events under a fully-qualified `<hub>.<entity>.<action>` slug — that's what `event_slug` actually accepts on the wire. The discovery endpoint returns both. When in doubt, always copy the slug from `GET /event-subscriptions/available-events/list`.
+</Callout>
+
+### Per-hub Event Reference
+
+The events below are what each hub dispatches today, by canonical slug. The **payload** column describes the JSON delivered to your endpoint under the top-level `data` key (with `event`, `installation_key`, `triggered_at` as siblings). Unless the event class implements `toEventHubPayload()`, the dispatcher serializes the first Eloquent model property on the event as the root payload — so extra scalar event properties (e.g. `oldStatus`, `currentStock`, `channel`) are **not** echoed in the delivery body. Use `conditions` and `payload_includes` on the subscription to inspect related rows.
+
+<Expandable title="ProductHub events" default-open="false">
+
+| Slug | Fired when | Payload root (`data`) |
+|---|---|---|
+| `producthub.product.created` | A new product is created. | The `Product` model — id, sku, name, status, product_type, prices, … |
+| `producthub.product.updated` | An existing product is updated (any field). | The `Product` model after the update. |
+| `producthub.product.stock_low` | A product's available quantity drops to or below its configured low-stock threshold. | The `Product` model. The current and threshold quantities are computed off the related `stock` rows; add `stock` to `payload_includes` to inspect them in the delivery body. |
+
+</Expandable>
+
+<Expandable title="OrderHub events" default-open="false">
+
+| Slug | Fired when | Payload root (`data`) |
+|---|---|---|
+| `orderhub.order.created` | A new order is committed (after `POST /orders` and after checkout). | The `Orders` model — add `orderLineItems`, `customer`, `billingAddress`, `shippingAddress` to `payload_includes` to enrich. |
+| `orderhub.order.updated` | Any order update, including state-machine status transitions. | The updated `Orders` model. |
+| `orderhub.order_line_item.created` | A line item is added to an order (initial create or admin edit). | The `OrderLineItems` model — order_id, product_id, name, quantity, price, meta_data. Add `product` or `order` includes for context. |
+| `orderhub.order_line_item.updated` | A line item is updated. | The `OrderLineItems` model after the update. The previous quantity is captured on the event but not echoed by default; rely on your own snapshot or include `order` and reconcile. |
+| `orderhub.order_line_item.deleted` | A line item is removed. | The `OrderLineItems` model (last-known state before deletion). |
+| `orderhub.cart_item.created` / `updated` / `deleted` | Cart-item lifecycle. | The `CartItems` model. |
+| `orderhub.quote_item.created` / `updated` / `deleted` | Quote-item lifecycle. | The `QuoteItems` model. |
+
+</Expandable>
+
+<Expandable title="CustomerHub events" default-open="false">
+
+| Slug | Fired when | Payload root (`data`) |
+|---|---|---|
+| `customerhub.customer.registered` | A new customer signs up (AuthHub or admin-created). | The `Customers` model. |
+| `customerhub.customer.updated` | Any customer record update. | The updated `Customers` model. |
+| `customerhub.customer.verified` | A customer's email (or other channel) verification flag flips to true. | The `Customers` model. |
+| `customerhub.customer.status_changed` | `status` transitions between `active` / `inactive` / `pending`. | The `Customers` model (current status on the record). The previous status is captured on the event for `conditions` evaluation but not echoed in the body. |
+| `customerhub.customer.group_changed` | A customer is moved between customer groups (including in / out of "no group"). | The `Customers` model with the new `customer_group_id`. The previous group id is captured on the event for `conditions` evaluation but not echoed in the body. |
+
+</Expandable>
+
+<Expandable title="NotificationHub events" default-open="false">
+
+| Slug | Fired when | Payload root (`data`) |
+|---|---|---|
+| `notificationhub.notification.created` | A `Notification` row is persisted (queued for delivery). | The `Notification` model. The constructor also receives `recipientData` (the resolved-recipient array), useful for routing — include or surface it from a custom listener if you need it downstream. |
+| `notificationhub.notification.sent` | A channel reports successful delivery. | The `Notification` model. The `channel` (`email`, `sms`, `push`, `database`, `broadcast`) is captured on the event but not echoed; filter by `channel` on the subscription's `conditions` if your endpoint cares. |
+| `notificationhub.notification.failed` | A channel reports a delivery failure. | The `Notification` model. `channel` and a short `error` string are captured on the event for `conditions` evaluation; neither is echoed in the body by default. |
+| `notificationhub.notifications.bulk_created` | A bulk create call produced multiple notifications in one shot. | No root model — the dispatcher falls back to a generic `payload` array with the event's public properties. |
+
+</Expandable>
+
+### Example payload envelope
+
+A real delivery body looks like this (whatever the source event):
+
+```json
+{
+  "event": "orderhub.order.created",
+  "installation_key": "ihk_live_…",
+  "triggered_at": "2025-03-14T10:42:11+00:00",
+  "data": {
+    "id": 9123,
+    "order_number": "ORD-9123",
+    "status": "pending",
+    "total_price": 119.97,
+    "customer_id": 42,
+    "_created_at": "2025-03-14T10:42:10+00:00"
+    // ... + any relations you opted into via `payload_includes`
+  }
+}
+```
+
 ### Conditions
 
 `conditions` is an array describing when the subscription should fire. Conditions match against the event payload (after `payload_includes` are resolved):

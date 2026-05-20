@@ -75,6 +75,7 @@ For the complete list of endpoints, filters, includes, and validation rules (e.g
 | PUT | `/carts/{id}` | Update a cart |
 | PATCH | `/carts` | Upsert cart by `session_uuid` (creates or updates) |
 | DELETE | `/carts/{id}` | Delete a cart |
+| GET | `/carts/{cart}/rule-progress` | Progress against active cart promo rules (e.g. "spend €20 more for free shipping") |
 
 **Cart Items**
 
@@ -160,6 +161,23 @@ For the complete list of endpoints, filters, includes, and validation rules (e.g
 | GET | `/quote-items-groups/{id}` | Get group details |
 | PUT | `/quote-items-groups/{id}` | Update a group |
 | DELETE | `/quote-items-groups/{id}` | Delete a group |
+
+  </Tab>
+  <Tab title="Dashboard" icon="bar-chart">
+
+Read-only aggregates over OrderHub data. Used by DashboardHub widgets but stay enabled even when DashboardHub is absent.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/dashboard/overview` | KPI counts and revenue grouped by status |
+| GET | `/dashboard/revenue` | Revenue + order count time-series (`granularity=day\|week`) |
+| GET | `/dashboard/recent-orders` | N most-recent orders with customer label and line-item count |
+| GET | `/dashboard/lifetime-sales` | All-time totals, first/last order timestamps |
+| GET | `/dashboard/average-sale` | Average Order Value over the selected period |
+| GET | `/dashboard/orders-by-country` | Revenue/order count aggregated by country |
+| GET | `/dashboard/orders-by-location` | Revenue/order count aggregated by country, city or zip (uses geocoded addresses) |
+
+All dashboard endpoints accept a `period` query parameter — one of `7`, `30`, `90`, `365` (defaults to `30`). The two map endpoints additionally support `period=all` and `period=custom` with `from` / `to` ISO dates (capped at 365 days).
 
   </Tab>
 </Tabs>
@@ -385,32 +403,54 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 | Field | Rules |
 |-------|-------|
 | `status` | required, in: draft, pending, invoiced, shipped, completed, pending_payment, paid, refunded, partially_refunded, canceled, processing |
+| `type` | sometimes, in: order types (see `Orders::ORDER_TYPES`) |
+| `total_price` | prohibited (server-computed) |
 | `customer_id` | required, numeric |
 | `shipping_method_id` | numeric |
 | `billing_method_id` | numeric |
-| `shipping_address_id` | numeric |
-| `billing_address_id` | numeric |
-| `external_id` | sometimes, nullable, unique |
-| `order_number` | sometimes, nullable, unique |
+| `shipping_address_id` | numeric (conditional — see `shipping_address_is_same_as_billing`) |
+| `billing_address_id` | numeric (required when `shipping_address_is_same_as_billing=true`) |
+| `shipping_address_is_same_as_billing` | sometimes, boolean — when true, copies the billing address into a shipping address |
+| `external_id` | sometimes, nullable, unique (MongoDB, excluding soft-deleted) |
+| `order_number` | sometimes, nullable, unique (MongoDB, excluding soft-deleted) |
+| `subtotal_price` | sometimes, numeric |
+| `surcharge_price` | sometimes, numeric |
+| `discount_price` | sometimes, numeric |
+| `comment` | string (one-off order comment) |
+| `order_note` | sometimes, nullable, string |
 | `line_items` | required, array, min:1 |
 | `line_items.*.name` | required, string |
 | `line_items.*.quantity` | required, numeric |
 | `line_items.*.price` | required, numeric |
+| `line_items.*.meta_data` | array — free-form per-line metadata (e.g. variant selections, source rule) |
 | `line_items.*.product_id` | numeric (optional link to ProductHub) |
 | `attributes` | array, nullable |
+| `attributes.*.attribute_id` | required, numeric |
+| `attributes.*.value` | nullable |
+| `attributes.*.auto_create_value` | boolean |
 
 </Expandable>
 
-<Expandable title="Create Cart" default-open="false">
+<Expandable title="Create / Update Cart" default-open="false">
+
+Same rules apply to `POST /carts`, `PUT /carts/{id}` and `PATCH /carts` (upsert).
+`PATCH /carts` additionally requires a `session_uuid` (either in the body or in the `session_uuid` request header) — otherwise the request is rejected with `422`. Quantities sent to the upsert endpoint are **added** to an existing matching cart item rather than replacing it.
 
 | Field | Rules |
 |-------|-------|
+| `id` | prohibited on update / upsert |
 | `is_active` | sometimes, boolean |
-| `session_uuid` | sometimes, nullable |
-| `customer_id` | sometimes, nullable, numeric |
+| `total_price` | prohibited (server-computed) |
+| `session_uuid` | sometimes, nullable (required for `PATCH /carts`) |
+| `customer_id` | sometimes, nullable, numeric, must exist |
 | `cart_items` | required, array, min:1 |
 | `cart_items.*.quantity` | required, numeric |
-| `cart_items.*.product_id` | numeric |
+| `cart_items.*.price` | numeric (upsert only — otherwise resolved server-side via catalog rules) |
+| `cart_items.*.meta_data` | array — free-form per-line metadata |
+| `cart_items.*.product_id` | numeric, must exist |
+| `subtotal_price` | sometimes, numeric |
+| `surcharge_price` | sometimes, numeric |
+| `discount_price` | sometimes, numeric |
 
 </Expandable>
 
