@@ -1,0 +1,48 @@
+---
+title: AutomationHub
+description: Visual flow automation built on triggers, actions, and shared condition resolvers — react to events, mutate data, fan out to other hubs.
+---
+
+## Overview
+
+AutomationHub turns DataHub events into reusable **flows**. Each flow chains a
+**trigger** (e.g. an order placed, a product updated) to one or more **actions**
+(send a notification, update an attribute, call a webhook), with optional
+**condition resolvers** that gate execution.
+
+Flows run as queued jobs so a single trigger can fan out without blocking the
+request that fired it. Every run is recorded in `flow_runs` with per-step
+**activity** entries you can inspect from the UI or the API.
+
+## Core Concepts
+
+| Concept | Description |
+|---|---|
+| **Flow** | A versioned automation: trigger + ordered list of actions + condition tree. |
+| **Trigger** | The event that starts the flow. Discovered at runtime from `available-triggers/list`. |
+| **Action** | A unit of work executed by the flow. Discovered from `available-actions/list` (grouped variant available). |
+| **Condition resolver** | Reusable predicate (cart, customer, product, …) shared with RuleHub. |
+| **FlowRun** | One execution of a flow. Stores status, started/finished timestamps, and a link to its activities. |
+| **FlowActivity** | One step inside a run — input, output, status, error, and timing. |
+
+## API Endpoints
+
+The full surface is documented in **API Reference → AutomationHub**. Highlights:
+
+- `GET/POST /api/v1/apps/automation-hub/flows` — CRUD over flows
+- `GET /api/v1/apps/automation-hub/flows/available-triggers/list` — dynamic triggers
+- `GET /api/v1/apps/automation-hub/flows/available-actions/grouped` — actions grouped by hub
+- `GET /api/v1/apps/automation-hub/flows/stats/overview` — flows × runs aggregate
+- `GET/POST /api/v1/apps/automation-hub/flow-runs` — list & re-run executions
+- `GET /api/v1/apps/automation-hub/flow-activities` — activity log per run
+- `GET/POST /api/v1/apps/automation-hub/settings` — hub settings (FormGenerator)
+
+All endpoints follow the canonical pagination contract — request uses
+`per_page` / `page`, response is flat with `data`, `total`, `current_page`,
+`total_pages`. See [Common Patterns](../core-concepts/common-patterns).
+
+## Settings
+
+The **Settings** tab on this page is rendered from
+`packages/Apps/AutomationHub/resources/hub-settings/*.php`. Update that file
+to drive the form schema; this MDX page does not duplicate the field list.

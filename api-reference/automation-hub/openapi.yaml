@@ -1,0 +1,525 @@
+openapi: 3.0.0
+info:
+  title: AutomationHub API
+  description: Complete API collection for AutomationHub — generated from routes/api.php
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Flow Activities
+  - name: Flow Runs
+  - name: Flows
+  - name: Settings
+paths:
+  /api/v1/apps/automation-hub/flow-activities:
+    get:
+      tags:
+        - Flow Activities
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flow-runs:
+    get:
+      tags:
+        - Flow Runs
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flow-runs/statuses/list:
+    get:
+      tags:
+        - Flow Runs
+      summary: Statuses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flow-runs/{id}:
+    get:
+      tags:
+        - Flow Runs
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flow-runs/{id}/logs:
+    get:
+      tags:
+        - Flow Runs
+      summary: Logs
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flow-runs/{id}/cancel:
+    post:
+      tags:
+        - Flow Runs
+      summary: Cancel
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flow-runs/{id}/retry:
+    post:
+      tags:
+        - Flow Runs
+      summary: Retry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flows:
+    get:
+      tags:
+        - Flows
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Flows
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flows/available-actions/grouped:
+    get:
+      tags:
+        - Flows
+      summary: Actions Grouped
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flows/available-actions/list:
+    get:
+      tags:
+        - Flows
+      summary: Available Actions
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flows/available-triggers/list:
+    get:
+      tags:
+        - Flows
+      summary: Available Triggers
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flows/stats/overview:
+    get:
+      tags:
+        - Flows
+      summary: Stats Overview
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flows/{id}:
+    get:
+      tags:
+        - Flows
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Flows
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Flows
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flows/{id}/activities:
+    get:
+      tags:
+        - Flows
+      summary: Activities
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flows/{id}/runs:
+    get:
+      tags:
+        - Flows
+      summary: Runs
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flows/{id}/stats:
+    get:
+      tags:
+        - Flows
+      summary: Stats
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flows/{id}/disable:
+    post:
+      tags:
+        - Flows
+      summary: Disable
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flows/{id}/enable:
+    post:
+      tags:
+        - Flows
+      summary: Enable
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/flows/{id}/test:
+    post:
+      tags:
+        - Flows
+      summary: Test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/settings:
+    get:
+      tags:
+        - Settings
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/settings/groups/list:
+    get:
+      tags:
+        - Settings
+      summary: Get Groups List
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/settings/{group}:
+    get:
+      tags:
+        - Settings
+      summary: Show
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/settings/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/automation-hub/settings/{group}/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

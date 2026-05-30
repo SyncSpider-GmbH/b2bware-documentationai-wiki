@@ -1,0 +1,81 @@
+openapi: 3.0.0
+info:
+  title: DashboardHub API
+  description: Complete API collection for DashboardHub — generated from routes/api.php
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Available Widgets
+  - name: Layout
+paths:
+  /api/v1/apps/dashboard-hub/available-widgets:
+    get:
+      tags:
+        - Available Widgets
+      summary: Available Widgets
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dashboard-hub/layout:
+    get:
+      tags:
+        - Layout
+      summary: Get Layout
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Layout
+      summary: Save Layout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dashboard-hub/layout/reset:
+    post:
+      tags:
+        - Layout
+      summary: Reset Layout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

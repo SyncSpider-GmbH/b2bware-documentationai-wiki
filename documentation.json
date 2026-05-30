@@ -195,6 +195,16 @@
                 "title": "RuleHub",
                 "path": "hubs/rule-hub",
                 "icon": "scale-balanced"
+              },
+              {
+                "title": "AutomationHub",
+                "path": "hubs/automation-hub",
+                "icon": "wand-magic-sparkles"
+              },
+              {
+                "title": "DashboardHub",
+                "path": "hubs/dashboard-hub",
+                "icon": "gauge"
               }
             ]
           },
@@ -336,6 +346,18 @@
             "group": "RuleHub",
             "icon": "scale-balanced",
             "openapi": "api-reference/rule-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "AutomationHub",
+            "icon": "wand-magic-sparkles",
+            "openapi": "api-reference/automation-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "DashboardHub",
+            "icon": "gauge",
+            "openapi": "api-reference/dashboard-hub/openapi.yaml",
             "pages": []
           }
         ]

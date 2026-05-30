@@ -1,0 +1,47 @@
+---
+title: DashboardHub
+description: Per-installation dashboard layouts assembled from widgets contributed by the installed hubs.
+---
+
+## Overview
+
+DashboardHub powers the home dashboard each user sees after login. It is a
+**thin orchestrator**: every installed hub contributes its own widgets via the
+shared widget manifest, and DashboardHub composes them into a per-installation
+layout that admins can rearrange.
+
+The actual widgets (sales charts, low-stock alerts, recent orders, etc.) live
+in their owning hubs. DashboardHub only exposes:
+
+1. The **manifest** of widgets currently available for this installation
+   (intersected with what is installed and licensed).
+2. The persisted **layout** for the installation — order, size, and per-widget
+   settings.
+
+## Concepts
+
+| Concept | Description |
+|---|---|
+| **Widget** | A self-describing UI block contributed by any hub. Discovered at runtime via `available-widgets`. |
+| **Layout** | The active arrangement of widgets for an installation: ordering, grid placement, and widget-level settings. |
+| **Reset** | Restore the default layout shipped by the hubs (useful after a major change in the available widget set). |
+
+## API Endpoints
+
+| Method & Path | Purpose |
+|---|---|
+| `GET /api/v1/apps/dashboard-hub/available-widgets` | All widgets the current installation may render. |
+| `GET /api/v1/apps/dashboard-hub/layout` | Current saved layout. |
+| `PUT /api/v1/apps/dashboard-hub/layout` | Persist a new layout. |
+| `POST /api/v1/apps/dashboard-hub/layout/reset` | Restore the default layout. |
+
+The full schema (including widget metadata) lives under
+**API Reference → DashboardHub**.
+
+## Contributing a Widget
+
+Widgets are contributed from the owning hub (ProductHub, OrderHub, …) via the
+`DashboardWidgetRegistry` registered in each hub's service provider. The
+manifest endpoint above intersects all registered widgets with the
+installation's licensed hubs, so a widget only appears once its owning hub
+is both installed and authorized.
