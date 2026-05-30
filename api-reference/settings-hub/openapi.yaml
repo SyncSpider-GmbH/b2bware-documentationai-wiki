@@ -1,9 +1,7 @@
 openapi: 3.0.0
 info:
   title: SettingsHub API
-  description: >-
-    Complete API collection for SettingsHub — general config, translations,
-    locales/countries, currencies, cache control, and search index management.
+  description: Complete API collection for SettingsHub — generated from routes/api.php
   version: 1.0.0
 servers:
   - url: https://api.datahub.syncspider.com
@@ -15,24 +13,124 @@ components:
 security:
   - bearerAuth: []
 tags:
-  - name: Config
-  - name: Translations
-  - name: Locales & Countries
-  - name: Currencies
   - name: Cache
+  - name: ClearAppCache
+  - name: Config
+  - name: Countries
+  - name: Currencies
   - name: Index
+  - name: Locales
+  - name: Translations
 paths:
+  /api/v1/apps/settings-hub/cache:
+    get:
+      tags:
+        - Cache
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Cache
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/settings-hub/cache/{id}:
+    get:
+      tags:
+        - Cache
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Cache
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Cache
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/settings-hub/clearAppCache/{installationKey}:
+    delete:
+      tags:
+        - ClearAppCache
+      summary: Delete Cache
+      parameters:
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
   /api/v1/apps/settings-hub/config:
     get:
       tags:
         - Config
-      summary: List Config
-      parameters:
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
+      summary: Index
       responses:
         '200':
           description: Successful response
@@ -41,7 +139,7 @@ paths:
     post:
       tags:
         - Config
-      summary: Create Config
+      summary: Store
       requestBody:
         content:
           application/json:
@@ -49,11 +147,6 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
         - name: Content-Type
           in: header
           schema:
@@ -64,17 +157,17 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/settings-hub/config/1:
+  /api/v1/apps/settings-hub/config/{id}:
     get:
       tags:
         - Config
-      summary: Get Config
+      summary: Show
       parameters:
-        - name: Accept
-          in: header
+        - name: id
+          in: path
           schema:
             type: string
-          example: application/json
+          required: true
       responses:
         '200':
           description: Successful response
@@ -83,7 +176,7 @@ paths:
     put:
       tags:
         - Config
-      summary: Update Config
+      summary: Update
       requestBody:
         content:
           application/json:
@@ -91,16 +184,16 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
         - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
@@ -109,29 +202,43 @@ paths:
     delete:
       tags:
         - Config
-      summary: Delete Config
+      summary: Destroy
       parameters:
-        - name: Accept
-          in: header
+        - name: id
+          in: path
           schema:
             type: string
-          example: application/json
+          required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/settings-hub/translations:
+  /api/v1/apps/settings-hub/countries:
     get:
       tags:
-        - Translations
-      summary: List Translations
-      parameters:
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
+        - Countries
+      summary: Countries
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/settings-hub/currencies:
+    get:
+      tags:
+        - Currencies
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/settings-hub/index:
+    get:
+      tags:
+        - Index
+      summary: Index
       responses:
         '200':
           description: Successful response
@@ -139,8 +246,8 @@ paths:
             application/json: {}
     post:
       tags:
-        - Translations
-      summary: Create Translation
+        - Index
+      summary: Store
       requestBody:
         content:
           application/json:
@@ -148,11 +255,6 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
         - name: Content-Type
           in: header
           schema:
@@ -163,17 +265,17 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/settings-hub/translations/1:
+  /api/v1/apps/settings-hub/index/{id}:
     get:
       tags:
-        - Translations
-      summary: Get Translation
+        - Index
+      summary: Show
       parameters:
-        - name: Accept
-          in: header
+        - name: id
+          in: path
           schema:
             type: string
-          example: application/json
+          required: true
       responses:
         '200':
           description: Successful response
@@ -181,8 +283,8 @@ paths:
             application/json: {}
     put:
       tags:
-        - Translations
-      summary: Update Translation
+        - Index
+      summary: Update
       requestBody:
         content:
           application/json:
@@ -190,16 +292,16 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
         - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
@@ -207,10 +309,32 @@ paths:
             application/json: {}
     delete:
       tags:
-        - Translations
-      summary: Delete Translation
+        - Index
+      summary: Destroy
       parameters:
-        - name: Accept
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/settings-hub/index/queue:
+    post:
+      tags:
+        - Index
+      summary: Run Queued Reindex
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
           in: header
           schema:
             type: string
@@ -223,26 +347,35 @@ paths:
   /api/v1/apps/settings-hub/locales:
     get:
       tags:
-        - Locales & Countries
-      summary: List Locales
-      parameters:
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
+        - Locales
+      summary: Index
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/settings-hub/countries:
+  /api/v1/apps/settings-hub/translations:
     get:
       tags:
-        - Locales & Countries
-      summary: List Countries
+        - Translations
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Translations
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
       parameters:
-        - name: Accept
+        - name: Content-Type
           in: header
           schema:
             type: string
@@ -252,50 +385,13 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/settings-hub/currencies:
+  /api/v1/apps/settings-hub/translations/{id}:
     get:
       tags:
-        - Currencies
-      summary: List Currencies
+        - Translations
+      summary: Show
       parameters:
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/settings-hub/cache:
-    get:
-      tags:
-        - Cache
-      summary: List Cache
-      parameters:
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/settings-hub/clearAppCache/{installationKey}:
-    delete:
-      tags:
-        - Cache
-      summary: Clear App Cache
-      parameters:
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: installationKey
+        - name: id
           in: path
           schema:
             type: string
@@ -305,27 +401,10 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/settings-hub/index:
-    get:
-      tags:
-        - Index
-      summary: List Index Status
-      parameters:
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/settings-hub/index/1:
     put:
       tags:
-        - Index
-      summary: Update Index
+        - Translations
+      summary: Update
       requestBody:
         content:
           application/json:
@@ -333,43 +412,31 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
         - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/settings-hub/index/queue:
-    post:
+    delete:
       tags:
-        - Index
-      summary: Queue Reindex
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
+        - Translations
+      summary: Destroy
       parameters:
-        - name: Accept
-          in: header
+        - name: id
+          in: path
           schema:
             type: string
-          example: application/json
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
+          required: true
       responses:
         '200':
           description: Successful response

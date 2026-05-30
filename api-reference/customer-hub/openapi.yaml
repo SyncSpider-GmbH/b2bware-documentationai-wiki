@@ -1,455 +1,34 @@
 openapi: 3.0.0
 info:
   title: CustomerHub API
-  description: Customer profile, addresses, favorites, companies.
+  description: Complete API collection for CustomerHub — generated from routes/api.php
   version: 1.0.0
-  contact:
-    name: B2Bware
-    url: https://syncspider.com
 servers:
   - url: https://api.datahub.syncspider.com
-    description: Production
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
 tags:
-  - name: Profile (customers)
-    description: >-
-      The logged-in customer's record. `index` lists only what the caller is
-      allowed to see.
-  - name: Shipping Addresses
-    description: Saved shipping addresses for the logged-in customer.
-  - name: Billing Addresses
-    description: Saved billing addresses for the logged-in customer.
-  - name: Favorites (wishlist)
-    description: >-
-      Per-customer favorite-product list. Stored as a single record per
-      customer.
+  - name: BillingAddresses
   - name: Companies
-    description: Read access to the B2B company linked to the customer.
-  - name: Customer Groups
-    description: Read-only — used for group-specific pricing.
-  - name: Settings (read-only for storefront)
-    description: >-
-      Storefront can read configured customer settings (e.g. enabled
-      registration fields, required-VAT flag). Writing settings requires admin
-      (blocked for shop customers via `shop.deny`).
+  - name: CustomerGroups
+  - name: Customers
   - name: Dashboard
-    description: >-
-      Read-only aggregates over CustomerHub data consumed by DashboardHub
-      widgets. All endpoints accept a `period` query parameter (7, 30, 90 or
-      365 — defaults to 30) where applicable.
+  - name: Favorites
+  - name: Notes
+  - name: Roles
+  - name: Settings
+  - name: ShippingAddresses
 paths:
-  /api/v1/apps/customer-hub/customers:
-    get:
-      tags:
-        - Profile (customers)
-      summary: List Customers (scoped)
-      description: >-
-        For shop customers this returns just their own record. For agents it
-        lists impersonatable customers.
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: include
-          in: query
-          schema:
-            type: string
-          example: company,role
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-          example: '10'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    post:
-      tags:
-        - Profile (customers)
-      summary: Create Customer (admin)
-      description: >-
-        Admin/agent context. For self-registration, storefronts should use `POST
-        /auth-hub/register` instead.
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              type: string
-              example: >-
-                "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n 
-                \"email\": \"jane@example.com\"\n}"
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/customers/{customer}:
-    get:
-      tags:
-        - Profile (customers)
-      summary: Show Customer
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: include
-          in: query
-          schema:
-            type: string
-          example: company,role,billingAddresses,shippingAddresses
-        - name: customer
-          in: path
-          schema:
-            type: integer
-          required: true
-          example: '42'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    put:
-      tags:
-        - Profile (customers)
-      summary: Update Customer Profile
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              type: string
-              example: >-
-                "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n 
-                \"phone\": \"+43 660 7654321\",\n  \"language\": \"en\"\n}"
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: customer
-          in: path
-          schema:
-            type: integer
-          required: true
-          description: >-
-            Must match the logged-in customer's ID. Updating another customer
-            returns 403.
-          example: '42'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    delete:
-      tags:
-        - Profile (customers)
-      summary: Delete Customer (admin)
-      description: >-
-        Admin/agent context. Self-deletion by a shop customer is not currently
-        supported (tracked as a gap).
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: customer
-          in: path
-          schema:
-            type: integer
-          required: true
-          example: '42'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/shippingAddresses:
-    get:
-      tags:
-        - Shipping Addresses
-      summary: List Shipping Addresses
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: filter[customer_id]
-          in: query
-          schema:
-            type: integer
-          example: '42'
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-          example: '20'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    post:
-      tags:
-        - Shipping Addresses
-      summary: Create Shipping Address
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              type: string
-              example: >-
-                "{\n  \"customer_id\": 42,\n  \"first_name\": \"Jane\",\n 
-                \"last_name\": \"Doe\",\n  \"company\": \"Acme GmbH\",\n 
-                \"street\": \"Hauptstrasse 1\",\n  \"city\": \"Vienna\",\n 
-                \"zip\": \"1010\",\n  \"country_code\": \"AT\",\n  \"phone\":
-                \"+43 660 1234567\",\n  \"is_default\": true\n}"
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/shippingAddresses/{address}:
-    get:
-      tags:
-        - Shipping Addresses
-      summary: Show Shipping Address
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: address
-          in: path
-          schema:
-            type: integer
-          required: true
-          example: '5'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    put:
-      tags:
-        - Shipping Addresses
-      summary: Update Shipping Address
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              type: string
-              example: >-
-                "{\n  \"street\": \"Hauptstrasse 2\",\n  \"is_default\":
-                true\n}"
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: address
-          in: path
-          schema:
-            type: integer
-          required: true
-          example: '5'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    delete:
-      tags:
-        - Shipping Addresses
-      summary: Delete Shipping Address
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: address
-          in: path
-          schema:
-            type: integer
-          required: true
-          example: '5'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
   /api/v1/apps/customer-hub/billingAddresses:
     get:
       tags:
-        - Billing Addresses
-      summary: List Billing Addresses
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: filter[customer_id]
-          in: query
-          schema:
-            type: integer
-          example: '42'
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-          example: '20'
+        - BillingAddresses
+      summary: Index
       responses:
         '200':
           description: Successful response
@@ -457,36 +36,16 @@ paths:
             application/json: {}
     post:
       tags:
-        - Billing Addresses
-      summary: Create Billing Address
+        - BillingAddresses
+      summary: Store
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
-              type: string
-              example: >-
-                "{\n  \"customer_id\": 42,\n  \"first_name\": \"Jane\",\n 
-                \"last_name\": \"Doe\",\n  \"company\": \"Acme GmbH\",\n 
-                \"vat_id\": \"ATU12345678\",\n  \"street\": \"Hauptstrasse
-                1\",\n  \"city\": \"Vienna\",\n  \"zip\": \"1010\",\n 
-                \"country_code\": \"AT\",\n  \"is_default\": true\n}"
+              type: object
+              example: {}
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
         - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: Accept
           in: header
           schema:
             type: string
@@ -496,33 +55,17 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/customer-hub/billingAddresses/{address}:
+  /api/v1/apps/customer-hub/billingAddresses/{id}:
     get:
       tags:
-        - Billing Addresses
-      summary: Show Billing Address
+        - BillingAddresses
+      summary: Show
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: address
+        - name: id
           in: path
           schema:
-            type: integer
+            type: string
           required: true
-          example: '5'
       responses:
         '200':
           description: Successful response
@@ -530,41 +73,25 @@ paths:
             application/json: {}
     put:
       tags:
-        - Billing Addresses
-      summary: Update Billing Address
+        - BillingAddresses
+      summary: Update
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
-              type: string
-              example: '"{\n  \"vat_id\": \"ATU87654321\"\n}"'
+              type: object
+              example: {}
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
         - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: address
+        - name: id
           in: path
           schema:
-            type: integer
+            type: string
           required: true
-          example: '5'
       responses:
         '200':
           description: Successful response
@@ -572,98 +99,14 @@ paths:
             application/json: {}
     delete:
       tags:
-        - Billing Addresses
-      summary: Delete Billing Address
+        - BillingAddresses
+      summary: Destroy
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: address
+        - name: id
           in: path
           schema:
-            type: integer
+            type: string
           required: true
-          example: '5'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/favorites:
-    get:
-      tags:
-        - Favorites (wishlist)
-      summary: Show My Favorites
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: include
-          in: query
-          schema:
-            type: string
-          example: products.price,products.mainMedia
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    put:
-      tags:
-        - Favorites (wishlist)
-      summary: Update My Favorites
-      description: Replaces the favorites list with the given product IDs (idempotent set).
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              type: string
-              example: '"{\n  \"product_ids\": [\n    100,\n    101,\n    102\n  ]\n}"'
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
       responses:
         '200':
           description: Successful response
@@ -673,28 +116,7 @@ paths:
     get:
       tags:
         - Companies
-      summary: List Companies (scoped)
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: include
-          in: query
-          schema:
-            type: string
-          example: customers,billingAddresses,shippingAddresses
+      summary: Index
       responses:
         '200':
           description: Successful response
@@ -703,32 +125,15 @@ paths:
     post:
       tags:
         - Companies
-      summary: Create Company (admin/agent)
+      summary: Store
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
-              type: string
-              example: >-
-                "{\n  \"name\": \"Acme GmbH\",\n  \"vat_id\":
-                \"ATU12345678\"\n}"
+              type: object
+              example: {}
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
         - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: Accept
           in: header
           schema:
             type: string
@@ -738,38 +143,17 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/customer-hub/companies/{company}:
+  /api/v1/apps/customer-hub/companies/{id}:
     get:
       tags:
         - Companies
-      summary: Show Company
+      summary: Show
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: include
-          in: query
-          schema:
-            type: string
-          example: customers,billingAddresses,shippingAddresses
-        - name: company
+        - name: id
           in: path
           schema:
-            type: integer
+            type: string
           required: true
-          example: '7'
       responses:
         '200':
           description: Successful response
@@ -778,40 +162,39 @@ paths:
     put:
       tags:
         - Companies
-      summary: Update Company (admin/agent)
+      summary: Update
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
-              type: string
-              example: '"{\n  \"name\": \"Acme International GmbH\"\n}"'
+              type: object
+              example: {}
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
         - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: company
+        - name: id
           in: path
           schema:
-            type: integer
+            type: string
           required: true
-          example: '7'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Companies
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
@@ -820,20 +203,25 @@ paths:
   /api/v1/apps/customer-hub/customerGroups:
     get:
       tags:
-        - Customer Groups
-      summary: List Customer Groups
+        - CustomerGroups
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - CustomerGroups
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
+        - name: Content-Type
           in: header
           schema:
             type: string
@@ -843,152 +231,188 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/customer-hub/customerGroups/{group}:
+  /api/v1/apps/customer-hub/customerGroups/{id}:
     get:
       tags:
-        - Customer Groups
-      summary: Show Customer Group
+        - CustomerGroups
+      summary: Show
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: group
-          in: path
-          schema:
-            type: integer
-          required: true
-          example: '1'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/settings/groups/list:
-    get:
-      tags:
-        - Settings (read-only for storefront)
-      summary: List Setting Groups
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/settings:
-    get:
-      tags:
-        - Settings (read-only for storefront)
-      summary: List All Settings
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/settings/{group}:
-    get:
-      tags:
-        - Settings (read-only for storefront)
-      summary: Show Setting Group
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: group
+        - name: id
           in: path
           schema:
             type: string
           required: true
-          example: registration
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/customer-hub/dashboard/customers-overview:
-    get:
+    put:
       tags:
-        - Dashboard
-      summary: Customers Overview
-      description: >-
-        Counts of total customers, verified emails, active companies, new
-        signups in the selected period, and the period-over-period delta.
+        - CustomerGroups
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
+        - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
-        - name: period
-          in: query
+        - name: id
+          in: path
           schema:
-            type: integer
-          description: One of 7, 30, 90, 365. Defaults to 30.
-          example: '30'
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - CustomerGroups
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customers:
+    get:
+      tags:
+        - Customers
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Customers
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customers/{id}:
+    get:
+      tags:
+        - Customers
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Customers
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Customers
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customers/bulk/update:
+    put:
+      tags:
+        - Customers
+      summary: Bulk Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customers/bulk/delete:
+    delete:
+      tags:
+        - Customers
+      summary: Bulk Delete
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customers/bulk/delete-all:
+    delete:
+      tags:
+        - Customers
+      summary: Bulk Delete All
       responses:
         '200':
           description: Successful response
@@ -999,73 +423,26 @@ paths:
       tags:
         - Dashboard
       summary: Customer Growth
-      description: >-
-        Daily counts of new customers (and optionally new companies) across
-        the selected period. Returns `xAxis` (ISO dates) and `series` arrays
-        ready for charting.
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: period
-          in: query
-          schema:
-            type: integer
-          description: One of 7, 30, 90, 365. Defaults to 30.
-          example: '30'
-        - name: include_companies
-          in: query
-          schema:
-            type: boolean
-          description: When truthy, adds a Companies series alongside Customers.
-          example: 'false'
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/customer-hub/dashboard/top-customer-groups:
+  /api/v1/apps/customer-hub/dashboard/customers-by-location:
     get:
       tags:
         - Dashboard
-      summary: Top Customer Groups
-      description: >-
-        Ranks customer groups by member count and returns the top N along
-        with the total population and the number of ungrouped customers.
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: count
-          in: query
-          schema:
-            type: integer
-          description: Max groups to return (1–20). Defaults to 5.
-          example: '5'
+      summary: Customers By Location
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/dashboard/customers-overview:
+    get:
+      tags:
+        - Dashboard
+      summary: Customers Overview
       responses:
         '200':
           description: Successful response
@@ -1076,31 +453,16 @@ paths:
       tags:
         - Dashboard
       summary: Recent Signups
-      description: >-
-        Most recently created customers with display name, email, company,
-        verification flag and creation timestamp.
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: count
-          in: query
-          schema:
-            type: integer
-          description: Number of rows to return (1–20). Defaults to 5.
-          example: '5'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/dashboard/top-customer-groups:
+    get:
+      tags:
+        - Dashboard
+      summary: Top Customer Groups
       responses:
         '200':
           description: Successful response
@@ -1111,25 +473,433 @@ paths:
       tags:
         - Dashboard
       summary: Verification Funnel
-      description: >-
-        Counts and percentages for email-verified, phone-verified and
-        both-verified customers across the whole tenant.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/favorites:
+    get:
+      tags:
+        - Favorites
+      summary: Show
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Favorites
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
+        - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/notes:
+    get:
+      tags:
+        - Notes
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Notes
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/notes/{id}:
+    get:
+      tags:
+        - Notes
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Notes
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Notes
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/roles:
+    get:
+      tags:
+        - Roles
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Roles
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/roles/{id}:
+    get:
+      tags:
+        - Roles
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Roles
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Roles
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/settings:
+    get:
+      tags:
+        - Settings
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/settings/groups/list:
+    get:
+      tags:
+        - Settings
+      summary: Get Groups List
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/settings/{group}:
+    get:
+      tags:
+        - Settings
+      summary: Show
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/settings/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/settings/{group}/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/shippingAddresses:
+    get:
+      tags:
+        - ShippingAddresses
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - ShippingAddresses
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/shippingAddresses/{id}:
+    get:
+      tags:
+        - ShippingAddresses
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - ShippingAddresses
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - ShippingAddresses
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response

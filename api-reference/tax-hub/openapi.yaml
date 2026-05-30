@@ -1,63 +1,72 @@
 openapi: 3.0.0
 info:
   title: TaxHub API
-  description: Tax calculation and read-only configuration.
+  description: Complete API collection for TaxHub — generated from routes/api.php
   version: 1.0.0
-  contact:
-    name: B2Bware
-    url: https://syncspider.com
 servers:
   - url: https://api.datahub.syncspider.com
-    description: Production
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
 tags:
-  - name: Calculation
-    description: >-
-      Compute taxes for an arbitrary basket. Used by storefronts when local tax
-      estimation is needed before checkout.
-  - name: Read-only configuration
-    description: Lookups exposed for storefronts that render tax breakdowns.
-  - name: Settings (read-only for storefront)
-    description: >-
-      Storefront can read installation tax settings (e.g. tax-inclusive pricing
-      flag). Writes require admin.
+  - name: Calculate
+  - name: Import
+  - name: Jurisdictions
+  - name: Settings
+  - name: Tax Class Jurisdictions
+  - name: Tax Classes
+  - name: Tax Rule Conditions
+  - name: Tax Rules
 paths:
   /api/v1/apps/tax-hub/calculate:
     post:
       tags:
-        - Calculation
-      summary: Calculate Tax
-      description: >-
-        Returns per-line and total tax amounts using the matching tax rules for
-        the given country, customer group, and tax class. The same calculation
-        runs server-side during checkout — calling this directly is only needed
-        for live preview in cart/PDP.
+        - Calculate
+      summary: Calculate
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
-              type: string
-              example: >-
-                "{\n  \"country_code\": \"AT\",\n  \"customer_group_id\":
-                null,\n  \"items\": [\n    {\n      \"product_id\": 100,\n     
-                \"quantity\": 2,\n      \"unit_price\": 29.99,\n     
-                \"tax_class_id\": 1\n    }\n  ]\n}"
+              type: object
+              example: {}
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
         - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
-        - name: Accept
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/import/regions:
+    get:
+      tags:
+        - Import
+      summary: Regions
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/import/refresh/all:
+    post:
+      tags:
+        - Import
+      summary: Refresh
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
           in: header
           schema:
             type: string
@@ -67,59 +76,28 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/tax-hub/tax-classes:
-    get:
+  /api/v1/apps/tax-hub/import/{region}:
+    post:
       tags:
-        - Read-only configuration
-      summary: List Tax Classes
+        - Import
+      summary: Import
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
+        - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/tax-hub/tax-classes/{taxClass}:
-    get:
-      tags:
-        - Read-only configuration
-      summary: Show Tax Class
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: taxClass
+        - name: region
           in: path
           schema:
-            type: integer
+            type: string
           required: true
-          example: '1'
       responses:
         '200':
           description: Successful response
@@ -128,243 +106,86 @@ paths:
   /api/v1/apps/tax-hub/jurisdictions:
     get:
       tags:
-        - Read-only configuration
-      summary: List Jurisdictions
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: filter[country_code]
-          in: query
-          schema:
-            type: string
-          example: AT
+        - Jurisdictions
+      summary: Index
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/tax-hub/jurisdictions/{jurisdiction}:
-    get:
+    post:
       tags:
-        - Read-only configuration
-      summary: Show Jurisdiction
+        - Jurisdictions
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
+        - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
-        - name: jurisdiction
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/jurisdictions/{id}:
+    get:
+      tags:
+        - Jurisdictions
+      summary: Show
+      parameters:
+        - name: id
           in: path
           schema:
-            type: integer
+            type: string
           required: true
-          example: '1'
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/tax-hub/tax-class-jurisdictions:
-    get:
+    put:
       tags:
-        - Read-only configuration
-      summary: List Tax Class–Jurisdiction Mappings
+        - Jurisdictions
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
+        - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/tax-hub/tax-class-jurisdictions/{mapping}:
-    get:
-      tags:
-        - Read-only configuration
-      summary: Show Tax Class–Jurisdiction Mapping
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: mapping
+        - name: id
           in: path
           schema:
-            type: integer
+            type: string
           required: true
-          example: '1'
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/tax-hub/tax-rules:
-    get:
+    delete:
       tags:
-        - Read-only configuration
-      summary: List Tax Rules
+        - Jurisdictions
+      summary: Destroy
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: filter[country_code]
-          in: query
-          schema:
-            type: string
-          example: AT
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/tax-hub/tax-rules/{taxRule}:
-    get:
-      tags:
-        - Read-only configuration
-      summary: Show Tax Rule
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: taxRule
+        - name: id
           in: path
           schema:
-            type: integer
+            type: string
           required: true
-          example: '1'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/tax-hub/tax-rules/{taxRule}/conditions:
-    get:
-      tags:
-        - Read-only configuration
-      summary: List Tax Rule Conditions
-      description: >-
-        Returns the conditions (country, group, threshold) that gate a given
-        rule.
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: taxRule
-          in: path
-          schema:
-            type: integer
-          required: true
-          example: '1'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/tax-hub/settings/groups/list:
-    get:
-      tags:
-        - Settings (read-only for storefront)
-      summary: List Setting Groups
-      parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
-          in: header
-          schema:
-            type: string
-          example: application/json
       responses:
         '200':
           description: Successful response
@@ -373,20 +194,25 @@ paths:
   /api/v1/apps/tax-hub/settings:
     get:
       tags:
-        - Settings (read-only for storefront)
-      summary: List All Settings
+        - Settings
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
       parameters:
-        - name: installation-key
-          in: header
-          schema:
-            type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
+        - name: Content-Type
           in: header
           schema:
             type: string
@@ -396,23 +222,44 @@ paths:
           description: Successful response
           content:
             application/json: {}
+  /api/v1/apps/tax-hub/settings/groups/list:
+    get:
+      tags:
+        - Settings
+      summary: Get Groups List
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
   /api/v1/apps/tax-hub/settings/{group}:
     get:
       tags:
-        - Settings (read-only for storefront)
-      summary: Show Setting Group
+        - Settings
+      summary: Show
       parameters:
-        - name: installation-key
-          in: header
+        - name: group
+          in: path
           schema:
             type: string
-          example: '{{installationKey}}'
-        - name: x-auth-token
-          in: header
-          schema:
-            type: string
-          example: '{{authToken}}'
-        - name: Accept
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
           in: header
           schema:
             type: string
@@ -422,7 +269,403 @@ paths:
           schema:
             type: string
           required: true
-          example: general
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/settings/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/settings/{group}/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-class-jurisdictions:
+    get:
+      tags:
+        - Tax Class Jurisdictions
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Tax Class Jurisdictions
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-class-jurisdictions/{id}:
+    get:
+      tags:
+        - Tax Class Jurisdictions
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Tax Class Jurisdictions
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Tax Class Jurisdictions
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-classes:
+    get:
+      tags:
+        - Tax Classes
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Tax Classes
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-classes/{id}:
+    get:
+      tags:
+        - Tax Classes
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Tax Classes
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Tax Classes
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-rule-conditions/{id}:
+    put:
+      tags:
+        - Tax Rule Conditions
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Tax Rule Conditions
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-rules:
+    get:
+      tags:
+        - Tax Rules
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Tax Rules
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-rules/{id}:
+    get:
+      tags:
+        - Tax Rules
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Tax Rules
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Tax Rules
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/tax-hub/tax-rules/{id}/conditions:
+    get:
+      tags:
+        - Tax Rules
+      summary: Conditions
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Tax Rules
+      summary: Add Condition
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response

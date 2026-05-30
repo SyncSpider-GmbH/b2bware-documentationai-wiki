@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: LicenseHub API
-  description: Complete API collection for LicenseHub package
+  description: Complete API collection for LicenseHub — generated from routes/api.php
   version: 1.0.0
 servers:
   - url: https://api.datahub.syncspider.com
@@ -13,29 +13,271 @@ components:
 security:
   - bearerAuth: []
 tags:
+  - name: Dashboard
+  - name: License Configurations
   - name: License Keys
   - name: License Pools
   - name: License Rules
   - name: License Usage Logs
-  - name: License Configurations
+  - name: Settings
 paths:
-  /api/v1/apps/license-hub/license-keys/statuses/list:
+  /api/v1/apps/license-hub/dashboard/overview:
     get:
       tags:
-        - License Keys
-      summary: Get License Statuses
+        - Dashboard
+      summary: Overview
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-keys/import:
+  /api/v1/apps/license-hub/license-configurations:
+    get:
+      tags:
+        - License Configurations
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - License Configurations
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                product_id: 123
+                template: XXXX-XXXX-XXXX-XXXX
+                allowed_chars: ABCDEFGHJKLMNPQRSTUVWXYZ123456789
+                mode: quantity_per_licence
+                auto_generate: true
+                quantity_per_order: 1
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/license-hub/license-configurations/product/{productId}:
+    get:
+      tags:
+        - License Configurations
+      summary: Get By Product Id
+      parameters:
+        - name: productId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/license-hub/license-configurations/{id}:
+    get:
+      tags:
+        - License Configurations
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - License Configurations
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - License Configurations
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/license-hub/license-keys:
+    get:
+      tags:
+        - License Keys
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
     post:
       tags:
         - License Keys
-      summary: Import License Keys from CSV
+      summary: Store
       requestBody:
-        content: {}
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                product_id: 1
+                license_key: XXXX-XXXX-XXXX-XXXX
+                status: available
+                order_id: null
+                assigned_to: null
+                expiration_date: '2025-12-31T23:59:59Z'
+                activation_limit: 5
+                activations: 0
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/license-hub/license-keys/export:
+    get:
+      tags:
+        - License Keys
+      summary: Export Csv
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/license-hub/license-keys/fields/list:
+    get:
+      tags:
+        - License Keys
+      summary: Get Appended Fields
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/license-hub/license-keys/statuses/list:
+    get:
+      tags:
+        - License Keys
+      summary: Get Statuses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/license-hub/license-keys/{id}:
+    get:
+      tags:
+        - License Keys
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - License Keys
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - License Keys
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/license-hub/license-keys/{id}/status:
+    get:
+      tags:
+        - License Keys
+      summary: Check Status
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
@@ -68,99 +310,17 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-keys/export:
-    get:
-      tags:
-        - License Keys
-      summary: Export License Keys to CSV
-      parameters:
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-          example: '10000'
-        - name: filter[status]
-          in: query
-          schema:
-            type: string
-          description: Filter by status
-          example: '[{"condition":"=","value":"available"}]'
-        - name: filter[product_id]
-          in: query
-          schema:
-            type: string
-          description: Filter by product
-          example: '[{"condition":"=","value":1}]'
-        - name: filter[expiration_date]
-          in: query
-          schema:
-            type: string
-          description: Filter by expiration date
-          example: '[{"condition":">=","value":"2024-01-01"}]'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/license-hub/license-keys:
-    get:
-      tags:
-        - License Keys
-      summary: List License Keys
-      parameters:
-        - name: include
-          in: query
-          schema:
-            type: string
-          example: product,pool,usageLogs
-        - name: page
-          in: query
-          schema:
-            type: integer
-          example: '1'
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-          example: '25'
-        - name: filter[status]
-          in: query
-          schema:
-            type: string
-          example: available
-        - name: filter[product_id]
-          in: query
-          schema:
-            type: integer
-          example: '1'
-        - name: sort
-          in: query
-          schema:
-            type: string
-          example: '-created_at'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
+  /api/v1/apps/license-hub/license-keys/import:
     post:
       tags:
         - License Keys
-      summary: Create License Key
+      summary: Import Csv
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example:
-                product_id: 1
-                license_key: XXXX-XXXX-XXXX-XXXX
-                status: available
-                order_id: null
-                assigned_to: null
-                expiration_date: '2025-12-31T23:59:59Z'
-                activation_limit: 5
-                activations: 0
+              example: {}
       parameters:
         - name: Content-Type
           in: header
@@ -172,155 +332,109 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-keys/1:
-    get:
-      tags:
-        - License Keys
-      summary: Get License Key
-      parameters:
-        - name: include
-          in: query
-          schema:
-            type: string
-          example: product,pool,usageLogs
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    put:
-      tags:
-        - License Keys
-      summary: Update License Key
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example:
-                status: used
-                assigned_to: customer@example.com
-                activation_limit: 3
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    delete:
-      tags:
-        - License Keys
-      summary: Delete License Key
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/license-hub/license-keys/1/activate:
+  /api/v1/apps/license-hub/license-keys/{id}/activate:
     post:
       tags:
         - License Keys
-      summary: Activate License Key
+      summary: Activate
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example:
-                device_id: device-123
-                ip_address: 192.168.1.1
-                user_agent: Mozilla/5.0
+              example: {}
       parameters:
         - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-keys/1/deactivate:
+  /api/v1/apps/license-hub/license-keys/{id}/deactivate:
     post:
       tags:
         - License Keys
-      summary: Deactivate License Key
+      summary: Deactivate
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example:
-                device_id: device-123
-                reason: User requested deactivation
+              example: {}
       parameters:
         - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-keys/1/revoke:
+  /api/v1/apps/license-hub/license-keys/{id}/revoke:
     post:
       tags:
         - License Keys
-      summary: Revoke License Key
+      summary: Revoke
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example:
-                reason: Violation of terms
+              example: {}
       parameters:
         - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-keys/1/validate:
+  /api/v1/apps/license-hub/license-keys/{id}/validate:
     post:
       tags:
         - License Keys
-      summary: Validate License Key
+      summary: Validate License
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example:
-                device_id: device-123
+              example: {}
       parameters:
         - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/license-hub/license-keys/1/status:
-    get:
-      tags:
-        - License Keys
-      summary: Check License Key Status
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
@@ -330,38 +444,7 @@ paths:
     get:
       tags:
         - License Pools
-      summary: List License Pools
-      parameters:
-        - name: include
-          in: query
-          schema:
-            type: string
-          example: product,licenseKeys,rules
-        - name: page
-          in: query
-          schema:
-            type: integer
-          example: '1'
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-          example: '25'
-        - name: filter[product_id]
-          in: query
-          schema:
-            type: integer
-          example: '1'
-        - name: filter[auto_assign]
-          in: query
-          schema:
-            type: boolean
-          example: 'true'
-        - name: sort
-          in: query
-          schema:
-            type: string
-          example: name
+      summary: Index
       responses:
         '200':
           description: Successful response
@@ -370,7 +453,7 @@ paths:
     post:
       tags:
         - License Pools
-      summary: Create License Pool
+      summary: Store
       requestBody:
         content:
           application/json:
@@ -391,17 +474,17 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-pools/1:
+  /api/v1/apps/license-hub/license-pools/{id}:
     get:
       tags:
         - License Pools
-      summary: Get License Pool
+      summary: Show
       parameters:
-        - name: include
-          in: query
+        - name: id
+          in: path
           schema:
             type: string
-          example: product,licenseKeys,rules
+          required: true
       responses:
         '200':
           description: Successful response
@@ -410,21 +493,24 @@ paths:
     put:
       tags:
         - License Pools
-      summary: Update License Pool
+      summary: Update
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example:
-                name: Premium License Pool
-                auto_assign: false
+              example: {}
       parameters:
         - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
@@ -433,40 +519,56 @@ paths:
     delete:
       tags:
         - License Pools
-      summary: Delete License Pool
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-pools/1/available-count:
+  /api/v1/apps/license-hub/license-pools/{id}/available-count:
     get:
       tags:
         - License Pools
       summary: Get Available License Count
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-pools/1/assign:
+  /api/v1/apps/license-hub/license-pools/{id}/assign:
     post:
       tags:
         - License Pools
-      summary: Assign License from Pool
+      summary: Assign License
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example:
-                assigned_to: customer@example.com
+              example: {}
       parameters:
         - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
@@ -476,33 +578,7 @@ paths:
     get:
       tags:
         - License Rules
-      summary: List License Rules
-      parameters:
-        - name: include
-          in: query
-          schema:
-            type: string
-          example: product,pool
-        - name: page
-          in: query
-          schema:
-            type: integer
-          example: '1'
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-          example: '25'
-        - name: filter[product_id]
-          in: query
-          schema:
-            type: integer
-          example: '1'
-        - name: sort
-          in: query
-          schema:
-            type: string
-          example: '-created_at'
+      summary: Index
       responses:
         '200':
           description: Successful response
@@ -511,7 +587,7 @@ paths:
     post:
       tags:
         - License Rules
-      summary: Create License Rule
+      summary: Store
       requestBody:
         content:
           application/json:
@@ -533,17 +609,33 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-rules/1:
+  /api/v1/apps/license-hub/license-rules/product/{productId}:
     get:
       tags:
         - License Rules
-      summary: Get License Rule
+      summary: Get By Product Id
       parameters:
-        - name: include
-          in: query
+        - name: productId
+          in: path
           schema:
             type: string
-          example: product,pool
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/license-hub/license-rules/{id}:
+    get:
+      tags:
+        - License Rules
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
@@ -552,22 +644,24 @@ paths:
     put:
       tags:
         - License Rules
-      summary: Update License Rule
+      summary: Update
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example:
-                activation_limit: 3
-                expiration_days: 180
-                reassignable: false
+              example: {}
       parameters:
         - name: Content-Type
           in: header
           schema:
             type: string
           example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
@@ -576,27 +670,13 @@ paths:
     delete:
       tags:
         - License Rules
-      summary: Delete License Rule
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/license-hub/license-rules/product/1:
-    get:
-      tags:
-        - License Rules
-      summary: Get License Rule by Product ID
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/license-hub/license-usage-logs/actions/list:
-    get:
-      tags:
-        - License Usage Logs
-      summary: Get Actions List
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
@@ -606,33 +686,7 @@ paths:
     get:
       tags:
         - License Usage Logs
-      summary: List License Usage Logs
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-          example: '1'
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-          example: '25'
-        - name: filter[license_key_id]
-          in: query
-          schema:
-            type: integer
-          example: '1'
-        - name: filter[action]
-          in: query
-          schema:
-            type: string
-          example: activated
-        - name: sort
-          in: query
-          schema:
-            type: string
-          example: '-created_at'
+      summary: Index
       responses:
         '200':
           description: Successful response
@@ -641,7 +695,7 @@ paths:
     post:
       tags:
         - License Usage Logs
-      summary: Create License Usage Log
+      summary: Store
       requestBody:
         content:
           application/json:
@@ -666,78 +720,85 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-usage-logs/1:
+  /api/v1/apps/license-hub/license-usage-logs/actions/list:
     get:
       tags:
         - License Usage Logs
-      summary: Get License Usage Log
+      summary: Get Actions
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-usage-logs/license-key/1:
+  /api/v1/apps/license-hub/license-usage-logs/license-key/{licenseKeyId}:
     get:
       tags:
         - License Usage Logs
-      summary: Get Logs by License Key
+      summary: Get By License Key
+      parameters:
+        - name: licenseKeyId
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-usage-logs/license-key/1/activation-count:
+  /api/v1/apps/license-hub/license-usage-logs/license-key/{licenseKeyId}/activation-count:
     get:
       tags:
         - License Usage Logs
       summary: Get Activation Count
+      parameters:
+        - name: licenseKeyId
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-usage-logs/license-key/1/recent:
+  /api/v1/apps/license-hub/license-usage-logs/license-key/{licenseKeyId}/recent:
     get:
       tags:
         - License Usage Logs
       summary: Get Recent Activity
       parameters:
-        - name: limit
-          in: query
+        - name: licenseKeyId
+          in: path
           schema:
-            type: integer
-          example: '10'
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-configurations:
+  /api/v1/apps/license-hub/license-usage-logs/{id}:
     get:
       tags:
-        - License Configurations
-      summary: List License Configurations
+        - License Usage Logs
+      summary: Show
       parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-          example: '1'
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-          example: '25'
-        - name: filter[product_id]
-          in: query
-          schema:
-            type: integer
-          example: '1'
-        - name: sort
-          in: query
+        - name: id
+          in: path
           schema:
             type: string
-          example: '-created_at'
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/license-hub/settings:
+    get:
+      tags:
+        - Settings
+      summary: Index
       responses:
         '200':
           description: Successful response
@@ -745,20 +806,14 @@ paths:
             application/json: {}
     post:
       tags:
-        - License Configurations
-      summary: Create License Configuration
+        - Settings
+      summary: Store
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example:
-                product_id: 123
-                template: XXXX-XXXX-XXXX-XXXX
-                allowed_chars: ABCDEFGHJKLMNPQRSTUVWXYZ123456789
-                mode: quantity_per_licence
-                auto_generate: true
-                quantity_per_order: 1
+              example: {}
       parameters:
         - name: Content-Type
           in: header
@@ -770,30 +825,69 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/license-hub/license-configurations/1:
+  /api/v1/apps/license-hub/settings/groups/list:
     get:
       tags:
-        - License Configurations
-      summary: Get License Configuration
+        - Settings
+      summary: Get Groups List
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-    put:
+  /api/v1/apps/license-hub/settings/{group}:
+    get:
       tags:
-        - License Configurations
-      summary: Update License Configuration
+        - Settings
+      summary: Show
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Update
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example:
-                template: YYYY-YYYY-YYYY-YYYY
-                mode: single_licence_quantity
-                auto_generate: false
-                quantity_per_order: 2
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/license-hub/settings/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
       parameters:
         - name: Content-Type
           in: header
@@ -805,20 +899,28 @@ paths:
           description: Successful response
           content:
             application/json: {}
-    delete:
+  /api/v1/apps/license-hub/settings/{group}/reset:
+    post:
       tags:
-        - License Configurations
-      summary: Delete License Configuration
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/license-hub/license-configurations/product/123:
-    get:
-      tags:
-        - License Configurations
-      summary: Get Configuration by Product ID
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
