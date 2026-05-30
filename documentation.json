@@ -194,12 +194,12 @@
               {
                 "title": "RuleHub",
                 "path": "hubs/rule-hub",
-                "icon": "scale-balanced"
+                "icon": "gavel"
               },
               {
                 "title": "AutomationHub",
                 "path": "hubs/automation-hub",
-                "icon": "wand-magic-sparkles"
+                "icon": "bolt"
               },
               {
                 "title": "DashboardHub",
@@ -344,13 +344,13 @@
           },
           {
             "group": "RuleHub",
-            "icon": "scale-balanced",
+            "icon": "gavel",
             "openapi": "api-reference/rule-hub/openapi.yaml",
             "pages": []
           },
           {
             "group": "AutomationHub",
-            "icon": "wand-magic-sparkles",
+            "icon": "bolt",
             "openapi": "api-reference/automation-hub/openapi.yaml",
             "pages": []
           },
