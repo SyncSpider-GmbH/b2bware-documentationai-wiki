@@ -3,11 +3,112 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
-<Update label="2025-03-19" description="v2.0.0 — Documentation Overhaul" tags={["feature"]}>
+<Update label="2026-06-01" description="MCP Server v1.11.0" tags={["feature"]}>
+
+## B2Bware MCP Server v1.11.0
+
+- **160 tools** — server-to-server Bearer auth for admin, integration, and operator analytics
+- **Cart line-item API**: `add_cart_item`, `update_cart_item`; operator queries via `list_carts` / `list_orders`
+- **Product media CDN ingest**: `main_image_file`, `main_image_fetch_url` on catalog tools
+- **Variations**: `attach_variation_attributes`, `generate_product_variations`, `list_product_variations`; product types `license`, `dt-one`
+- **New hub modules**: EventHub, RuleHub, SettingsHub, AutomationHub, DashboardHub (read-only), NotificationHub, LicenseHub, MediaHub
+- **Bulk ops**: `bulk_update_stock`, `bulk_upsert_prices`; `create_order_comment`
+- See [MCP Server](/ai-tools/mcp-server) for the full tool catalog
+
+</Update>
+
+<Update label="2026-05-30" description="14 hubs and OpenAPI refresh" tags={["feature"]}>
+
+## Hub Expansion
+
+- Added **AutomationHub** and **DashboardHub** documentation pages
+- Introduction and hub overview now list all **14 hubs**
+- Navigation icons updated for broader compatibility
+
+## API Reference
+
+- Regenerated OpenAPI specs from Postman collections for 9 hubs (Customer, Event, License, Notification, Order, Product, Rule, Settings, Tax)
+- New OpenAPI files for **AutomationHub** and **DashboardHub**
+
+</Update>
+
+<Update label="2026-05-20" description="Endpoint gaps and media uploads" tags={["feature"]}>
+
+## Documentation Gaps Filled
+
+- Expanded endpoint coverage, validation rules, and webhook events for **ProductHub**, **OrderHub**, and **CustomerHub**
+- Added NotificationHub webhook event reference
+
+## ProductHub
+
+- Expanded category field documentation
+- New guide: [Product Media Uploads](/core-concepts/product-media-uploads)
+- Updated [Media URLs](/core-concepts/media-urls) with additional notes
+
+## Core Concepts
+
+- New [Webhooks](/core-concepts/webhooks) page
+
+</Update>
+
+<Update label="2026-05-15" description="Auth clarity and AI skills" tags={["improvement"]}>
+
+## Documentation Clarity
+
+- Clarified path notation, request header/body naming, auth matrix, and hub scope across pages
+
+## AI Tools
+
+- [Download AI Skill](/ai-tools/download-skill) page aligned with the dedicated [datahub-skills](https://github.com/SyncSpider-GmbH/datahub-skills) repository
+- Skill release pipeline moved to the external skills repo
+
+</Update>
+
+<Update label="2026-05-14" description="Storefront, auth, and hub pages" tags={["feature"]}>
+
+## Authentication
+
+- Split authentication into dedicated pages: storefront customer auth, installation key, server-to-server tokens, and CORS
+- Documented `installation-key` header (replacing `x-installation-key`), `session-uuid`, and `language-code`
+- Fixed pagination parameter names and response shape in common patterns
+
+## New Hub Pages
+
+- **AuthHub**, **EventHub**, and **RuleHub** added to the hub reference
+
+## Storefront Integration
+
+- New storefront flow guides: browse catalog, product detail, cart & checkout, customer account, post-purchase
+
+## API Reference
+
+- Added OpenAPI specs for AttributesHub, NotificationHub, SettingsHub, LicenseHub, EventHub, and RuleHub
+- Removed inactive ContentHub reference
+- Initial OpenAPI regeneration from Postman collections
+
+## AI Tools
+
+- Added [Download AI Skill](/ai-tools/download-skill) page with setup instructions
+
+</Update>
+
+<Update label="2026-05-12" description="Real OpenAPI and auth rewrite" tags={["feature"]}>
+
+## API Reference
+
+- Replaced placeholder Petstore spec with real OpenAPI generated from Postman collections
+
+## Authentication
+
+- Rewrote authentication documentation for storefront and server-to-server integration patterns
+
+</Update>
+
+<Update label="2026-03-19" description="v2.0.0 — Documentation Overhaul" tags={["feature"]}>
 
 ## Complete API Documentation
 
-- Added comprehensive documentation for all 9 DataHub hubs
+- Added comprehensive documentation for all 9 core DataHub hubs
 - ProductHub: 26 filters, 42+ includes, full validation rules
 - OrderHub: Complete checkout flow with carts, quotes, and payment methods
 - NotificationHub: 120+ endpoints across 6 channels
@@ -20,6 +121,12 @@ description: Release history and version updates for the B2Bware DataHub platfor
 - Core Concepts: Common patterns, filtering, includes, error handling
 - Advanced Guides: Bulk operations, checkout flow, tax calculation, product variations, AI features
 - Updated Help Center with integration guides and troubleshooting
+
+## AI Tools & MCP
+
+- New AI Tools section with MCP server setup and IDE guides (Claude Code, Cursor, GitHub Copilot, Windsurf)
+- Claude Code skills, Cursor rules, and slash commands for DataHub API development
+- All placeholder domains replaced with `api.datahub.syncspider.com`
 
 </Update>
 

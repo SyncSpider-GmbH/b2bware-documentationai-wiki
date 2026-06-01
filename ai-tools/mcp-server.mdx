@@ -15,70 +15,90 @@ The Model Context Protocol (MCP) is an open standard that lets AI assistants cal
 
 ## Available Tools
 
-The MCP Server exposes **27 tools** for products, categories, orders, carts, checkout, tax, customers, and authentication. Order responses include a synthetic `order_number` (e.g. `ORD-2024-00001`); the status value `"processing"` is normalized from the API’s internal spelling.
+The MCP Server exposes **160 tools** (v1.11.0) for server-to-server admin, integration, and operator analytics. Auth is **Bearer API key only** — no storefront `installation-key` or guest session headers. Order responses include a synthetic `order_number`; status `"processing"` is normalized from the API’s internal spelling.
 
 <Tabs>
-  <Tab title="Products" icon="box">
+  <Tab title="Core" icon="box">
 
 | Tool | Description |
 |------|-------------|
-| `list_products` | List products with pagination, sort, and filters (e.g. category, anchor_category_id, product_type, exclude_configurable, exclude_child_products) |
-| `search_products` | Full-text search by name, SKU, description; use `exclude_configurable=true` to return only orderable products |
-| `get_product` | Get a single product by ID with details (price, media, categories) |
-| `list_categories` | List product categories (tree) with pagination |
-| `get_category` | Get a single category by ID |
+| `search_products`, `list_products`, `get_product` | Product catalog read |
+| `list_categories`, `get_category` | Category tree |
+| `list_orders`, `get_order`, `update_order_status` | Order read/update (full status enum) |
+| `list_carts`, `get_cart`, `add_cart_item`, `update_cart_item` | Cart operator queries + line-item API |
+| `upsert_cart`, `remove_cart_item`, `preview_checkout`, `checkout` | Cart/checkout (admin/demo) |
+| `list_shipping_methods`, `list_billing_methods` | Checkout prerequisites |
+| `calculate_tax` | TaxHub preview |
+| `list_customers`, `search_customers`, `get_customer`, `create_customer`, `update_customer` | CustomerHub |
+| `list_customer_addresses`, `create_shipping_address`, `create_billing_address` | Addresses |
+| `login`, `register` | AuthHub (legacy admin/demo) |
 
   </Tab>
-  <Tab title="Customers" icon="users">
+  <Tab title="Catalog" icon="tag">
 
 | Tool | Description |
 |------|-------------|
-| `list_customers` | List customers with filter options (email, customer_number, pagination) |
-| `search_customers` | Search customers by name, email or company |
-| `get_customer` | Retrieve customer profile with shipping and billing addresses by ID |
-| `create_customer` | Create a new customer account |
-| `update_customer` | Update an existing customer (name, phone, status, etc.) |
-| `list_customer_addresses` | List all shipping and billing addresses for a customer |
-| `create_shipping_address` | Create a shipping address for a customer |
-| `create_billing_address` | Create a billing address for a customer |
+| `create_category`, `update_category`, `delete_category`, `bulk_create_categories` | Category write |
+| `create_product`, `update_product`, `delete_product`, `upsert_product`, `bulk_create_products` | Product write (SKU upsert) |
+| `create_product_tier_price` | Quantity breaks |
+| `attach_variation_attributes`, `generate_product_variations`, `list_product_variations` | Configurable products |
+| `bulk_update_stock`, `bulk_upsert_prices` | ERP bulk sync |
+| CDN media: `main_image_file`, `main_image_fetch_url` on create/update | ProductHub CDN ingest |
 
   </Tab>
-  <Tab title="Orders" icon="shopping-cart">
+  <Tab title="Attributes & B2B" icon="users">
 
 | Tool | Description |
 |------|-------------|
-| `list_orders` | List orders with filters (customer, status, date range, price) and sorting; use `sort=-id` for newest first |
-| `get_order` | Retrieve order details with line items by ID |
-| `update_order_status` | Update the status of an order (pending, processing, completed, cancelled) |
+| `[attributes]` tools | AttributesHub — create/list attributes, values, entity assignments |
+| `[customer]` company tools | `list_companies`, `create_company`, … (CustomerHub `/companies`) |
+| `[b2b]` tools | Customer onboarding, roles, company linking |
+| `[orders-admin]` tools | `create_order`, `create_order_comment`, demo catalog, backfill |
 
   </Tab>
-  <Tab title="Cart & Checkout" icon="credit-card">
+  <Tab title="EventHub" icon="rss">
 
 | Tool | Description |
 |------|-------------|
-| `upsert_cart` | Create or update a cart by `session_uuid`; pass `cart_items` (product_id, quantity, optional price) in one call |
-| `get_cart` | Retrieve cart contents for a session by `session_uuid` |
-| `list_carts` | List all carts, optionally filtered by customer ID |
-| `remove_cart_item` | Remove one item from a cart by cart item ID |
-| `preview_checkout` | Preview checkout for a cart: get totals, shipping, and tax without completing the order |
-| `checkout` | Complete checkout and create an order. Requires cart_id, shipping_address_id, billing_address_id, shipping_method_id, billing_method_id — use `list_shipping_methods`, `list_billing_methods`, and `list_customer_addresses` first to get valid IDs |
-| `list_shipping_methods` | List available shipping methods (required for checkout) |
-| `list_billing_methods` | List available payment/billing methods (required for checkout) |
+| `list_available_events` | Event catalog for subscriptions |
+| `list_event_subscriptions`, `get_event_subscription` | Subscription CRUD read |
+| `create_event_subscription`, `update_event_subscription` | Webhook setup |
+| `pause_event_subscription`, `resume_event_subscription`, `test_event_subscription` | Operations |
+| `list_event_delivery_logs`, `get_event_delivery_log` | Delivery debugging |
 
   </Tab>
-  <Tab title="Tax" icon="percent">
+  <Tab title="RuleHub" icon="ticket">
 
 | Tool | Description |
 |------|-------------|
-| `calculate_tax` | Calculate tax for line items using customer context (country, region, customer_group, vat_number). Returns tax per line and total. Use before checkout or for quotes. |
+| `list_coupons`, `get_coupon`, `create_coupon`, `update_coupon` | Coupon management |
+| `list_cart_price_rules`, `get_cart_price_rule` | Cart discounts |
+| `list_cart_validation_rules` | Min-order etc. |
+| `get_rule_condition_schema` | Condition builder fields |
 
   </Tab>
-  <Tab title="Auth" icon="key">
+  <Tab title="Settings & Ops" icon="settings">
 
 | Tool | Description |
 |------|-------------|
-| `login` | Authenticate a customer with email and password; returns a bearer token for subsequent requests |
-| `register` | Register a new customer account |
+| `list_locales`, `list_countries`, `list_currencies` | Reference data |
+| `list_settings_config`, `get_settings_config` | Platform config |
+| `clear_app_cache` | Ops — `installation_key` as URL path param only |
+| `list_automation_flows`, `get_automation_flow`, `create_automation_flow` | AutomationHub |
+| `list_available_automation_triggers`, `list_available_automation_actions` | Flow design |
+| `list_flow_runs`, `get_flow_run` | Run monitoring |
+| `list_dashboard_widgets`, `get_dashboard_layout` | Dashboard read-only |
+
+  </Tab>
+  <Tab title="Notify & License" icon="bell">
+
+| Tool | Description |
+|------|-------------|
+| `list_notifications`, `get_notification`, `create_notification`, `send_notification` | NotificationHub |
+| `list_notification_types`, `get_notification_stats` | Types and monitoring |
+| `list_license_keys`, `get_license_key`, `generate_license_keys` | LicenseHub |
+| `validate_license_key`, `activate_license_key` | Key lifecycle |
+| `upload_media`, `list_media`, `get_media`, `set_primary_media` | MediaHub |
 
   </Tab>
 </Tabs>
@@ -291,7 +311,9 @@ Once connected, try these prompts with your AI assistant:
 | "Show me the checkout total for cart 17 before I place the order" | `preview_checkout` with cart_id |
 | "Calculate tax for two line items (100 € and 50 €) for a customer in Germany" | `calculate_tax` with line_items and customer.country |
 | "Show me all pending orders from this month" | `list_orders` with status and date filters |
-| "Get the full details of product 42 including stock and pricing" | `get_product` |
+| "Show me open carts" | `list_carts` |
+| "Create a webhook for order.created" | `create_event_subscription` |
+| "Generate 50 license keys for product 12" | `generate_license_keys` |
 
 ## Troubleshooting
 
