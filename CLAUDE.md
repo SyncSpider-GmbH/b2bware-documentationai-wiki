@@ -297,6 +297,7 @@ Complete order lifecycle: cart → checkout → order.
 - `shipping_address_id`: required, numeric
 - `billing_address_id`: required, numeric
 - `comment`: optional, string
+- `attributes`: optional, array of `{attribute_id, value, auto_create_value?}` — custom Order attributes (AttributesHub). Only attributes with `group.type='order'` AND `use_in_checkout=true` are accepted. `GET /carts/{cart}/checkout` returns the eligible list as `available_attributes`. Submitting ineligible or missing-required ids yields HTTP 422.
 
 ### Checkout Flow
 
@@ -366,7 +367,7 @@ Dynamic product attributes with polymorphic relations.
 
 ### Attribute Filters
 
-`id`, `name`, `type`, `group_id`, `_created_at`, `_updated_at`, `visible_on_the_product_page`, `used_for_filtering`, `filterable_with_results`, `position`, `group.type`
+`id`, `name`, `type`, `group_id`, `_created_at`, `_updated_at`, `visible_on_the_product_page`, `used_for_filtering`, `filterable_with_results`, `use_in_notifications`, `use_in_checkout`, `position`, `group.type`
 
 ### Attribute Includes
 

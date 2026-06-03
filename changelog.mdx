@@ -104,6 +104,32 @@ description: Release history and version updates for the B2Bware DataHub platfor
 
 </Update>
 
+<Update label="2026-06-03" description="Custom Order attributes on checkout" tags={["feature"]}>
+
+## OrderHub × AttributesHub — custom Order attributes on storefront checkout
+
+Tenants can now extend the OrderHub storefront checkout with their own fields without backend changes — purchase order numbers, internal notes, delivery preferences, anything modeled as an AttributesHub attribute.
+
+### How it works
+
+1. Create an Attribute Group of `type = "order"` in AttributesHub.
+2. Add attributes inside that group and toggle the new **Use in Checkout** switch (visible on the admin attribute edit page only when the group is of type `order`).
+3. The storefront automatically picks them up:
+   - `GET /api/v1/apps/order-hub/carts/{cart}/checkout` returns an `available_attributes` array (id, code, name, type, required, group, values, translation) — only attributes with `group.type='order'` AND `use_in_checkout=true`.
+   - `POST /api/v1/apps/order-hub/carts/{cart}/checkout` accepts an `attributes` array of `{attribute_id, value, auto_create_value?}` entries; ineligible or missing-required ids return HTTP 422 with explicit messages.
+
+### Persistence
+
+Submitted values are stored polymorphically against the resulting Order (`attributable_type=Apps\OrderHub\Models\Orders`, `attributable_id={order.id}`). Read them back with `?include=attributeValues,attributeValues.value,attributeValues.value.attribute` on order detail endpoints, or via the `$order->{attribute_code}` magic getter.
+
+### Filters
+
+`Attribute` is now filterable by `use_in_checkout` and `use_in_notifications` (in addition to the existing visibility / filtering flags).
+
+See [OrderHub → Checkout flow](/advanced/checkout-flow), [OrderHub hub page](/hubs/order-hub), and [AttributesHub hub page](/hubs/attributes-hub) for the complete contract.
+
+</Update>
+
 <Update label="2026-03-19" description="v2.0.0 — Documentation Overhaul" tags={["feature"]}>
 
 ## Complete API Documentation

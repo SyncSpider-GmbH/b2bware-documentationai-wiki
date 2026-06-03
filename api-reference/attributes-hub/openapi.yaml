@@ -40,12 +40,27 @@ paths:
       tags:
         - Attributes
       summary: Create Attribute
+      description: >-
+        Create an Attribute. Set `use_in_checkout=true` (when
+        group.type='order') to expose this attribute on the OrderHub storefront
+        checkout. See packages/Apps/OrderHub/CHECKOUT.md.
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                name: PO Number
+                attribute_code: po_number
+                type: text
+                group_id: 5
+                required: true
+                position: 1
+                used_for_filtering: false
+                visible_on_the_product_page: false
+                filterable_with_results: false
+                use_in_notifications: false
+                use_in_checkout: true
       parameters:
         - name: Accept
           in: header
@@ -82,12 +97,24 @@ paths:
       tags:
         - Attributes
       summary: Update Attribute
+      description: >-
+        Update an Attribute. `use_in_checkout` toggles storefront-checkout
+        exposure (only meaningful when the parent group has type='order').
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                name: PO Number
+                group_id: 5
+                required: true
+                position: 1
+                used_for_filtering: false
+                visible_on_the_product_page: false
+                filterable_with_results: false
+                use_in_notifications: false
+                use_in_checkout: true
       parameters:
         - name: Accept
           in: header
@@ -140,12 +167,38 @@ paths:
       tags:
         - Attributes
       summary: Bulk Insert Attributes
+      description: >-
+        Bulk insert. Each attribute supports `use_in_checkout` (storefront
+        checkout exposure for `group.type='order'` attributes).
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                attributes:
+                  - name: PO Number
+                    attribute_code: po_number
+                    type: text
+                    group_id: 5
+                    required: true
+                    position: 1
+                    used_for_filtering: false
+                    visible_on_the_product_page: false
+                    filterable_with_results: false
+                    use_in_notifications: false
+                    use_in_checkout: true
+                  - name: Internal Note
+                    attribute_code: internal_note
+                    type: text
+                    group_id: 5
+                    required: true
+                    position: 1
+                    used_for_filtering: false
+                    visible_on_the_product_page: false
+                    filterable_with_results: false
+                    use_in_notifications: false
+                    use_in_checkout: false
       parameters:
         - name: Accept
           in: header

@@ -85,6 +85,8 @@ For filter syntax and operators, see [Filtering](/core-concepts/filtering).
 | `visible_on_the_product_page` | bool | |
 | `used_for_filtering` | bool | |
 | `filterable_with_results` | bool | |
+| `use_in_notifications` | bool | Filter by notification-template-variable flag |
+| `use_in_checkout` | bool | Filter by storefront-checkout-exposure flag |
 | `position` | number | |
 | `group.type` | text | Relation filter (group) |
 
@@ -152,6 +154,8 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 | `visible_on_the_product_page` | sometimes, boolean |
 | `used_for_filtering` | sometimes, boolean |
 | `filterable_with_results` | sometimes, boolean |
+| `use_in_notifications` | sometimes, boolean — exposes the attribute as a template variable in NotificationHub emails |
+| `use_in_checkout` | sometimes, boolean — exposes the attribute on the OrderHub storefront checkout. See [OrderHub → Custom Order Attributes](/hubs/order-hub#checkout). Only takes effect when the parent group has `type='order'`. |
 | `required` | sometimes, boolean |
 | `position` | sometimes, numeric |
 | `meta_data` | sometimes, array |

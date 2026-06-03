@@ -292,6 +292,10 @@ paths:
       tags:
         - Carts
       summary: Get
+      description: >-
+        Returns checkout context including `available_attributes` (custom Order
+        attributes from AttributesHub with `group.type='order'` AND
+        `use_in_checkout=true`). See packages/Apps/OrderHub/CHECKOUT.md.
       parameters:
         - name: cart
           in: path
@@ -307,12 +311,32 @@ paths:
       tags:
         - Carts
       summary: Post
+      description: >-
+        Submits checkout. Optional `attributes` array carries custom Order
+        attributes (AttributesHub). Each entry needs `attribute_id` referencing
+        an attribute that has `group.type='order'` AND `use_in_checkout=true`;
+        otherwise the request is rejected with HTTP 422. See
+        packages/Apps/OrderHub/CHECKOUT.md.
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                shipping_method_id: 1
+                billing_method_id: 1
+                shipping_address_id: 8
+                billing_address_id: 7
+                shipping_address_is_same_as_billing: false
+                comment: Optional order comment
+                billing_method:
+                  redirect_url: https://myshop.com/thank-you
+                attributes:
+                  - attribute_id: 20
+                    value: PO-2026-001
+                  - attribute_id: 22
+                    value: Leave at reception
+                    auto_create_value: true
       parameters:
         - name: Content-Type
           in: header

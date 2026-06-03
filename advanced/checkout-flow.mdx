@@ -95,7 +95,10 @@ curl -s -X POST \
     "billing_method_id": 2,
     "shipping_address_id": 15,
     "billing_address_id": 15,
-    "comment": "Please gift-wrap the order."
+    "comment": "Please gift-wrap the order.",
+    "attributes": [
+      { "attribute_id": 20, "value": "PO-2026-001" }
+    ]
   }'
 ```
 </Request>
@@ -109,6 +112,24 @@ curl -s -X POST \
 | `shipping_address_id` | required, numeric |
 | `billing_address_id` | required, numeric |
 | `comment` | string (optional) |
+| `attributes` | array, optional — see *Custom Order Attributes* below |
+| `attributes.*.attribute_id` | required, numeric — eligible attribute id |
+| `attributes.*.value` | mixed — text/number/select label or id |
+| `attributes.*.auto_create_value` | boolean, optional |
+
+## Custom Order Attributes (AttributesHub)
+
+Tenants can extend the storefront checkout with their own fields without backend changes:
+
+1. Create an Attribute Group of `type = "order"` in AttributesHub.
+2. Add attributes inside that group with `use_in_checkout = true` (toggle on the admin attribute edit page; the switch is visible only when the group is of type `order`).
+
+The storefront flow then becomes:
+
+- `GET /carts/{cart}/checkout` returns an `available_attributes` array. Each entry contains `id`, `attribute_code`, `name`, `type`, `required`, `group`, `values` (for select/multiselect) and `translation` (when a non-system locale is requested via the `language-code` header). Only attributes where `group.type='order'` AND `use_in_checkout=true` are returned.
+- `POST /carts/{cart}/checkout` accepts an `attributes` array of `{attribute_id, value, auto_create_value?}` entries. The same eligibility filter is enforced server-side: ineligible ids yield HTTP 422 (*"The following attribute ids are not available in checkout: {ids}."*), and missing eligible-required attributes yield *"The following required checkout attributes are missing: {codes}."*.
+
+Persisted values are written polymorphically against the resulting Order (`attributable_type=Apps\OrderHub\Models\Orders`, `attributable_id={order.id}`). Read them back with `?include=attributeValues,attributeValues.value,attributeValues.value.attribute` on order detail endpoints.
 
 ## Loading Cart with Full Product Data
 
