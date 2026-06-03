@@ -10,7 +10,7 @@ AuthHub issues and manages user sessions. It is the entry point for storefront c
 **Base URL:** `api/v1/apps/auth-hub/`
 
 <Callout kind="info">
-Most endpoints sit behind `auth:api`. The two public flows — `reset-password` and `verify-email` — use the installation key in the URL instead of a bearer token, because the user is not logged in yet.
+The storefront entry flows — `login`, `register`, `forgot-password`, `reset-password`, and `verify-email` — are public: they need only the installation key (in the header, or in the URL for the email-link flows), because the user is not logged in yet. Session, impersonation, and admin endpoints sit behind `auth:api`.
 </Callout>
 
 ## Endpoints
@@ -20,8 +20,8 @@ Most endpoints sit behind `auth:api`. The two public flows — `reset-password` 
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| POST | `/login` | `auth:api` | Exchange credentials for a personal access token. |
-| POST | `/register` | `auth:api` | Create a new customer account. |
+| POST | `/login` | installation key | Exchange credentials for a personal access token. |
+| POST | `/register` | installation key | Create a new customer account. |
 | POST | `/logout` | `auth:api` | Revoke the current token. |
 | GET  | `/me` | `auth:api` | Return the authenticated user with roles and customer profile. |
 
@@ -30,10 +30,22 @@ Most endpoints sit behind `auth:api`. The two public flows — `reset-password` 
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| POST | `/forgot-password` | `auth:api` | Send a password-reset email. |
+| POST | `/forgot-password` | installation key | Send a password-reset email. |
 | POST | `/{installationKey}/reset-password` | installation key | Complete a password reset using the token from the email. |
 | POST | `/send-verification-email` | `auth:api` | (Re)send the address-verification email. |
 | POST | `/{installationKey}/verify-email` | installation key | Mark the email as verified using the token from the email. |
+
+  </Tab>
+  <Tab title="Admin email change" icon="user-gear">
+
+Admin-panel endpoints (B2BWare → Customer Details → Security) to change a customer's email by ID, without the customer's password. They require admin authentication (`auth:api`); the installation key is resolved from the customer automatically. On success the new address receives a 6-digit verification code, and confirming it forces the customer to re-login.
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST   | `/admin/customer/{customerId}/request-email-change` | `auth:api` | Start an email change and send a verification code to the new address. |
+| GET    | `/admin/customer/{customerId}/pending-email-change` | `auth:api` | Return the customer's pending (unverified) email change, if any. |
+| POST   | `/admin/customer/{customerId}/verify-email-change` | `auth:api` | Confirm the change with the 6-digit code. |
+| DELETE | `/admin/customer/{customerId}/cancel-email-change` | `auth:api` | Revoke any pending email change. |
 
   </Tab>
   <Tab title="Impersonation" icon="user-secret">

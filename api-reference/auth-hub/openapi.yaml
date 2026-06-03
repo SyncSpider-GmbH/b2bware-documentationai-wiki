@@ -22,6 +22,12 @@ tags:
     description: >-
       Only customers whose role type is `agent` can use these endpoints.
       Non-agent callers get 403.
+  - name: Admin email change
+    description: >-
+      Admin-panel endpoints that change a customer's email address by customer
+      ID, without the customer's password. They require admin authentication
+      (`auth:api`, the SpiderDesk Bearer token). The installation key is resolved
+      automatically from the customer when the header is absent.
 paths:
   /api/v1/apps/auth-hub/{installationKey}/reset-password:
     post:
@@ -495,5 +501,206 @@ paths:
       responses:
         '200':
           description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/admin/customer/{customerId}/request-email-change:
+    post:
+      tags:
+        - Admin email change
+      summary: Request Email Change (admin)
+      description: >-
+        Starts an email change for the given customer **without** requiring the
+        customer's password. A 6-digit verification code (24 hour expiry) is sent
+        to the new address via NotificationHub (`email_verification` type).
+
+
+        Errors:
+
+        - `400` — new email equals current email.
+
+        - `404` — customer not found.
+
+        - `409` — email already in use by another customer.
+
+
+        Returns `200` with `{ "message": "...", "requires_email_verification":
+        true, "new_email": "...", "expires_at": "..." }`.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - new_email
+              properties:
+                new_email:
+                  type: string
+                  format: email
+                  maxLength: 255
+                  example: jane.new@example.com
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: customerId
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: ID of the customer whose email is being changed.
+          example: '42'
+      responses:
+        '200':
+          description: Verification email sent to the new address.
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/admin/customer/{customerId}/pending-email-change:
+    get:
+      tags:
+        - Admin email change
+      summary: Get Pending Email Change (admin)
+      description: >-
+        Returns the customer's current unverified, non-revoked, non-expired
+        email-change request, if any.
+
+
+        Response:
+
+        ```json
+
+        {
+          "has_pending": true,
+          "pending_change": {
+            "old_email": "jane.doe@example.com",
+            "new_email": "jane.new@example.com",
+            "expires_at": "2026-06-04T20:00:00.000000Z",
+            "created_at": "2026-06-03T20:00:00.000000Z"
+          }
+        }
+
+        ```
+
+
+        When there is no active request, `has_pending` is `false` and
+        `pending_change` is `null`.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: customerId
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: ID of the customer to inspect.
+          example: '42'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/admin/customer/{customerId}/verify-email-change:
+    post:
+      tags:
+        - Admin email change
+      summary: Verify Email Change (admin)
+      description: >-
+        Confirms a pending email change using the 6-digit code, then updates the
+        customer's email and marks it verified. Returns `400` for an invalid or
+        expired code.
+
+
+        Returns `200` with `{ "message": "Email changed successfully",
+        "customer_id": 42, "new_email": "..." }`.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  minLength: 6
+                  maxLength: 6
+                  example: '123456'
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: customerId
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: ID of the customer whose email is being changed.
+          example: '42'
+      responses:
+        '200':
+          description: Email changed successfully.
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/admin/customer/{customerId}/cancel-email-change:
+    delete:
+      tags:
+        - Admin email change
+      summary: Cancel Email Change (admin)
+      description: >-
+        Revokes all pending email-change requests for the customer. Returns `200`
+        with `{ "cancelled": true }` when something was revoked, or `404` with
+        `{ "cancelled": false }` when there was nothing pending.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: customerId
+          in: path
+          schema:
+            type: integer
+          required: true
+          description: ID of the customer whose pending change is cancelled.
+          example: '42'
+      responses:
+        '200':
+          description: Pending email change cancelled.
           content:
             application/json: {}
