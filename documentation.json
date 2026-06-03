@@ -425,6 +425,14 @@
               {
                 "title": "Product Import Guide",
                 "path": "help-center/guides/product-import"
+              },
+              {
+                "title": "List Import & Export",
+                "path": "help-center/guides/list-import-export"
+              },
+              {
+                "title": "File Feed Integration",
+                "path": "help-center/guides/file-feed-integration"
               }
             ]
           }

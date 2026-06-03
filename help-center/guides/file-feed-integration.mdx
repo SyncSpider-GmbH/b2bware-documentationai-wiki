@@ -1,0 +1,144 @@
+---
+title: File Feed Integration
+description: Automate product imports from CSV, TXT, JSON, or XML feeds via the Integration Hub — with mapping profiles, attributes, and scheduled runs.
+---
+
+## Overview
+
+The **File Feed** connector imports products into DataHub from a file feed —
+uploaded manually, pulled from an HTTP(S) URL, or fetched over SFTP. It is set
+up from **Settings → Integrations** like any other Integration Hub connector,
+and is driven by a reusable **import profile** that maps every column of the
+source file to a standard product field or a product attribute.
+
+<Callout kind="tip">
+File Feed reuses the same mapping profiles as the manual **List Import / Export**
+module. A profile you create under Import / Export can be selected directly in
+the File Feed wizard, and vice versa.
+</Callout>
+
+## Source types
+
+| Source type | Description | Required credentials |
+|-------------|-------------|----------------------|
+| `upload` | Manually uploaded file (also used to provide a sample) | `storage_disk`, `file_path` |
+| `url` | File pulled from an HTTP(S) endpoint on each run | `feed_url` |
+| `external_sftp` | File fetched from a third-party SFTP server | `host`, `username`, `password`, `filename` |
+| `syncspider_sftp` | File from the tenant's managed SyncSpider SFTP folder | `filename` (path resolved per installation) |
+
+Supported file formats: **CSV, TXT, JSON, XML**.
+
+## Setup wizard
+
+<Steps>
+  <Step title="Select the File Feed connector" icon="plug">
+    In **Settings → Integrations**, start a new integration and choose
+    **File Feed**.
+  </Step>
+  <Step title="Choose a source and upload a sample" icon="arrow-up-from-line">
+    Pick the source type. For all source types, upload a small **sample file**
+    so the wizard can read the headers and build a profile. Drag and drop a
+    file or click the upload area.
+  </Step>
+  <Step title="Configure the import profile" icon="git-branch">
+    Either select a **saved profile**, apply a **system template**, or click
+    **Generate profile (AI)** to create one from the sample headers. The
+    profile JSON stays fully editable.
+  </Step>
+  <Step title="Review mapping coverage" icon="list-checks">
+    The **Mapping coverage** panel shows which columns become standard fields,
+    which become attributes, and which are still unmapped (and would be
+    ignored). Adjust the profile until every business column is covered.
+  </Step>
+  <Step title="Test the connection" icon="check-circle">
+    Click **Test Connection** to validate the source and parse the sample with
+    the profile before saving.
+  </Step>
+  <Step title="Map entities, preview, and activate" icon="rocket">
+    Confirm the products mapping, preview the transformed rows in the
+    **Payload Inspector**, then name and activate the integration.
+  </Step>
+</Steps>
+
+## Import profile
+
+The import profile is a JSON document (`schema_version: 1`) with these parts:
+
+| Key | Purpose |
+|-----|---------|
+| `source` | Delimiter, header flag, and encoding for parsing |
+| `identifiers` | `source_id` column and `match_field` used to recognise existing products on re-import |
+| `row_transforms` | Pre-mapping transforms over the whole row (e.g. `concat`, `multiply`, `map_values`) that produce virtual fields like `full_title` or `price_gross` |
+| `mapping` | One row per column: `source` header → `target` field, with optional field-level `transforms` |
+| `record_rules` | Required columns and validation |
+
+### Standard fields vs. attributes
+
+A mapping `target` is either a **standard product field** or a **product
+attribute**:
+
+- Standard targets: `sku`, `name`, `description`, `short_description`,
+  `price`, `stock`, `status`, `product_type`.
+- Attributes use the form `attribute:<slug>` — for example
+  `attribute:ean` or `attribute:color`. Unknown columns and well-known
+  attribute columns (EAN/GTIN, brand, color, size, weight, unit) are mapped
+  to attributes automatically and created in AttributesHub on first import.
+
+<Callout kind="tip">
+The AI / heuristic profile generator maps **every** sample column — recognised
+columns to standard fields, everything else to attributes — and removes
+duplicate targets, so no business column is silently dropped.
+</Callout>
+
+### Example profile
+
+```json
+{
+  "schema_version": 1,
+  "direction": "import",
+  "input_format": "csv",
+  "source": { "delimiter": ";", "has_header": true, "encoding": "utf-8" },
+  "target": { "hub": "product-hub", "entity": "products" },
+  "identifiers": { "source_id": "Artikelnummer", "match_field": "sku" },
+  "row_transforms": [
+    {
+      "type": "concat",
+      "field": "full_title",
+      "parts": [{ "field": "Hersteller" }, { "literal": " - " }, { "field": "Bezeichnung" }]
+    }
+  ],
+  "mapping": [
+    { "source": "Artikelnummer", "target": "sku", "required": true },
+    { "source": "full_title", "target": "name" },
+    { "source": "Hersteller", "target": "attribute:brand" },
+    { "source": "VK", "target": "price", "transforms": [{ "type": "cast", "to": "float" }, { "type": "round", "precision": 2 }] },
+    { "source": "EK", "target": "attribute:ek" },
+    { "source": "Bestand", "target": "stock", "transforms": [{ "type": "cast", "to": "int" }] }
+  ],
+  "record_rules": { "required": ["Artikelnummer"] }
+}
+```
+
+## Profiles and templates
+
+- **Saved profiles** are shared with the List Import / Export module and can be
+  selected directly in the wizard.
+- **System templates** ship with the connector for common layouts (e.g.
+  generic and Selectline-style product CSVs) and can be applied as a starting
+  point.
+- **Profile assistant** lets you refine a generated profile in plain language
+  (e.g. "EK is net, add 19% VAT").
+
+## File runs and chunked import
+
+Each scheduled or manual sync is recorded as a **file run** (visible on the
+integration's **File Runs** tab). Large files are imported in chunks — each row
+is processed as an individual record keyed by its zero-based row index — so
+imports stream rather than loading the whole file into memory.
+
+## Scheduling
+
+After activation, the file feed runs on the integration's schedule (manual or
+recurring). For `url`, `external_sftp`, and `syncspider_sftp` sources, the file
+is re-fetched on every run, so updating the file at the source is enough to push
+new data into DataHub.
