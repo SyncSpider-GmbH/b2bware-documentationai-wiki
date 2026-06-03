@@ -1,0 +1,53 @@
+---
+title: List import and export
+description: Export and import customers, companies, products, and orders from admin list views.
+---
+
+# List import and export
+
+Admin list views for **Customers**, **Companies**, **Products**, and **Orders** include an **Import / Export** menu (Odoo-style).
+
+## Quick export
+
+- Choose scope: selected rows, filtered list, or all records
+- Format: CSV or Excel
+- Optional **import-compatible** export (includes `id` column for re-import)
+
+## Advanced export
+
+- Pick columns manually
+- Save and load **export templates** per entity
+- Same background job and download flow as quick export
+
+## Import
+
+1. Upload CSV (Excel import: use CSV for now)
+2. Review headers and pick a **sample row** for mapping preview
+3. Map file columns to entity fields (auto-filled when `id` is present)
+4. Start import — runs in the background with progress banner
+
+## CSV defaults (Settings)
+
+**Store setup → Import / Export** configures tenant-wide defaults:
+
+- CSV delimiter (`,` or `;` or tab)
+- Text enclosure (none, `'` or `"`)
+- Default format (CSV or Excel)
+- UTF-8 BOM for Excel compatibility
+
+## API
+
+Base path: `/api/v1/apps/data-transfer`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/defaults` | Tenant CSV defaults |
+| GET | `/entities/{code}/fields` | Export/import field metadata |
+| POST | `/export` | Start export job |
+| POST | `/import/preview` | Parse file preview |
+| POST | `/import` | Start import job |
+| GET | `/jobs/{id}` | Job status |
+| GET | `/jobs/{id}/download` | Download result or error file |
+| GET/POST/PUT/DELETE | `/profiles` | Export templates |
+
+Requires `auth:api` and `installation-key` header.
