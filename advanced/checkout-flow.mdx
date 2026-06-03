@@ -126,7 +126,7 @@ Tenants can extend the storefront checkout with their own fields without backend
 
 The storefront flow then becomes:
 
-- `GET /carts/{cart}/checkout` returns an `available_attributes` array. Each entry contains `id`, `attribute_code`, `name`, `type`, `required`, `group`, `values` (for select/multiselect) and `translation` (when a non-system locale is requested via the `language-code` header). Only attributes where `group.type='order'` AND `use_in_checkout=true` are returned.
+- `GET /carts/{cart}/checkout` returns an `available_attributes` array. Each entry contains `id`, `attribute_code`, `name`, `type`, `required`, `group`, `values` (only for option-based types `select` / `multiselect` / `radio` / `swatch`; intentionally empty for free-form types so previously-persisted customer answers don't leak between checkouts) and `translation` (when a non-system locale is requested via the `language-code` header). Only attributes where `group.type='order'` AND `use_in_checkout=true` are returned.
 - `POST /carts/{cart}/checkout` accepts an `attributes` array of `{attribute_id, value, auto_create_value?}` entries. The same eligibility filter is enforced server-side: ineligible ids yield HTTP 422 (*"The following attribute ids are not available in checkout: {ids}."*), and missing eligible-required attributes yield *"The following required checkout attributes are missing: {codes}."*.
 
 Persisted values are written polymorphically against the resulting Order (`attributable_type=Apps\OrderHub\Models\Orders`, `attributable_id={order.id}`). Read them back with `?include=attributeValues,attributeValues.value,attributeValues.value.attribute` on order detail endpoints.
