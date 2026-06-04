@@ -144,3 +144,64 @@ filter[attribute]=[{"attribute_id":1,"attribute_value":"Red","condition":"IN","o
 | `operator` | `AND`, `OR` | How to combine with other attribute conditions |
 
 For full details, see [ProductHub Filters](/hubs/product-hub#filters).
+
+## Sorting & Filtering by Custom Attribute Code
+
+AttributesHub exposes two boolean flags that let any custom attribute participate as a first-class column on admin listing endpoints:
+
+| Flag | What it unlocks |
+|------|-----------------|
+| `use_for_sorting` | `?sort=<attribute_code>` and `?sort=-<attribute_code>` on every endpoint whose target's group type matches the attribute's group |
+| `use_for_admin_filtering` | `?filter[<attribute_code>]=[{...}]` on the same endpoints, using the same JSON filter shape as native fields |
+
+Both flags drive a denormalized field on the underlying document, so sorting and filtering are O(1) per row — no joins, no per-row PHP work.
+
+### Endpoints that support it
+
+`use_for_sorting` and `use_for_admin_filtering` are honored on:
+
+- `GET /api/v1/apps/product-hub/products` (group type: `product`)
+- `GET /api/v1/apps/product-hub/categories` (group type: `category`)
+- `GET /api/v1/apps/customer-hub/customers` (group type: `customer`)
+- `GET /api/v1/apps/customer-hub/companies` (group type: `company`)
+- `GET /api/v1/apps/order-hub/orders` (group type: `order`)
+
+### Discovery — list the catalogue
+
+Before binding the dynamic columns to a UI (sort dropdown, filter picker), fetch the catalogue from the AttributesHub list endpoint:
+
+```
+GET /api/v1/apps/attributes-hub/attributes
+    ?filter[use_for_sorting]=[{"condition":"=","value":"true"}]
+    &filter[group.type]=[{"condition":"=","value":"product"}]
+    &include=translation
+    &per_page=200
+```
+
+Swap `use_for_sorting` for `use_for_admin_filtering` to discover filterable attributes; swap `group.type` for the target group (`product`, `category`, `customer`, `company`, `order`).
+
+Each row carries `id`, `attribute_code`, `name`, `type`, and (with `include=translation`) localized labels.
+
+### Examples
+
+```bash
+# Sort products by the EAN attribute, descending
+GET /api/v1/apps/product-hub/products?sort=-ean
+
+# Filter customers by loyalty_tier NOT EMPTY
+GET /api/v1/apps/customer-hub/customers?filter[loyalty_tier]=[{"condition":"NOT EMPTY","value":"true"}]
+
+# Filter orders by p_o_number = "12345"
+GET /api/v1/apps/order-hub/orders?filter[p_o_number]=[{"condition":"=","value":"12345"}]
+```
+
+### Native vs. dynamic collisions
+
+If an `attribute_code` collides with a native sort or filter (e.g. `email`, `sku`, `name`), the **native column wins** — the dynamic entry is silently skipped. Pick unique attribute codes if you want them to be exposed as columns.
+
+### Difference from `use_in_search` and `show_in_cart`
+
+Two related flags do **not** participate in `?sort=` / `?filter[]=`:
+
+- `use_in_search` widens the existing `?filter[search]=…` callback on `GET /products` to also match against the attribute's stored values (alongside `name` and `sku`).
+- `show_in_cart` is a pure display flag — it surfaces the attribute on the storefront cart line; there is no API surface keyed off it beyond the catalogue discovery above.

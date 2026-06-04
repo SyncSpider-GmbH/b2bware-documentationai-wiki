@@ -87,6 +87,10 @@ For filter syntax and operators, see [Filtering](/core-concepts/filtering).
 | `filterable_with_results` | bool | |
 | `use_in_notifications` | bool | Filter by notification-template-variable flag |
 | `use_in_checkout` | bool | Filter by storefront-checkout-exposure flag |
+| `use_for_sorting` | bool | Filter by admin-grid sortable flag |
+| `use_for_admin_filtering` | bool | Filter by admin-grid filterable flag |
+| `use_in_search` | bool | Filter by product keyword-search inclusion flag |
+| `show_in_cart` | bool | Filter by storefront-cart display flag |
 | `position` | number | |
 | `group.type` | text | Relation filter (group) |
 
@@ -156,6 +160,10 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 | `filterable_with_results` | sometimes, boolean |
 | `use_in_notifications` | sometimes, boolean — exposes the attribute as a template variable in NotificationHub emails |
 | `use_in_checkout` | sometimes, boolean — exposes the attribute on the OrderHub storefront checkout. See [OrderHub → Custom Order Attributes](/hubs/order-hub#checkout). Only takes effect when the parent group has `type='order'`. |
+| `use_for_sorting` | sometimes, boolean — exposes the attribute as a sortable column on every listing endpoint that targets the parent group's type (`?sort=<attribute_code>`, `?sort=-<attribute_code>`). Toggling this flag dispatches a background backfill that denormalizes the value onto every related document. See [Sorting & Filtering by Custom Attribute Code](/core-concepts/filtering#sorting-filtering-by-custom-attribute-code). |
+| `use_for_admin_filtering` | sometimes, boolean — exposes the attribute as a per-`attribute_code` filterable column on admin grids (`?filter[<attribute_code>]=[{...}]`). Independent from the storefront layered-navigation flags `used_for_filtering` / `filterable_with_results`. Shares the same backfill path as `use_for_sorting`. |
+| `use_in_search` | sometimes, boolean — when the parent group has `type='product'`, the attribute's value is included in the product keyword search alongside `name` and `sku`. Server-side allowed only for searchable types (`text`, `textarea`, `select`, `multiselect`, `radio`); other types are rejected. |
+| `show_in_cart` | sometimes, boolean — when the parent group has `type='product'`, the attribute's value is rendered beneath the product line in the storefront cart and order summary. Pure display flag — no denormalization. |
 | `required` | sometimes, boolean |
 | `position` | sometimes, numeric |
 | `meta_data` | sometimes, array |
