@@ -1,0 +1,278 @@
+---
+title: PunchOutHub
+description: cXML and SAP OCI PunchOut integration — let a buyer's procurement system launch into the storefront, build a cart, and return it to the ERP.
+---
+
+## Overview
+
+PunchOutHub connects the storefront to enterprise procurement systems (SAP ERP/SRM, SAP Ariba, Coupa, Jaggaer, Mercateo/Unite) using the two dominant PunchOut protocols:
+
+- **OCI** (SAP Open Catalog Interface 4.0 / 5.0) — form-field based, company-level authentication.
+- **cXML** (Ariba/Coupa/Jaggaer) — XML based, with a synchronous setup response and a `PunchOutOrderMessage` on return.
+
+The backend is **storefront-agnostic**: it mints a short-lived session and redirects the buyer into the storefront (Nexus today, StorefrontHub later), then transforms the resulting cart back into the protocol the buyer expects.
+
+**Admin base URL:** `api/v1/apps/punch-out-hub/`
+**Public base URL:** `api/v1/punchout/{installationKey}/`
+
+<Callout kind="info">
+Admin endpoints require Bearer token authentication. See [Authentication](/authentication).
+The **public** PunchOut endpoints are not bearer-authenticated — the buyer is authenticated per protocol (cXML `SharedSecret`, OCI `USERNAME`/`PASSWORD`).
+</Callout>
+
+## The PunchOut flow
+
+<Steps>
+  <Step title="Setup / launch">
+    The procurement system POSTs to `/punchout/{installationKey}/setup`. PunchOutHub detects the protocol, validates the buyer credentials against a **Buyer Configuration**, maps the ERP user to a DataHub customer, mints an `x-auth-token`, and creates a session.
+  </Step>
+  <Step title="Enter the storefront">
+    cXML receives a synchronous `PunchOutSetupResponse` with the `StartPage` URL; OCI receives a `302` redirect. Both point at the storefront enter URL carrying a one-time token, which the SPA exchanges at `/punchout/{installationKey}/enter/{token}`.
+  </Step>
+  <Step title="Shop">
+    The buyer browses and builds a cart in the storefront exactly like a normal authenticated session.
+  </Step>
+  <Step title="Return">
+    On checkout the storefront POSTs to `/punchout/{installationKey}/return/{sessionId}`. PunchOutHub creates the OrderHub order (idempotently) and returns an auto-submitting HTML form that posts the cart back to the buyer's `HOOK_URL` / `BrowserFormPost` URL (OCI `NEW_ITEM` fields or a cXML `PunchOutOrderMessage`).
+  </Step>
+</Steps>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Buyer Configurations" icon="users">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/buyer-configs` | List buyer configurations |
+| POST | `/buyer-configs` | Create a buyer configuration |
+| GET | `/buyer-configs/{id}` | Get buyer configuration details |
+| PUT | `/buyer-configs/{id}` | Update a buyer configuration |
+| DELETE | `/buyer-configs/{id}` | Delete a buyer configuration |
+
+  </Tab>
+  <Tab title="Sessions & Logs" icon="list">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/sessions` | List PunchOut sessions |
+| GET | `/sessions/{id}` | Get a PunchOut session |
+| GET | `/logs` | List PunchOut audit logs |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List all settings groups |
+| GET | `/settings` | Get all settings + schema |
+| POST | `/settings` | Update settings |
+| POST | `/settings/reset` | Reset all to defaults |
+| GET | `/settings/{group}` | Get settings for a group |
+| POST | `/settings/{group}` | Update group settings |
+| POST | `/settings/{group}/reset` | Reset a group to defaults |
+
+  </Tab>
+  <Tab title="Public PunchOut" icon="plug">
+
+These endpoints are under `api/v1/punchout/{installationKey}/` and are **not** bearer-authenticated.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET/POST | `/setup` | Inbound setup/launch (cXML `PunchOutSetupRequest` or OCI form POST) |
+| GET | `/enter/{token}` | One-time token exchange for the storefront SPA |
+| POST | `/return/{sessionId}` | Create order + return the cart to the procurement system |
+| POST | `/echo` | Test return sink (echoes posted fields, no real ERP needed) |
+
+  </Tab>
+</Tabs>
+
+## Filters
+
+For filter syntax and operators, see [Filtering](/core-concepts/filtering).
+
+<Expandable title="Buyer Configuration Filters" default-open="true">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact configuration ID |
+| `buyer_id` | text | Buyer identity (cXML identity or OCI username) |
+| `protocol` | text | `oci` or `cxml` |
+| `active` | boolean | Only active configurations |
+
+</Expandable>
+
+<Expandable title="Session Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact session ID |
+| `buyer_id` | text | Buyer identity |
+| `status` | text | `started`, `active`, `ordered`, `returned`, `expired`, `failed` |
+| `order_id` | number | Resulting OrderHub order ID |
+
+</Expandable>
+
+<Expandable title="Log Filters" default-open="false">
+
+| Filter Key | Type | Description |
+|------------|------|-------------|
+| `id` | number | Exact log ID |
+| `session_id` | text | PunchOut session identifier |
+| `level` | text | `info`, `warning`, `error` |
+| `event` | text | Event name (e.g. `setup`, `enter`, `return`) |
+
+</Expandable>
+
+## Validation Rules
+
+<Expandable title="Create Buyer Configuration" default-open="true">
+
+| Field | Rules |
+|-------|-------|
+| `buyer_id` | required, string (cXML identity / OCI username) |
+| `name` | required, string |
+| `protocol` | required, in: `oci`, `cxml` |
+| `credentials` | object — OCI `username`/`password`; cXML `identity`/`shared_secret` (+ `from_identity`/`to_identity`) |
+| `return_url_allowlist` | array of allowed return-URL hosts |
+| `company_id` | nullable, integer |
+| `default_customer_id` | nullable, integer |
+| `user_mapping_strategy` | in: `static`, `email`, `table` |
+| `billing_method_id` | nullable, integer (required for order creation on return) |
+| `price_mode` | in: `net`, `gross` |
+
+</Expandable>
+
+## Settings Groups
+
+<Expandable title="PunchOut Settings Reference" default-open="false">
+
+**general** — General
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `enable_oci` | boolean | Enable OCI (SAP / Mercateo) |
+| `enable_cxml` | boolean | Enable cXML (Ariba / Coupa / Jaggaer) |
+| `test_mode` | boolean | Test mode (use the echo sink, verbose logging) |
+| `auto_provision_users` | boolean | Auto-provision unknown ERP users |
+
+**security** — Security
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `return_url_allowlist` | string[] | Allowed return-URL hosts (anti-open-redirect) |
+| `session_ttl_minutes` | number | Session lifetime in minutes (default 240) |
+
+**mapping** — Field & Unit Mapping
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `uom_source_attribute` | string | Product attribute code carrying the unit of measure |
+| `default_uom` | string | Fallback ISO/UNECE unit (default `C62` = piece) |
+| `uom_map` | object | Maps internal UoM codes to ISO/UN codes |
+| `field_mapping` | object | Maps `mpn`, `manufacturer`, `ean`, `unspsc` to product attribute codes |
+| `price_mode` | string | `net` or `gross` unit price |
+
+</Expandable>
+
+## Examples
+
+<Steps>
+  <Step title="Create an OCI buyer configuration">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/apps/punch-out-hub/buyer-configs' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "buyer_id": "acme-corp",
+    "name": "ACME Corp (SAP OCI)",
+    "protocol": "oci",
+    "active": true,
+    "credentials": { "username": "acme-corp", "password": "top-secret" },
+    "return_url_allowlist": ["https://erp.acme.example.com"],
+    "company_id": 1,
+    "default_customer_id": 42,
+    "user_mapping_strategy": "static",
+    "billing_method_id": 7,
+    "price_mode": "net"
+  }'
+```
+    </Request>
+  </Step>
+  <Step title="OCI launch (what the ERP posts)">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/punchout/{installationKey}/setup' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'USERNAME=acme-corp' \
+  --data-urlencode 'PASSWORD=top-secret' \
+  --data-urlencode 'HOOK_URL=https://erp.acme.example.com/oci/return' \
+  --data-urlencode '~OkCode=ADDI' \
+  --data-urlencode 'OCI_VERSION=4.0'
+# → 302 redirect to the storefront enter URL
+```
+    </Request>
+  </Step>
+  <Step title="cXML PunchOutSetupRequest (what Ariba/Coupa posts)">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/punchout/{installationKey}/setup' \
+  -H 'Content-Type: text/xml' \
+  --data-binary @- <<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<cXML payloadID="123.process@buyer.example.com" timestamp="2026-01-15T09:30:00+01:00">
+  <Header>
+    <From><Credential domain="NetworkId"><Identity>BUYER-CORP</Identity></Credential></From>
+    <To><Credential domain="NetworkId"><Identity>B2BWARE-SUPPLIER</Identity></Credential></To>
+    <Sender>
+      <Credential domain="NetworkId"><Identity>BUYER-CORP</Identity><SharedSecret>s3cr3t-shared</SharedSecret></Credential>
+      <UserAgent>Procurement System 1.0</UserAgent>
+    </Sender>
+  </Header>
+  <Request>
+    <PunchOutSetupRequest operation="create">
+      <BuyerCookie>BC-998877</BuyerCookie>
+      <Extrinsic name="UserEmail">jane.buyer@buyer.example.com</Extrinsic>
+      <BrowserFormPost><URL>https://buyer.example.com/punchout/return</URL></BrowserFormPost>
+    </PunchOutSetupRequest>
+  </Request>
+</cXML>
+XML
+# → 200 cXML PunchOutSetupResponse with <StartPage><URL>…</URL></StartPage>
+```
+    </Request>
+  </Step>
+</Steps>
+
+## Verified test results
+
+Both protocols were tested end-to-end (setup → authenticated shopping in the Nexus storefront → cart return → order creation) on 5 June 2026 (branch `punchout`):
+
+| Protocol | External validation | Cart return | Order | Result |
+|---|---|---|---|---|
+| **SAP OCI 4.0** | punchoutcommerce.com OCI RoundTrip Tester — *"No errors found in OCI cart parameters"* | `NEW_ITEM-*` form fields | #35 | **PASS** |
+| **cXML 1.2** | ERP receiver simulator (`BrowserFormPost` echo sink) — schema-valid `PunchOutOrderMessage` captured | `PunchOutOrderMessage` document | #36 | **PASS** |
+
+The full test protocol with setup, step-by-step walkthrough and screenshots is archived at `punchout-test-report/` (HTML + PDF).
+
+## Related
+
+<Columns cols={2}>
+  <Card title="OrderHub" icon="shopping-cart" href="/hubs/order-hub">
+    The returned cart becomes an OrderHub order via the checkout flow.
+  </Card>
+  <Card title="CustomerHub" icon="users" href="/hubs/customer-hub">
+    ERP users are mapped to DataHub customers (static, by email, or via a mapping table).
+  </Card>
+  <Card title="AuthHub" icon="lock" href="/hubs/auth-hub">
+    PunchOut mints a storefront session token through AuthHub.
+  </Card>
+  <Card title="AttributesHub" icon="sliders" href="/hubs/attributes-hub">
+    MPN, manufacturer, UNSPSC and unit-of-measure are read from product attributes.
+  </Card>
+</Columns>

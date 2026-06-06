@@ -1,0 +1,465 @@
+openapi: 3.0.0
+info:
+  title: PunchOutHub API
+  description: cXML and SAP OCI PunchOut integration for procurement systems — generated from routes/api.php
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Buyer Configurations
+  - name: Sessions
+  - name: Logs
+  - name: Settings
+  - name: Public PunchOut
+paths:
+  /api/v1/apps/punch-out-hub/buyer-configs:
+    get:
+      tags:
+        - Buyer Configurations
+      summary: List buyer configurations
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: 25
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Buyer Configurations
+      summary: Create a buyer configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - buyer_id
+                - name
+                - protocol
+              properties:
+                buyer_id:
+                  type: string
+                  description: cXML credential identity (optionally domain:identity) or OCI USERNAME.
+                name:
+                  type: string
+                protocol:
+                  type: string
+                  enum: [oci, cxml]
+                active:
+                  type: boolean
+                credentials:
+                  type: object
+                  description: OCI uses username/password; cXML uses identity/shared_secret (+ from_identity/to_identity).
+                return_url_allowlist:
+                  type: array
+                  items:
+                    type: string
+                company_id:
+                  type: integer
+                  nullable: true
+                default_customer_id:
+                  type: integer
+                  nullable: true
+                user_mapping_strategy:
+                  type: string
+                  enum: [static, email, table]
+                auto_provision:
+                  type: boolean
+                billing_method_id:
+                  type: integer
+                  nullable: true
+                default_billing_address_id:
+                  type: integer
+                  nullable: true
+                default_shipping_address_id:
+                  type: integer
+                  nullable: true
+                field_mapping:
+                  type: object
+                  description: Maps PunchOut item fields (mpn, manufacturer, unspsc, uom) to product attribute codes.
+                uom_map:
+                  type: object
+                  description: Maps internal unit-of-measure codes to ISO/UN codes (e.g. piece -> C62).
+                price_mode:
+                  type: string
+                  enum: [net, gross]
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/buyer-configs/{id}:
+    get:
+      tags:
+        - Buyer Configurations
+      summary: Get a buyer configuration
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Buyer Configurations
+      summary: Update a buyer configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Buyer Configurations
+      summary: Delete a buyer configuration
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/sessions:
+    get:
+      tags:
+        - Sessions
+      summary: List PunchOut sessions
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: 25
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/sessions/{id}:
+    get:
+      tags:
+        - Sessions
+      summary: Get a PunchOut session
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/logs:
+    get:
+      tags:
+        - Logs
+      summary: List PunchOut audit logs
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: 50
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/settings:
+    get:
+      tags:
+        - Settings
+      summary: Get all settings with schema
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Save all settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/settings/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset all settings to defaults
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/settings/groups/list:
+    get:
+      tags:
+        - Settings
+      summary: List settings groups
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/settings/{group}:
+    get:
+      tags:
+        - Settings
+      summary: Get settings for a group
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Save settings for a group
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/settings/{group}/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset a group to defaults
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/punchout/{installationKey}/setup:
+    get:
+      tags:
+        - Public PunchOut
+      summary: Inbound PunchOut launch (OCI GET variant)
+      description: Some ERPs launch OCI via GET with the parameters in the query string.
+      security: []
+      parameters:
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '302':
+          description: OCI redirect to the storefront enter URL
+    post:
+      tags:
+        - Public PunchOut
+      summary: Inbound PunchOut setup / launch (cXML or OCI)
+      description: >-
+        Public, unauthenticated by bearer token — the buyer is authenticated per
+        protocol. cXML sends a raw `text/xml` PunchOutSetupRequest body and receives
+        a synchronous PunchOutSetupResponse with the StartPage URL. OCI sends
+        url-encoded form fields (USERNAME, PASSWORD, HOOK_URL, ...) and receives a
+        302 redirect to the storefront enter URL.
+      security: []
+      parameters:
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          text/xml:
+            schema:
+              type: string
+              description: cXML PunchOutSetupRequest document.
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                USERNAME:
+                  type: string
+                PASSWORD:
+                  type: string
+                HOOK_URL:
+                  type: string
+                OCI_VERSION:
+                  type: string
+      responses:
+        '200':
+          description: cXML PunchOutSetupResponse (StartPage URL)
+          content:
+            text/xml: {}
+        '302':
+          description: OCI redirect to the storefront enter URL
+  /api/v1/punchout/{installationKey}/enter/{token}:
+    get:
+      tags:
+        - Public PunchOut
+      summary: One-time token exchange for the storefront SPA
+      security: []
+      parameters:
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: token
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Session token + session uuid for the storefront
+          content:
+            application/json: {}
+  /api/v1/punchout/{installationKey}/return/{sessionId}:
+    post:
+      tags:
+        - Public PunchOut
+      summary: Return the cart to the procurement system
+      description: >-
+        Creates the OrderHub order (idempotent) and returns an auto-submitting HTML
+        form that posts the cart back to the buyer's procurement system (OCI NEW_ITEM
+        fields or a cXML PunchOutOrderMessage).
+      security: []
+      parameters:
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: sessionId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Auto-submitting HTML return form
+          content:
+            text/html: {}
+  /api/v1/punchout/{installationKey}/echo:
+    post:
+      tags:
+        - Public PunchOut
+      summary: Test return sink (echoes posted fields)
+      security: []
+      parameters:
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Echoed fields
+          content:
+            application/json: {}

@@ -172,6 +172,11 @@
                 "icon": "percent"
               },
               {
+                "title": "PunchOutHub",
+                "path": "hubs/punch-out-hub",
+                "icon": "plug"
+              },
+              {
                 "title": "SettingsHub",
                 "path": "hubs/settings-hub",
                 "icon": "settings"
@@ -358,6 +363,12 @@
             "group": "DashboardHub",
             "icon": "gauge",
             "openapi": "api-reference/dashboard-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "PunchOutHub",
+            "icon": "plug",
+            "openapi": "api-reference/punch-out-hub/openapi.yaml",
             "pages": []
           }
         ]
