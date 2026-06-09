@@ -19,6 +19,7 @@ tags:
   - name: Attribute Values
   - name: Attribute Groups
   - name: Attributable Values
+  - name: Sortable Attributes
 paths:
   /api/v1/apps/attributes-hub/attributes:
     get:
@@ -43,7 +44,10 @@ paths:
       description: >-
         Create an Attribute. Set `use_in_checkout=true` (when
         group.type='order') to expose this attribute on the OrderHub storefront
-        checkout. See packages/Apps/OrderHub/CHECKOUT.md.
+        checkout. Set `use_for_sorting=true` to make this attribute valid as
+        `?sort=<attribute_code>` on every listing endpoint whose target's
+        group_types include this attribute's group type. See
+        packages/Apps/OrderHub/CHECKOUT.md.
       requestBody:
         content:
           application/json:
@@ -61,6 +65,7 @@ paths:
                 filterable_with_results: false
                 use_in_notifications: false
                 use_in_checkout: true
+                use_for_sorting: true
       parameters:
         - name: Accept
           in: header
@@ -99,7 +104,9 @@ paths:
       summary: Update Attribute
       description: >-
         Update an Attribute. `use_in_checkout` toggles storefront-checkout
-        exposure (only meaningful when the parent group has type='order').
+        exposure (only meaningful when group.type='order'). `use_for_sorting`
+        toggles dynamic API ?sort=<attribute_code> on the relevant listing
+        endpoint(s).
       requestBody:
         content:
           application/json:
@@ -115,6 +122,7 @@ paths:
                 filterable_with_results: false
                 use_in_notifications: false
                 use_in_checkout: true
+                use_for_sorting: true
       parameters:
         - name: Accept
           in: header
@@ -169,7 +177,9 @@ paths:
       summary: Bulk Insert Attributes
       description: >-
         Bulk insert. Each attribute supports `use_in_checkout` (storefront
-        checkout exposure for `group.type='order'` attributes).
+        checkout exposure for `group.type='order'` attributes) and
+        `use_for_sorting` (dynamic API ?sort=<attribute_code> on the relevant
+        listing endpoint(s)).
       requestBody:
         content:
           application/json:
@@ -188,6 +198,7 @@ paths:
                     filterable_with_results: false
                     use_in_notifications: false
                     use_in_checkout: true
+                    use_for_sorting: true
                   - name: Internal Note
                     attribute_code: internal_note
                     type: text
@@ -199,6 +210,7 @@ paths:
                     filterable_with_results: false
                     use_in_notifications: false
                     use_in_checkout: false
+                    use_for_sorting: false
       parameters:
         - name: Accept
           in: header
@@ -519,6 +531,66 @@ paths:
       summary: Delete Attributable Value
       parameters:
         - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/attributes-hub/sortable-attributes/resync:
+    post:
+      tags:
+        - Sortable Attributes
+      summary: Resync All Sortable Attributes
+      description: >-
+        Queue a background backfill that resyncs the denormalized
+        sort/admin-filter values for every attribute with `use_for_sorting` or
+        `use_for_admin_filtering` enabled. Admin-only. Returns 202 immediately;
+        progress is tracked through the SettingsHub index dashboard (`GET
+        /api/v1/apps/settings-hub/index`, rows of
+        `type=sortable_attribute_sync`).
+      requestBody:
+        content: {}
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/attributes-hub/sortable-attributes/1/resync:
+    post:
+      tags:
+        - Sortable Attributes
+      summary: Resync Sortable Attribute
+      description: >-
+        Queue a background backfill that resyncs the denormalized
+        sort/admin-filter values for a single attribute (path param
+        `attribute_id`). The attribute must have `use_for_sorting` or
+        `use_for_admin_filtering` enabled (otherwise 422); unknown id returns
+        404. Admin-only. Returns 202 immediately; progress is tracked through
+        the SettingsHub index dashboard.
+      requestBody:
+        content: {}
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
           in: header
           schema:
             type: string

@@ -66,6 +66,18 @@ For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts
 | DELETE | `/attributableValues/{id}` | Delete an attributable value |
 
   </Tab>
+  <Tab title="Sortable Attributes" icon="arrow-down-a-z">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/sortable-attributes/resync` | Queue a background resync of the denormalized sort/admin-filter values for **all** sortable attributes |
+| POST | `/sortable-attributes/{attribute_id}/resync` | Queue a background resync for a **single** attribute |
+
+<Callout kind="info">
+Admin-only maintenance endpoints. They re-run the backfill that denormalizes the value of every attribute flagged with `use_for_sorting` or `use_for_admin_filtering` onto its related documents (so `?sort=<attribute_code>` keeps working). Both return `202 Accepted` immediately and run on the background reindex queue. The single-attribute endpoint returns `404` if the id is unknown and `422` if the attribute has neither flag enabled. Progress is reported through the SettingsHub index dashboard (`GET /api/v1/apps/settings-hub/index`, rows with `type=sortable_attribute_sync`).
+</Callout>
+
+  </Tab>
 </Tabs>
 
 ## Filters
