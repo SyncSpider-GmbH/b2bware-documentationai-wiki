@@ -45,7 +45,7 @@ paths:
         Create an Attribute. Set `use_in_checkout=true` (when
         group.type='order') to expose this attribute on the OrderHub storefront
         checkout. Set `use_for_sorting=true` to make this attribute valid as
-        `?sort=<attribute_code>` on every listing endpoint whose target's
+        `?sort={attribute_code}` on every listing endpoint whose target's
         group_types include this attribute's group type. See
         packages/Apps/OrderHub/CHECKOUT.md.
       requestBody:
@@ -105,7 +105,7 @@ paths:
       description: >-
         Update an Attribute. `use_in_checkout` toggles storefront-checkout
         exposure (only meaningful when group.type='order'). `use_for_sorting`
-        toggles dynamic API ?sort=<attribute_code> on the relevant listing
+        toggles dynamic API `?sort={attribute_code}` on the relevant listing
         endpoint(s).
       requestBody:
         content:
