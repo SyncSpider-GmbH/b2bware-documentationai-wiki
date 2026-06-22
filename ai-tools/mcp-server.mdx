@@ -15,7 +15,7 @@ The Model Context Protocol (MCP) is an open standard that lets AI assistants cal
 
 ## Available Tools
 
-The MCP Server exposes **160 tools** (v1.11.0) for server-to-server admin, integration, and operator analytics. Auth is **Bearer API key only** — no storefront `installation-key` or guest session headers. Order responses include a synthetic `order_number`; status `"processing"` is normalized from the API’s internal spelling.
+The MCP Server exposes **163 tools** and **4 workflow prompts** (v1.13.0) for server-to-server admin, integration, and operator analytics. Auth is **Bearer API key only** — no storefront `installation-key` or guest session headers. Order responses include a synthetic `order_number`; status `"processing"` is normalized from the API’s internal spelling.
 
 <Tabs>
   <Tab title="Core" icon="box">
@@ -50,7 +50,7 @@ The MCP Server exposes **160 tools** (v1.11.0) for server-to-server admin, integ
 
 | Tool | Description |
 |------|-------------|
-| `[attributes]` tools | AttributesHub — create/list attributes, values, entity assignments |
+| `[attributes]` tools | AttributesHub — definitions (all storefront/admin flags), values, groups, `list_attribute_types`, sortable resync, entity assignments |
 | `[customer]` company tools | `list_companies`, `create_company`, … (CustomerHub `/companies`) |
 | `[b2b]` tools | Customer onboarding, roles, company linking |
 | `[orders-admin]` tools | `create_order`, `create_order_comment`, demo catalog, backfill |
@@ -102,6 +102,38 @@ The MCP Server exposes **160 tools** (v1.11.0) for server-to-server admin, integ
 
   </Tab>
 </Tabs>
+
+## Companion AI Skills
+
+The MCP server exposes **tools** (live DataHub calls). **Skills** are separate Markdown guides that teach your assistant API rules, filters, validation, and integration patterns. For the best results, use both:
+
+<Callout kind="tip" title="Recommended setup">
+1. Connect this MCP server (Bearer API key) for live data and admin actions.
+2. Install companion skills — see [Download AI Skill](/ai-tools/download-skill).
+3. Copy the **b2bware-mcp** skill from the [b2bware-mcp](https://github.com/syncspider/b2bware-mcp) repository into `~/.cursor/skills/b2bware-mcp/` (tool usage, checkout flows, attribute patterns).
+</Callout>
+
+| Skill | Source | When to use |
+|-------|--------|-------------|
+| **b2bware-mcp** | [b2bware-mcp repo](https://github.com/syncspider/b2bware-mcp) → `.cursor/skills/b2bware-mcp/` | Calling MCP tools correctly (carts, checkout, catalog write, attributes) |
+| **datahub-core** | [datahub-skills](https://github.com/SyncSpider-GmbH/datahub-skills) ZIP | Auth matrix, filtering, includes, pagination, errors |
+| **datahub-hubs** | same repo | Full REST reference per hub (endpoints beyond MCP tools) |
+| **datahub-storefront** | same repo | Headless storefront / portal (`installation-key`, guest carts) — **not** Bearer MCP |
+
+Skills do not replace the MCP server and the MCP server does not ship the `datahub-*` bundles — install them separately. Overview: [AI Tools](/ai-tools/overview).
+
+## Workflow Prompts (MCP)
+
+Clients that support **MCP prompts** can fetch curated playbooks via `prompts/list` and `prompts/get` (no extra install). These guide the assistant through multi-step flows; tools still execute the API calls.
+
+| Prompt | Purpose |
+|--------|---------|
+| `checkout_safe_flow` | Cart → `preview_checkout` → `checkout` with required IDs |
+| `attribute_full_setup` | Definition, values, assignment (AttributesHub + ProductHub quirks) |
+| `b2b_customer_onboarding` | Company, addresses, customer, company link |
+| `erp_catalog_sync` | Categories, SKU upsert, bulk stock/prices |
+
+Optional arguments personalize context (e.g. `checkout_safe_flow` with `customer_id`, `cart_id`). Cursor **skills** remain recommended for day-to-day use; prompts help Claude Desktop and other MCP clients without skill files.
 
 ## Getting Your API Key
 
