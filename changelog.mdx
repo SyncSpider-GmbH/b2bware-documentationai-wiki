@@ -3,6 +3,16 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-07-22" description="OrderHub automated notifications" tags={["feature"]}>
+
+## OrderHub Automated Notifications
+
+- **Abandoned Cart Email** — scheduled scan flags carts idle past a configurable threshold and fires `orderhub.cart.abandoned`, driving a customer recovery email with a tenant storefront `cart_url`
+- **No-Order Alerts (30/60/90)** — daily scan buckets customers by days since last order and emits `orderhub.customer.no_order_alert` (per-customer) plus `orderhub.customer.no_order_digest` (staff digest); `include_never_ordered` setting controls whether never-ordered customers are included
+- New OrderHub Settings groups **Abandoned Cart** and **No-Order Alerts**; see [OrderHub → Automated Notifications](/hubs/order-hub)
+
+</Update>
+
 <Update label="2026-06-22" description="MCP v1.13.0 workflow prompts" tags={["feature"]}>
 
 ## B2Bware MCP Server v1.13.0
