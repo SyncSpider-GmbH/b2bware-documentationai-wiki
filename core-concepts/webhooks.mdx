@@ -108,6 +108,9 @@ The events below are what each hub dispatches today, by canonical slug. The **pa
 | `orderhub.order_line_item.deleted` | A line item is removed. | The `OrderLineItems` model (last-known state before deletion). |
 | `orderhub.cart_item.created` / `updated` / `deleted` | Cart-item lifecycle. | The `CartItems` model. |
 | `orderhub.quote_item.created` / `updated` / `deleted` | Quote-item lifecycle. | The `QuoteItems` model. |
+| `orderhub.cart.abandoned` | A scheduled scan finds a cart inactive beyond the configured threshold (and not yet reminded this cycle). Drives the abandoned-cart reminder. | The `Cart` model. The threshold hours and inactive-since timestamp are captured on the event for `conditions` evaluation. |
+| `orderhub.customer.no_order_alert` | A customer newly crosses a no-order inactivity threshold (30 / 60 / 90 or custom days) during the scheduled scan. Fired once per customer per period. | The `Customers` model. The crossed threshold, days inactive, last order date and 12-month spend are captured on the event. |
+| `orderhub.customer.no_order_digest` | Fired once per run per threshold with the full list of newly-inactive customers. Drives the staff digest email. | No single root model — the payload carries `customers` (the list), `threshold_days`, `period_label` and `currency`. |
 
 </Expandable>
 

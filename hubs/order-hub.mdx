@@ -562,6 +562,70 @@ curl -s -X POST \
   </Step>
 </Steps>
 
+## Automated Notifications
+
+OrderHub runs two scheduled, event-driven notification features. Both fire
+reusable EventHub events (so you can also react in EventHub / AutomationHub),
+and both render their email from a **database template** seeded into
+NotificationHub — there is no Blade file to edit. Enable and tune them from the
+OrderHub **Settings** (FormGenerator schema, backed by SettingsHub
+`GeneralConfig`).
+
+### Abandoned Cart Reminders
+
+An hourly scan (`orderhub:abandoned-cart-reminders`) finds active carts that
+belong to a customer, have no order, and have been inactive beyond the
+configured threshold. Each qualifying cart fires **`orderhub.cart.abandoned`**
+once per cycle (tracked by a `abandoned_reminder_sent_at` stamp on the cart, so
+the customer is never spammed). The seeded **`cart_abandoned`** NotificationType
+emails the cart owner (`recipient_resolver: event.subject.customer`) a summary
+of the cart with a CTA that links to the tenant's storefront cart. When
+CustomerSkuModule is installed, a per-line "Your Ref" (customer SKU) column is
+included.
+
+<Expandable title="abandoned_cart — Settings Reference" default-open="false">
+
+**abandoned_cart** — Abandoned Cart Reminders
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enable_reminders` | boolean | `false` | Master switch. When off, no scan runs and no reminder events fire. |
+| `threshold_hours` | number | `24` | How many hours a cart must be inactive before it is considered abandoned. |
+
+</Expandable>
+
+### No-Order Alerts
+
+A daily scan (`orderhub:no-order-alerts`) finds customers who have not ordered
+within the configured inactivity thresholds (30 / 60 / 90 + custom days). As a
+customer **newly** crosses a threshold it fires the per-customer
+**`orderhub.customer.no_order_alert`** event (for EventHub / AutomationHub), and
+once per run per threshold it fires **`orderhub.customer.no_order_digest`** with
+the full customer list. The seeded **`no_order_alert`** NotificationType turns
+each digest event into a single staff email (`recipient_resolver: role:admin`)
+listing the inactive customers with their last order date, days inactive and
+12-month spend.
+
+Per-customer suppression (`no_order_alert_last_bucket` +
+`no_order_alert_flagged_at` on the customer) means a customer is only reported
+when crossing a **higher** threshold than last time; placing an order clears the
+flag and starts a fresh cycle. The digest cadence is `weekly` (gated to Mondays)
+or `daily`.
+
+<Expandable title="no_order_alerts — Settings Reference" default-open="false">
+
+**no_order_alerts** — No-Order Alerts
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enable_alerts` | boolean | `false` | Master switch for the no-order scan. |
+| `thresholds` | number[] | `[30, 60, 90]` | Standard inactivity thresholds (days). A customer is flagged as they cross each selected threshold. |
+| `custom_thresholds` | string | `""` | Optional extra thresholds as a comma-separated list of day counts (e.g. `45, 120`), merged with the standard ones. |
+| `cadence` | string | `weekly` | `weekly` (one digest per week, Mondays) or `daily`. |
+| `include_never_ordered` | boolean | `true` | When on, customers who never ordered are flagged too (inactivity measured from registration/creation). When off, only customers with at least one past order are reported (true churn). |
+
+</Expandable>
+
 ## Related
 
 <Columns cols={3}>
