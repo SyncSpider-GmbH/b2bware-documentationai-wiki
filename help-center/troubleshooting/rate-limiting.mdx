@@ -5,14 +5,28 @@ description: DataHub's request rate limits, how to detect them, and how to back 
 
 ## The Limit
 
-DataHub applies a single rate limit to the entire API:
+DataHub applies **per-scope** rate limits rather than one global ceiling.
+Traffic is classified into scopes and each scope has its own
+request-per-minute budget **and** its own keying strategy, so one caller can
+never exhaust another caller's budget:
 
-| Scope | Limit |
-|---|---|
-| Per authenticated caller (user/customer id) | **400 requests per minute** |
-| Unauthenticated requests | **400 requests per minute per IP** |
+| Scope | Default (req/min) | Keyed by |
+|---|---|---|
+| `admin` (authenticated admin API) | **300** | Authenticated user id (IP fallback) |
+| `storefront` (server-rendered pages) | **120** | Shop customer → session → IP |
+| `webhook` (payment/provider callbacks) | **120** | Installation key in the URL |
+| `bulk` (export / import / AI ops) | **60** | Authenticated user id (IP fallback) |
+| `auth_login` | **30** | IP |
+| `auth_register` | **10** | IP |
+| `password_reset` | **5** | IP |
+| `public` (generic unauthenticated) | **60** | IP |
 
-The window is a sliding 60-second bucket maintained by the `throttle:api` middleware. Crossing it returns `429 Too Many Requests` until the bucket clears.
+Ceilings are defined in `config/ratelimits.php` (the single source of truth)
+and every value is env-overridable. See **[Rate Limiting](/core-concepts/rate-limiting)**
+for the full table, the env variables, and the keying rationale.
+
+The window is a sliding 60-second bucket. Crossing a scope's ceiling returns
+`429 Too Many Requests` until that scope's bucket clears.
 
 ## Response Headers
 
@@ -20,7 +34,7 @@ Every API response carries the standard Laravel throttle headers:
 
 | Header | Meaning |
 |---|---|
-| `X-RateLimit-Limit` | The bucket size (`400`). |
+| `X-RateLimit-Limit` | The ceiling for the **current scope** (e.g. `300` for admin). |
 | `X-RateLimit-Remaining` | Requests left in this window. |
 | `Retry-After` | Seconds until the bucket resets (only on `429`). |
 | `X-RateLimit-Reset` | UNIX timestamp of the next reset (only on `429`). |
@@ -32,7 +46,7 @@ Watch `X-RateLimit-Remaining` proactively — when it drops below ~50, slow the 
 ```json
 HTTP/1.1 429 Too Many Requests
 Retry-After: 23
-X-RateLimit-Limit: 400
+X-RateLimit-Limit: 300
 X-RateLimit-Reset: 1731676820
 
 { "message": "Too Many Attempts." }
@@ -90,11 +104,29 @@ Use the bulk variants where they exist — each counts as **one** request regard
 
 ## Concurrency
 
-400 req/min is **~6.6 req/s**. With 4 concurrent workers your safe throughput is one request per worker every ~600 ms. If you need more, raise the limit in coordination with the DataHub admin (the rate is server-configured), or split your integration across multiple API tokens.
+Most server-to-server traffic uses the **`admin`** scope — 300 req/min is
+**~5 req/s**. With 4 concurrent workers your safe throughput is one request per
+worker every ~800 ms. Note that **`bulk`** operations (export / import / AI) sit
+on a tighter 60 req/min budget, so batch them rather than fanning out. If you
+need more headroom, raise the relevant `RATELIMIT_*` variable in coordination
+with the DataHub admin — the ceilings are server-configured in
+`config/ratelimits.php`.
 
 ## Server-to-Server vs Storefront
 
-The same 400/min applies to both. For a storefront, the limit is per logged-in customer; a single browser session is unlikely to hit it. For a server-to-server integration, the limit is per API token — concentrate retries and bulk operations on a single token to keep the budget predictable.
+The two use **different scopes**. A server-to-server integration hits the
+`admin` scope (300 req/min, keyed by your **user id** — so authenticate rather
+than relying on a shared IP). A storefront hits the `storefront` scope
+(120 req/min, keyed by the logged-in customer, then browser session, then IP);
+a single browser session is unlikely to reach it. Concentrate retries and bulk
+operations behind one authenticated identity to keep the budget predictable.
+
+<Callout kind="warning" title="High-volume webhook tenants">
+Payment providers **retry webhooks on a 429**, which can delay order-status
+updates. If a tenant receives a high volume of provider webhooks, raise
+**`RATELIMIT_WEBHOOK`** for that environment so legitimate payment callbacks are
+not throttled.
+</Callout>
 
 ## Common Pitfalls
 

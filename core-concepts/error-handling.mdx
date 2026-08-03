@@ -24,6 +24,7 @@ The DataHub API uses standard HTTP status codes to indicate the outcome of reque
 | `403` | Forbidden | Valid token but insufficient permissions for this action. |
 | `404` | Not Found | The requested resource does not exist. |
 | `422` | Unprocessable Entity | Validation error — the request body failed validation rules. |
+| `429` | Too Many Requests | A per-scope rate limit was exceeded. See [Rate Limiting](/core-concepts/rate-limiting). |
 
 ### Server Error Codes
 
