@@ -75,6 +75,13 @@ For the complete list of ProductHub filters (e.g. `anchor_category_id`, `exclude
 | DELETE | `/prices/{id}` | Delete a price record |
 | POST | `/prices/upsert/bulk` | Bulk upsert price records |
 
+Price rows are per currency (`currency_code`, defaulting to the tenant's base
+currency). `GET` reads are scoped to the negotiated request currency
+(`Accept-Currency` header); `filter[currency_code]` overrides it. Rows created
+by automatic conversion carry `is_auto_converted: true`; editing such a row
+makes it manual and rate changes will no longer overwrite it. See
+[Pricing → Currency](/core-concepts/pricing#currency).
+
   </Tab>
   <Tab title="More" icon="more-horizontal">
 
@@ -242,6 +249,7 @@ filter[attribute]=[{"attribute_id":1,"attribute_value":"Red","condition":"IN","o
 | `product_id` | number | Filter by product |
 | `customer_group_id` | number | Filter by customer group |
 | `price_type` | text | Type: `regular`, `special`, `tier`, `group`, `cost` |
+| `currency_code` | text | ISO 4217 code of the price row (e.g. `EUR`, `USD`). Overrides the negotiated request currency. |
 | `price` | number | Price amount (supports range) |
 | `min_quantity` | number | Minimum quantity for tier pricing |
 | `group` | text | Group identifier |
@@ -538,6 +546,7 @@ See [Product & Category Media Uploads](/core-concepts/product-media-uploads) for
 | `product_id` | required, numeric |
 | `price_type` | required, in: regular, special, tier, group, cost |
 | `price` | required, numeric |
+| `currency_code` | string, nullable, size:3 — must be a supported currency; defaults to the tenant's base currency |
 | `min_quantity` | numeric, nullable, required_if: price_type is tier |
 | `customer_group_id` | numeric, nullable, required_if: price_type is group |
 | `start_date` | date, nullable |
@@ -565,6 +574,7 @@ See [Product & Category Media Uploads](/core-concepts/product-media-uploads) for
 | `*.product_id` | required |
 | `*.price_type` | required, in: regular, special, tier, group, cost |
 | `*.price` | required, numeric |
+| `*.currency_code` | string, nullable, size:3 — must be a supported currency; defaults to the tenant's base currency |
 | `*.min_quantity` | nullable |
 | `*.customer_group_id` | nullable |
 | `*.start_date` | nullable, date |

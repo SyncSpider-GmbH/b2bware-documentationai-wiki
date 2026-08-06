@@ -702,7 +702,11 @@ paths:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                product_id: 6
+                price_type: regular
+                price: 150.04
+                currency_code: EUR
       parameters:
         - name: Content-Type
           in: header
@@ -739,7 +743,9 @@ paths:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                price: 149.99
+                currency_code: USD
       parameters:
         - name: Content-Type
           in: header
@@ -781,7 +787,15 @@ paths:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                - product_id: 6
+                  price_type: regular
+                  price: 150.04
+                  currency_code: EUR
+                - product_id: 6
+                  price_type: regular
+                  price: 149.99
+                  currency_code: USD
       parameters:
         - name: Content-Type
           in: header

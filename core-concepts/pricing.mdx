@@ -139,9 +139,52 @@ See [Tax Calculation](/advanced/tax-calculation) for the full rules.
 
 ## Currency
 
-Currency is per-price. A multi-currency tenant returns different `currency` values per customer / cart / region. Never assume the installation's default currency on the storefront — read it from the price object.
+### Multi-Currency Model
 
-When two currencies appear on the same screen (rare), use the cart's currency for totals and the product's currency for the catalog line. Mixing currencies in a single cart is rejected at preview time.
+A tenant has one **default (base) currency** and an optional list of additional
+supported currencies, each with an exchange rate relative to the base. Both are
+configured in SettingsHub's global config (`i18n.currency` and
+`i18n.supported_currencies`).
+
+Price rows are stored **per currency** (`currency_code` on every price record):
+
+- Admins maintain prices in the base currency; the platform **materializes**
+  a converted row for every other supported currency automatically
+  (`is_auto_converted: true`, `base price × exchange_rate`, rounded to 2 decimals).
+- An admin can **override** any auto-converted row with a manual price. Editing
+  an auto row makes it manual (`is_auto_converted: false`), and manual prices
+  are never overwritten by rate changes or reindexing — **manual wins**.
+- Changing an exchange rate (or the supported list) re-materializes all
+  auto-converted rows in the background.
+
+### Requesting a Currency
+
+Reads are scoped to a single negotiated currency via the `Accept-Currency`
+request header (see [Currency Negotiation](/core-concepts/common-patterns#currency-negotiation)):
+
+```bash
+curl 'https://api.datahub.syncspider.com/api/v1/apps/product-hub/products/6?include=price,finalPrice' \
+  -H 'Accept-Currency: USD'
+```
+
+- **No header** → prices in the tenant's default currency.
+- **Supported code** → prices in that currency (manual row if one exists, else the auto-converted row). The applied code is echoed in the `X-Currency` response header.
+- **Unsupported code** → `400 unsupported_currency`.
+
+On `GET /prices`, an explicit `filter[currency_code]` overrides the negotiated
+currency so admin tooling can manage any currency's rows.
+
+Never assume the installation's default currency on the storefront — read
+`currency_code` from the price object.
+
+### Carts and Orders
+
+A cart **snapshots** the negotiated currency at creation (`currency_code` on the
+cart). Every subsequent mutation (adding items, changing quantities, checkout)
+must negotiate the same currency, otherwise the API responds with
+**409 `cart_currency_mismatch`**. The completed order inherits the cart's
+currency. Carts created before multi-currency support are treated as
+base-currency carts. To switch currencies mid-session, start a new cart.
 
 ## Coupons and Cart Rules
 

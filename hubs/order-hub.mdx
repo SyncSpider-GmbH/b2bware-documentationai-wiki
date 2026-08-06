@@ -77,6 +77,16 @@ For the complete list of endpoints, filters, includes, and validation rules (e.g
 | DELETE | `/carts/{id}` | Delete a cart |
 | GET | `/carts/{cart}/rule-progress` | Progress against active cart promo rules (e.g. "spend €20 more for free shipping") |
 
+**Cart currency.** A cart snapshots the negotiated request currency
+(`Accept-Currency` header, or the tenant's default) into `currency_code` at
+creation. All subsequent cart mutations (item add/update, checkout) must
+negotiate the same currency or the API responds with **409
+`cart_currency_mismatch`** (body carries `cart_currency` and
+`requested_currency`). The completed order inherits the cart's
+`currency_code`. Carts created before multi-currency support count as
+base-currency carts. See
+[Currency Negotiation](/core-concepts/common-patterns#currency-negotiation).
+
 **Cart Items**
 
 | Method | Endpoint | Description |

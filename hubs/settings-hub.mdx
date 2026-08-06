@@ -31,6 +31,28 @@ SettingsHub does **not** expose any includes. All data is returned directly in t
 | PUT | `/config/{id}` | Update a configuration |
 | DELETE | `/config/{id}` | Delete a configuration |
 
+**Multi-currency configuration.** The global config's `value.i18n` object
+holds the tenant's default currency (`currency`) and the list of additional
+supported currencies with exchange rates relative to it:
+
+```json
+{
+  "i18n": {
+    "currency": "EUR",
+    "supported_currencies": [
+      { "currency": "EUR", "exchange_rate": 1 },
+      { "currency": "USD", "exchange_rate": 1.10 }
+    ]
+  }
+}
+```
+
+Codes must be 3-letter ISO 4217, unique, with positive numeric rates; the
+default currency is always included with rate 1. Changing the default
+currency, the supported list, or any exchange rate automatically queues a
+background re-materialization of all auto-converted price rows (manual price
+overrides are preserved). See [Pricing → Currency](/core-concepts/pricing#currency).
+
   </Tab>
   <Tab title="Translations" icon="globe">
 

@@ -23,6 +23,7 @@ The DataHub API uses standard HTTP status codes to indicate the outcome of reque
 | `401` | Unauthorized | Missing or invalid authentication token. |
 | `403` | Forbidden | Valid token but insufficient permissions for this action. |
 | `404` | Not Found | The requested resource does not exist. |
+| `409` | Conflict | The request conflicts with the current state of the resource (e.g. mutating a cart in a different currency than it was created in). |
 | `422` | Unprocessable Entity | Validation error — the request body failed validation rules. |
 
 ### Server Error Codes
@@ -113,6 +114,44 @@ See [Authentication](/authentication) for details.
 - Validate your JSON syntax
 - URL-encode filter parameter values properly
 - Ensure filter condition objects have the correct structure
+
+</Expandable>
+
+<Expandable title="400 — Unsupported Currency" default-open="false">
+
+**Cause:** The `Accept-Currency` request header names a currency the tenant does not support.
+
+```json
+{
+  "error": "unsupported_currency",
+  "message": "Currency [XYZ] is not supported.",
+  "requested_currency": "XYZ",
+  "supported_currencies": ["EUR", "USD"]
+}
+```
+
+**Solution:**
+- Pick one of the codes from `supported_currencies`, or omit the header to use the tenant's default currency
+- See [Currency Negotiation](/core-concepts/common-patterns#currency-negotiation)
+
+</Expandable>
+
+<Expandable title="409 — Cart Currency Mismatch" default-open="false">
+
+**Cause:** A cart mutation (adding/updating items, checkout) was sent with a negotiated currency different from the currency the cart was created in.
+
+```json
+{
+  "error": "cart_currency_mismatch",
+  "message": "Cart is in [USD] but the request negotiated [EUR].",
+  "cart_currency": "USD",
+  "requested_currency": "EUR"
+}
+```
+
+**Solution:**
+- Send the same `Accept-Currency` header the cart was created with (the cart's `currency_code` field)
+- To switch currencies, start a new cart
 
 </Expandable>
 

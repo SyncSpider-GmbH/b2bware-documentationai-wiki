@@ -53,7 +53,44 @@ DataHub follows standard HTTP and JSON conventions, which means the **same value
 | HTTP request/response header | **kebab-case** | `session-uuid: 35cfd665-...` |
 | JSON request/response body field | **snake_case** | `"session_uuid": "35cfd665-..."` |
 
-The most common pair is `session-uuid` (header — for guest carts) ↔ `session_uuid` (body — the cart's stored field). They identify the **same** guest session; the casing difference is purely the HTTP-vs-JSON convention. Other affected pairs include `language-code` ↔ `language_code` and `installation-key` ↔ `installation_key` (rarely seen in bodies).
+The most common pair is `session-uuid` (header — for guest carts) ↔ `session_uuid` (body — the cart's stored field). They identify the **same** guest session; the casing difference is purely the HTTP-vs-JSON convention. Other affected pairs include `language-code` ↔ `language_code`, `Accept-Currency` ↔ `currency_code`, and `installation-key` ↔ `installation_key` (rarely seen in bodies).
+
+## Currency Negotiation
+
+Multi-currency tenants expose their prices in every supported currency. The
+currency of a request is negotiated **statelessly, per request**, via the
+`Accept-Currency` header:
+
+```
+Accept-Currency: USD
+```
+
+| Behavior | Details |
+|---|---|
+| No header sent | The tenant's **default currency** (set in the admin) is used. |
+| Supported currency | Catalog price reads (products, prices) return amounts in that currency. Carts and orders keep the currency they were created in — see the OrderHub page. |
+| Unsupported currency | The request is rejected with **400** `unsupported_currency` and the list of supported codes. |
+
+Every response carries the applied currency back in the `X-Currency` response header:
+
+```
+X-Currency: USD
+```
+
+```json
+// 400 — Accept-Currency: XYZ
+{
+  "error": "unsupported_currency",
+  "message": "Currency [XYZ] is not supported.",
+  "requested_currency": "XYZ",
+  "supported_currencies": ["EUR", "USD"]
+}
+```
+
+The supported currencies and their exchange rates are configured per tenant in
+SettingsHub (`i18n.supported_currencies` on the global config). See
+[Pricing](/core-concepts/pricing) for how per-currency price rows are stored
+and resolved, and the OrderHub page for how carts snapshot their currency.
 
 ## Pagination
 
