@@ -169,7 +169,7 @@ Read-only aggregates over OrderHub data. Used by DashboardHub widgets but stay e
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/dashboard/overview` | KPI counts and revenue grouped by status |
+| GET | `/dashboard/overview` | KPI counts and revenue grouped by status; accepts the full orders-grid `filter[...]` surface |
 | GET | `/dashboard/revenue` | Revenue + order count time-series (`granularity=day\|week`) |
 | GET | `/dashboard/recent-orders` | N most-recent orders with customer label and line-item count |
 | GET | `/dashboard/lifetime-sales` | All-time totals, first/last order timestamps |
@@ -178,6 +178,8 @@ Read-only aggregates over OrderHub data. Used by DashboardHub widgets but stay e
 | GET | `/dashboard/orders-by-location` | Revenue/order count aggregated by country, city or zip (uses geocoded addresses) |
 
 All dashboard endpoints accept a `period` query parameter — one of `7`, `30`, `90`, `365` (defaults to `30`). The two map endpoints additionally support `period=all` and `period=custom` with `from` / `to` ISO dates (capped at 365 days).
+
+`/dashboard/overview` additionally accepts the same `?filter[<field>]=[{condition,value,operator}]` parameters as `GET /orders` — native columns plus any custom order attribute flagged `use_for_admin_filtering` (see [Filtering](/core-concepts/filtering#sorting--filtering-by-custom-attribute-code)) — so widget counts can be scoped, e.g. to a single attribute value. An unknown or non-filterable field returns `400`.
 
   </Tab>
 </Tabs>
