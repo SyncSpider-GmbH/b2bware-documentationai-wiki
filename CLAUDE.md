@@ -139,6 +139,7 @@ Load related resources with `include` parameter, comma-separated, dot notation f
 | `403` | Forbidden (insufficient permissions) |
 | `404` | Not Found |
 | `422` | Validation Error |
+| `429` | Too Many Requests (per-scope rate limit exceeded) |
 | `500` | Server Error |
 
 Validation error format:

@@ -1,0 +1,117 @@
+---
+title: Rate Limiting
+description: Per-scope API rate limits, keying strategy, default ceilings, env overrides, and 429 behaviour for the DataHub API.
+---
+
+The DataHub API applies **per-scope** rate limits. Traffic is classified into
+scopes (admin, storefront, webhook, auth, bulk, public) and each scope has its
+own request-per-minute ceiling and its own **keying strategy**, so unrelated
+tenants and users never share a single rate-limit bucket.
+
+All ceilings are defined once in `config/ratelimits.php` (the single source of
+truth) and are env-overridable, so limits can be tuned per environment without
+a code change.
+
+## Scopes & Limiters
+
+| Scope | Limiter | Applies to | Keyed by |
+|-------|---------|------------|----------|
+| `admin` | `rl_admin` | Authenticated admin API (`/api/v1/apps/*`) | Authenticated **user id** (falls back to IP, at the `public` ceiling, when unauthenticated) |
+| `storefront` | `rl_storefront` | Server-rendered storefront pages | Shop **customer** → browser **session** → IP |
+| `webhook` | `rl_webhook` | Public payment/provider webhooks (`/api/v1/webhooks`, routes carrying an `installationKey`) | **Installation key** in the URL (IP fallback) |
+| `bulk` | `rl_bulk` | Expensive bulk / export / import / AI operations | Authenticated **user id** (IP fallback) |
+| `auth_login` | `rl_auth_login` | Unauthenticated login | **IP** |
+| `auth_register` | `rl_auth_register` | Unauthenticated registration | **IP** |
+| `password_reset` | `rl_password_reset` | Unauthenticated password reset / forgot-password | **IP** |
+| `public` | — | Generic public (unauthenticated) endpoints | **IP** |
+
+## Keying Strategy
+
+The bucket key is chosen per scope so that one caller cannot exhaust the budget
+for unrelated callers:
+
+- **Authenticated scopes** (`admin`, `bulk`) are keyed by the **authenticated
+  user id**. A shared office or VPN IP therefore does not throttle a whole team
+  — each user gets their own budget. When a request reaches the admin scope
+  unauthenticated, it falls back to being keyed by IP at the lower `public`
+  ceiling.
+- **Unauthenticated auth scopes** (`auth_login`, `auth_register`,
+  `password_reset`) are keyed by **IP**. There is no identity yet, and IP is the
+  brute-force surface these tighter limits are designed to protect.
+- **Webhooks** are keyed by the **installation key** in the URL, so one payment
+  provider's shared IP cannot starve other tenants' webhook delivery.
+- **Storefront** traffic is keyed by the shop customer when logged in, otherwise
+  the browser session, falling back to IP — so one shopper (or one anonymous
+  browser) behind a shared NAT cannot exhaust everyone else's page budget.
+
+<Callout kind="info" title="Inline limits win">
+Routes that declare their own `throttle:` middleware keep it — an explicit,
+usually stricter, inline limit always takes precedence over the per-scope
+default. Immutable static storefront assets (`assets/*`) are excluded from the
+per-session page budget so a single page load cannot 429 its own assets.
+</Callout>
+
+## Default Ceilings & Env Overrides
+
+Defaults are requests **per minute**. Override any value via the environment
+variable and restart the app to apply.
+
+| Scope | Env variable | Default (req/min) |
+|-------|--------------|-------------------|
+| `admin` | `RATELIMIT_ADMIN` | `300` |
+| `storefront` | `RATELIMIT_STOREFRONT` | `120` |
+| `webhook` | `RATELIMIT_WEBHOOK` | `120` |
+| `auth_login` | `RATELIMIT_AUTH_LOGIN` | `30` |
+| `auth_register` | `RATELIMIT_AUTH_REGISTER` | `10` |
+| `password_reset` | `RATELIMIT_PASSWORD_RESET` | `5` |
+| `bulk` | `RATELIMIT_BULK` | `60` |
+| `public` | `RATELIMIT_PUBLIC` | `60` |
+
+```bash
+# .env — raise the admin ceiling and relax webhook throttling
+RATELIMIT_ADMIN=600
+RATELIMIT_WEBHOOK=300
+```
+
+## 429 Behaviour
+
+When a scope's ceiling is exceeded, the API responds with **HTTP 429 Too Many
+Requests**. The response carries standard rate-limit headers so clients can back
+off gracefully:
+
+| Header | Meaning |
+|--------|---------|
+| `Retry-After` | Seconds to wait before retrying. |
+| `X-RateLimit-Limit` | The ceiling for the current scope. |
+| `X-RateLimit-Remaining` | Requests remaining in the current window. |
+
+```json
+{
+  "message": "Too Many Attempts."
+}
+```
+
+<Steps>
+  <Step title="Respect Retry-After">
+    On a 429, wait the number of seconds in the `Retry-After` header before
+    retrying. Do not retry immediately in a tight loop.
+  </Step>
+  <Step title="Back off and spread load">
+    Use exponential backoff with jitter for bulk and import workflows, and
+    stay under the `bulk` ceiling by batching requests.
+  </Step>
+  <Step title="Key by identity, not IP">
+    Authenticate requests so admin/bulk traffic is keyed by your user id rather
+    than sharing an IP bucket with the rest of your team.
+  </Step>
+</Steps>
+
+<Callout kind="warning" title="High-volume webhook tenants">
+Payment providers **retry webhooks on a 429**, and repeated throttling can delay
+order-status updates for your customers. If a tenant receives a high volume of
+provider webhooks, raise **`RATELIMIT_WEBHOOK`** for that environment so
+legitimate payment callbacks are not throttled.
+</Callout>
+
+For a detailed backoff loop, request-volume audit, and common pitfalls, see the
+[Rate Limiting troubleshooting guide](/help-center/troubleshooting/rate-limiting).
