@@ -40,6 +40,8 @@ The value is a JSON-encoded array of condition objects. Each condition object ha
 | `NOT IN` | Value not in set | `?filter[status]=[{"condition":"NOT IN","value":["canceled"]}]` |
 | `EMPTY` | Field is null/empty | `?filter[description]=[{"condition":"EMPTY"}]` |
 | `NOT EMPTY` | Field is not null/empty | `?filter[description]=[{"condition":"NOT EMPTY"}]` |
+| `BETWEEN` | Value inside an inclusive range (`value` is a 2-element array) | `?filter[price]=[{"condition":"BETWEEN","value":[100,500]}]` |
+| `NOT BETWEEN` | Value outside an inclusive range (`value` is a 2-element array) | `?filter[price]=[{"condition":"NOT BETWEEN","value":[100,500]}]` |
 
 ## Filter Field Types
 
@@ -194,6 +196,22 @@ GET /api/v1/apps/customer-hub/customers?filter[loyalty_tier]=[{"condition":"NOT 
 # Filter orders by p_o_number = "12345"
 GET /api/v1/apps/order-hub/orders?filter[p_o_number]=[{"condition":"=","value":"12345"}]
 ```
+
+### Per-type filter behavior
+
+The attribute's `type` decides how filter values are interpreted:
+
+| Attribute type | Filter semantics |
+|----------------|------------------|
+| `text`, `select` | Plain string comparison (`=`, `!=`, `LIKE`, `IN`, …) |
+| `number` (numeric types) | Values are cast to floats; range operators compare numerically |
+| `multiselect` | `IN` matches when the stored array contains any of the given options |
+| `boolean` | The flag is stored only when set — filter *Yes* with `NOT EMPTY` and *No* with `EMPTY`, not with `=` on `1`/`0` |
+| `date`, `datetime` | **Day-granular**: pass plain `YYYY-MM-DD` values; `=` matches the whole day, `BETWEEN` is day-inclusive on both bounds, `>`/`<`/`>=`/`<=` compare whole days |
+
+<Callout kind="info" title="Date attributes are day-granular">
+Date/datetime attribute values are stored as ISO-8601 datetime strings, but you always filter them by calendar day: `{"condition":"=","value":"2026-01-15"}` matches every value on Jan 15 regardless of its time component, and `{"condition":"BETWEEN","value":["2026-01-01","2026-01-31"]}` includes the whole last day. To filter by exact timestamps use the native date columns (e.g. `_created_at`) instead.
+</Callout>
 
 ### Native vs. dynamic collisions
 
