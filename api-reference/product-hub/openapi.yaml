@@ -930,12 +930,26 @@ paths:
       tags:
         - Products
       summary: Attach Variations Attributes
+      description: >-
+        Attach variation-axis attributes to a configurable product. Every
+        attribute must exist and have type `select`, `radio`, `swatch`, or
+        `boolean`.
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              properties:
+                attribute_ids:
+                  type: array
+                  items:
+                    type: integer
+              required:
+                - attribute_ids
+              example:
+                attribute_ids:
+                  - 1
+                  - 2
       parameters:
         - name: Content-Type
           in: header
@@ -957,12 +971,40 @@ paths:
       tags:
         - Products
       summary: Create Variations
+      description: >-
+        Generate child products from variation attributes. Every attribute must
+        exist, have type `select`, `radio`, `swatch`, or `boolean`, and
+        reference existing attribute values.
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              properties:
+                attributes:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      attribute_id:
+                        type: integer
+                      value:
+                        type: array
+                        items:
+                          oneOf:
+                            - type: string
+                            - type: boolean
+                    required:
+                      - attribute_id
+                      - value
+              required:
+                - attributes
+              example:
+                attributes:
+                  - attribute_id: 1
+                    value:
+                      - Red
+                      - Blue
       parameters:
         - name: Content-Type
           in: header

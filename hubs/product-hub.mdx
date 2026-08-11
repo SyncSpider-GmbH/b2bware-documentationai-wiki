@@ -33,8 +33,8 @@ For the complete list of ProductHub filters (e.g. `anchor_category_id`, `exclude
 | PUT | `/products/upsert/single` | Create or update a product by SKU (idempotent) |
 | PUT | `/products/bulk/update` | Bulk update multiple products |
 | DELETE | `/products/bulk/delete` | Bulk delete multiple products |
-| PUT | `/products/{id}/createVariations` | Generate child variation products from attributes |
-| PUT | `/products/{id}/attachVariationsAttributes` | Attach variation attributes to a configurable product |
+| PUT | `/products/{id}/createVariations` | Generate child products from `select`, `radio`, `swatch`, or `boolean` variation attributes |
+| PUT | `/products/{id}/attachVariationsAttributes` | Attach `select`, `radio`, `swatch`, or `boolean` variation-axis attributes to a configurable product |
 | DELETE | `/products/{parentId}/child-products` | Remove child products from a parent |
 | PUT | `/products/{id}/generateAIDescription` | Generate AI-powered product description |
 
@@ -500,7 +500,7 @@ See [Product & Category Media Uploads](/core-concepts/product-media-uploads) for
 |-------|-------|
 | `child_products` | array (product IDs or objects for variations) |
 | `parent_products` | array (parent product IDs) |
-| `parent_product_attributes` | array, nullable (variation-defining attribute IDs on a configurable parent — see `PUT /products/{id}/attachVariationsAttributes`) |
+| `parent_product_attributes` | array, nullable (variation-defining attribute IDs on a configurable parent; each attribute must have type `select`, `radio`, `swatch`, or `boolean` — see `PUT /products/{id}/attachVariationsAttributes`) |
 | `categories` | array (category IDs) |
 | `cross_sells` | array (product IDs) |
 | `up_sells` | array (product IDs) |

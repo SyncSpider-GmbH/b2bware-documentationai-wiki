@@ -217,9 +217,10 @@ Date/datetime attribute values are stored as ISO-8601 datetime strings, but you 
 
 If an `attribute_code` collides with a native sort or filter (e.g. `email`, `sku`, `name`), the **native column wins** — the dynamic entry is silently skipped. Pick unique attribute codes if you want them to be exposed as columns.
 
-### Difference from `use_in_search` and `show_in_cart`
+### Difference from `use_in_search`, `show_in_cart`, and `use_for_storefront_variant_filtering`
 
-Two related flags do **not** participate in `?sort=` / `?filter[]=`:
+Related flags that do **not** participate in `?sort=` / `?filter[]=`:
 
 - `use_in_search` widens the existing `?filter[search]=…` callback on `GET /products` to also match against the attribute's stored values (alongside `name` and `sku`).
 - `show_in_cart` is a pure display flag — it surfaces the attribute on the storefront cart line; there is no API surface keyed off it beyond the catalogue discovery above.
+- `use_for_storefront_variant_filtering` is a pure storefront UI flag — when a `select`, `radio`, `swatch`, or `boolean` attribute is a variation axis on a configurable product and Product variation display mode is Table, it opts that axis into the filter controls above the variation table. Default off; no denormalization.
