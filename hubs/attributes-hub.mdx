@@ -103,6 +103,7 @@ For filter syntax and operators, see [Filtering](/core-concepts/filtering).
 | `use_for_admin_filtering` | bool | Filter by admin-grid filterable flag |
 | `use_in_search` | bool | Filter by product keyword-search inclusion flag |
 | `show_in_cart` | bool | Filter by storefront-cart display flag |
+| `use_for_storefront_variant_filtering` | bool | Filter by storefront variation-table filter flag |
 | `position` | number | |
 | `group.type` | text | Relation filter (group) |
 
@@ -176,6 +177,7 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 | `use_for_admin_filtering` | sometimes, boolean — exposes the attribute as a per-`attribute_code` filterable column on admin grids (`?filter[<attribute_code>]=[{...}]`). Independent from the storefront layered-navigation flags `used_for_filtering` / `filterable_with_results`. Shares the same backfill path as `use_for_sorting`. |
 | `use_in_search` | sometimes, boolean — when the parent group has `type='product'`, the attribute's value is included in the product keyword search alongside `name` and `sku`. Server-side allowed only for searchable types (`text`, `textarea`, `select`, `multiselect`, `radio`); other types are rejected. |
 | `show_in_cart` | sometimes, boolean — when the parent group has `type='product'`, the attribute's value is rendered beneath the product line in the storefront cart and order summary. Pure display flag — no denormalization. |
+| `use_for_storefront_variant_filtering` | sometimes, boolean — for `select`, `radio`, `swatch`, or `boolean` attributes in a product group, exposes a filter control above the storefront variation table when the attribute is a variation axis (only when Product variation display mode is Table). Default off. Pure display/filter-UI flag — no denormalization. |
 | `required` | sometimes, boolean |
 | `position` | sometimes, numeric |
 | `meta_data` | sometimes, array |
