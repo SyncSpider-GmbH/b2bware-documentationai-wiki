@@ -25,6 +25,7 @@ The DataHub API uses standard HTTP status codes to indicate the outcome of reque
 | `404` | Not Found | The requested resource does not exist. |
 | `409` | Conflict | The request conflicts with the current state of the resource (e.g. mutating a cart in a different currency than it was created in). |
 | `422` | Unprocessable Entity | Validation error — the request body failed validation rules. |
+| `429` | Too Many Requests | A per-scope rate limit was exceeded. See [Rate Limiting](/core-concepts/rate-limiting). |
 
 ### Server Error Codes
 

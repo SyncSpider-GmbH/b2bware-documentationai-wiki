@@ -46,7 +46,10 @@ paths:
         group.type='order') to expose this attribute on the OrderHub storefront
         checkout. Set `use_for_sorting=true` to make this attribute valid as
         `?sort={attribute_code}` on every listing endpoint whose target's
-        group_types include this attribute's group type. See
+        group_types include this attribute's group type. Set
+        `use_for_storefront_variant_filtering=true` (when group.type='product')
+        to expose a filter control above the storefront variation table when
+        Product variation display mode is Table. See
         packages/Apps/OrderHub/CHECKOUT.md.
       requestBody:
         content:
@@ -106,7 +109,9 @@ paths:
         Update an Attribute. `use_in_checkout` toggles storefront-checkout
         exposure (only meaningful when group.type='order'). `use_for_sorting`
         toggles dynamic API `?sort={attribute_code}` on the relevant listing
-        endpoint(s).
+        endpoint(s). `use_for_storefront_variant_filtering` toggles the
+        storefront variation-table filter control (only meaningful when
+        group.type='product' and Product variation display mode is Table).
       requestBody:
         content:
           application/json:
@@ -177,9 +182,11 @@ paths:
       summary: Bulk Insert Attributes
       description: >-
         Bulk insert. Each attribute supports `use_in_checkout` (storefront
-        checkout exposure for `group.type='order'` attributes) and
+        checkout exposure for `group.type='order'` attributes),
         `use_for_sorting` (dynamic API ?sort=<attribute_code> on the relevant
-        listing endpoint(s)).
+        listing endpoint(s)), and `use_for_storefront_variant_filtering`
+        (storefront variation-table filter control when `group.type='product'`
+        and Product variation display mode is Table).
       requestBody:
         content:
           application/json:

@@ -139,6 +139,7 @@ Load related resources with `include` parameter, comma-separated, dot notation f
 | `403` | Forbidden (insufficient permissions) |
 | `404` | Not Found |
 | `422` | Validation Error |
+| `429` | Too Many Requests (per-scope rate limit exceeded) |
 | `500` | Server Error |
 
 Validation error format:
@@ -367,7 +368,7 @@ Dynamic product attributes with polymorphic relations.
 
 ### Attribute Filters
 
-`id`, `name`, `type`, `group_id`, `_created_at`, `_updated_at`, `visible_on_the_product_page`, `used_for_filtering`, `filterable_with_results`, `use_in_notifications`, `use_in_checkout`, `position`, `group.type`
+`id`, `name`, `type`, `group_id`, `_created_at`, `_updated_at`, `visible_on_the_product_page`, `used_for_filtering`, `filterable_with_results`, `use_in_notifications`, `use_in_checkout`, `use_for_sorting`, `use_for_admin_filtering`, `use_in_search`, `show_in_cart`, `use_for_storefront_variant_filtering`, `position`, `group.type`
 
 ### Attribute Includes
 
