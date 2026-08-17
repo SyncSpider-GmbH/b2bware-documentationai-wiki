@@ -8,6 +8,12 @@
       "brand": "#8291C9"
     }
   },
+  "redirects": [
+    {
+      "source": "/advanced/storefront-themes",
+      "destination": "/advanced/storefront-themes/overview"
+    }
+  ],
   "navigation": {
     "tabs": [
       {
@@ -270,6 +276,87 @@
                     "title": "Post-Purchase",
                     "path": "advanced/storefront/post-purchase",
                     "icon": "receipt"
+                  }
+                ]
+              },
+              {
+                "group": "Storefront Themes",
+                "icon": "palette",
+                "pages": [
+                  {
+                    "title": "Overview",
+                    "path": "advanced/storefront-themes/overview",
+                    "icon": "palette"
+                  },
+                  {
+                    "title": "Hard Rules",
+                    "path": "advanced/storefront-themes/hard-rules",
+                    "icon": "shield"
+                  },
+                  {
+                    "title": "Blade API",
+                    "path": "advanced/storefront-themes/blade-api",
+                    "icon": "code"
+                  },
+                  {
+                    "title": "i18n & Formatting",
+                    "path": "advanced/storefront-themes/i18n-and-formatting",
+                    "icon": "globe"
+                  },
+                  {
+                    "title": "Forms",
+                    "path": "advanced/storefront-themes/forms",
+                    "icon": "file-text"
+                  },
+                  {
+                    "title": "View Data",
+                    "path": "advanced/storefront-themes/view-data",
+                    "icon": "database"
+                  },
+                  {
+                    "title": "AJAX & Runtime",
+                    "path": "advanced/storefront-themes/ajax-and-runtime",
+                    "icon": "refresh-cw"
+                  },
+                  {
+                    "title": "Catalog",
+                    "path": "advanced/storefront-themes/catalog",
+                    "icon": "search"
+                  },
+                  {
+                    "title": "SEO & Images",
+                    "path": "advanced/storefront-themes/seo-and-images",
+                    "icon": "image"
+                  },
+                  {
+                    "title": "Server Data & Auth",
+                    "path": "advanced/storefront-themes/fetch-and-auth",
+                    "icon": "server"
+                  },
+                  {
+                    "title": "Analytics & Slots",
+                    "path": "advanced/storefront-themes/analytics-and-slots",
+                    "icon": "bar-chart-2"
+                  },
+                  {
+                    "title": "Page Recipes",
+                    "path": "advanced/storefront-themes/page-recipes",
+                    "icon": "layout"
+                  },
+                  {
+                    "title": "Styling",
+                    "path": "advanced/storefront-themes/styling",
+                    "icon": "droplet"
+                  },
+                  {
+                    "title": "Design Tokens",
+                    "path": "advanced/storefront-themes/tokens",
+                    "icon": "sliders"
+                  },
+                  {
+                    "title": "Author Checklist",
+                    "path": "advanced/storefront-themes/checklist",
+                    "icon": "check-square"
                   }
                 ]
               }
