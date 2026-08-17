@@ -574,6 +574,84 @@ curl -s -X POST \
   </Step>
 </Steps>
 
+## Deleted-Customer Orders (Historical Orders)
+
+Deleting a customer no longer requires their orders to be removed first. Before
+the customer record is deleted, CustomerHub triggers a snapshot process in
+OrderHub that copies the customer's identity onto **every** order of that
+customer (including trashed orders). The orders then no longer depend on the
+customer record to be displayed.
+
+### The `customer_deleted` flag
+
+Every order response includes a computed boolean field:
+
+```json
+{
+  "id": 105,
+  "status": "completed",
+  "customer_id": 42,
+  "customer_deleted": true,
+  "meta_data": {
+    "deleted_customer": { "…": "…" }
+  }
+}
+```
+
+`customer_deleted` is `true` only when the snapshot exists
+(`meta_data.deleted_customer`). Guest or legacy orders that never had a
+customer are **not** flagged. When the flag is `true`, the `customer` include
+resolves to `null` — consumers must fall back to the snapshot.
+
+### Snapshot shape (`meta_data.deleted_customer`)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `customer_id` | integer | Original customer ID / reference number |
+| `customer_number` | string \| null | |
+| `salutation`, `title` | string \| null | |
+| `first_name`, `last_name` | string \| null | |
+| `email` | string \| null | |
+| `phone` | string \| null | |
+| `company_id` | integer \| null | |
+| `company_name` | string \| null | |
+| `customer_group_id` | integer \| null | |
+| `customer_group_name` | string \| null | |
+| `language_code` | string \| null | |
+| `billing_address` | object \| null | Resolved per order — the order's own address rows |
+| `shipping_address` | object \| null | Resolved per order — the order's own address rows |
+| `deleted_at` | string (ISO 8601) | When the customer account was deleted |
+
+The snapshot write is all-or-nothing: if any order fails to persist its
+snapshot, the customer deletion is aborted and already-written snapshots are
+rolled back.
+
+### Read-only rules (hybrid lock model)
+
+Orders of a deleted customer follow a hybrid model:
+
+- **Open orders** (any non-terminal status) remain fully editable by staff —
+  they can still be shipped, refunded, commented on and completed.
+- **Terminal orders** (`completed`, `canceled`, `refunded`) become read-only
+  history. Any mutation — order update/delete, refund, order comments, order
+  line items — is rejected with **`409 Conflict`**:
+
+```json
+{
+  "error": "order_locked",
+  "message": "This order is read-only: the customer account was deleted and the order is closed."
+}
+```
+
+Payment provider webhooks are deliberately **not** blocked, so in-flight
+payment confirmations still land.
+
+Restoring the customer from trash clears the snapshots and lifts the lock;
+orders behave exactly as before the deletion.
+
+See [Error Handling](/core-concepts/error-handling) for the full 409 catalog
+and [CustomerHub](/hubs/customer-hub) for the deletion endpoints.
+
 ## Automated Notifications
 
 OrderHub runs two scheduled, event-driven notification features. Both fire
