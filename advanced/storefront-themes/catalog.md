@@ -5,13 +5,13 @@ description: Facets, sorting, price/in-stock filters, view modes, and pagination
 
 ## 9.8 Catalog — facets, sorting, price, in-stock, view & pagination
 
-The catalog pages — `products.blade.php` (the All Products index) and the **leaf** branch of `category.blade.php` — receive a curated set of **layered-navigation** view data that mirrors the Nexus SPA. Everything is dynamic and tenant-scoped; the theme never reads ProductHub / AttributesHub directly. Render it with `@foreach` + `data_get`, exactly like every other page.
+The catalog pages — `products.blade.php` (the All Products index) and `category.blade.php` when `$showProducts` is true — receive a curated set of **layered-navigation** view data that mirrors the Nexus SPA. Everything is dynamic and tenant-scoped; the theme never reads ProductHub / AttributesHub directly. Render it with `@foreach` + `data_get`, exactly like every other page.
 
 ### Catalog view data
 
 | Variable              | Type            | Meaning                                                                                                 |
 | --------------------- | --------------- | ------------------------------------------------------------------------------------------------------- |
-| `$products`           | LengthAwarePaginator | The product result set (already filtered / sorted / paginated). Use `->total()`, `->firstItem()`, `->lastItem()`, and iterate for cards. |
+| `$products`           | LengthAwarePaginator | The product result set (already filtered / sorted / paginated). Use `->total()`, `->firstItem()`, `->lastItem()`, and iterate for cards. Present only when `$showProducts` is true (otherwise `null`). |
 | `$filters`            | array           | `['q' => '<search>']` — the active free-text query (echoed from the header search).                     |
 | `$sort`               | string          | The active sort key (see below). Default `'relevance'`.                                                  |
 | `$sortOptions`        | array           | **Dynamic** sort entries `['key' => '<attribute_code>'|'-<attribute_code>', 'label' => '<name> ↑/↓']` from attributes flagged `use_for_sorting`. Append them after the five native options. |
@@ -27,7 +27,21 @@ The catalog pages — `products.blade.php` (the All Products index) and the **le
 | `$pagination`         | array           | `['current_page', 'per_page', 'total', 'last_page']` convenience mirror of the paginator.               |
 | `$catalogAttributes`  | array           | **Always present** `[product_id => [{code, name, value, is_url, is_html, is_multiline}, …]]` map of each listed product's visible attributes — for a B2B attribute / spec table. Look up by `(string) $product->id` and pick the columns you want by `code`. Card-grid themes simply ignore it. |
 
-Leaf `category.blade.php` additionally receives `$category`, `$categorySlug`, `$parentSlugPath`, `$siblings`, `$children`, `$isLeaf` (branch pages list `$children` and skip the product query entirely).
+`category.blade.php` additionally receives:
+
+| Variable | Type | Meaning |
+| --- | --- | --- |
+| `$category` | Category | The resolved category model. |
+| `$categorySlug` | string | Full slug path for this page. |
+| `$parentSlugPath` | string | Parent path segment (empty at root). |
+| `$siblings` | Collection | Navigable siblings (for facets / alternate nav). |
+| `$children` | Collection | Direct navigable children. |
+| `$isLeaf` | bool | Structural: `true` when `$children` is empty. Do **not** use this alone to decide layout. |
+| `$branchDisplayMode` | string | Resolved mode: `children` \| `products` \| `both`. Leafs are always `products`. |
+| `$showChildren` | bool | Render the subcategory grid when true. |
+| `$showProducts` | bool | Run/render the product listing when true. |
+
+**Branch display mode.** Store default `$store['branch_display_mode']` (tenant `categories.branch_display_mode`, default `children`) plus optional per-category `branch_display_mode` override. Themes must branch on `$showChildren` / `$showProducts` (or `$branchDisplayMode`), not `$isLeaf` alone — otherwise parent categories will never show products even when the merchant enables them. When `$showProducts` is true on a branch, the platform filters with ProductHub `anchor_category_id` (this category **and all descendants**).
 
 ### Query parameters (the URL is the state)
 

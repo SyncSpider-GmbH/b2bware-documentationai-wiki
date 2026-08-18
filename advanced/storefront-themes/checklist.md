@@ -40,6 +40,7 @@ Before zipping:
 - [ ] Store info & capability flags read from `$store['key']` — the single source; injected globals (`$me`, `$canSeePrices`, `$canAddToCart`, `$store`, `$cartCount`, `$cartTotals`) read directly, no `?? default`
 - [ ] Prices are gated on `$canSeePrices` and add-to-cart forms on `$canAddToCart` (§9.6); cart rewards read `$cartProgress` and honour each rule's own `show_progress_bar` (no tenant-wide toggle)
 - [ ] Every applicable flag in the §9.6 *Feature-by-feature compliance guide* is respected exactly like the default theme (same file, same guard) — unless the requester explicitly said to skip that specific feature for this theme
+- [ ] Category pages branch on `$showChildren` / `$showProducts` (or `$branchDisplayMode`), not `$isLeaf` alone — mirror `pages/category.blade.php`
 - [ ] Submit controls are real `<button type="submit">` / `<input type="submit">` **inside** their form with an accessible label, so the automatic loading spinner (§9.9) can find and mark them; busy hooks (`.storefront-busy`, `[data-storefront-progress]`) are left intact
 - [ ] Custom inline-script async actions drive `Storefront.setBusy(el)` / `Storefront.progress` for loading feedback, wrapped in `try` / `finally` and guarded with `window.Storefront?.` (§9.9)
 - [ ] Every actionable element (buttons, links, `<form>`s + submit controls, `tel:` / `mailto:` links) has a stable, unique, descriptive `id` so Google Tag Manager can track interactions the platform doesn't emit as GA4 events (§9.13)

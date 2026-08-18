@@ -3,6 +3,16 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-08-18" description="Parent category branch display mode" tags={["feature", "storefront"]}>
+
+## Parent category products on the storefront
+
+- **Store default** — `tenant_config.categories.branch_display_mode`: `children` (default), `products`, or `both`. Surfaced to themes as `$store['branch_display_mode']`.
+- **Per-category override** — ProductHub `Category.branch_display_mode` (`null` = inherit). Admin: Category → General and Store setup → Features.
+- **Theme contract** — category pages expose `$branchDisplayMode`, `$showChildren`, `$showProducts`. Branch product listings use `anchor_category_id` (category + descendants). See [Catalog](/advanced/storefront-themes/catalog) and [View data](/advanced/storefront-themes/view-data).
+
+</Update>
+
 <Update label="2026-08-17" description="Storefront theme authoring docs" tags={["docs"]}>
 
 ## Storefront Themes documentation

@@ -594,6 +594,7 @@ See [Product & Category Media Uploads](/core-concepts/product-media-uploads) for
 | `parent_id` | nullable, numeric | Parent category ID; `null` = root |
 | `exclude_from_main_menu` | sometimes, boolean | Hide from main navigation menu |
 | `exclude_from_layer_navigation` | sometimes, boolean | Hide from layered (faceted) navigation |
+| `branch_display_mode` | nullable, string, in: `children`, `products`, `both` | Parent-category storefront layout override. `null` inherits the store default (`tenant_config.categories.branch_display_mode`, default `children`). Leaf categories ignore this. |
 | `seo` | sometimes, nullable, array | SEO metadata (`title`, `description`, `keywords`, `meta_title`, `meta_description`) |
 
 **Meta Data (dynamic per-category fields)**

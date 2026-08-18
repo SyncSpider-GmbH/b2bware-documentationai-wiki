@@ -92,6 +92,7 @@ Like Shopify's `shop` object, `$store` carries both store **identity** and store
 | `catalog_export_enabled`   | bool   | `false`     | Opt-in module (`catalog_export.enabled`): renders the account "Catalog export" page/nav item and enables the tokenized public share link for a customer's stored export. |
 | `quick_order_enabled`      | bool   | `false`     | Opt-in Quick Order (SKU autocomplete + CSV bulk add) account feature. |
 | `variation_display_mode`   | string | `table`     | How a configurable product's variants are presented: `table` or `dropdown`. |
+| `branch_display_mode`      | string | `children`  | Default layout for parent categories with children: `children` (subcategory grid), `products` (descendant-aware listing), or `both`. Per-category override may change the resolved `$branchDisplayMode` on a category page. |
 | `indexable`                | bool   | `true`      | Search engines may index the storefront; drives `<meta name="robots">` automatically. |
 | `display_prices_with_tax`  | string | `excluding_tax` | How catalog/cart prices are shown: `excluding_tax` (net, B2B), `including_tax` (gross, B2C) or `both`. Follows the tenant's TaxHub setting. |
 
@@ -115,6 +116,7 @@ One row per tenant-toggleable feature from the Features admin page (plus `quick_
 | Enable catalog export                    | `catalog_export_enabled`                                | `false`   | Full — the export page and public feed both 404 when disabled.                                            | Only render the account nav item, export page and preview/fields partials when true — mirror `partials/account-nav.blade.php` and `pages/account/catalog-export.blade.php`. |
 | Allow search engines to index            | `indexable`                                              | `true`    | Automatic — platform-rendered.                                                                             | Nothing to do — keep `@storefrontSeo` in every layout; never hardcode your own robots meta tag. |
 | Product variation display mode           | `variation_display_mode` (`table` or `dropdown`)        | `'table'` | None — presentation only.                                                                                  | Branch your variant UI on this value — mirror `partials/product-details.blade.php` (see *Configurable products* below). |
+| Parent category display mode             | `branch_display_mode` (`children`, `products`, or `both`) | `'children'` | Full — platform resolves `$showChildren` / `$showProducts` / `$branchDisplayMode` on category pages (store default + per-category override). | Branch category layout on `$showChildren` / `$showProducts` — mirror `pages/category.blade.php` (see catalog.md). Do not key layout off `$isLeaf` alone. |
 | Quick Order & CSV upload _(same tenant_config family; not yet on the Features page)_ | `quick_order_enabled` | `false` | Full — every Quick Order route 404s when disabled. | Only render the account nav link and Quick Order page when true — mirror `partials/account-nav.blade.php` and `pages/account/quick-order.blade.php`. |
 
 ### One source per concept
