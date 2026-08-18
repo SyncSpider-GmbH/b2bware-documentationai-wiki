@@ -17,16 +17,22 @@ pages, and the exact same content ships inside every theme download under `docs/
 
 ## Start a new theme
 
+Both repos below share the same project layout — `theme/` is the uploadable theme, plus these
+docs, bash build/refresh scripts, and `.cursor/rules` for AI assistants. The store admin
+**Themes** page links to them under **Get theme source**.
+
 <CardGroup cols={2}>
-  <Card title="Theme Starter Kit (recommended)" icon="github" href="https://github.com/SyncSpider-GmbH/Theme_B2Bware_Starter_Kit">
-    Fork it, use it as a template, or download the ZIP. Ships the reference theme, these docs, and
-    bash build/refresh scripts. Working in Cursor is recommended (not required).
+  <Card title="Theme Starter Kit" icon="github" href="https://github.com/SyncSpider-GmbH/theme_b2bware_starter_kit">
+    Blank canvas: no layouts, partials or pages — you build them. Pick this to design from scratch.
   </Card>
-  <Card title="Download theme files only" icon="download">
-    From the store admin **Themes** page, "Download theme files only" gives you just the upload
-    payload (`theme.json`, Blade, assets, `docs/`) to drop into an existing repo or upload directly.
+  <Card title="Default Theme" icon="github" href="https://github.com/SyncSpider-GmbH/theme_b2bware_default">
+    The complete default theme — every layout, partial, component and page. Pick this to restyle
+    what the store already ships.
   </Card>
 </CardGroup>
+
+Fork either one, use it as a template, or download the ZIP. Working in Cursor is recommended
+(not required).
 
 ## How to read these docs
 
@@ -55,5 +61,5 @@ that aren't listed here.
 ## Keeping an old download current
 
 Every bundled `docs/` page carries a link back to its page here. If your download is old, trust
-these online pages (or the Starter Kit's `update-theme-docs.sh` refresh script) over the local
+these online pages (or run `./scripts/update-theme-docs.sh` in your theme repo) over the local
 copy. Contract changes are recorded in the [changelog](/changelog).

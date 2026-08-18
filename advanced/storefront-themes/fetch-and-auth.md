@@ -60,7 +60,7 @@ resolve to a private / loopback / internal address.
 @fetch('https://api.example.com/feed', ['headers' => ['Authorization' => 'Bearer …']], 'feed')
 ```
 
-To read DataHub data this way, mint a **read-only API token** scoped to what you need and pass it as
+To read B2Bware data this way, mint a **read-only API token** scoped to what you need and pass it as
 the `Authorization` header — you stay in control of exactly what it can see.
 
 **Internal — a leading-slash `/api/...` path.** The platform rewrites it to this store's own API and

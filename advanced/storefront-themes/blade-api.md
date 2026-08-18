@@ -36,7 +36,7 @@ In addition to standard Blade control flow above, the platform registers these t
 | `@t('Up to %d rows', $max)`              | `t('Up to %d rows', $max)`    | Same, with printf-style values injected after the lookup (see §9.1)                  |
 | `@routeUrl('store.home', [...], $locale?)` | `routeUrl(...)`             | Build a locale-aware route URL; defaults to the active locale, pass `$locale` to target another |
 | `@themeAsset('img/logo.png')`            | —                             | Asset URL relative to the active theme's `assets/` folder                              |
-| `@storefrontAsset('storefront.css')`     | —                             | Asset URL for a published StorefrontHub platform asset (cache-busted)                  |
+| `@storefrontAsset('storefront.css')`     | —                             | Asset URL for a published platform asset (cache-busted)                                   |
 | `@storefrontImage('url', w?, h?, q?)`    | —                             | Bunny-optimised image URL — sizing params on-CDN, pass-through off-CDN (see §9.11)      |
 | `@formatCurrency($amount, $currency?)`   | `formatCurrency(...)`         | Locale + currency aware money formatting (see §9.4)                                  |
 | `@formatNumber($value, $maxFraction?)`   | `formatNumber(...)`           | Locale-aware decimal formatting (see §9.4)                                           |

@@ -232,7 +232,7 @@ formatNumber  (float|int|string $value, int $maxFractionDigits = 2): string
 ```
 
 - Both honour the active URL locale: number-grouping (`1,234.56` vs `1.234,56`), currency symbol position, narrow vs full symbol, and digit shape are picked by ICU's `NumberFormatter`.
-- `$currency` is an ISO 4217 code (`'USD'`, `'EUR'`, `'HRK'`). When omitted, the platform reads `storefronthub.currency` from settings, falling back to the platform default.
+- `$currency` is an ISO 4217 code (`'USD'`, `'EUR'`, `'HRK'`). When omitted, the platform uses the store's configured currency, falling back to the platform default.
 - The currency symbol is rendered automatically — do **not** prefix or suffix a manual `€` / `$` / `kn` in markup.
 
 ### Examples by locale
