@@ -1,6 +1,6 @@
 ---
 title: Blade API
-description: The allowed authoring toolkit: theme directives and helper functions.
+description: "The allowed authoring toolkit: theme directives and helper functions."
 ---
 
 <Info>
