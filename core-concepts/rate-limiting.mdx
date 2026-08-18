@@ -4,9 +4,9 @@ description: Per-scope API rate limits, keying strategy, default ceilings, env o
 ---
 
 The DataHub API applies **per-scope** rate limits. Traffic is classified into
-scopes (admin, storefront, webhook, auth, bulk, public) and each scope has its
-own request-per-minute ceiling and its own **keying strategy**, so unrelated
-tenants and users never share a single rate-limit bucket.
+scopes (admin, integration, storefront, webhook, auth, bulk, public) and each
+scope has its own request-per-minute ceiling and its own **keying strategy**, so
+unrelated tenants and users never share a single rate-limit bucket.
 
 All ceilings are defined once in `config/ratelimits.php` (the single source of
 truth) and are env-overridable, so limits can be tuned per environment without
@@ -17,6 +17,7 @@ a code change.
 | Scope | Limiter | Applies to | Keyed by |
 |-------|---------|------------|----------|
 | `admin` | `rl_admin` | Authenticated admin API (`/api/v1/apps/*`) | Authenticated **user id** (falls back to IP, at the `public` ceiling, when unauthenticated) |
+| `integration` | `rl_integration` | Machine-to-machine integration API (`/apiv1/*`, excluding `/apiv1/internal/apps/*`) — the surface integration platforms (e.g. SyncSpider) use to sync datasets | Authenticated **user id** (falls back to IP, at the `public` ceiling, when unauthenticated) |
 | `storefront` | `rl_storefront` | Server-rendered storefront pages | Shop **customer** → browser **session** → IP |
 | `webhook` | `rl_webhook` | Public payment/provider webhooks (`/api/v1/webhooks`, routes carrying an `installationKey`) | **Installation key** in the URL (IP fallback) |
 | `bulk` | `rl_bulk` | Expensive bulk / export / import / AI operations | Authenticated **user id** (IP fallback) |
@@ -30,11 +31,11 @@ a code change.
 The bucket key is chosen per scope so that one caller cannot exhaust the budget
 for unrelated callers:
 
-- **Authenticated scopes** (`admin`, `bulk`) are keyed by the **authenticated
-  user id**. A shared office or VPN IP therefore does not throttle a whole team
-  — each user gets their own budget. When a request reaches the admin scope
-  unauthenticated, it falls back to being keyed by IP at the lower `public`
-  ceiling.
+- **Authenticated scopes** (`admin`, `integration`, `bulk`) are keyed by the
+  **authenticated user id**. A shared office or VPN IP therefore does not
+  throttle a whole team — each user gets their own budget. When a request
+  reaches the admin or integration scope unauthenticated, it falls back to
+  being keyed by IP at the lower `public` ceiling.
 - **Unauthenticated auth scopes** (`auth_login`, `auth_register`,
   `password_reset`) are keyed by **IP**. There is no identity yet, and IP is the
   brute-force surface these tighter limits are designed to protect.
@@ -51,6 +52,16 @@ default. Immutable static storefront assets (`assets/*`) are excluded from the
 per-session page budget so a single page load cannot 429 its own assets.
 </Callout>
 
+<Callout kind="info" title="Integration traffic has its own budget">
+The legacy `/apiv1/*` surface is machine-to-machine traffic: integration
+platforms sync whole datasets through it, often at a rate no human admin would
+ever produce. It therefore has its own high-ceiling `integration` scope — bulk
+paths under it included — so a running sync never competes with (or gets
+throttled like) the human admin UI. Custom app packages under
+`/apiv1/internal/apps/*` serve admin UIs and end consumers, not dataset syncs,
+so they keep the standard admin/bulk classification.
+</Callout>
+
 ## Default Ceilings & Env Overrides
 
 Defaults are requests **per minute**. Override any value via the environment
@@ -59,6 +70,7 @@ variable and restart the app to apply.
 | Scope | Env variable | Default (req/min) |
 |-------|--------------|-------------------|
 | `admin` | `RATELIMIT_ADMIN` | `300` |
+| `integration` | `RATELIMIT_INTEGRATION` | `3000` |
 | `storefront` | `RATELIMIT_STOREFRONT` | `120` |
 | `webhook` | `RATELIMIT_WEBHOOK` | `120` |
 | `auth_login` | `RATELIMIT_AUTH_LOGIN` | `30` |
