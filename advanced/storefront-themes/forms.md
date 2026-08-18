@@ -1,6 +1,6 @@
 ---
 title: Forms
-description: The @storefrontForm contract and the full registry of platform form types.
+description: "The @storefrontForm contract and the full registry of platform form types."
 ---
 
 <Info>

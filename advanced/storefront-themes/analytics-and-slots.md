@@ -1,6 +1,6 @@
 ---
 title: Analytics & slots
-description: Consent-gated analytics and @storefrontSlot module/CMS content slots.
+description: "Consent-gated analytics and @storefrontSlot module/CMS content slots."
 ---
 
 <Info>

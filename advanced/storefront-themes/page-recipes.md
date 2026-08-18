@@ -1,6 +1,6 @@
 ---
 title: Page recipes
-description: Per-page view-data contracts: checkout, proposal-preview, account, auth, customer-selection.
+description: "Per-page view-data contracts: checkout, proposal-preview, account, auth, customer-selection."
 ---
 
 <Info>
