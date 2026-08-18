@@ -3,10 +3,6 @@ title: Styling
 description: Tailwind-first styling and the fixed head cascade.
 ---
 
-<Info>
-This page also ships inside the default theme download under `docs/11-styling.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
-
 ## 10. Styling — Tailwind first
 
 **Strongly prefer Tailwind utility classes over custom CSS.** Every layout already links the platform's prebuilt `base.css` (Tailwind v4, compiled once at deploy time), which ships a large set of utilities and the full design-token system. Using Tailwind keeps theme zips tiny and pages light — no extra CSS is shipped per theme unless you actually write some.

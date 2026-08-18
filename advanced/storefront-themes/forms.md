@@ -1,11 +1,7 @@
 ---
 title: Forms
-description: "The @storefrontForm contract and the full registry of platform form types."
+description: The @storefrontForm contract and the full registry of platform form types.
 ---
-
-<Info>
-This page also ships inside the default theme download under `docs/03-forms.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
 
 ## 9.5 Forms — the `@storefrontForm` contract
 

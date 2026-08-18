@@ -3,10 +3,6 @@ title: Author checklist
 description: Override strategy and the pre-upload author checklist.
 ---
 
-<Info>
-This page also ships inside the default theme download under `docs/13-checklist.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
-
 ## 12. Override strategy
 
 A theme only needs to ship the files it overrides. Anything missing falls back to the bundled default theme.

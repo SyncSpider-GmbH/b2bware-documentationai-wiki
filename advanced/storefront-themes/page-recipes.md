@@ -1,19 +1,15 @@
 ---
 title: Page recipes
-description: "Per-page view-data contracts: checkout, proposal-preview, account, auth, customer-selection."
+description: Per-page view-data contracts: checkout, proposal-preview, account, auth, customer-selection.
 ---
-
-<Info>
-This page also ships inside the default theme download under `docs/10-page-recipes.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
 
 ## §10. Page recipes
 
 This page gathers the **per-page contracts** — the extra view data a specific fixed page
-receives on top of the globals in [`04-view-data.md`](/advanced/storefront-themes/view-data). Every page also gets the
+receives on top of the globals in [`view-data.md`](view-data.md). Every page also gets the
 global variables (`$locale`, `$me`, `$store`, `$cart`, `$messages`, `$localeOptions`, …); only the
 page-specific additions are listed here. Pages not listed below render with globals only (e.g.
-`not-found` and `error` — see §2.1 / §2.2 in [`00-hard-rules.md`](/advanced/storefront-themes/hard-rules)).
+`not-found` and `error` — see §2.1 / §2.2 in [`hard-rules.md`](hard-rules.md)).
 
 ### 10.1 `pages/proposal-preview.blade.php`
 
@@ -46,7 +42,7 @@ flags rather than assuming a single layout:
 
 Errors flash back via `@storefrontError('proposal')`, `@storefrontError('items')`,
 `@storefrontError('accept_terms')`. Owner-authored CMS content renders through
-`@storefrontSlot('content-top')` (see §9.16 in [`09-analytics-slots.md`](/advanced/storefront-themes/analytics-and-slots)).
+`@storefrontSlot('content-top')` (see §9.16 in [`analytics-and-slots.md`](analytics-and-slots.md)).
 
 ### 10.2 `pages/checkout.blade.php`
 
@@ -54,7 +50,7 @@ Wraps the `checkout` form (§9.5). Renders the address pickers via
 `partials/checkout-address-option` / `checkout-address-summary` and the totals via the
 `checkout-summary` AJAX section (§9.7). Because HTML forbids nested `<form>`s, emit the
 "Manage addresses" `<dialog>` blocks **outside** the checkout form (see the modal note in
-[`05-ajax-runtime.md`](/advanced/storefront-themes/ajax-and-runtime)). Coupons use `cart-coupon-apply` /
+[`ajax-and-runtime.md`](ajax-and-runtime.md)). Coupons use `cart-coupon-apply` /
 `cart-coupon-remove`, gated on `checkout.enable_coupons` (§9.6).
 
 ### 10.3 `pages/guest-order.blade.php`

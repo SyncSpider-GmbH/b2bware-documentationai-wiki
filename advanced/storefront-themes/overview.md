@@ -36,27 +36,27 @@ Fork either one, use it as a template, or download the ZIP. Working in Cursor is
 
 ## How to read these docs
 
-Always read **[Hard rules](/advanced/storefront-themes/hard-rules)** first, then load the page(s)
-for your task. If you use an AI assistant, point it at the bundled `docs/README.md` load matrix
-and these pages, and tell it never to invent directives, form types, `$store` keys, or tokens
-that aren't listed here.
+Always read **[Hard rules](hard-rules.md)** first, then load the page(s) for your task. If you
+use an AI assistant, point it at the bundled `docs/README.md` load matrix and these pages, and
+tell it never to invent directives, form types, `$store` keys, or tokens that aren't listed
+here.
 
 | Page | Covers |
 | --- | --- |
-| [Hard rules](/advanced/storefront-themes/hard-rules) | Archive layout, canonical file surface, forbidden Blade/PHP |
-| [Blade API](/advanced/storefront-themes/blade-api) | Allowed toolkit, theme directives, helpers |
-| [i18n & formatting](/advanced/storefront-themes/i18n-and-formatting) | Translations, locale/currency, dates, numbers |
-| [Forms](/advanced/storefront-themes/forms) | The `@storefrontForm` registry |
-| [View data](/advanced/storefront-themes/view-data) | Globals, `$store`, feature flags, pricing, variants |
-| [AJAX & runtime](/advanced/storefront-themes/ajax-and-runtime) | Sections, events, `window.Storefront` |
-| [Catalog](/advanced/storefront-themes/catalog) | Facets, sorting, filters, pagination |
-| [SEO & images](/advanced/storefront-themes/seo-and-images) | `@storefrontSeo`, `@storefrontImage` |
-| [Server data & auth](/advanced/storefront-themes/fetch-and-auth) | `@fetch`, `@storefrontAuthToken`, API reference |
-| [Analytics & slots](/advanced/storefront-themes/analytics-and-slots) | Consent analytics, `@storefrontSlot` |
-| [Page recipes](/advanced/storefront-themes/page-recipes) | Per-page view-data contracts |
-| [Styling](/advanced/storefront-themes/styling) | Tailwind-first, the head cascade |
-| [Design tokens](/advanced/storefront-themes/tokens) | Full token reference, dark mode |
-| [Author checklist](/advanced/storefront-themes/checklist) | Override strategy, pre-upload checklist |
+| [Hard rules](hard-rules.md) | Archive layout, canonical file surface, forbidden Blade/PHP |
+| [Blade API](blade-api.md) | Allowed toolkit, theme directives, helpers |
+| [i18n & formatting](i18n-and-formatting.md) | Translations, locale/currency, dates, numbers |
+| [Forms](forms.md) | The `@storefrontForm` registry |
+| [View data](view-data.md) | Globals, `$store`, feature flags, pricing, variants |
+| [AJAX & runtime](ajax-and-runtime.md) | Sections, events, `window.Storefront` |
+| [Catalog](catalog.md) | Facets, sorting, filters, pagination |
+| [SEO & images](seo-and-images.md) | `@storefrontSeo`, `@storefrontImage` |
+| [Server data & auth](fetch-and-auth.md) | `@fetch`, `@storefrontAuthToken`, API reference |
+| [Analytics & slots](analytics-and-slots.md) | Consent analytics, `@storefrontSlot` |
+| [Page recipes](page-recipes.md) | Per-page view-data contracts |
+| [Styling](styling.md) | Tailwind-first, the head cascade |
+| [Design tokens](tokens.md) | Full token reference, dark mode |
+| [Author checklist](checklist.md) | Override strategy, pre-upload checklist |
 
 ## Keeping an old download current
 

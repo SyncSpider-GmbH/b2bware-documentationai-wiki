@@ -3,10 +3,6 @@ title: AJAX & runtime
 description: AJAX sections, JavaScript events, window.Storefront, and loading states.
 ---
 
-<Info>
-This page also ships inside the default theme download under `docs/05-ajax-runtime.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
-
 ## 9.7 Sections, AJAX & progressive enhancement
 
 The storefront is server-rendered, but cart actions — add to cart, change quantity, remove a line, apply / remove a coupon, clear the cart — update the page **in place, without a full reload**, the way Shopify does. This rests on two platform primitives a theme opts into purely through markup:

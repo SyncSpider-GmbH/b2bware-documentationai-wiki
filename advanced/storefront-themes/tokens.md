@@ -3,10 +3,6 @@ title: Design tokens
 description: The complete design-token variable reference and dark mode.
 ---
 
-<Info>
-This page also ships inside the default theme download under `docs/12-tokens.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
-
 ## 11. Design tokens — complete variable reference
 
 Every `--brand-*` variable listed below is overridable from `assets/css/storefront.css`. Each variable lists its **default value** and the **Tailwind utility(ies)** it powers, so you know exactly which classes change when you redeclare it.

@@ -3,10 +3,6 @@ title: Catalog
 description: Facets, sorting, price/in-stock filters, view modes, and pagination.
 ---
 
-<Info>
-This page also ships inside the default theme download under `docs/06-catalog.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
-
 ## 9.8 Catalog — facets, sorting, price, in-stock, view & pagination
 
 The catalog pages — `products.blade.php` (the All Products index) and the **leaf** branch of `category.blade.php` — receive a curated set of **layered-navigation** view data that mirrors the Nexus SPA. Everything is dynamic and tenant-scoped; the theme never reads ProductHub / AttributesHub directly. Render it with `@foreach` + `data_get`, exactly like every other page.

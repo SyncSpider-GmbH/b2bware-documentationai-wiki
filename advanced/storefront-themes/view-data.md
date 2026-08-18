@@ -3,10 +3,6 @@ title: View data
 description: Global view data, the $store object, feature flags, pricing, variants, and rewards.
 ---
 
-<Info>
-This page also ships inside the default theme download under `docs/04-view-data.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
-
 ## 9.6 Config-driven view data — price visibility, add-to-cart gating, cart rewards
 
 The platform injects a set of **config-driven flags** into every view (layouts, pages, partials, components) so a theme can react to the tenant's storefront settings without reading config itself (config helpers are forbidden — see §7). All of these mirror the Nexus SPA behaviour so the server-rendered storefront and the SPA stay in lockstep.

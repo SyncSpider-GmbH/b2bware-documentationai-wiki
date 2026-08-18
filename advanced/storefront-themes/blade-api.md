@@ -1,11 +1,7 @@
 ---
 title: Blade API
-description: "The allowed authoring toolkit: theme directives and helper functions."
+description: The allowed authoring toolkit: theme directives and helper functions.
 ---
-
-<Info>
-This page also ships inside the default theme download under `docs/01-blade-api.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
 
 ## 9. Allowed authoring toolkit
 

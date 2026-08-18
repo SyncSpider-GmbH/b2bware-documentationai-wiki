@@ -3,10 +3,6 @@ title: Hard rules
 description: Archive layout, canonical file surface, and the forbidden Blade/PHP the upload validator hard-rejects.
 ---
 
-<Info>
-This page also ships inside the default theme download under `docs/00-hard-rules.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
-
 ## 1. Archive layout
 
 A theme zip must contain **`theme.json` at the root**. A single top-level wrapper folder is unwrapped automatically, and OS/editor junk (`__MACOSX/`, `.DS_Store`, AppleDouble `._*`, `.git/`, …) is stripped — so a zip made with macOS Finder "Compress" uploads as-is.

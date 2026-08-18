@@ -1,11 +1,7 @@
 ---
 title: SEO & images
-description: "@storefrontSeo structured data and @storefrontImage CDN optimisation."
+description: @storefrontSeo structured data and @storefrontImage CDN optimisation.
 ---
-
-<Info>
-This page also ships inside the default theme download under `docs/07-seo-images.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
 
 ## 9.10 SEO & structured data — `@storefrontSeo`
 

@@ -1,11 +1,7 @@
 ---
 title: Server data & auth
-description: "@fetch server-side HTTP, @storefrontAuthToken, and the backend API reference."
+description: @fetch server-side HTTP, @storefrontAuthToken, and the backend API reference.
 ---
-
-<Info>
-This page also ships inside the default theme download under `docs/08-fetch-auth.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
 
 ## 9.12 Server-side data — `@fetch`
 

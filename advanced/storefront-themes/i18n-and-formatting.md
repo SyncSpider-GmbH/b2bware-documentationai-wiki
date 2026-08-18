@@ -3,10 +3,6 @@ title: Internationalisation & formatting
 description: Translations, active locale/currency, and locale-aware date/number formatting.
 ---
 
-<Info>
-This page also ships inside the default theme download under `docs/02-i18n-format.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
-
 ## 9.1 Translations
 
 The storefront supports **two complementary strategies** for translating a page. Most themes only ever need the first one; reach for the second only when an entire page diverges significantly across locales.

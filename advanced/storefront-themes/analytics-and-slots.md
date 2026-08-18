@@ -1,11 +1,7 @@
 ---
 title: Analytics & slots
-description: "Consent-gated analytics and @storefrontSlot module/CMS content slots."
+description: Consent-gated analytics and @storefrontSlot module/CMS content slots.
 ---
-
-<Info>
-This page also ships inside the default theme download under `docs/09-analytics-slots.md`, so offline and AI-assisted authors have the same contract locally. This online version is always the latest.
-</Info>
 
 ## 9.13 Analytics, cookie consent & custom scripts
 
