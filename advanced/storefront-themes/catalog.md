@@ -5,7 +5,7 @@ description: Facets, sorting, price/in-stock filters, view modes, and pagination
 
 ## 9.8 Catalog — facets, sorting, price, in-stock, view & pagination
 
-The catalog pages — `products.blade.php` (the All Products index) and `category.blade.php` when `$showProducts` is true — receive a curated set of **layered-navigation** view data that mirrors the Nexus SPA. Everything is dynamic and tenant-scoped; the theme never reads ProductHub / AttributesHub directly. Render it with `@foreach` + `data_get`, exactly like every other page.
+The catalog pages — `products.blade.php` (the All Products index) and `category.blade.php` when `$showProducts` is true — receive a curated set of **layered-navigation** view data. Everything is dynamic and tenant-scoped; the theme never reads ProductHub / AttributesHub directly. Render it with `@foreach` + `data_get`, exactly like every other page.
 
 ### Catalog view data
 

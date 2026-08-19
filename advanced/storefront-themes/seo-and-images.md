@@ -60,7 +60,7 @@ Catalog and customer media (product photos, gallery images, cart thumbnails) are
 
 Arguments: `@storefrontImage($url, $width?, $height?, $quality?, $aspectRatio?)`. Width, height and quality are optional integers; aspect ratio is an optional `"16:9"`-style string. Omitted (null) arguments are skipped.
 
-Resolve a product's main image with `resolved_main_media` — the single, ready-to-use image the platform resolves for every product. Cascade (same order as the ProductHub API `main_media` field, so server-rendered themes and the Nexus SPA agree):
+Resolve a product's main image with `resolved_main_media` — the single, ready-to-use image the platform resolves for every product. Cascade (same order as the ProductHub API `main_media` field):
 
 1. primary image on **this** product (`is_primary` + `media_type=image`)
 2. else this product's first own image by `sort_order`

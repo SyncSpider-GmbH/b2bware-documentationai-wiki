@@ -5,7 +5,7 @@ description: Global view data, the $store object, feature flags, pricing, varian
 
 ## 9.6 Config-driven view data — price visibility, add-to-cart gating, cart rewards
 
-The platform injects a set of **config-driven flags** into every view (layouts, pages, partials, components) so a theme can react to the tenant's storefront settings without reading config itself (config helpers are forbidden — see §7). All of these mirror the Nexus SPA behaviour so the server-rendered storefront and the SPA stay in lockstep.
+The platform injects a set of **config-driven flags** into every view (layouts, pages, partials, components) so a theme can react to the tenant's storefront settings without reading config itself (config helpers are forbidden — see §7).
 
 ### The compliance contract
 
@@ -165,6 +165,8 @@ Never fetch customer orders or account PII through `@fetch` — use these keys.
 | `$companyRequiredFields` | array&lt;string,bool&gt; | Company field required map; eager on register. |
 | `$catalogExportSummary` | array\|null | Safe export readiness fields (no raw token). |
 | `$apiKeysCount` | int | API key count for badges. |
+| `$priceViews` | array | Catalog/favorites listings: `[product_id => tax-split view-model]`. **Lazy** — resolved only when Blade touches it (the listing controller offers products; it does not hit a price provider up front). Empty when the page has no products or prices are hidden. Product detail still passes `$priceView` / `$crossSellPriceViews` eagerly because variant rows embed them. |
+| `$pricingRows` | array | Vendor-neutral per-customer extras `[product_id => row]` from an OrderHub row provider (ERP addons). Keys: `unit_price`, `list_price`, `discount_label`, `price_unit`, `sales_lot_size`, `is_stock_item`, `package_metrics`, `quantity_unit`, `skipped`. **Always `[]` when no addon is installed.** Lazy. Themes must not name a vendor; guard extra columns with `count($pricingRows)` / `data_get`. |
 
 **Home page:** an uploaded theme may add `pages/home.blade.php` (`/{locale}/home`).
 It receives the same globals + optional keys. Prefer `$me` / `$me->company` (including
@@ -217,6 +219,8 @@ The view-model carries `current_excl`, `current_incl`, `compare_excl`, `compare_
 
 When the tenant connects a pricing integration (for example an ERP such as **Mesonic** real-time pricing), the platform automatically fills these same view-models with the **signed-in customer's own price** — and that displayed price is exactly what the cart will charge. The catalog list price is shown struck-through next to it when it is higher. This needs **no theme changes**: a theme that simply renders `$priceViews` / `$priceView` shows personalised prices for free. (Older themes that fetched ERP prices client-side with `@fetch` should drop that and just render the supplied view-models — `@fetch` is for content, never pricing.)
 
+Extra ERP *display* fields (pack size, discount label, unit of measure, skip flags) are **not** Mesonic-specific in the theme. They arrive as lazy `$pricingRows` only when the installed addon implements OrderHub's row-provider interface. A theme that does not read `$pricingRows` never triggers that lookup. StorefrontHub does not import or name the addon.
+
 ### Gating add-to-cart
 
 Only render the `cart-add` form when `$canAddToCart` is true; otherwise link to login. The bundled `components/add-to-cart-button.blade.php` already implements this:
@@ -241,7 +245,7 @@ A **configurable** product has child **variants** (e.g. per Size / Colour). The 
 
 - **Listings hide variants.** The products and category pages list root products only (the catalog applies `exclude_child_products`), so a configurable product appears once and its counts stay truthful.
 - **A variant's own URL redirects to its parent with `?variant=<id>`.** Opening `/{locale}/products/<variant-slug-or-id>` 302-redirects to the parent product page **and keeps `?variant=<child id>`**, so table mode lands on the dedicated variant view (see below). Links stay canonical — variants are never standalone catalog pages.
-- **Listing cards link to the product page, never add directly.** A listing card can't choose a specific variant, so a configurable product renders a **"Choose options"** link to its parent product page (where the variant picker / bulk-variant table lives) instead of an add-to-cart control. This applies to every catalog surface — grid and list cards, favorites and cross-sells — via `components/add-to-cart-button.blade.php` and the `product-card` list row, keyed off `data_get($product, 'product_type') === 'configurable'`. Simple products keep their normal add-to-cart (the list row keeps its quantity stepper). This mirrors Nexus and is the canonical pattern uploaded themes should follow.
+- **Listing cards link to the product page, never add directly.** A listing card can't choose a specific variant, so a configurable product renders a **"Choose options"** link to its parent product page (where the variant picker / bulk-variant table lives) instead of an add-to-cart control. This applies to every catalog surface — grid and list cards, favorites and cross-sells — via `components/add-to-cart-button.blade.php` and the `product-card` list row, keyed off `data_get($product, 'product_type') === 'configurable'`. Simple products keep their normal add-to-cart (the list row keeps its quantity stepper). This is the canonical pattern uploaded themes should follow.
 
 How the parent product page presents its variants follows the tenant flag **`$store['variation_display_mode']`** (`'table'` default | `'dropdown'`). The default theme implements both; a custom theme can read the data below and build anything (a swatch grid, a matrix, …).
 
@@ -357,7 +361,7 @@ Live row/total maths and the attribute filters are pure client-side enhancement 
 
 ### Cart reward progress bars
 
-The cart page receives **`$cartProgress`** — progress toward each eligible cart price-rule's threshold, sourced from RuleHub. Render a bar per rule so shoppers see how close they are to the next discount / free-shipping reward (mirrors the Nexus cart rewards row).
+The cart page receives **`$cartProgress`** — progress toward each eligible cart price-rule's threshold, sourced from RuleHub. Render a bar per rule so shoppers see how close they are to the next discount / free-shipping reward.
 
 `$cartProgress` is a list; each entry is shaped:
 
