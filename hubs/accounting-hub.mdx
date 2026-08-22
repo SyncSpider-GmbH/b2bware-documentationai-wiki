@@ -1,0 +1,172 @@
+---
+title: AccountingHub
+description: Reports-only accounting operations, departments, bank imports, and document reconciliation without a general ledger.
+---
+
+## Overview
+
+AccountingHub provides operational accounting reports and bank reconciliation
+for InvoiceHub and ProcurementHub documents. Version 1 is deliberately
+**reports-only**: it does not create journal entries, a chart of accounts, a
+general ledger, or double-entry postings.
+
+**Base URL:** `api/v1/apps/accounting-hub/`
+
+<Callout kind="info" title="Admin API">
+All endpoints require admin access and the endpoint-specific AccountingHub
+permission. Send the tenant `installation-key` and bearer credentials expected
+by your DataHub installation.
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Settings">
+
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| GET | `/settings/groups/list` | `accounting-hub.settings.view` | List the `banking` and `reconciliation` groups. |
+| GET | `/settings` | `accounting-hub.settings.view` | Get all AccountingHub settings. |
+| POST | `/settings` | `accounting-hub.settings.update` | Store all settings. |
+| POST | `/settings/reset` | `accounting-hub.settings.update` | Reset all settings to defaults. |
+| GET | `/settings/{group}` | `accounting-hub.settings.view` | Get one settings group. |
+| POST | `/settings/{group}` | `accounting-hub.settings.update` | Update one settings group. |
+| POST | `/settings/{group}/reset` | `accounting-hub.settings.update` | Reset one group. |
+
+  </Tab>
+  <Tab title="Departments">
+
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| GET | `/departments` | `accounting-hub.departments.view` | List departments. |
+| POST | `/departments` | `accounting-hub.departments.create` | Create a department. |
+| GET | `/departments/{id}` | `accounting-hub.departments.view` | Get a department. |
+| PUT | `/departments/{id}` | `accounting-hub.departments.update` | Update a department. |
+| DELETE | `/departments/{id}` | `accounting-hub.departments.delete` | Delete a department. |
+
+A department belongs to an `owner_type` of `company` or `vendor`. Its
+`user_ids` define assigned users, and `bank_account_id` can link the department
+to a bank account.
+
+  </Tab>
+  <Tab title="Banking">
+
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| GET | `/bank-accounts` | `accounting-hub.bank-accounts.view` | List bank accounts. |
+| POST | `/bank-accounts` | `accounting-hub.bank-accounts.create` | Register a provider account. |
+| GET | `/bank-accounts/{id}` | `accounting-hub.bank-accounts.view` | Get a bank account. |
+| PUT | `/bank-accounts/{id}` | `accounting-hub.bank-accounts.update` | Update a bank account. |
+| DELETE | `/bank-accounts/{id}` | `accounting-hub.bank-accounts.delete` | Delete an unused bank account. |
+| POST | `/bank-accounts/{bankAccount}/connection` | `accounting-hub.bank-accounts.connect` | Create or inspect a provider connection. |
+| POST | `/bank-accounts/{bankAccount}/authorize` | `accounting-hub.bank-accounts.connect` | Start provider authorization. |
+| POST | `/bank-accounts/{bankAccount}/callback` | `accounting-hub.bank-accounts.connect` | Complete provider authorization. |
+| POST | `/bank-accounts/{bankAccount}/import` | `accounting-hub.bank-accounts.connect` | Queue a statement/transaction import; accepts optional `from` and `to` dates. |
+| GET | `/bank-statements` | `accounting-hub.bank-accounts.view` | List imported statements. |
+| GET | `/bank-transactions` | `accounting-hub.bank-accounts.view` | List imported transactions. |
+
+Import returns HTTP `202` with `{"message":"Bank transaction import queued"}`.
+The queued job restores the tenant from the installation key before accessing
+provider or accounting data.
+
+<Callout kind="warning" title="Bank-account deletion dependencies">
+`DELETE /bank-accounts/{id}` returns HTTP `409` while the account has bank
+statements, bank transactions, or reconciliations. The body contains
+`message` and a `dependencies` array naming every blocker. Remove or retain
+those dependent records according to your retention policy before retrying.
+</Callout>
+
+  </Tab>
+  <Tab title="Reconciliation">
+
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| GET | `/reconciliations` | `accounting-hub.reconciliation.perform` | List reconciliation records. |
+| GET | `/bank-transactions/{bankTransaction}/suggestions` | `accounting-hub.reconciliation.perform` | Suggest open invoices or vendor bills by amount, currency, and reference. |
+| POST | `/bank-transactions/{bankTransaction}/match` | `accounting-hub.reconciliation.perform` | Match one transaction to an invoice or vendor bill. |
+
+Match input requires `document_type` (`invoice` or `vendor_bill`) and
+`document_id`. Optional fields are `matched_amount`, `match_method` (`manual`
+or `automatic`), and `confidence` from `0` to `1`.
+
+Matching is resumable and idempotent per bank transaction. Retrying the same
+transaction/document pair resumes any missing transaction, document, status,
+or completion-event side effect and returns the existing reconciliation.
+Completion progress is persisted in reconciliation metadata. A retry does not
+allocate the payment twice or emit a second completion event. Attempting to
+reuse that transaction for a different document is rejected.
+
+Only open documents with the same currency can be matched, and the matched
+amount must equal the open document amount within the configured tolerance.
+
+  </Tab>
+  <Tab title="Documents & Reports">
+
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| PUT | `/documents/{type}/{id}/departments` | `accounting-hub.documents.assign-department` | Replace department IDs on an `invoice`, `credit-note`, or `vendor-bill`. |
+| GET | `/reports/revenue-receivables` | report middleware | Summarize issued/sent/overdue/paid invoices. |
+| GET | `/reports/payables` | report middleware | Summarize captured/review/matched/paid vendor bills. |
+| GET | `/reports/credit-notes` | report middleware | Summarize issued credit notes. |
+| GET | `/reports/department-profit-loss` | report middleware | Operational revenue-minus-expenses summary by currency. |
+| GET | `/reports/reconciliation-status` | report middleware | Count matched/unmatched transactions and reconciliation states. |
+
+Users with `accounting-hub.reports.view` can view all report data. Users with
+only `accounting-hub.reports.view-own-department` are restricted to assigned
+departments; no assignment produces HTTP `403`.
+
+  </Tab>
+</Tabs>
+
+## Settings
+
+| Group | Key | Type | Default | Meaning |
+|---|---|---|---|---|
+| `banking` | `provider` | text | `banksapi` | Bank provider adapter. |
+| `banking` | `base_url` | text | empty | Provider API base URL. |
+| `banking` | `api_key` | password | empty | Provider credential. |
+| `banking` | `connection_path` | text | empty | Connection endpoint path. |
+| `banking` | `authorization_path` | text | empty | Authorization endpoint path. |
+| `banking` | `callback_path` | text | empty | Callback exchange endpoint path. |
+| `banking` | `statements_path` | text | empty | Statement endpoint path. |
+| `reconciliation` | `amount_tolerance` | number | `0.01` | Allowed amount difference. |
+| `reconciliation` | `date_window_days` | number | `14` | Suggestion date window. |
+| `reconciliation` | `auto_match_threshold` | number | `0.95` | Auto-match confidence threshold. |
+
+## Pagination, Filtering, and Sorting
+
+Department, bank-account, statement, transaction, and reconciliation list
+endpoints accept `page` (minimum `1`) and `per_page` (minimum `1`, maximum
+`200`, default `25`). Their response is flat:
+
+```json
+{
+  "data": [],
+  "total": 0,
+  "current_page": 1,
+  "total_pages": 1,
+  "per_page": 25
+}
+```
+
+Supported filters are `id`, `status`, `bank_account_id`, `department_id`,
+`name`, `code`, and `reference`. Supported sorts are `id`, `name`, `code`,
+`booking_date`, `amount`, `status`, and `_created_at`; the default is
+descending `id`.
+
+## Error Contract
+
+| Status | Meaning |
+|---|---|
+| `401` | Missing or invalid authentication. |
+| `403` | Missing AccountingHub permission or no assigned department access. |
+| `404` | Accounting resource or source document not found. |
+| `409` | Bank-account deletion has dependencies. |
+| `422` | Validation failed; the response contains field-level errors. |
+| `500` | Provider, tenant-context, or reconciliation processing failed. |
+
+## Related
+
+- [InvoiceHub](/hubs/invoice-hub) — invoices and credit notes used by reports and reconciliation.
+- [ProcurementHub](/hubs/procurement-hub) — vendor bills used by reports and reconciliation.
+- [AccountingHub API Reference](/api-reference/accounting-hub)

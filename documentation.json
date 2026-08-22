@@ -168,6 +168,11 @@
                 "icon": "shopping-bag"
               },
               {
+                "title": "AccountingHub",
+                "path": "hubs/accounting-hub",
+                "icon": "calculator"
+              },
+              {
                 "title": "CustomerHub",
                 "path": "hubs/customer-hub",
                 "icon": "users"
@@ -406,6 +411,12 @@
             "group": "ProcurementHub",
             "icon": "shopping-bag",
             "openapi": "api-reference/procurement-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "AccountingHub",
+            "icon": "calculator",
+            "openapi": "api-reference/accounting-hub/openapi.yaml",
             "pages": []
           },
           {

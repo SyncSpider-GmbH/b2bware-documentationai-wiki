@@ -32,6 +32,16 @@ Most endpoints sit behind `auth:api`. The two public flows — `reset-password` 
 | GET | `/me/sessions` | `auth:api` | List active sessions with company and impersonator metadata. |
 | DELETE | `/me/sessions/{id}` | `auth:api` | Revoke one owned session. |
 
+`GET /me/sessions` returns `{ "data": [...] }`. Each session includes the
+existing `id`, `ip`, `location`, `last_used_at`, `login_date`, and `current`
+fields plus:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `user_account_id` | integer or `null` | Canonical Unified Contacts user-account ID attached to the login. |
+| `active_company_id` | integer or `null` | Company selected for this session; `null` is the B2C/no-company context. |
+| `impersonator` | integer or `null` | User-account ID of the sales agent that created an impersonated session. |
+
   </Tab>
   <Tab title="Company Context" icon="building">
 
@@ -83,6 +93,34 @@ also select an active agent company first, and the agent and target must share
 access to the selected company. The issued login records both
 `active_company_id` and the impersonator user-account ID for audit and session
 listing.
+
+## Company-Context Permission Rollout
+
+After enabling Unified Contacts authorization on an existing installation, run:
+
+```bash
+php artisan auth-hub:sync-company-context-permissions
+```
+
+Use `--installation-key=<uuid>` to target one AuthHub installation; without it,
+the command discovers and processes all active AuthHub installations. The
+command fails without making changes when Unified Contacts authorization is
+disabled or no installation can be resolved.
+
+The rollout is additive and idempotent. It adds
+`auth-hub.company-context.view` and
+`auth-hub.company-context.switch` only to eligible storefront role types
+(`user` and `agent`), preserves every existing custom grant or revocation, and
+invalidates changed role-permission caches. Re-running it reports zero updates
+once those permissions are present.
+
+The AuthHub package seeder invokes the same synchronization service during a
+normal package install/update pass. While Unified Contacts authorization is
+disabled, the seed stays pending and changes nothing; a later package pass
+applies it after authorization is enabled. After a successful sync the seed is
+marked complete. The underlying additive synchronization is idempotent and safe
+to retry; neither the seeder nor command recomputes a role's complete defaults
+or grants unrelated back-office permissions.
 
 ## Related
 

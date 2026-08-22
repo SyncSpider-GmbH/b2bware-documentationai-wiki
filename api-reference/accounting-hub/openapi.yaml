@@ -1,0 +1,919 @@
+openapi: 3.0.3
+info:
+  title: AccountingHub API
+  version: 1.0.0
+  description: Reports-only accounting, departments, bank imports, and reconciliation. AccountingHub does not provide a chart of accounts, journal, general ledger, or double-entry bookkeeping.
+servers:
+  - url: https://api.datahub.syncspider.com
+security:
+  - bearerAuth: []
+tags:
+  - name: Settings
+  - name: Departments
+  - name: Bank accounts
+  - name: Bank imports
+  - name: Reconciliation
+  - name: Documents
+  - name: Reports
+paths:
+  /api/v1/apps/accounting-hub/settings/groups/list:
+    get:
+      tags: [Settings]
+      summary: List settings groups
+      responses:
+        '200':
+          description: Banking and reconciliation groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SettingsGroup'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /api/v1/apps/accounting-hub/settings:
+    get:
+      tags: [Settings]
+      summary: Get all settings
+      responses:
+        '200':
+          description: Current AccountingHub settings
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Settings'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+    post:
+      tags: [Settings]
+      summary: Store all settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Settings'}
+      responses:
+        '200':
+          description: Stored settings
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Settings'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /api/v1/apps/accounting-hub/settings/reset:
+    post:
+      tags: [Settings]
+      summary: Reset all settings
+      responses:
+        '200':
+          description: Default settings
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Settings'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /api/v1/apps/accounting-hub/settings/{group}:
+    parameters:
+      - $ref: '#/components/parameters/SettingsGroup'
+    get:
+      tags: [Settings]
+      summary: Get a settings group
+      responses:
+        '200':
+          description: Group settings
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      tags: [Settings]
+      summary: Update a settings group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Updated group settings
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /api/v1/apps/accounting-hub/settings/{group}/reset:
+    parameters:
+      - $ref: '#/components/parameters/SettingsGroup'
+    post:
+      tags: [Settings]
+      summary: Reset a settings group
+      responses:
+        '200':
+          description: Default group settings
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/v1/apps/accounting-hub/departments:
+    get:
+      tags: [Departments]
+      summary: List departments
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Filter'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          $ref: '#/components/responses/DepartmentPage'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    post:
+      tags: [Departments]
+      summary: Create a department
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/DepartmentWrite'}
+      responses:
+        '201':
+          description: Department created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Department'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /api/v1/apps/accounting-hub/departments/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Departments]
+      summary: Get a department
+      responses:
+        '200':
+          description: Department
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Department'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      tags: [Departments]
+      summary: Update a department
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/DepartmentUpdate'}
+      responses:
+        '200':
+          description: Updated department
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Department'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    delete:
+      tags: [Departments]
+      summary: Delete a department
+      responses:
+        '200': {$ref: '#/components/responses/Deleted'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/v1/apps/accounting-hub/bank-accounts:
+    get:
+      tags: [Bank accounts]
+      summary: List bank accounts
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Filter'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          $ref: '#/components/responses/BankAccountPage'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    post:
+      tags: [Bank accounts]
+      summary: Create a bank account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/BankAccountWrite'}
+      responses:
+        '201':
+          description: Bank account created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/BankAccount'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /api/v1/apps/accounting-hub/bank-accounts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Bank accounts]
+      summary: Get a bank account
+      responses:
+        '200':
+          description: Bank account
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/BankAccount'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      tags: [Bank accounts]
+      summary: Update a bank account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/BankAccountUpdate'}
+      responses:
+        '200':
+          description: Updated bank account
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/BankAccount'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    delete:
+      tags: [Bank accounts]
+      summary: Delete an unused bank account
+      description: Returns 409 while bank statements, bank transactions, or reconciliations depend on the account.
+      responses:
+        '200': {$ref: '#/components/responses/Deleted'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409':
+          description: Dependent accounting records prevent deletion
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DeletionConflict'}
+              example:
+                message: Bank account cannot be deleted while dependent accounting records exist.
+                dependencies: [bank statements, bank transactions, reconciliations]
+  /api/v1/apps/accounting-hub/bank-accounts/{bankAccount}/connection:
+    parameters:
+      - $ref: '#/components/parameters/BankAccountId'
+    post:
+      tags: [Bank imports]
+      summary: Create or inspect a provider connection
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                redirect_uri: {type: string, format: uri, nullable: true}
+      responses:
+        '200':
+          description: Provider connection payload
+          content:
+            application/json:
+              schema: {type: object, additionalProperties: true}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /api/v1/apps/accounting-hub/bank-accounts/{bankAccount}/authorize:
+    parameters:
+      - $ref: '#/components/parameters/BankAccountId'
+    post:
+      tags: [Bank imports]
+      summary: Start provider authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [redirect_uri]
+              properties:
+                redirect_uri: {type: string, format: uri}
+                state: {type: string, maxLength: 255, nullable: true}
+      responses:
+        '200':
+          description: Provider authorization payload
+          content:
+            application/json:
+              schema: {type: object, additionalProperties: true}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /api/v1/apps/accounting-hub/bank-accounts/{bankAccount}/callback:
+    parameters:
+      - $ref: '#/components/parameters/BankAccountId'
+    post:
+      tags: [Bank imports]
+      summary: Complete provider authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: true}
+      responses:
+        '200':
+          description: Provider callback result
+          content:
+            application/json:
+              schema: {type: object, additionalProperties: true}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /api/v1/apps/accounting-hub/bank-accounts/{bankAccount}/import:
+    parameters:
+      - $ref: '#/components/parameters/BankAccountId'
+    post:
+      tags: [Bank imports]
+      summary: Queue a statement and transaction import
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from: {type: string, format: date, nullable: true}
+                to: {type: string, format: date, nullable: true}
+      responses:
+        '202':
+          description: Import queued in the current tenant context
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Message'}
+              example: {message: Bank transaction import queued}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/v1/apps/accounting-hub/bank-statements:
+    get:
+      tags: [Bank imports]
+      summary: List imported bank statements
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Filter'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          $ref: '#/components/responses/BankStatementPage'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /api/v1/apps/accounting-hub/bank-transactions:
+    get:
+      tags: [Bank imports]
+      summary: List imported bank transactions
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Filter'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          $ref: '#/components/responses/BankTransactionPage'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /api/v1/apps/accounting-hub/reconciliations:
+    get:
+      tags: [Reconciliation]
+      summary: List reconciliations
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Filter'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReconciliationPage'
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /api/v1/apps/accounting-hub/bank-transactions/{bankTransaction}/suggestions:
+    parameters:
+      - $ref: '#/components/parameters/BankTransactionId'
+    get:
+      tags: [Reconciliation]
+      summary: Suggest matching open documents
+      responses:
+        '200':
+          description: Suggestions ordered by confidence
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: {$ref: '#/components/schemas/ReconciliationSuggestion'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/v1/apps/accounting-hub/bank-transactions/{bankTransaction}/match:
+    parameters:
+      - $ref: '#/components/parameters/BankTransactionId'
+    post:
+      tags: [Reconciliation]
+      summary: Match a transaction to a document
+      description: Idempotent and resumable for the same bank transaction and document. A retry resumes missing side effects and does not dispatch a duplicate completion event. Reusing the transaction for a different document is rejected.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ReconciliationMatch'}
+      responses:
+        '200':
+          description: Existing, resumed, or newly completed reconciliation
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Reconciliation'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/v1/apps/accounting-hub/documents/{type}/{id}/departments:
+    parameters:
+      - name: type
+        in: path
+        required: true
+        schema: {type: string, enum: [invoice, credit-note, vendor-bill]}
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags: [Documents]
+      summary: Replace a document's department assignments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [department_ids]
+              properties:
+                department_ids:
+                  type: array
+                  items: {type: integer}
+      responses:
+        '200':
+          description: Updated invoice, credit note, or vendor bill
+          content:
+            application/json:
+              schema: {type: object, additionalProperties: true}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/v1/apps/accounting-hub/reports/revenue-receivables:
+    get:
+      tags: [Reports]
+      summary: Revenue and receivables summary
+      responses:
+        '200': {$ref: '#/components/responses/DocumentSummary'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /api/v1/apps/accounting-hub/reports/payables:
+    get:
+      tags: [Reports]
+      summary: Payables summary
+      responses:
+        '200': {$ref: '#/components/responses/DocumentSummary'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /api/v1/apps/accounting-hub/reports/credit-notes:
+    get:
+      tags: [Reports]
+      summary: Credit-note summary
+      responses:
+        '200': {$ref: '#/components/responses/DocumentSummary'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /api/v1/apps/accounting-hub/reports/department-profit-loss:
+    get:
+      tags: [Reports]
+      summary: Department operational profit and loss
+      description: Operational summary only; no journal or double-entry ledger is created.
+      responses:
+        '200':
+          description: Revenue minus expenses with currency breakdown
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ProfitLoss'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /api/v1/apps/accounting-hub/reports/reconciliation-status:
+    get:
+      tags: [Reports]
+      summary: Reconciliation status counts
+      responses:
+        '200':
+          description: Transaction and reconciliation counts
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ReconciliationStatus'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: {type: integer}
+    BankAccountId:
+      name: bankAccount
+      in: path
+      required: true
+      schema: {type: integer}
+    BankTransactionId:
+      name: bankTransaction
+      in: path
+      required: true
+      schema: {type: integer}
+    SettingsGroup:
+      name: group
+      in: path
+      required: true
+      schema: {type: string, enum: [banking, reconciliation]}
+    Page:
+      name: page
+      in: query
+      schema: {type: integer, minimum: 1, default: 1}
+    PerPage:
+      name: per_page
+      in: query
+      description: Records per page.
+      schema: {type: integer, minimum: 1, maximum: 200, default: 25}
+    Filter:
+      name: filter
+      in: query
+      description: JSON filters. Supported keys are id, status, bank_account_id, department_id, name, code, and reference.
+      schema: {type: string}
+    Sort:
+      name: sort
+      in: query
+      description: One of id, name, code, booking_date, amount, status, or _created_at; prefix with - for descending.
+      schema: {type: string, default: -id}
+  schemas:
+    Message:
+      type: object
+      required: [message]
+      properties:
+        message: {type: string}
+    Error:
+      type: object
+      properties:
+        message: {type: string}
+        error: {type: string}
+        code: {type: integer}
+    ValidationError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items: {type: string}
+    Pagination:
+      type: object
+      required: [data, total, current_page, total_pages, per_page]
+      properties:
+        total: {type: integer}
+        current_page: {type: integer}
+        total_pages: {type: integer}
+        per_page: {type: integer}
+    DepartmentWrite:
+      type: object
+      required: [owner_type, owner_id, name, code]
+      properties:
+        owner_type: {type: string, enum: [company, vendor]}
+        owner_id: {type: integer}
+        name: {type: string, maxLength: 255}
+        code: {type: string, maxLength: 64}
+        user_ids:
+          type: array
+          nullable: true
+          items: {type: integer}
+        bank_account_id: {type: integer, nullable: true}
+    Department:
+      allOf:
+        - type: object
+          properties:
+            id: {type: integer}
+        - $ref: '#/components/schemas/DepartmentWrite'
+    DepartmentUpdate:
+      type: object
+      properties:
+        owner_type: {type: string, enum: [company, vendor]}
+        owner_id: {type: integer}
+        name: {type: string, maxLength: 255}
+        code: {type: string, maxLength: 64}
+        user_ids:
+          type: array
+          nullable: true
+          items: {type: integer}
+        bank_account_id: {type: integer, nullable: true}
+    BankAccountWrite:
+      type: object
+      required: [provider, provider_account_id, name, currency]
+      properties:
+        provider: {type: string, maxLength: 64}
+        provider_account_id: {type: string, maxLength: 255}
+        name: {type: string, maxLength: 255}
+        iban_masked: {type: string, maxLength: 64, nullable: true}
+        currency: {type: string, maxLength: 8}
+        status: {type: string, enum: [disconnected, pending, connected, error], nullable: true}
+        metadata: {type: object, additionalProperties: true, nullable: true}
+    BankAccount:
+      allOf:
+        - type: object
+          properties:
+            id: {type: integer}
+            authorization_reference: {type: string, nullable: true}
+            last_imported_at: {type: string, format: date-time, nullable: true}
+        - $ref: '#/components/schemas/BankAccountWrite'
+    BankAccountUpdate:
+      type: object
+      properties:
+        provider: {type: string, maxLength: 64}
+        provider_account_id: {type: string, maxLength: 255}
+        name: {type: string, maxLength: 255}
+        iban_masked: {type: string, maxLength: 64, nullable: true}
+        currency: {type: string, maxLength: 8}
+        status: {type: string, enum: [disconnected, pending, connected, error], nullable: true}
+        metadata: {type: object, additionalProperties: true, nullable: true}
+    BankStatement:
+      type: object
+      properties:
+        id: {type: integer}
+        bank_account_id: {type: integer}
+        provider_statement_id: {type: string}
+        from_date: {type: string, format: date}
+        to_date: {type: string, format: date}
+        opening_balance: {type: number}
+        closing_balance: {type: number}
+        currency: {type: string}
+        imported_at: {type: string, format: date-time}
+        metadata: {type: object, additionalProperties: true}
+    BankTransaction:
+      type: object
+      properties:
+        id: {type: integer}
+        bank_account_id: {type: integer}
+        bank_statement_id: {type: integer}
+        provider_transaction_id: {type: string}
+        booking_date: {type: string, format: date}
+        value_date: {type: string, format: date}
+        amount: {type: number}
+        currency: {type: string}
+        direction: {type: string}
+        counterparty_name: {type: string, nullable: true}
+        counterparty_iban: {type: string, nullable: true}
+        reference: {type: string, nullable: true}
+        status: {type: string}
+        department_id: {type: integer, nullable: true}
+        raw_payload: {type: object, additionalProperties: true}
+    ReconciliationMatch:
+      type: object
+      required: [document_type, document_id]
+      properties:
+        document_type: {type: string, enum: [invoice, vendor_bill]}
+        document_id: {type: integer}
+        matched_amount: {type: number, minimum: 0, nullable: true}
+        match_method: {type: string, enum: [manual, automatic], nullable: true}
+        confidence: {type: number, minimum: 0, maximum: 1, nullable: true}
+    Reconciliation:
+      type: object
+      properties:
+        id: {type: integer}
+        bank_transaction_id: {type: integer}
+        document_type: {type: string, enum: [invoice, vendor_bill]}
+        document_id: {type: integer}
+        matched_amount: {type: number}
+        currency: {type: string}
+        status: {type: string, enum: [processing, completed]}
+        match_method: {type: string, enum: [manual, automatic]}
+        confidence: {type: number}
+        idempotency_key: {type: string, description: One key per bank transaction.}
+        completed_by: {type: integer, nullable: true}
+        completed_at: {type: string, format: date-time, nullable: true}
+        metadata:
+          type: object
+          description: Contains resumable progress markers and department_id.
+          additionalProperties: true
+    ReconciliationSuggestion:
+      type: object
+      properties:
+        document_type: {type: string, enum: [invoice, vendor_bill]}
+        document_id: {type: integer}
+        number: {type: string, nullable: true}
+        amount: {type: number}
+        currency: {type: string}
+        confidence: {type: number, minimum: 0, maximum: 1}
+        reasons:
+          type: array
+          items: {type: string}
+    DeletionConflict:
+      type: object
+      required: [message, dependencies]
+      properties:
+        message: {type: string}
+        dependencies:
+          type: array
+          items:
+            type: string
+            enum: [bank statements, bank transactions, reconciliations]
+    SettingsGroup:
+      type: object
+      required: [key, label]
+      properties:
+        key: {type: string, enum: [banking, reconciliation]}
+        label: {type: string}
+    Settings:
+      type: object
+      properties:
+        banking:
+          type: object
+          properties:
+            provider: {type: string, default: banksapi}
+            base_url: {type: string, default: ''}
+            api_key: {type: string, format: password, default: ''}
+            connection_path: {type: string, default: ''}
+            authorization_path: {type: string, default: ''}
+            callback_path: {type: string, default: ''}
+            statements_path: {type: string, default: ''}
+        reconciliation:
+          type: object
+          properties:
+            amount_tolerance: {type: number, default: 0.01}
+            date_window_days: {type: number, default: 14}
+            auto_match_threshold: {type: number, default: 0.95}
+    DocumentSummary:
+      type: object
+      properties:
+        installed: {type: boolean}
+        count: {type: integer}
+        total: {type: number}
+        by_currency:
+          type: object
+          additionalProperties: {type: number}
+    ProfitLoss:
+      type: object
+      properties:
+        revenue: {type: number}
+        expenses: {type: number}
+        profit_loss: {type: number}
+        currency_breakdown:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: {type: number}
+        note: {type: string}
+    ReconciliationStatus:
+      type: object
+      properties:
+        transactions:
+          type: object
+          properties:
+            total: {type: integer}
+            matched: {type: integer}
+            unmatched: {type: integer}
+        reconciliations:
+          type: object
+          properties:
+            completed: {type: integer}
+            pending: {type: integer}
+  responses:
+    Unauthorized:
+      description: Missing or invalid authentication
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    Forbidden:
+      description: Missing AccountingHub permission or department access
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    NotFound:
+      description: Accounting resource or source document not found
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ValidationError'}
+    ServerError:
+      description: Provider, tenant-context, or reconciliation processing failed
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    Deleted:
+      description: Resource deleted
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Message'}
+    DepartmentPage:
+      description: Flat department pagination
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Pagination'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items: {$ref: '#/components/schemas/Department'}
+    BankAccountPage:
+      description: Flat bank-account pagination
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Pagination'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items: {$ref: '#/components/schemas/BankAccount'}
+    BankStatementPage:
+      description: Flat bank-statement pagination
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Pagination'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items: {$ref: '#/components/schemas/BankStatement'}
+    BankTransactionPage:
+      description: Flat bank-transaction pagination
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Pagination'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items: {$ref: '#/components/schemas/BankTransaction'}
+    ReconciliationPage:
+      description: Flat reconciliation pagination
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Pagination'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items: {$ref: '#/components/schemas/Reconciliation'}
+    DocumentSummary:
+      description: Reports-only operational document summary
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/DocumentSummary'}
