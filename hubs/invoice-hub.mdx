@@ -1,0 +1,97 @@
+---
+title: InvoiceHub
+description: Create and manage invoices and credit notes with immutable counterparty snapshots and versioned generated PDFs.
+---
+
+## Overview
+
+InvoiceHub is the admin API for invoices and credit notes. It owns document
+numbering, totals, lifecycle transitions, capture-time counterparty and address
+snapshots, and outgoing PDF generation.
+
+**Base URL:** `api/v1/apps/invoice-hub/`
+
+<Callout kind="info" title="Admin API">
+All endpoints require admin access and the matching InvoiceHub permission.
+Snapshots and generated document metadata are server-controlled after creation.
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Invoices">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/invoices/statuses/list` | List invoice statuses |
+| GET | `/invoices` | List invoices with `page` and `per_page` |
+| POST | `/invoices` | Create a manual invoice |
+| GET | `/invoices/{invoice}` | Return an invoice and its PDF projections |
+| PUT | `/invoices/{invoice}` | Update a non-finalized invoice |
+| DELETE | `/invoices/{invoice}` | Delete an invoice that is not finalized |
+| POST | `/invoices/{invoice}/send` | Generate/freeze the PDF and transition to sent |
+| POST | `/invoices/{invoice}/mark-paid` | Mark the invoice paid; accepts optional `paid_at` |
+
+  </Tab>
+  <Tab title="Credit Notes">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/credit-notes/statuses/list` | List credit-note statuses |
+| GET | `/credit-notes` | List credit notes with `page` and `per_page` |
+| POST | `/credit-notes` | Create a draft or issued credit note |
+| GET | `/credit-notes/{creditNote}` | Return a credit note and its PDF projections |
+| PUT | `/credit-notes/{creditNote}` | Update a draft credit note |
+| DELETE | `/credit-notes/{creditNote}` | Delete a draft credit note |
+| POST | `/credit-notes/{creditNote}/issue` | Generate/freeze the PDF and issue the credit note |
+
+  </Tab>
+</Tabs>
+
+## Immutable Counterparty Snapshots
+
+Creation retains compatibility references such as `customer_id`, `company_id`,
+`contact_id`, `commercial_contact_id`, and `representative_contact_id`, but also
+captures historical values into:
+
+- `counterparty_snapshot`
+- `billing_address_snapshot`
+- `shipping_address_snapshot`
+- `snapshot_source` (`capture_time`; explicit migrations may use `backfill_live`)
+
+Canonical contacts are preferred when contact IDs are supplied; legacy customer
+and company references remain supported. A supplied snapshot is normalized at
+capture time. Later contact, customer, company, or address changes do not rewrite
+the stored document snapshot, and snapshot fields are prohibited on update.
+
+## Generated PDF Lifecycle
+
+Draft documents do not require generated media. Sending an invoice or issuing a
+credit note generates an immutable PDF before the lifecycle transition. The
+effective document content plus renderer version produces a SHA-256 content
+hash:
+
+- retrying unchanged content reuses the existing generated version;
+- changed effective content creates the next version;
+- previous generated versions are retained;
+- finalized invoices and issued credit notes, including their PDF versions,
+  cannot be deleted through these endpoints.
+
+Invoice and credit-note responses project:
+
+| Field | Meaning |
+|---|---|
+| `pdf_media_id` | Compatibility pointer to the current generated PDF |
+| `generated_pdf` | Latest generated version, or `null` |
+| `document_media_versions` | All linked source/generated document versions |
+| `layout_provenance` | Renderer/layout metadata stored with the document |
+
+Each `document_media_versions` entry can include `media_id`, `role`, `version`,
+`immutable`, `content_hash`, `url`, `file`, `renderer_version`, `generated_at`,
+`installation_key`, `document_type`, and `document_id`.
+
+## Related
+
+- [MediaHub](/hubs/media-hub) — canonical document media roles and version metadata.
+- [CustomerHub](/hubs/customer-hub) — canonical contacts and compatibility identities.
+- [InvoiceHub API Reference](/api-reference/invoice-hub)

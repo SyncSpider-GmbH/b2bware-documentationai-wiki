@@ -1,0 +1,140 @@
+---
+title: ProcurementHub
+description: Manage suppliers, purchase orders, goods receipts, and vendor bills with PDF capture and auditable extraction.
+---
+
+## Overview
+
+ProcurementHub is the admin API for suppliers, purchasing, receiving, and
+accounts-payable vendor bills. Vendor bills support manual creation or PDF-first
+capture with immutable source media, field provenance, manual correction audit,
+and optional matching to a purchase order.
+
+**Base URL:** `api/v1/apps/procurement-hub/`
+
+<Callout kind="info" title="Admin API">
+All endpoints require admin access and the matching ProcurementHub permission.
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Suppliers">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/suppliers/statuses/list` | List supplier statuses |
+| GET | `/suppliers` | List suppliers |
+| POST | `/suppliers` | Create a supplier |
+| GET | `/suppliers/{supplier}` | Get a supplier |
+| PUT | `/suppliers/{supplier}` | Update a supplier |
+| DELETE | `/suppliers/{supplier}` | Delete a supplier |
+
+  </Tab>
+  <Tab title="Purchase Orders">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/purchase-orders/statuses/list` | List purchase-order statuses |
+| GET | `/purchase-orders` | List purchase orders |
+| POST | `/purchase-orders` | Create a purchase order |
+| GET | `/purchase-orders/{purchaseOrder}` | Get a purchase order |
+| PUT | `/purchase-orders/{purchaseOrder}` | Update a purchase order |
+| DELETE | `/purchase-orders/{purchaseOrder}` | Delete a purchase order |
+| POST | `/purchase-orders/{purchaseOrder}/approve` | Approve a purchase order |
+| POST | `/purchase-orders/{purchaseOrder}/send` | Mark a purchase order sent |
+| POST | `/purchase-orders/{purchaseOrder}/receive` | Record a partial or complete receipt |
+
+  </Tab>
+  <Tab title="Goods Receipts">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/goods-receipts/statuses/list` | List goods-receipt statuses |
+| GET | `/goods-receipts` | List goods receipts |
+| POST | `/goods-receipts` | Create a goods receipt |
+| GET | `/goods-receipts/{goodsReceipt}` | Get a goods receipt |
+| PUT | `/goods-receipts/{goodsReceipt}` | Update a goods receipt |
+| DELETE | `/goods-receipts/{goodsReceipt}` | Delete a goods receipt |
+
+  </Tab>
+  <Tab title="Vendor Bills">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/vendor-bills/statuses/list` | List vendor-bill statuses |
+| GET | `/vendor-bills` | List vendor bills |
+| POST | `/vendor-bills` | Create a manual vendor bill, optionally with PDF media |
+| POST | `/vendor-bills/capture` | Capture a PDF and request extraction |
+| GET | `/vendor-bills/{vendorBill}` | Get a vendor bill and current PDF projection |
+| PUT | `/vendor-bills/{vendorBill}` | Update allowed business fields |
+| PATCH | `/vendor-bills/{vendorBill}/extraction` | Correct supported extracted fields |
+| POST | `/vendor-bills/{vendorBill}/match` | Match the bill to a purchase order |
+| DELETE | `/vendor-bills/{vendorBill}` | Delete a vendor bill |
+
+  </Tab>
+</Tabs>
+
+## Manual and PDF-First Capture
+
+`POST /vendor-bills` creates a manual bill. It can reference an existing
+MediaHub PDF with `pdf_media_id` or accept a `pdf_media` descriptor containing
+`public_url`, optional `id`, `file_name`, `mime_type`, and `size`.
+
+`POST /vendor-bills/capture` requires either `pdf_media_id` or `pdf_media`.
+The source PDF is linked with document role `source`, version `1`, and immutable
+metadata. If AiHub is available, extraction reads embedded text first and falls
+back to rendered-page vision. An unavailable or unreliable extractor leaves the
+bill in manual review instead of inventing values.
+
+## Extraction and Corrections
+
+Extraction stores separate raw, normalized, and review state:
+
+| Field | Meaning |
+|---|---|
+| `extraction_raw` | Provider/mode response and diagnostics |
+| `extraction_parsed` | Normalized business values |
+| `extraction_status` | `not_requested`, `pending_manual`, `manual_review`, `completed_ai`, or `completed_manual` |
+| `extraction_provenance` | Per-field page, normalized bbox, source text, alternatives, confidence, mode/version, and corrections |
+| `corrected_fields` | Latest manually corrected values |
+| `correction_audit` | Append-only original/previous/corrected values, timestamp, actor, and source |
+
+Corrections are submitted as `{ "fields": { ... }, "complete": true|false }`.
+Only the supported vendor-bill fields are applied. Correcting line items
+normalizes their values and recomputes missing totals. The audit preserves the
+first original value across repeated corrections.
+
+## Contact Matching and Snapshots
+
+Vendor bills retain `supplier_id` compatibility and can also reference
+`contact_id`, `commercial_contact_id`, and `representative_contact_id`.
+Canonical contact data is preferred for counterparty resolution; legacy
+suppliers remain the fallback. CustomerHub's supplier profile is enabled
+idempotently and can retain `legacy_supplier_id`.
+
+At creation, ProcurementHub captures immutable `counterparty_snapshot`,
+`billing_address_snapshot`, `shipping_address_snapshot`, and `snapshot_source`.
+Later supplier/contact changes do not rewrite historical documents.
+
+## PDF Projection
+
+When a linked PDF exists, the vendor-bill detail response also exposes
+`pdf_url` and:
+
+```json
+{
+  "pdf": {
+    "id": 100,
+    "public_url": "https://cdn.example.com/vendor-bills/100.pdf",
+    "file_name": "vendor-bill.pdf",
+    "mime_type": "application/pdf"
+  }
+}
+```
+
+## Related
+
+- [MediaHub](/hubs/media-hub) — immutable source document media metadata.
+- [CustomerHub](/hubs/customer-hub) — canonical contacts and supplier profiles.
+- [ProcurementHub API Reference](/api-reference/procurement-hub)

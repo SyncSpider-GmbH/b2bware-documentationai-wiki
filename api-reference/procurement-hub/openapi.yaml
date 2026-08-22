@@ -1,0 +1,800 @@
+openapi: 3.0.0
+info:
+  title: ProcurementHub API
+  description: Complete ProcurementHub API collection generated from package routes.
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Suppliers
+  - name: Purchase orders
+  - name: Goods receipts
+  - name: Vendor bills
+paths:
+  /api/v1/apps/procurement-hub/suppliers/statuses/list:
+    get:
+      tags:
+        - Suppliers
+      summary: Supplier statuses
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/suppliers:
+    get:
+      tags:
+        - Suppliers
+      summary: List suppliers
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Suppliers
+      summary: Create supplier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                supplier_number: SUP-001
+                name: Example Supplier
+                currency: EUR
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/suppliers/{supplier}:
+    get:
+      tags:
+        - Suppliers
+      summary: Get supplier
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: supplier
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Suppliers
+      summary: Update supplier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                payment_terms_days: 30
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: supplier
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Suppliers
+      summary: Delete supplier
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: supplier
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/purchase-orders/statuses/list:
+    get:
+      tags:
+        - Purchase orders
+      summary: Purchase order statuses
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/purchase-orders:
+    get:
+      tags:
+        - Purchase orders
+      summary: List purchase orders
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: supplier,lineItems,goodsReceipts
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Purchase orders
+      summary: Create purchase order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                supplier_id: 1
+                contact_id: 201
+                counterparty_snapshot:
+                  name: Example Supplier GmbH
+                  vat_id: ATU87654321
+                department_ids:
+                  - 3
+                currency: EUR
+                line_items:
+                  - description: Office chairs
+                    sku: CHAIR-1
+                    quantity: 4
+                    unit_price: 100
+                    tax_rate: 20
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/purchase-orders/{purchase_order}:
+    get:
+      tags:
+        - Purchase orders
+      summary: Get purchase order
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: purchase_order
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Purchase orders
+      summary: Update purchase order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                expected_date: '2026-09-01'
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: purchase_order
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Purchase orders
+      summary: Delete purchase order
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: purchase_order
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/purchase-orders/{purchase_order}/approve:
+    post:
+      tags:
+        - Purchase orders
+      summary: Approve purchase order
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: purchase_order
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/purchase-orders/{purchase_order}/send:
+    post:
+      tags:
+        - Purchase orders
+      summary: Send purchase order
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: purchase_order
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/purchase-orders/{purchase_order}/receive:
+    post:
+      tags:
+        - Purchase orders
+      summary: Receive purchase order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                warehouse_reference: MAIN
+                items:
+                  - purchase_order_line_id: 1
+                    quantity: 2
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: purchase_order
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/goods-receipts/statuses/list:
+    get:
+      tags:
+        - Goods receipts
+      summary: Goods receipt statuses
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/goods-receipts:
+    get:
+      tags:
+        - Goods receipts
+      summary: List goods receipts
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Goods receipts
+      summary: Create goods receipt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                purchase_order_id: 1
+                items:
+                  - purchase_order_line_id: 1
+                    quantity: 1
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/goods-receipts/{goods_receipt}:
+    get:
+      tags:
+        - Goods receipts
+      summary: Get goods receipt
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: goods_receipt
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Goods receipts
+      summary: Update goods receipt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                notes: Checked by warehouse
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: goods_receipt
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Goods receipts
+      summary: Delete goods receipt
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: goods_receipt
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/vendor-bills/statuses/list:
+    get:
+      tags:
+        - Vendor bills
+      summary: Vendor bill statuses
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/vendor-bills:
+    get:
+      tags:
+        - Vendor bills
+      summary: List vendor bills
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Vendor bills
+      summary: Create vendor bill
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                pdf_media_id: 100
+                supplier_id: 1
+                contact_id: 201
+                department_ids:
+                  - 3
+                invoice_number: INV-998
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/vendor-bills/capture:
+    post:
+      tags:
+        - Vendor bills
+      summary: Capture vendor bill PDF
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                pdf_media_id: 100
+                supplier_id: 1
+                contact_id: 201
+                department_ids:
+                  - 3
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/vendor-bills/{vendor_bill}:
+    get:
+      tags:
+        - Vendor bills
+      summary: Get vendor bill
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: vendor_bill
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Vendor bills
+      summary: Update vendor bill
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                linked_payment_id: 22
+                reconciliation_reference: BANK-2026-001
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: vendor_bill
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Vendor bills
+      summary: Delete vendor bill
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: vendor_bill
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/vendor-bills/{vendor_bill}/extraction:
+    patch:
+      tags:
+        - Vendor bills
+      summary: Correct extraction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fields:
+                  invoice_number: INV-998
+                  total: 480
+                complete: true
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: vendor_bill
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/procurement-hub/vendor-bills/{vendor_bill}/match:
+    post:
+      tags:
+        - Vendor bills
+      summary: Match vendor bill
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                purchase_order_id: 1
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: vendor_bill
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

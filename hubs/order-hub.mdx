@@ -24,6 +24,25 @@ Two endpoints do **not** require authentication:
 For the complete list of endpoints, filters, includes, and validation rules (e.g. cart filter by `session_uuid`, checkout required fields), see the [OrderHub API Reference](/api-reference/order-hub).
 </Callout>
 
+## Active Company Snapshots and Scoping
+
+With Unified Contacts authorization enabled, authenticated cart, quote, and
+order creation stores both the existing `customer_id` and the current session's
+nullable `company_id`. The company value is an immutable creation-time
+authorization snapshot:
+
+- clients cannot select another company by sending `company_id`;
+- changing the AuthHub active company does not move an existing resource;
+- cart/quote updates cannot rewrite `customer_id` or `company_id`;
+- checkout copies the cart's company snapshot to the order;
+- list and detail authorization require the matching active-company context.
+
+A session may therefore have separate active carts for separate company
+contexts. B2C sessions use `company_id: null`. When the Unified Contacts feature
+is disabled, legacy customer/company behavior remains compatible.
+
+Public quote previews deliberately omit customer, company, and address includes.
+
 ## Endpoints
 
 <Tabs>
@@ -455,6 +474,7 @@ Same rules apply to `POST /carts`, `PUT /carts/{id}` and `PATCH /carts` (upsert)
 | `total_price` | prohibited (server-computed) |
 | `session_uuid` | sometimes, nullable (required for `PATCH /carts`) |
 | `customer_id` | sometimes, nullable, numeric, must exist |
+| `company_id` | server-controlled active-company snapshot; client input is ignored |
 | `cart_items` | required, array, min:1 |
 | `cart_items.*.quantity` | required, numeric |
 | `cart_items.*.price` | numeric (upsert only — otherwise resolved server-side via catalog rules) |

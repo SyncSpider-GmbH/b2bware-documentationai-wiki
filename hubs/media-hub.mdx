@@ -5,7 +5,9 @@ description: Manage polymorphic media associations (images, videos, documents, a
 
 ## Overview
 
-The MediaHub manages polymorphic media associations, supporting images, videos, documents, and audio files. It provides full CRUD operations for media records with polymorphic relations to any parent model (e.g., Products, Companies), as well as a public CDN proxy endpoint for serving assets via Bunny CDN signed URLs.
+The MediaHub manages polymorphic media associations, supporting images, videos,
+documents, and audio files. It also owns the attachment and version metadata for
+InvoiceHub and ProcurementHub documents.
 
 **Base URL:** `api/v1/apps/media-hub/`
 
@@ -83,8 +85,34 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 | `alt_text` | nullable, string |
 | `is_primary` | sometimes, boolean |
 | `sort_order` | sometimes, integer, min: 0 |
+| `metadata` | nullable object; document integrations use the contract below |
 
 </Expandable>
+
+## Accounting Document Media
+
+Accounting media records use `media_type: "document"` and metadata that binds
+the asset to its tenant and document:
+
+| Metadata | Meaning |
+|---|---|
+| `document_role` | `source`, `generated`, or `supplementary` |
+| `document_version` | Positive version number starting at 1 |
+| `immutable` | Whether the linked version is frozen |
+| `content_hash` | SHA-256 content hash when available |
+| `installation_key` | Owning tenant |
+| `document_type` | Owning document model |
+| `document_id` | Owning document ID |
+
+`source` media is immutable and only one source attachment is accepted per
+document. `generated` media must be created through the generated-document
+storage flow; identical content hashes are idempotent and changed content gets
+the next version. `supplementary` is available for other supporting documents.
+Generated metadata can additionally carry renderer and generation provenance.
+
+The document APIs project these records in their own response shapes:
+InvoiceHub exposes `generated_pdf` and `document_media_versions`; ProcurementHub
+exposes the current source PDF through `pdf_url` and `pdf`.
 
 ## Examples
 

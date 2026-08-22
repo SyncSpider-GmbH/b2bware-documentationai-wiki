@@ -158,6 +158,16 @@
                 "icon": "shopping-cart"
               },
               {
+                "title": "InvoiceHub",
+                "path": "hubs/invoice-hub",
+                "icon": "receipt"
+              },
+              {
+                "title": "ProcurementHub",
+                "path": "hubs/procurement-hub",
+                "icon": "shopping-bag"
+              },
+              {
                 "title": "CustomerHub",
                 "path": "hubs/customer-hub",
                 "icon": "users"
@@ -384,6 +394,18 @@
             "group": "OrderHub",
             "icon": "shopping-cart",
             "openapi": "api-reference/order-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "InvoiceHub",
+            "icon": "receipt",
+            "openapi": "api-reference/invoice-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "ProcurementHub",
+            "icon": "shopping-bag",
+            "openapi": "api-reference/procurement-hub/openapi.yaml",
             "pages": []
           },
           {

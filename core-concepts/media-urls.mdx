@@ -126,13 +126,43 @@ return <video src={media.media_url} controls />;
 
 ## Documents and Attachments
 
-`media_type: "document"` is typically a PDF spec sheet. Render as a download link:
+`media_type: "document"` covers product attachments and accounting documents.
+Render the record's absolute URL as a download link:
 
 ```jsx
 <a href={media.media_url} download>
   {media.alt_text || 'Download PDF'}
 </a>
 ```
+
+Accounting documents add version metadata to the MediaHub record:
+
+```json
+{
+  "media_type": "document",
+  "media_url": "https://cdn.example.com/accounting/invoices/42/invoice-42.pdf",
+  "metadata": {
+    "document_role": "generated",
+    "document_version": 2,
+    "immutable": true,
+    "content_hash": "64-character-sha256",
+    "installation_key": "tenant-uuid",
+    "document_type": "Apps\\InvoiceHub\\Models\\Invoice",
+    "document_id": 42
+  }
+}
+```
+
+Use `media_url`, `file.public_url`, or the owning hub's projected `url` /
+`public_url`; do not construct a CDN path. Invoice and credit-note detail
+responses expose the latest version as `generated_pdf` and all linked versions
+as `document_media_versions`. Vendor bills expose their current source PDF as
+`pdf_url` and `pdf`.
+
+Document roles have lifecycle meaning: `source` is the immutable incoming file,
+`generated` is an immutable rendered output with monotonically increasing
+versions, and `supplementary` is supporting material. Historical versions are
+retained even when a newer generated PDF becomes current.
 
 ## Cross-Domain Proxy
 

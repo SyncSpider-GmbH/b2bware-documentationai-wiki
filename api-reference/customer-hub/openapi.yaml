@@ -13,6 +13,10 @@ components:
 security:
   - bearerAuth: []
 tags:
+  - name: Contacts
+    description: >-
+      Canonical contacts. Includes accept camelCase aliases and responses use
+      snake_case fields. Pagination uses per_page.
   - name: BillingAddresses
   - name: Companies
   - name: CustomerGroups
@@ -24,6 +28,192 @@ tags:
   - name: Settings
   - name: ShippingAddresses
 paths:
+  /api/v1/apps/customer-hub/contacts:
+    get:
+      tags:
+        - Contacts
+      summary: List contacts
+      parameters:
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+          example: example
+        - name: filter[kind]
+          in: query
+          schema:
+            type: string
+          example: company
+        - name: filter[profile_priority]
+          in: query
+          schema:
+            type: string
+          example: customer
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: companyAffiliations.company,customerProfile,supplierProfile
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Contacts
+      summary: Create contact
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                kind: company
+                status: active
+                display_name: Example GmbH
+                legal_name: Example GmbH
+                email: office@example.test
+                phone: +43 1 234567
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/contacts/{id}:
+    get:
+      tags:
+        - Contacts
+      summary: Show contact
+      parameters:
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: >-
+            identifiers,companyAffiliations.company,personContacts.person,userAccount,memberships.company,addresses.address,customerProfile,supplierProfile,smartActionCounts
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Contacts
+      summary: Update contact
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                kind: company
+                status: active
+                display_name: Example GmbH
+                legal_name: Example GmbH
+                email: office@example.test
+                phone: +43 1 234567
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Contacts
+      summary: Delete contact
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/contacts/{id}/profiles/customer:
+    post:
+      tags:
+        - Contacts
+      summary: Enable customer profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/contacts/{id}/profiles/supplier:
+    post:
+      tags:
+        - Contacts
+      summary: Enable supplier profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
   /api/v1/apps/customer-hub/billingAddresses:
     get:
       tags:

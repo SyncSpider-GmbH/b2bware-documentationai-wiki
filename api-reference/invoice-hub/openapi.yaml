@@ -1,0 +1,558 @@
+openapi: 3.0.0
+info:
+  title: InvoiceHub API
+  description: InvoiceHub invoices and credit notes — generated from routes/api.php
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Invoices
+  - name: Credit notes
+  - name: Settings
+paths:
+  /api/v1/apps/invoice-hub/invoices:
+    get:
+      tags:
+        - Invoices
+      summary: List invoices
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Invoices
+      summary: Create invoice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                customer_id: 1
+                contact_id: 101
+                commercial_contact_id: 102
+                counterparty_snapshot:
+                  name: Example Customer GmbH
+                  vat_id: ATU12345678
+                billing_address_snapshot:
+                  line1: Main Street 1
+                  postal_code: '1010'
+                  city: Vienna
+                  country_code: AT
+                currency: EUR
+                line_items:
+                  - description: Consulting
+                    quantity: 1
+                    unit_price: 100
+                    tax_rate: 20
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/invoices/{invoice}:
+    get:
+      tags:
+        - Invoices
+      summary: Get invoice
+      description: >-
+        Returns the invoice plus generated_pdf (the current immutable PDF) and
+        document_media_versions (all linked source/generated versions with URL,
+        hash, version, ownership and renderer metadata).
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: invoice
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Invoices
+      summary: Update invoice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                status: issued
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: invoice
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Invoices
+      summary: Delete invoice
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: invoice
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/invoices/{invoice}/send:
+    post:
+      tags:
+        - Invoices
+      summary: Send invoice
+      description: >-
+        Freezes an immutable generated PDF before transitioning to sent.
+        Repeating this request is idempotent for unchanged effective content.
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: invoice
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/invoices/{invoice}/mark-paid:
+    post:
+      tags:
+        - Invoices
+      summary: Mark invoice paid
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: invoice
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/invoices/statuses/list:
+    get:
+      tags:
+        - Invoices
+      summary: Invoice statuses
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/credit-notes:
+    get:
+      tags:
+        - Credit notes
+      summary: List credit notes
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Credit notes
+      summary: Create credit note
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                invoice_id: 1
+                reason: Returned goods
+                line_items:
+                  - description: Credit
+                    quantity: 1
+                    unit_price: 50
+                    tax_rate: 20
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/credit-notes/{creditNote}:
+    get:
+      tags:
+        - Credit notes
+      summary: Get credit note
+      description: >-
+        Returns the credit note plus generated_pdf and all immutable
+        document_media_versions.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: creditNote
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Credit notes
+      summary: Update credit note
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                reason: Updated reason
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: creditNote
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Credit notes
+      summary: Delete credit note
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: creditNote
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/credit-notes/{creditNote}/issue:
+    post:
+      tags:
+        - Credit notes
+      summary: Issue credit note
+      description: >-
+        Freezes an immutable generated PDF before issuing. Repeating this
+        request is idempotent for unchanged effective content.
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: creditNote
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/credit-notes/statuses/list:
+    get:
+      tags:
+        - Credit notes
+      summary: Credit note statuses
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/settings/groups/list:
+    get:
+      tags:
+        - Settings
+      summary: List setting groups
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/settings:
+    get:
+      tags:
+        - Settings
+      summary: Get settings
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Update settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/settings/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset settings
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/settings/{group}:
+    get:
+      tags:
+        - Settings
+      summary: Get setting group
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Update setting group
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/settings/{group}/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset setting group
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

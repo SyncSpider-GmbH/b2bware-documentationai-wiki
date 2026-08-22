@@ -138,6 +138,18 @@ GET /auth-hub/me      ← no include needed
 include=company,role,customerGroup
 ```
 
+For the canonical Contacts detail screen:
+
+```
+include=companyAffiliations.company,personContacts.person,
+        userAccount,memberships.company,addresses.address,
+        customerProfile,supplierProfile,smartActionCounts
+```
+
+Use the legacy `customers` include set for compatibility screens. The canonical
+contact response projects snake_case keys even when camelCase include aliases
+are supplied.
+
 ### Address Book
 
 ```
@@ -149,6 +161,30 @@ include=country
 ```
 GET /customer-hub/favorites?include=products.mainMedia,products.finalPrice
 ```
+
+## InvoiceHub
+
+Invoice and credit-note detail responses project current and historical PDF
+metadata without an include:
+
+```
+GET /invoice-hub/invoices/{id}
+GET /invoice-hub/credit-notes/{id}
+```
+
+Read `generated_pdf` for the current immutable PDF and
+`document_media_versions` for all linked versions.
+
+## ProcurementHub
+
+Purchase-order detail screens commonly use:
+
+```
+include=supplier,lineItems,goodsReceipts
+```
+
+Vendor-bill detail projects `pdf_url` and `pdf` when source media is attached;
+no media include is required.
 
 ## LicenseHub
 

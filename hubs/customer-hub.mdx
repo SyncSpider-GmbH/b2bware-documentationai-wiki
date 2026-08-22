@@ -17,6 +17,41 @@ For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts
 ## Endpoints
 
 <Tabs>
+  <Tab title="Contacts" icon="contact">
+
+Canonical company and person identities. A contact is a commercial identity,
+not an authentication principal. Existing customer, company, billing-address,
+and shipping-address IDs and APIs remain authoritative compatibility surfaces
+during the additive migration.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/contacts` | List contacts with flat `per_page` pagination |
+| POST | `/contacts` | Create a company or person contact |
+| GET | `/contacts/{id}` | Get the complete contact detail projection |
+| PUT | `/contacts/{id}` | Update contact identity fields |
+| DELETE | `/contacts/{id}` | Delete a contact |
+| POST | `/contacts/{id}/profiles/customer` | Idempotently enable the customer profile |
+| POST | `/contacts/{id}/profiles/supplier` | Idempotently enable the optional ProcurementHub supplier profile |
+
+Contact creation never creates a user account and never silently merges
+matching contacts. A person-to-company affiliation does not grant
+authorization; only a `company_membership` attached to a user account does.
+Profile enablement is idempotent.
+
+List filters are accepted either inside `filter` or as top-level compatibility
+parameters: `search`, `kind`, `profile`, `status`, and `profile_priority`.
+`per_page` is capped at 100. Include aliases may be camelCase, while response
+keys are consistently snake_case.
+
+The detail projection can expose identifiers, company/person affiliations,
+`user_account`, authorization `memberships`, canonical addresses,
+`customer_profile`, optional ProcurementHub `supplier_profile`, legacy IDs, and
+smart-action counts. `legacy_customer_id`, `legacy_company_id`, and
+`legacy_supplier_id` let integrations correlate canonical contacts without
+changing existing integer identifiers.
+
+  </Tab>
   <Tab title="Customers" icon="users">
 
 | Method | Endpoint | Description |
@@ -160,6 +195,18 @@ All dashboard endpoints accept a `period` query parameter — one of `7`, `30`, 
 
 For filter syntax and operators, see [Filtering](/core-concepts/filtering).
 
+<Expandable title="Contact Filters" default-open="true">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `search` | text | Searches names, email, phone, and identifiers |
+| `kind` | enum | `company` or `person` |
+| `profile` | enum | `customer` or `supplier` |
+| `status` | enum | `active`, `needs_review`, `archived`, or `inactive` |
+| `profile_priority` | enum | Prioritizes enabled customer/supplier profiles without removing fallback contacts |
+
+</Expandable>
+
 <Expandable title="Customer Filters" default-open="true">
 
 | Filter Field | Type | Notes |
@@ -262,8 +309,15 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 |----------|--------------------|
 | **Customers** | `company`, `company.companyGroup`, `company.shippingAddresses`, `company.billingAddresses`, `role`, `shippingAddresses`, `billingAddresses`, `customerGroup`, `defaultCustomerShippingAddress`, `defaultCompanyShippingAddress`, `defaultCustomerBillingAddress`, `defaultCompanyBillingAddress`, `attributeValues`, `attributeValues.value`, `attributeValues.value.translation`, `attributeValues.value.attribute.translation`, `attributeValues.value.attribute.group` |
 | **Companies** | `customers`, `customers.shippingAddresses`, `customers.billingAddresses`, `shippingAddresses`, `billingAddresses`, `attributeValues`, `attributeValues.value`, `attributeValues.value.translation`, `attributeValues.value.attribute.translation`, `attributeValues.value.attribute.group` |
+| **Contacts** | `companyAffiliations.company`, `personContacts.person`, `userAccount`, `memberships.company`, `addresses.address`, `customerProfile`, `supplierProfile`, `smartActionCounts` |
 | **Shipping Addresses** | `customer` |
 | **Billing Addresses** | `customer` |
+
+<Callout kind="info" title="Compatibility">
+Do not replace legacy customer/company/address IDs with contact IDs in existing
+integrations. The canonical Contacts API is additive; legacy maps and projected
+legacy IDs provide the migration bridge.
+</Callout>
 
 ## Validation Rules
 

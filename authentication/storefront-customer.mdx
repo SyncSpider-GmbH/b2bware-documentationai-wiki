@@ -23,7 +23,13 @@ All endpoints below are under the prefix `/api/v1/apps/auth-hub`.
 | `POST` | `/login` | `installation-key` | Issue an `x-auth-token` for an existing customer |
 | `POST` | `/register` | `installation-key` | Create a new customer account |
 | `POST` | `/logout` | `installation-key` + `x-auth-token` | Revoke the current token |
+| `POST` | `/logout-all` | `installation-key` + `x-auth-token` | Revoke all sessions for the current customer |
+| `POST` | `/refresh` | `installation-key` + `x-auth-token` | Refresh the current session |
 | `GET` | `/me` | `installation-key` + `x-auth-token` | Return the currently logged-in customer |
+| `GET` | `/me/companies` | `installation-key` + `x-auth-token` | List accessible companies and current company context |
+| `PUT` | `/me/active-company` | `installation-key` + `x-auth-token` | Switch the current session's active company |
+| `GET` | `/me/sessions` | `installation-key` + `x-auth-token` | List active sessions |
+| `DELETE` | `/me/sessions/{id}` | `installation-key` + `x-auth-token` | Revoke one owned session |
 | `POST` | `/forgot-password` | `installation-key` | Send a password reset email |
 | `POST` | `/{installationKey}/reset-password` | none (key in URL) | Complete password reset from email link |
 | `POST` | `/send-verification-email` | `installation-key` | Resend the email verification message |
@@ -59,7 +65,10 @@ curl -s -X POST \
     "last_name": "Doe",
     "status": "active",
     "company": { "id": 7, "name": "Acme Ltd." },
-    "role": { "id": 3, "name": "Buyer" }
+    "role": { "id": 3, "name": "Buyer" },
+    "active_company_id": 7,
+    "user_account_id": 81,
+    "memberships": []
   }
 }
 ```
@@ -130,12 +139,14 @@ The `company` object is optional but, if present, requires `name`, `phone`, `add
 {
   "message": "Customer registered successfully",
   "customer": { "id": 43, "email": "jane.doe@example.com", "status": "pending" },
-  "token": "43.JDJ5JDEyJGFiY2RlZmdo...",
+  "pending_approval": false,
   "requires_email_verification": true
 }
 ```
 
-The customer receives an email with a 6-character code and a link of the form `/{installationKey}/verify-email?token=...&email=...`. Until verification, the token works for most read endpoints but checkout-style flows may reject the customer with 403 depending on installation policy.
+The customer receives an email with a 6-character code and a link of the form
+`/{installationKey}/verify-email?token=...&email=...`. No token is issued until
+verification is complete and the customer can log in.
 
 **Admin approval required:**
 
@@ -167,6 +178,44 @@ curl -s -X GET \
 </Request>
 
 Returns the customer profile with company, role, and default addresses loaded.
+When Unified Contacts authorization is enabled, the existing shape is preserved
+and `memberships`, `active_company_id`, and `user_account_id` are added.
+
+## Active Company Context
+
+`GET /me/companies` returns active, currently valid memberships:
+
+```json
+{
+  "data": [
+    {
+      "company_id": 7,
+      "company": { "id": 7, "name": "Acme Ltd.", "status": "active" },
+      "membership_id": 15,
+      "role_id": 3,
+      "is_default": true
+    }
+  ],
+  "active_company_id": 7,
+  "user_account_id": 81
+}
+```
+
+Switch the current login/session with:
+
+```bash
+curl -s -X PUT \
+  'https://api.datahub.syncspider.com/api/v1/apps/auth-hub/me/active-company' \
+  -H 'installation-key: 7f1c9a40-2b3d-4e5f-9a8b-1c2d3e4f5061' \
+  -H 'x-auth-token: 42.JDJ5JDEyJGFiY2RlZmdo...' \
+  -H 'Content-Type: application/json' \
+  -d '{ "active_company_id": 7 }'
+```
+
+The selected company must be an accessible active membership. Send `null` only
+for a valid B2C/no-company context. Affiliations do not grant authorization.
+Changing context does not move existing carts, quotes, or orders; those retain
+their creation-time `company_id` snapshot.
 
 ## Logout
 
@@ -186,7 +235,10 @@ curl -s -X POST \
 ```
 </Response>
 
-Revokes only the current token. Other devices the same customer is signed in on are not affected (per-session revocation is not currently exposed via the API).
+Revokes only the current token. Use `GET /me/sessions` to list owned sessions,
+`DELETE /me/sessions/{id}` to revoke one session, or `POST /logout-all` to
+revoke all sessions for the current customer. Session rows include their active
+company and impersonator metadata when present.
 
 ## Password Reset
 
@@ -258,10 +310,15 @@ Customers whose role type is `agent` can act on behalf of regular B2B customers 
 | Method | Path | Purpose |
 |---|---|---|
 | `GET` | `/impersonate/customers` | List customers the agent can impersonate (excludes agents and admins) |
-| `POST` | `/impersonate/{customerId}` | Start impersonating — returns a fresh `x-auth-token` for the target customer |
+| `POST` | `/impersonate/{customerId}` | Start impersonating in a validated company context — returns a fresh `x-auth-token` |
 | `POST` | `/impersonate/leave` | Stop impersonating — frontend swaps back to the agent's own token |
 
-The token issued by `/impersonate/{customerId}` carries the impersonator's identity for audit logging. From the API's perspective the impersonated customer is the active user for all subsequent calls.
+The request accepts `active_company_id`. It is required for a multi-company
+target. Multi-company agents must select their own active company first, and
+agent and target must share access to the selected company. The issued token
+carries the impersonator user-account ID and active company for audit logging.
+From the API's perspective the impersonated customer is the active user for all
+subsequent calls.
 
 Non-agents receive `403` from any of these endpoints.
 
@@ -277,9 +334,6 @@ The following customer-account capabilities are **not yet exposed** by the API. 
 
 - Change password while logged in (the only path today is forgot-password → email link)
 - Change email address with re-verification
-- List active sessions (devices) for the current customer
-- Revoke a specific session or "log out all devices"
-- Explicit token refresh endpoint (the sliding idle window is the only refresh mechanism today)
 - Two-factor authentication
 - Social login (Google, Apple, …)
 - Customer-initiated account deletion

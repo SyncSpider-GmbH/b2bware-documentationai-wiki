@@ -1,7 +1,11 @@
 openapi: 3.0.0
 info:
   title: OrderHub API
-  description: Complete API collection for OrderHub — generated from routes/api.php
+  description: >-
+    Complete API collection for OrderHub — generated from routes/api.php. With
+    Unified Contacts authorization enabled, cart, quote, checkout, and order
+    resources add an immutable nullable company_id snapshot while preserving
+    customer_id and all existing fields.
   version: 1.0.0
 servers:
   - url: https://api.datahub.syncspider.com
@@ -198,12 +202,18 @@ paths:
       tags:
         - Cart Items
       summary: Update
+      description: >-
+        Update a cart item. Sending `quantity: 0` removes the item from the cart
+        and returns the cart item object with an extra `removed: true` flag.
+        Negative quantities are rejected (min:0).
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                cart_id: 1
+                quantity: 0
       parameters:
         - name: Content-Type
           in: header
@@ -536,6 +546,88 @@ paths:
           description: Successful response
           content:
             application/json: {}
+  /api/v1/apps/order-hub/dashboard/total-order-value:
+    get:
+      tags:
+        - Dashboard
+      summary: Total Order Value
+      parameters:
+        - name: scope
+          in: query
+          schema:
+            type: string
+          description: >-
+            today | this_week | this_month | this_quarter | quarter | this_year
+            | last_7d | last_30d | last_90d | last_365d | all | custom
+          example: this_month
+        - name: week_start
+          in: query
+          schema:
+            type: string
+          description: Only when scope=this_week. monday | sunday.
+          example: monday
+        - name: quarter
+          in: query
+          schema:
+            type: string
+          description: Only when scope=quarter. Format YYYY-Qn.
+          example: 2026-Q1
+        - name: from
+          in: query
+          schema:
+            type: string
+          description: Only when scope=custom.
+          example: '2026-01-01'
+        - name: to
+          in: query
+          schema:
+            type: string
+          description: Only when scope=custom.
+          example: '2026-03-31'
+        - name: statuses
+          in: query
+          schema:
+            type: string
+          description: >-
+            Comma-separated sale statuses to include (e.g. completed,shipped).
+            Non-sale statuses are always excluded. Omitted = completed.
+          example: completed
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/dashboard/customer-ranking:
+    get:
+      tags:
+        - Dashboard
+      summary: Customer Ranking
+      parameters:
+        - name: count
+          in: query
+          schema:
+            type: integer
+          description: Number of customers to show. Clamped 1..20. Default 10.
+          example: '10'
+        - name: from
+          in: query
+          schema:
+            type: string
+          description: >-
+            ISO date (inclusive). Omit both from/to to default to the current
+            month.
+          example: '2026-06-01'
+        - name: to
+          in: query
+          schema:
+            type: string
+          description: ISO date (inclusive). Range capped at 365 days.
+          example: '2026-06-30'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
   /api/v1/apps/order-hub/dashboard/average-sale:
     get:
       tags:
@@ -571,6 +663,35 @@ paths:
       tags:
         - Dashboard
       summary: Orders By Location
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/order-hub/dashboard/inactive-customers:
+    get:
+      tags:
+        - Dashboard
+      summary: Inactive Customers
+      parameters:
+        - name: threshold
+          in: query
+          schema:
+            type: integer
+          description: 'Inactivity window in days: 30, 60 or 90.'
+          example: '30'
+        - name: definition
+          in: query
+          schema:
+            type: string
+          description: lapsed | include_never | never_only.
+          example: lapsed
+        - name: count
+          in: query
+          schema:
+            type: integer
+          description: Number of customers to return (1-50).
+          example: '10'
       responses:
         '200':
           description: Successful response
@@ -1154,7 +1275,11 @@ paths:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                customer_id: 123
+                active_company_id: 31
+                type: private
+                quote_items: []
       parameters:
         - name: Content-Type
           in: header

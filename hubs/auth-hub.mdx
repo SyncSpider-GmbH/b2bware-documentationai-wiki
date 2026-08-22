@@ -1,11 +1,14 @@
 ---
 title: AuthHub
-description: Authentication, registration, password resets, email verification, and sales-agent impersonation for storefronts and admin clients.
+description: Authentication, sessions, active-company context, password flows, and company-aware sales-agent impersonation.
 ---
 
 ## Overview
 
-AuthHub issues and manages user sessions. It is the entry point for storefront customers (login, register, forgot password, verify email) and for sales agents who impersonate a customer to place orders on their behalf.
+AuthHub issues and manages user sessions. It is the entry point for storefront
+customers and for sales agents who impersonate a customer. With Unified
+Contacts enabled, the selected company is stored on the login/session and drives
+company-scoped storefront access.
 
 **Base URL:** `api/v1/apps/auth-hub/`
 
@@ -23,7 +26,29 @@ Most endpoints sit behind `auth:api`. The two public flows — `reset-password` 
 | POST | `/login` | `auth:api` | Exchange credentials for a personal access token. |
 | POST | `/register` | `auth:api` | Create a new customer account. |
 | POST | `/logout` | `auth:api` | Revoke the current token. |
-| GET  | `/me` | `auth:api` | Return the authenticated user with roles and customer profile. |
+| POST | `/refresh` | `auth:api` | Refresh the current authenticated session. |
+| POST | `/logout-all` | `auth:api` | Revoke all sessions for the current customer. |
+| GET  | `/me` | `auth:api` | Return the authenticated user and current company context. |
+| GET | `/me/sessions` | `auth:api` | List active sessions with company and impersonator metadata. |
+| DELETE | `/me/sessions/{id}` | `auth:api` | Revoke one owned session. |
+
+  </Tab>
+  <Tab title="Company Context" icon="building">
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/me/companies` | `auth:api` | List active company memberships and current `active_company_id`. |
+| PUT | `/me/active-company` | `auth:api` | Switch the current login/session to an accessible active company, or `null` for B2C context. |
+
+`/me` preserves the compatibility customer fields. When Unified Contacts is
+enabled it additionally returns `memberships`, `active_company_id`, and
+`user_account_id`. Company affiliations describe commercial relationships only;
+they never grant access. Authorization comes from active, currently valid
+company memberships.
+
+Switching company changes the current session context. It does not rewrite
+existing carts, quotes, or orders, whose `company_id` values are immutable
+creation-time snapshots.
 
   </Tab>
   <Tab title="Password & Email" icon="envelope">
@@ -38,16 +63,26 @@ Most endpoints sit behind `auth:api`. The two public flows — `reset-password` 
   </Tab>
   <Tab title="Impersonation" icon="user-secret">
 
-Used by sales agents to act on behalf of a specific customer (cart, checkout, order history all become that customer's).
+Used by sales agents to act on behalf of a specific customer. Under Unified
+Contacts, candidates are limited to shared accessible companies.
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
 | GET  | `/impersonate/customers` | `auth:api` | List customers the agent is allowed to impersonate. |
-| POST | `/impersonate/{customerId}` | `auth:api` | Start impersonating the given customer. |
+| POST | `/impersonate/{customerId}` | `auth:api` | Start impersonating the customer in a validated company context. |
 | POST | `/impersonate/leave` | `auth:api` | Stop impersonating and return to the agent's own session. |
 
   </Tab>
 </Tabs>
+
+## Company-Aware Impersonation
+
+`POST /impersonate/{customerId}` accepts optional `active_company_id`. It is
+required when the target has more than one company. A multi-company agent must
+also select an active agent company first, and the agent and target must share
+access to the selected company. The issued login records both
+`active_company_id` and the impersonator user-account ID for audit and session
+listing.
 
 ## Related
 
