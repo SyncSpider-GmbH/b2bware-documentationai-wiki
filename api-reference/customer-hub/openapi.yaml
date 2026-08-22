@@ -1,223 +1,415 @@
 openapi: 3.0.0
 info:
   title: CustomerHub API
-  description: Complete API collection for CustomerHub — generated from routes/api.php
+  description: 'CustomerHub API. All requests inherit Bearer authentication. Contact relationship endpoints are admin-only:
+    they require auth:api, admin.access, and the exact permission named in each request. Missing/invalid credentials return
+    401; authenticated non-admin callers or callers missing the route permission receive 403.'
   version: 1.0.0
 servers:
-  - url: https://api.datahub.syncspider.com
+- url: https://api.datahub.syncspider.com
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
+  schemas:
+    ContactInlineAddress:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          nullable: true
+        company_name:
+          type: string
+          maxLength: 255
+          nullable: true
+        first_name:
+          type: string
+          maxLength: 255
+          nullable: true
+        last_name:
+          type: string
+          maxLength: 255
+          nullable: true
+        company_number:
+          type: string
+          maxLength: 255
+          nullable: true
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          nullable: true
+        phone:
+          type: string
+          maxLength: 100
+          nullable: true
+        website:
+          type: string
+          maxLength: 255
+          nullable: true
+        address_line_1:
+          type: string
+          maxLength: 255
+          nullable: true
+        address_line_2:
+          type: string
+          maxLength: 255
+          nullable: true
+        city:
+          type: string
+          maxLength: 255
+          nullable: true
+        zip:
+          type: string
+          maxLength: 50
+          nullable: true
+        state:
+          type: string
+          maxLength: 255
+          nullable: true
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          description: ISO 3166-1 alpha-2 country code.
+          nullable: true
+        vat_number:
+          type: string
+          maxLength: 255
+          nullable: true
+        registration_number:
+          type: string
+          maxLength: 255
+          nullable: true
+    ContactAddressCreateRequest:
+      type: object
+      required:
+      - purpose
+      properties:
+        address_id:
+          type: integer
+          nullable: true
+        address:
+          $ref: '#/components/schemas/ContactInlineAddress'
+          nullable: true
+        purpose:
+          type: string
+          enum:
+          - billing
+          - shipping
+          - registered
+          - legal
+          - delivery
+          - office
+          - other
+        is_default:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - active
+          - inactive
+          - archived
+        valid_from:
+          type: string
+          format: date
+          nullable: true
+        valid_until:
+          type: string
+          format: date
+          description: Must be on or after valid_from.
+          nullable: true
+        legacy_type:
+          type: string
+          enum:
+          - billing_address
+          - shipping_address
+          description: Must be supplied with legacy_id. Billing requires purpose=billing; shipping requires purpose=shipping
+            or delivery.
+          nullable: true
+        legacy_id:
+          type: integer
+          minimum: 1
+          nullable: true
+      oneOf:
+      - required:
+        - address_id
+      - required:
+        - address
+      description: Provide exactly one of address_id or address. legacy_type and legacy_id must be supplied together.
+    ContactAddressUpdateRequest:
+      type: object
+      properties:
+        address_id:
+          type: integer
+        address:
+          $ref: '#/components/schemas/ContactInlineAddress'
+        purpose:
+          type: string
+          enum:
+          - billing
+          - shipping
+          - registered
+          - legal
+          - delivery
+          - office
+          - other
+        is_default:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - active
+          - inactive
+          - archived
+        valid_from:
+          type: string
+          format: date
+          nullable: true
+        valid_until:
+          type: string
+          format: date
+          description: Must be on or after valid_from.
+          nullable: true
+      description: Partial updates are accepted by both PUT and PATCH. legacy_type and legacy_id are prohibited on update.
+    CompanyAffiliationCreateRequest:
+      type: object
+      required:
+      - company_contact_id
+      properties:
+        company_contact_id:
+          type: integer
+        type:
+          type: string
+          maxLength: 100
+        status:
+          type: string
+          enum:
+          - active
+          - inactive
+          - archived
+        valid_from:
+          type: string
+          format: date
+          nullable: true
+        valid_until:
+          type: string
+          format: date
+          description: Must be on or after valid_from.
+          nullable: true
+        is_primary:
+          type: boolean
+        mirror_legacy_company:
+          type: boolean
+    CompanyAffiliationUpdateRequest:
+      type: object
+      properties:
+        company_contact_id:
+          type: integer
+        type:
+          type: string
+          maxLength: 100
+        status:
+          type: string
+          enum:
+          - active
+          - inactive
+          - archived
+        valid_from:
+          type: string
+          format: date
+          nullable: true
+        valid_until:
+          type: string
+          format: date
+          description: Must be on or after valid_from.
+          nullable: true
+        is_primary:
+          type: boolean
+        mirror_legacy_company:
+          type: boolean
+    CompanyMembershipCreateRequest:
+      type: object
+      required:
+      - company_contact_id
+      properties:
+        company_contact_id:
+          type: integer
+        role_id:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum:
+          - active
+          - inactive
+        is_default:
+          type: boolean
+        valid_from:
+          type: string
+          format: date
+          nullable: true
+        valid_until:
+          type: string
+          format: date
+          description: Must be on or after valid_from.
+          nullable: true
+    CompanyMembershipUpdateRequest:
+      type: object
+      properties:
+        company_contact_id:
+          type: integer
+        role_id:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum:
+          - active
+          - inactive
+        is_default:
+          type: boolean
+        valid_from:
+          type: string
+          format: date
+          nullable: true
+        valid_until:
+          type: string
+          format: date
+          description: Must be on or after valid_from.
+          nullable: true
+    ContactNoteMutationRequest:
+      type: object
+      required:
+      - note
+      properties:
+        note:
+          type: string
+        legacy_type:
+          type: string
+          enum:
+          - customer
+          - company
+          description: Optional compatibility target for mapped legacy notes.
+    ContactUpsertRequest:
+      type: object
+      required:
+      - kind
+      - status
+      - display_name
+      properties:
+        kind:
+          type: string
+          enum:
+          - company
+          - person
+        status:
+          type: string
+          enum:
+          - active
+          - needs_review
+          - archived
+          - inactive
+        display_name:
+          type: string
+          maxLength: 255
+        legal_name:
+          type: string
+          maxLength: 255
+          nullable: true
+        company_name:
+          type: string
+          maxLength: 255
+          nullable: true
+        salutation:
+          type: string
+          maxLength: 50
+          nullable: true
+        title:
+          type: string
+          maxLength: 100
+          nullable: true
+        first_name:
+          type: string
+          maxLength: 255
+          nullable: true
+        last_name:
+          type: string
+          maxLength: 255
+          nullable: true
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          nullable: true
+        phone:
+          type: string
+          maxLength: 100
+          nullable: true
+        language_code:
+          type: string
+          maxLength: 20
+          nullable: true
+        profiles:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+            minLength: 1
+            maxLength: 100
+          description: Distinct profile names to enable. Omitted profiles remain enabled on update.
+        idempotency_key:
+          type: string
+          minLength: 8
+          maxLength: 255
+          description: Tenant-scoped retry key for resumable Contact creation.
+        identifiers:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            required:
+            - type
+            - value
+            properties:
+              type:
+                type: string
+                maxLength: 100
+              value:
+                type: string
+                maxLength: 255
+              issuer:
+                type: string
+                maxLength: 100
+                nullable: true
+              is_primary:
+                type: boolean
+                nullable: true
+      description: id and create_user_account are prohibited. Companies require legal_name or company_name; people require
+        first_name or last_name.
 security:
-  - bearerAuth: []
+- bearerAuth: []
 tags:
-  - name: Contacts
-    description: >-
-      Canonical contacts. Includes accept camelCase aliases and responses use
-      snake_case fields. Pagination uses per_page.
-  - name: BillingAddresses
-  - name: Companies
-  - name: CustomerGroups
-  - name: Customers
-  - name: Dashboard
-  - name: Favorites
-  - name: Notes
-  - name: Roles
-  - name: Settings
-  - name: ShippingAddresses
+- name: BillingAddresses
+- name: Companies
+- name: Contacts
+- name: CustomerGroups
+- name: Customers
+- name: Dashboard
+- name: Favorites
+- name: Notes
+- name: Permissions
+- name: Roles
+- name: Settings
+- name: ShippingAddresses
+- name: User Accounts
 paths:
-  /api/v1/apps/customer-hub/contacts:
-    get:
-      tags:
-        - Contacts
-      summary: List contacts
-      parameters:
-        - name: filter[search]
-          in: query
-          schema:
-            type: string
-          example: example
-        - name: filter[kind]
-          in: query
-          schema:
-            type: string
-          example: company
-        - name: filter[profile_priority]
-          in: query
-          schema:
-            type: string
-          example: customer
-        - name: include
-          in: query
-          schema:
-            type: string
-          example: companyAffiliations.company,customerProfile,supplierProfile
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-          example: '25'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    post:
-      tags:
-        - Contacts
-      summary: Create contact
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example:
-                kind: company
-                status: active
-                display_name: Example GmbH
-                legal_name: Example GmbH
-                email: office@example.test
-                phone: +43 1 234567
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/contacts/{id}:
-    get:
-      tags:
-        - Contacts
-      summary: Show contact
-      parameters:
-        - name: include
-          in: query
-          schema:
-            type: string
-          example: >-
-            identifiers,companyAffiliations.company,personContacts.person,userAccount,memberships.company,addresses.address,customerProfile,supplierProfile,smartActionCounts
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    put:
-      tags:
-        - Contacts
-      summary: Update contact
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example:
-                kind: company
-                status: active
-                display_name: Example GmbH
-                legal_name: Example GmbH
-                email: office@example.test
-                phone: +43 1 234567
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    delete:
-      tags:
-        - Contacts
-      summary: Delete contact
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/contacts/{id}/profiles/customer:
-    post:
-      tags:
-        - Contacts
-      summary: Enable customer profile
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/contacts/{id}/profiles/supplier:
-    post:
-      tags:
-        - Contacts
-      summary: Enable supplier profile
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
   /api/v1/apps/customer-hub/billingAddresses:
     get:
       tags:
-        - BillingAddresses
+      - BillingAddresses
       summary: Index
       responses:
         '200':
@@ -226,7 +418,7 @@ paths:
             application/json: {}
     post:
       tags:
-        - BillingAddresses
+      - BillingAddresses
       summary: Store
       requestBody:
         content:
@@ -235,11 +427,11 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
       responses:
         '200':
           description: Successful response
@@ -248,14 +440,14 @@ paths:
   /api/v1/apps/customer-hub/billingAddresses/{id}:
     get:
       tags:
-        - BillingAddresses
+      - BillingAddresses
       summary: Show
       parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
@@ -263,7 +455,7 @@ paths:
             application/json: {}
     put:
       tags:
-        - BillingAddresses
+      - BillingAddresses
       summary: Update
       requestBody:
         content:
@@ -272,16 +464,16 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
@@ -289,14 +481,14 @@ paths:
             application/json: {}
     delete:
       tags:
-        - BillingAddresses
+      - BillingAddresses
       summary: Destroy
       parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
@@ -305,7 +497,7 @@ paths:
   /api/v1/apps/customer-hub/companies:
     get:
       tags:
-        - Companies
+      - Companies
       summary: Index
       responses:
         '200':
@@ -314,7 +506,7 @@ paths:
             application/json: {}
     post:
       tags:
-        - Companies
+      - Companies
       summary: Store
       requestBody:
         content:
@@ -323,11 +515,11 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
       responses:
         '200':
           description: Successful response
@@ -336,14 +528,14 @@ paths:
   /api/v1/apps/customer-hub/companies/{id}:
     get:
       tags:
-        - Companies
+      - Companies
       summary: Show
       parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
@@ -351,7 +543,7 @@ paths:
             application/json: {}
     put:
       tags:
-        - Companies
+      - Companies
       summary: Update
       requestBody:
         content:
@@ -360,16 +552,16 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
@@ -377,199 +569,23 @@ paths:
             application/json: {}
     delete:
       tags:
-        - Companies
+      - Companies
       summary: Destroy
       parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/customer-hub/customerGroups:
-    get:
-      tags:
-        - CustomerGroups
-      summary: Index
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    post:
-      tags:
-        - CustomerGroups
-      summary: Store
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/customerGroups/{id}:
-    get:
-      tags:
-        - CustomerGroups
-      summary: Show
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
+  /api/v1/apps/customer-hub/companies/bulk/update:
     put:
       tags:
-        - CustomerGroups
-      summary: Update
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    delete:
-      tags:
-        - CustomerGroups
-      summary: Destroy
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/customers:
-    get:
-      tags:
-        - Customers
-      summary: Index
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    post:
-      tags:
-        - Customers
-      summary: Store
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/customers/{id}:
-    get:
-      tags:
-        - Customers
-      summary: Show
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    put:
-      tags:
-        - Customers
-      summary: Update
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    delete:
-      tags:
-        - Customers
-      summary: Destroy
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/customer-hub/customers/bulk/update:
-    put:
-      tags:
-        - Customers
+      - Companies
       summary: Bulk Update
       requestBody:
         content:
@@ -578,11 +594,1436 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/companies/bulk/delete:
+    delete:
+      tags:
+      - Companies
+      summary: Bulk Delete
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/contacts:
+    get:
+      tags:
+      - Contacts
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+      - Contacts
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactUpsertRequest'
+            example:
+              kind: company
+              status: active
+              display_name: Example GmbH
+              legal_name: Example GmbH
+              email: office@example.test
+              phone: +43 1 234567
+              profiles:
+              - customer
+              idempotency_key: contact-create-example-gmbh-001
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      responses:
+        '201':
+          description: Contact created.
+          content:
+            application/json: {}
+        '422':
+          description: Validation, unsupported profile, compatibility mapping, or idempotency-key reuse conflict.
+  /api/v1/apps/customer-hub/contacts/{contact}/addresses:
+    get:
+      tags:
+      - Contacts
+      summary: Index
+      description: 'Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-addresses.view.
+        Archived links are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. Only one active default exists per contact and purpose. Valid purposes are billing, shipping, registered,
+        legal, delivery, office, and other. Create accepts exactly one of address_id or inline address. Legacy mapping requires
+        both legacy_type and legacy_id; billing_address requires billing, while shipping_address requires shipping or delivery.
+        Example alternatives: existing link {"address_id":42,"purpose":"office"}; legacy billing {"address_id":42,"purpose":"billing","legacy_type":"billing_address","legacy_id":7};
+        legacy shipping {"address_id":43,"purpose":"delivery","legacy_type":"shipping_address","legacy_id":8}. Additional
+        valid purpose examples: {"address_id":44,"purpose":"registered"}, {"address_id":45,"purpose":"legal"}, {"address_id":46,"purpose":"shipping"},
+        and {"address_id":47,"purpose":"other"}. A missing parent Contact or active nested record returns 404.'
+      parameters:
+      - name: include_archived
+        in: query
+        schema:
+          type: boolean
+          default: false
+        description: Include archived nested records; defaults to false.
+        example: 'true'
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+      operationId: get_contacts_contact_addresses
+    post:
+      tags:
+      - Contacts
+      summary: Store
+      description: 'Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-addresses.create.
+        Archived links are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. Only one active default exists per contact and purpose. Valid purposes are billing, shipping, registered,
+        legal, delivery, office, and other. Create accepts exactly one of address_id or inline address. Legacy mapping requires
+        both legacy_type and legacy_id; billing_address requires billing, while shipping_address requires shipping or delivery.
+        Example alternatives: existing link {"address_id":42,"purpose":"office"}; legacy billing {"address_id":42,"purpose":"billing","legacy_type":"billing_address","legacy_id":7};
+        legacy shipping {"address_id":43,"purpose":"delivery","legacy_type":"shipping_address","legacy_id":8}. Additional
+        valid purpose examples: {"address_id":44,"purpose":"registered"}, {"address_id":45,"purpose":"legal"}, {"address_id":46,"purpose":"shipping"},
+        and {"address_id":47,"purpose":"other"}. A missing parent Contact or active nested record returns 404. FormRequest
+        validation and domain-invariant failures return 422 with a message or validation errors.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactAddressCreateRequest'
+            example:
+              address:
+                name: Vienna billing office
+                company_name: Example GmbH
+                email: office@example.test
+                phone: +43 1 234567
+                address_line_1: Mariahilfer Strasse 1
+                city: Vienna
+                zip: '1060'
+                state: Vienna
+                country: AT
+                vat_number: ATU12345678
+              purpose: billing
+              is_default: true
+              status: active
+              valid_from: '2026-01-01'
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: post_contacts_contact_addresses
+  /api/v1/apps/customer-hub/contacts/{contact}/addresses/{link}:
+    get:
+      tags:
+      - Contacts
+      summary: Show
+      description: 'Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-addresses.view.
+        Archived links are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. Only one active default exists per contact and purpose. Valid purposes are billing, shipping, registered,
+        legal, delivery, office, and other. Create accepts exactly one of address_id or inline address. Legacy mapping requires
+        both legacy_type and legacy_id; billing_address requires billing, while shipping_address requires shipping or delivery.
+        Example alternatives: existing link {"address_id":42,"purpose":"office"}; legacy billing {"address_id":42,"purpose":"billing","legacy_type":"billing_address","legacy_id":7};
+        legacy shipping {"address_id":43,"purpose":"delivery","legacy_type":"shipping_address","legacy_id":8}. Additional
+        valid purpose examples: {"address_id":44,"purpose":"registered"}, {"address_id":45,"purpose":"legal"}, {"address_id":46,"purpose":"shipping"},
+        and {"address_id":47,"purpose":"other"}. A missing parent Contact or active nested record returns 404.'
+      parameters:
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: link
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+      operationId: get_contacts_contact_addresses_link
+    put:
+      tags:
+      - Contacts
+      summary: Update
+      description: 'Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-addresses.update.
+        Archived links are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. Only one active default exists per contact and purpose. Valid purposes are billing, shipping, registered,
+        legal, delivery, office, and other. Create accepts exactly one of address_id or inline address. Legacy mapping requires
+        both legacy_type and legacy_id; billing_address requires billing, while shipping_address requires shipping or delivery.
+        Example alternatives: existing link {"address_id":42,"purpose":"office"}; legacy billing {"address_id":42,"purpose":"billing","legacy_type":"billing_address","legacy_id":7};
+        legacy shipping {"address_id":43,"purpose":"delivery","legacy_type":"shipping_address","legacy_id":8}. Additional
+        valid purpose examples: {"address_id":44,"purpose":"registered"}, {"address_id":45,"purpose":"legal"}, {"address_id":46,"purpose":"shipping"},
+        and {"address_id":47,"purpose":"other"}. A missing parent Contact or active nested record returns 404. FormRequest
+        validation and domain-invariant failures return 422 with a message or validation errors.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactAddressUpdateRequest'
+            example:
+              purpose: shipping
+              is_default: true
+              status: active
+              valid_from: '2026-01-01'
+              valid_until: '2027-12-31'
+              address:
+                address_line_1: Kaerntner Strasse 10
+                city: Vienna
+                zip: '1010'
+                country: AT
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: link
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: put_contacts_contact_addresses_link
+    patch:
+      tags:
+      - Contacts
+      summary: Update
+      description: 'Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-addresses.update.
+        Archived links are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. Only one active default exists per contact and purpose. Valid purposes are billing, shipping, registered,
+        legal, delivery, office, and other. Create accepts exactly one of address_id or inline address. Legacy mapping requires
+        both legacy_type and legacy_id; billing_address requires billing, while shipping_address requires shipping or delivery.
+        Example alternatives: existing link {"address_id":42,"purpose":"office"}; legacy billing {"address_id":42,"purpose":"billing","legacy_type":"billing_address","legacy_id":7};
+        legacy shipping {"address_id":43,"purpose":"delivery","legacy_type":"shipping_address","legacy_id":8}. Additional
+        valid purpose examples: {"address_id":44,"purpose":"registered"}, {"address_id":45,"purpose":"legal"}, {"address_id":46,"purpose":"shipping"},
+        and {"address_id":47,"purpose":"other"}. A missing parent Contact or active nested record returns 404. FormRequest
+        validation and domain-invariant failures return 422 with a message or validation errors.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactAddressUpdateRequest'
+            example:
+              is_default: true
+              status: active
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: link
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: patch_contacts_contact_addresses_link
+    delete:
+      tags:
+      - Contacts
+      summary: Destroy
+      description: 'Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-addresses.delete.
+        Archived links are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. Only one active default exists per contact and purpose. Valid purposes are billing, shipping, registered,
+        legal, delivery, office, and other. Create accepts exactly one of address_id or inline address. Legacy mapping requires
+        both legacy_type and legacy_id; billing_address requires billing, while shipping_address requires shipping or delivery.
+        Example alternatives: existing link {"address_id":42,"purpose":"office"}; legacy billing {"address_id":42,"purpose":"billing","legacy_type":"billing_address","legacy_id":7};
+        legacy shipping {"address_id":43,"purpose":"delivery","legacy_type":"shipping_address","legacy_id":8}. Additional
+        valid purpose examples: {"address_id":44,"purpose":"registered"}, {"address_id":45,"purpose":"legal"}, {"address_id":46,"purpose":"shipping"},
+        and {"address_id":47,"purpose":"other"}. A missing parent Contact or active nested record returns 404.'
+      parameters:
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: link
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+      operationId: delete_contacts_contact_addresses_link
+  /api/v1/apps/customer-hub/contacts/{contact}/affiliations:
+    get:
+      tags:
+      - Contacts
+      summary: Index
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.affiliations.view.
+        Archived affiliations are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Affiliations express a person-to-company relationship and never grant authorization. Only set-primary
+        with mirror_legacy_company=true mirrors the company into legacy Customers.company_id. Validity windows require valid_until
+        on or after valid_from. A missing parent Contact or active nested record returns 404.
+      parameters:
+      - name: include_archived
+        in: query
+        schema:
+          type: boolean
+          default: false
+        description: Include archived nested records; defaults to false.
+        example: 'true'
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+      operationId: get_contacts_contact_affiliations
+    post:
+      tags:
+      - Contacts
+      summary: Store
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.affiliations.create.
+        Archived affiliations are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Affiliations express a person-to-company relationship and never grant authorization. Only set-primary
+        with mirror_legacy_company=true mirrors the company into legacy Customers.company_id. Validity windows require valid_until
+        on or after valid_from. A missing parent Contact or active nested record returns 404. FormRequest validation and domain-invariant
+        failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyAffiliationCreateRequest'
+            example:
+              company_contact_id: 2001
+              type: employee
+              status: active
+              valid_from: '2026-01-01'
+              is_primary: true
+              mirror_legacy_company: false
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: post_contacts_contact_affiliations
+  /api/v1/apps/customer-hub/contacts/{contact}/affiliations/{affiliation}:
+    get:
+      tags:
+      - Contacts
+      summary: Show
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.affiliations.view.
+        Archived affiliations are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Affiliations express a person-to-company relationship and never grant authorization. Only set-primary
+        with mirror_legacy_company=true mirrors the company into legacy Customers.company_id. Validity windows require valid_until
+        on or after valid_from. A missing parent Contact or active nested record returns 404.
+      parameters:
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: affiliation
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+      operationId: get_contacts_contact_affiliations_affiliation
+    put:
+      tags:
+      - Contacts
+      summary: Update
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.affiliations.update.
+        Archived affiliations are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Affiliations express a person-to-company relationship and never grant authorization. Only set-primary
+        with mirror_legacy_company=true mirrors the company into legacy Customers.company_id. Validity windows require valid_until
+        on or after valid_from. A missing parent Contact or active nested record returns 404. FormRequest validation and domain-invariant
+        failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyAffiliationUpdateRequest'
+            example:
+              company_contact_id: 2001
+              type: purchasing_contact
+              status: active
+              valid_from: '2026-01-01'
+              valid_until: '2027-12-31'
+              is_primary: true
+              mirror_legacy_company: false
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: affiliation
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: put_contacts_contact_affiliations_affiliation
+    patch:
+      tags:
+      - Contacts
+      summary: Update
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.affiliations.update.
+        Archived affiliations are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Affiliations express a person-to-company relationship and never grant authorization. Only set-primary
+        with mirror_legacy_company=true mirrors the company into legacy Customers.company_id. Validity windows require valid_until
+        on or after valid_from. A missing parent Contact or active nested record returns 404. FormRequest validation and domain-invariant
+        failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyAffiliationUpdateRequest'
+            example:
+              type: billing_contact
+              is_primary: false
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: affiliation
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: patch_contacts_contact_affiliations_affiliation
+    delete:
+      tags:
+      - Contacts
+      summary: Destroy
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.affiliations.delete.
+        Archived affiliations are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Affiliations express a person-to-company relationship and never grant authorization. Only set-primary
+        with mirror_legacy_company=true mirrors the company into legacy Customers.company_id. Validity windows require valid_until
+        on or after valid_from. A missing parent Contact or active nested record returns 404.
+      parameters:
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: affiliation
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+      operationId: delete_contacts_contact_affiliations_affiliation
+  /api/v1/apps/customer-hub/contacts/{contact}/notes:
+    get:
+      tags:
+      - Contacts
+      summary: Index
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-notes.view.
+        Archived notes are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. When legacy_type is customer or company, compatibility mapping uses that mapped legacy identity. When legacy_type
+        is omitted, the service prefers the Contact kind’s matching legacy identity, then any mapped legacy identity, and
+        falls back to the canonical Contact model string and ID. A missing parent Contact or active nested record returns
+        404.
+      parameters:
+      - name: include_archived
+        in: query
+        schema:
+          type: boolean
+          default: false
+        description: Include archived nested records; defaults to false.
+        example: 'true'
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+      operationId: get_contacts_contact_notes
+    post:
+      tags:
+      - Contacts
+      summary: Store
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-notes.create.
+        Archived notes are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. When legacy_type is customer or company, compatibility mapping uses that mapped legacy identity. When legacy_type
+        is omitted, the service prefers the Contact kind’s matching legacy identity, then any mapped legacy identity, and
+        falls back to the canonical Contact model string and ID. A missing parent Contact or active nested record returns
+        404. FormRequest validation and domain-invariant failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactNoteMutationRequest'
+            example:
+              note: Preferred delivery window is 08:00-12:00.
+              legacy_type: customer
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: post_contacts_contact_notes
+  /api/v1/apps/customer-hub/contacts/{contact}/notes/{note}:
+    get:
+      tags:
+      - Contacts
+      summary: Show
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-notes.view.
+        Archived notes are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. When legacy_type is customer or company, compatibility mapping uses that mapped legacy identity. When legacy_type
+        is omitted, the service prefers the Contact kind’s matching legacy identity, then any mapped legacy identity, and
+        falls back to the canonical Contact model string and ID. A missing parent Contact or active nested record returns
+        404.
+      parameters:
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: note
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+      operationId: get_contacts_contact_notes_note
+    put:
+      tags:
+      - Contacts
+      summary: Update
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-notes.update.
+        Archived notes are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. When legacy_type is customer or company, compatibility mapping uses that mapped legacy identity. When legacy_type
+        is omitted, the service prefers the Contact kind’s matching legacy identity, then any mapped legacy identity, and
+        falls back to the canonical Contact model string and ID. A missing parent Contact or active nested record returns
+        404. FormRequest validation and domain-invariant failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactNoteMutationRequest'
+            example:
+              note: Preferred delivery window is 09:00-12:00.
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: note
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: put_contacts_contact_notes_note
+    patch:
+      tags:
+      - Contacts
+      summary: Update
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-notes.update.
+        Archived notes are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. When legacy_type is customer or company, compatibility mapping uses that mapped legacy identity. When legacy_type
+        is omitted, the service prefers the Contact kind’s matching legacy identity, then any mapped legacy identity, and
+        falls back to the canonical Contact model string and ID. A missing parent Contact or active nested record returns
+        404. FormRequest validation and domain-invariant failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactNoteMutationRequest'
+            example:
+              note: Preferred delivery window is 10:00-12:00.
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: note
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: patch_contacts_contact_notes_note
+    delete:
+      tags:
+      - Contacts
+      summary: Destroy
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-notes.delete.
+        Archived notes are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. When legacy_type is customer or company, compatibility mapping uses that mapped legacy identity. When legacy_type
+        is omitted, the service prefers the Contact kind’s matching legacy identity, then any mapped legacy identity, and
+        falls back to the canonical Contact model string and ID. A missing parent Contact or active nested record returns
+        404.
+      parameters:
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: note
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+      operationId: delete_contacts_contact_notes_note
+  /api/v1/apps/customer-hub/contacts/{id}:
+    get:
+      tags:
+      - Contacts
+      summary: Show
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+      - Contacts
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactUpsertRequest'
+            example:
+              kind: company
+              status: active
+              display_name: Example GmbH
+              legal_name: Example GmbH
+              email: office@example.test
+              phone: +43 1 234567
+              profiles:
+              - customer
+              - supplier
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '422':
+          description: Validation, unsupported profile, compatibility bridge failure, or attempted kind mutation.
+    delete:
+      tags:
+      - Contacts
+      summary: Destroy
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/contacts/{contact}/addresses/{link}/default:
+    post:
+      tags:
+      - Contacts
+      summary: Make Default
+      description: 'Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-addresses.set-default.
+        Archived links are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. Only one active default exists per contact and purpose. Valid purposes are billing, shipping, registered,
+        legal, delivery, office, and other. Create accepts exactly one of address_id or inline address. Legacy mapping requires
+        both legacy_type and legacy_id; billing_address requires billing, while shipping_address requires shipping or delivery.
+        Example alternatives: existing link {"address_id":42,"purpose":"office"}; legacy billing {"address_id":42,"purpose":"billing","legacy_type":"billing_address","legacy_id":7};
+        legacy shipping {"address_id":43,"purpose":"delivery","legacy_type":"shipping_address","legacy_id":8}. Additional
+        valid purpose examples: {"address_id":44,"purpose":"registered"}, {"address_id":45,"purpose":"legal"}, {"address_id":46,"purpose":"shipping"},
+        and {"address_id":47,"purpose":"other"}. A missing parent Contact or active nested record returns 404. FormRequest
+        validation and domain-invariant failures return 422 with a message or validation errors.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: link
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: post_contacts_contact_addresses_link_default
+  /api/v1/apps/customer-hub/contacts/{contact}/addresses/{link}/restore:
+    post:
+      tags:
+      - Contacts
+      summary: Restore
+      description: 'Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-addresses.restore.
+        Archived links are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. Only one active default exists per contact and purpose. Valid purposes are billing, shipping, registered,
+        legal, delivery, office, and other. Create accepts exactly one of address_id or inline address. Legacy mapping requires
+        both legacy_type and legacy_id; billing_address requires billing, while shipping_address requires shipping or delivery.
+        Example alternatives: existing link {"address_id":42,"purpose":"office"}; legacy billing {"address_id":42,"purpose":"billing","legacy_type":"billing_address","legacy_id":7};
+        legacy shipping {"address_id":43,"purpose":"delivery","legacy_type":"shipping_address","legacy_id":8}. Additional
+        valid purpose examples: {"address_id":44,"purpose":"registered"}, {"address_id":45,"purpose":"legal"}, {"address_id":46,"purpose":"shipping"},
+        and {"address_id":47,"purpose":"other"}. A missing parent Contact returns 404; a missing archived nested record is
+        a domain failure and returns 422. FormRequest validation and domain-invariant failures return 422 with a message or
+        validation errors.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: link
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: post_contacts_contact_addresses_link_restore
+  /api/v1/apps/customer-hub/contacts/{contact}/affiliations/{affiliation}/primary:
+    post:
+      tags:
+      - Contacts
+      summary: Make Primary
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.affiliations.set-primary.
+        Archived affiliations are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Affiliations express a person-to-company relationship and never grant authorization. Only set-primary
+        with mirror_legacy_company=true mirrors the company into legacy Customers.company_id. Validity windows require valid_until
+        on or after valid_from. A missing parent Contact or active nested record returns 404. FormRequest validation and domain-invariant
+        failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mirror_legacy_company:
+                  type: boolean
+              example:
+                mirror_legacy_company: true
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: affiliation
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: post_contacts_contact_affiliations_affiliation_primary
+  /api/v1/apps/customer-hub/contacts/{contact}/affiliations/{affiliation}/restore:
+    post:
+      tags:
+      - Contacts
+      summary: Restore
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.affiliations.restore.
+        Archived affiliations are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Affiliations express a person-to-company relationship and never grant authorization. Only set-primary
+        with mirror_legacy_company=true mirrors the company into legacy Customers.company_id. Validity windows require valid_until
+        on or after valid_from. A missing parent Contact returns 404; a missing archived nested record is a domain failure
+        and returns 422. FormRequest validation and domain-invariant failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: affiliation
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: post_contacts_contact_affiliations_affiliation_restore
+  /api/v1/apps/customer-hub/contacts/{contact}/notes/{note}/restore:
+    post:
+      tags:
+      - Contacts
+      summary: Restore
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-notes.restore.
+        Archived notes are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. When legacy_type is customer or company, compatibility mapping uses that mapped legacy identity. When legacy_type
+        is omitted, the service prefers the Contact kind’s matching legacy identity, then any mapped legacy identity, and
+        falls back to the canonical Contact model string and ID. A missing parent Contact returns 404; a missing archived
+        nested record is a domain failure and returns 422. FormRequest validation and domain-invariant failures return 422
+        with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: contact
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: note
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: post_contacts_contact_notes_note_restore
+  /api/v1/apps/customer-hub/contacts/{id}/profiles/customer:
+    post:
+      tags:
+      - Contacts
+      summary: Enable Customer Profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/contacts/{id}/profiles/supplier:
+    post:
+      tags:
+      - Contacts
+      summary: Enable Supplier Profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customerGroups:
+    get:
+      tags:
+      - CustomerGroups
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+      - CustomerGroups
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customerGroups/{id}:
+    get:
+      tags:
+      - CustomerGroups
+      summary: Show
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+      - CustomerGroups
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+      - CustomerGroups
+      summary: Destroy
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customerGroups/bulk/update:
+    put:
+      tags:
+      - CustomerGroups
+      summary: Bulk Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customerGroups/bulk/delete:
+    delete:
+      tags:
+      - CustomerGroups
+      summary: Bulk Delete
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customers:
+    get:
+      tags:
+      - Customers
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+      - Customers
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customers/{id}:
+    get:
+      tags:
+      - Customers
+      summary: Show
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+      - Customers
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+      - Customers
+      summary: Destroy
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/customers/bulk/update:
+    put:
+      tags:
+      - Customers
+      summary: Bulk Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
       responses:
         '200':
           description: Successful response
@@ -591,7 +2032,7 @@ paths:
   /api/v1/apps/customer-hub/customers/bulk/delete:
     delete:
       tags:
-        - Customers
+      - Customers
       summary: Bulk Delete
       responses:
         '200':
@@ -601,7 +2042,7 @@ paths:
   /api/v1/apps/customer-hub/customers/bulk/delete-all:
     delete:
       tags:
-        - Customers
+      - Customers
       summary: Bulk Delete All
       responses:
         '200':
@@ -611,7 +2052,7 @@ paths:
   /api/v1/apps/customer-hub/dashboard/customer-growth:
     get:
       tags:
-        - Dashboard
+      - Dashboard
       summary: Customer Growth
       responses:
         '200':
@@ -621,7 +2062,7 @@ paths:
   /api/v1/apps/customer-hub/dashboard/customers-by-location:
     get:
       tags:
-        - Dashboard
+      - Dashboard
       summary: Customers By Location
       responses:
         '200':
@@ -631,7 +2072,7 @@ paths:
   /api/v1/apps/customer-hub/dashboard/customers-overview:
     get:
       tags:
-        - Dashboard
+      - Dashboard
       summary: Customers Overview
       responses:
         '200':
@@ -641,7 +2082,7 @@ paths:
   /api/v1/apps/customer-hub/dashboard/recent-signups:
     get:
       tags:
-        - Dashboard
+      - Dashboard
       summary: Recent Signups
       responses:
         '200':
@@ -651,7 +2092,7 @@ paths:
   /api/v1/apps/customer-hub/dashboard/top-customer-groups:
     get:
       tags:
-        - Dashboard
+      - Dashboard
       summary: Top Customer Groups
       responses:
         '200':
@@ -661,7 +2102,7 @@ paths:
   /api/v1/apps/customer-hub/dashboard/verification-funnel:
     get:
       tags:
-        - Dashboard
+      - Dashboard
       summary: Verification Funnel
       responses:
         '200':
@@ -671,7 +2112,7 @@ paths:
   /api/v1/apps/customer-hub/favorites:
     get:
       tags:
-        - Favorites
+      - Favorites
       summary: Show
       responses:
         '200':
@@ -680,7 +2121,7 @@ paths:
             application/json: {}
     put:
       tags:
-        - Favorites
+      - Favorites
       summary: Update
       requestBody:
         content:
@@ -689,11 +2130,11 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
       responses:
         '200':
           description: Successful response
@@ -702,8 +2143,20 @@ paths:
   /api/v1/apps/customer-hub/notes:
     get:
       tags:
-        - Notes
+      - Notes
       summary: Index
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-notes.view.
+        Archived notes are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. Contact-first notes use the canonical Contact model string and ID. When legacy_type is customer or company,
+        compatibility mapping retains the legacy Customers or Companies polymorphic model string and legacy ID. A missing
+        parent Contact or active nested record returns 404.
+      parameters:
+      - name: include_archived
+        in: query
+        schema:
+          type: boolean
+        description: Include archived nested records; defaults to false.
+        example: 'true'
       responses:
         '200':
           description: Successful response
@@ -711,36 +2164,51 @@ paths:
             application/json: {}
     post:
       tags:
-        - Notes
+      - Notes
       summary: Store
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-notes.create.
+        Archived notes are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. Contact-first notes use the canonical Contact model string and ID. When legacy_type is customer or company,
+        compatibility mapping retains the legacy Customers or Companies polymorphic model string and legacy ID. A missing
+        parent Contact or active nested record returns 404. FormRequest validation and domain-invariant failures return 422
+        with a message or validation errors.
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                note: Preferred delivery window is 08:00-12:00.
+                legacy_type: customer
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
   /api/v1/apps/customer-hub/notes/{id}:
     get:
       tags:
-        - Notes
+      - Notes
       summary: Show
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-notes.view.
+        Archived notes are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. Contact-first notes use the canonical Contact model string and ID. When legacy_type is customer or company,
+        compatibility mapping retains the legacy Customers or Companies polymorphic model string and legacy ID. A missing
+        parent Contact or active nested record returns 404.
       parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
@@ -748,40 +2216,64 @@ paths:
             application/json: {}
     put:
       tags:
-        - Notes
+      - Notes
       summary: Update
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-notes.update.
+        Archived notes are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. Contact-first notes use the canonical Contact model string and ID. When legacy_type is customer or company,
+        compatibility mapping retains the legacy Customers or Companies polymorphic model string and legacy ID. A missing
+        parent Contact or active nested record returns 404. FormRequest validation and domain-invariant failures return 422
+        with a message or validation errors.
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                note: Preferred delivery window is 09:00-12:00.
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
     delete:
       tags:
-        - Notes
+      - Notes
       summary: Destroy
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.contact-notes.delete.
+        Archived notes are hidden unless include_archived=true. DELETE archives; restore reactivates; no hard-delete endpoint
+        exists. Contact-first notes use the canonical Contact model string and ID. When legacy_type is customer or company,
+        compatibility mapping retains the legacy Customers or Companies polymorphic model string and legacy ID. A missing
+        parent Contact or active nested record returns 404.
       parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/permissions:
+    get:
+      tags:
+      - Permissions
+      summary: Index
       responses:
         '200':
           description: Successful response
@@ -790,7 +2282,7 @@ paths:
   /api/v1/apps/customer-hub/roles:
     get:
       tags:
-        - Roles
+      - Roles
       summary: Index
       responses:
         '200':
@@ -799,7 +2291,7 @@ paths:
             application/json: {}
     post:
       tags:
-        - Roles
+      - Roles
       summary: Store
       requestBody:
         content:
@@ -808,27 +2300,27 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/customer-hub/roles/{id}:
+  /api/v1/apps/customer-hub/roles/{role}:
     get:
       tags:
-        - Roles
+      - Roles
       summary: Show
       parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: role
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
@@ -836,7 +2328,7 @@ paths:
             application/json: {}
     put:
       tags:
-        - Roles
+      - Roles
       summary: Update
       requestBody:
         content:
@@ -845,16 +2337,42 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: role
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+      - Roles
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: role
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
@@ -862,14 +2380,46 @@ paths:
             application/json: {}
     delete:
       tags:
-        - Roles
+      - Roles
       summary: Destroy
       parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: role
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/roles/bulk/update:
+    put:
+      tags:
+      - Roles
+      summary: Bulk Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/roles/bulk/delete:
+    delete:
+      tags:
+      - Roles
+      summary: Bulk Delete
       responses:
         '200':
           description: Successful response
@@ -878,7 +2428,7 @@ paths:
   /api/v1/apps/customer-hub/settings:
     get:
       tags:
-        - Settings
+      - Settings
       summary: Index
       responses:
         '200':
@@ -887,7 +2437,7 @@ paths:
             application/json: {}
     post:
       tags:
-        - Settings
+      - Settings
       summary: Store
       requestBody:
         content:
@@ -896,11 +2446,11 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
       responses:
         '200':
           description: Successful response
@@ -909,7 +2459,7 @@ paths:
   /api/v1/apps/customer-hub/settings/groups/list:
     get:
       tags:
-        - Settings
+      - Settings
       summary: Get Groups List
       responses:
         '200':
@@ -919,14 +2469,14 @@ paths:
   /api/v1/apps/customer-hub/settings/{group}:
     get:
       tags:
-        - Settings
+      - Settings
       summary: Show
       parameters:
-        - name: group
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: group
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
@@ -934,7 +2484,7 @@ paths:
             application/json: {}
     post:
       tags:
-        - Settings
+      - Settings
       summary: Update
       requestBody:
         content:
@@ -943,16 +2493,16 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: group
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: group
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
@@ -961,7 +2511,7 @@ paths:
   /api/v1/apps/customer-hub/settings/reset:
     post:
       tags:
-        - Settings
+      - Settings
       summary: Reset
       requestBody:
         content:
@@ -970,11 +2520,11 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
       responses:
         '200':
           description: Successful response
@@ -983,7 +2533,7 @@ paths:
   /api/v1/apps/customer-hub/settings/{group}/reset:
     post:
       tags:
-        - Settings
+      - Settings
       summary: Reset
       requestBody:
         content:
@@ -992,16 +2542,16 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: group
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: group
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
@@ -1010,7 +2560,7 @@ paths:
   /api/v1/apps/customer-hub/shippingAddresses:
     get:
       tags:
-        - ShippingAddresses
+      - ShippingAddresses
       summary: Index
       responses:
         '200':
@@ -1019,7 +2569,7 @@ paths:
             application/json: {}
     post:
       tags:
-        - ShippingAddresses
+      - ShippingAddresses
       summary: Store
       requestBody:
         content:
@@ -1028,11 +2578,11 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
       responses:
         '200':
           description: Successful response
@@ -1041,14 +2591,14 @@ paths:
   /api/v1/apps/customer-hub/shippingAddresses/{id}:
     get:
       tags:
-        - ShippingAddresses
+      - ShippingAddresses
       summary: Show
       parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
@@ -1056,7 +2606,7 @@ paths:
             application/json: {}
     put:
       tags:
-        - ShippingAddresses
+      - ShippingAddresses
       summary: Update
       requestBody:
         content:
@@ -1065,16 +2615,16 @@ paths:
               type: object
               example: {}
       parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
@@ -1082,16 +2632,406 @@ paths:
             application/json: {}
     delete:
       tags:
-        - ShippingAddresses
+      - ShippingAddresses
       summary: Destroy
       parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
+  /api/v1/apps/customer-hub/user-accounts/{account}/memberships:
+    get:
+      tags:
+      - User Accounts
+      summary: Index
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.memberships.view.
+        Archived memberships are hidden unless include_archived=true. Memberships grant user-account authorization; affiliations
+        do not. Deactivate sets the membership inactive without archiving it. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Only one active default membership exists per user account. Validity windows require valid_until
+        on or after valid_from. A missing user account is a domain failure and returns 422.  FormRequest validation and domain-invariant
+        failures return 422 with a message or validation errors.
+      parameters:
+      - name: include_archived
+        in: query
+        schema:
+          type: boolean
+          default: false
+        description: Include archived nested records; defaults to false.
+        example: 'true'
+      - name: account
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: get_user_accounts_account_memberships
+    post:
+      tags:
+      - User Accounts
+      summary: Store
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.memberships.create.
+        Archived memberships are hidden unless include_archived=true. Memberships grant user-account authorization; affiliations
+        do not. Deactivate sets the membership inactive without archiving it. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Only one active default membership exists per user account. Validity windows require valid_until
+        on or after valid_from. A missing user account is a domain failure and returns 422.  FormRequest validation and domain-invariant
+        failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyMembershipCreateRequest'
+            example:
+              company_contact_id: 2001
+              role_id: 3
+              status: active
+              is_default: true
+              valid_from: '2026-01-01'
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: account
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: post_user_accounts_account_memberships
+  /api/v1/apps/customer-hub/user-accounts/{account}/memberships/{membership}:
+    get:
+      tags:
+      - User Accounts
+      summary: Show
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.memberships.view.
+        Archived memberships are hidden unless include_archived=true. Memberships grant user-account authorization; affiliations
+        do not. Deactivate sets the membership inactive without archiving it. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Only one active default membership exists per user account. Validity windows require valid_until
+        on or after valid_from. A missing user account is a domain failure and returns 422. A missing membership returns 404.
+        FormRequest validation and domain-invariant failures return 422 with a message or validation errors.
+      parameters:
+      - name: account
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: membership
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: get_user_accounts_account_memberships_membership
+    put:
+      tags:
+      - User Accounts
+      summary: Update
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.memberships.update.
+        Archived memberships are hidden unless include_archived=true. Memberships grant user-account authorization; affiliations
+        do not. Deactivate sets the membership inactive without archiving it. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Only one active default membership exists per user account. Validity windows require valid_until
+        on or after valid_from. A missing user account is a domain failure and returns 422. A missing membership returns 404.
+        FormRequest validation and domain-invariant failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyMembershipUpdateRequest'
+            example:
+              company_contact_id: 2001
+              role_id: 4
+              status: active
+              is_default: true
+              valid_from: '2026-01-01'
+              valid_until: '2027-12-31'
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: account
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: membership
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: put_user_accounts_account_memberships_membership
+    patch:
+      tags:
+      - User Accounts
+      summary: Update
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.memberships.update.
+        Archived memberships are hidden unless include_archived=true. Memberships grant user-account authorization; affiliations
+        do not. Deactivate sets the membership inactive without archiving it. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Only one active default membership exists per user account. Validity windows require valid_until
+        on or after valid_from. A missing user account is a domain failure and returns 422. A missing membership returns 404.
+        FormRequest validation and domain-invariant failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyMembershipUpdateRequest'
+            example:
+              role_id: 4
+              is_default: false
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: account
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: membership
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: patch_user_accounts_account_memberships_membership
+    delete:
+      tags:
+      - User Accounts
+      summary: Destroy
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.memberships.delete.
+        Archived memberships are hidden unless include_archived=true. Memberships grant user-account authorization; affiliations
+        do not. Deactivate sets the membership inactive without archiving it. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Only one active default membership exists per user account. Validity windows require valid_until
+        on or after valid_from. A missing user account is a domain failure and returns 422. A missing membership returns 404.
+        FormRequest validation and domain-invariant failures return 422 with a message or validation errors.
+      parameters:
+      - name: account
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: membership
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: delete_user_accounts_account_memberships_membership
+  /api/v1/apps/customer-hub/user-accounts/{account}/memberships/{membership}/deactivate:
+    post:
+      tags:
+      - User Accounts
+      summary: Deactivate
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.memberships.deactivate.
+        Archived memberships are hidden unless include_archived=true. Memberships grant user-account authorization; affiliations
+        do not. Deactivate sets the membership inactive without archiving it. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Only one active default membership exists per user account. Validity windows require valid_until
+        on or after valid_from. A missing user account is a domain failure and returns 422. A missing membership returns 404.
+        FormRequest validation and domain-invariant failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: account
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: membership
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: post_user_accounts_account_memberships_membership_deactivate
+  /api/v1/apps/customer-hub/user-accounts/{account}/memberships/{membership}/default:
+    post:
+      tags:
+      - User Accounts
+      summary: Make Default
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.memberships.set-default.
+        Archived memberships are hidden unless include_archived=true. Memberships grant user-account authorization; affiliations
+        do not. Deactivate sets the membership inactive without archiving it. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Only one active default membership exists per user account. Validity windows require valid_until
+        on or after valid_from. A missing user account is a domain failure and returns 422. A missing membership returns 404.
+        FormRequest validation and domain-invariant failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: account
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: membership
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '404':
+          description: The parent Contact/user account or nested relationship was not found.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: post_user_accounts_account_memberships_membership_default
+  /api/v1/apps/customer-hub/user-accounts/{account}/memberships/{membership}/restore:
+    post:
+      tags:
+      - User Accounts
+      summary: Restore
+      description: Admin-only. Requires Bearer authentication, admin.access, and permission:customer-hub.memberships.restore.
+        Archived memberships are hidden unless include_archived=true. Memberships grant user-account authorization; affiliations
+        do not. Deactivate sets the membership inactive without archiving it. DELETE archives; restore reactivates; no hard-delete
+        endpoint exists. Only one active default membership exists per user account. Validity windows require valid_until
+        on or after valid_from. A missing user account is a domain failure and returns 422. A missing archived membership
+        also returns 422. FormRequest validation and domain-invariant failures return 422 with a message or validation errors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: account
+        in: path
+        schema:
+          type: integer
+        required: true
+      - name: membership
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Missing or invalid Bearer token.
+        '403':
+          description: Admin access or the route-specific permission is missing.
+        '422':
+          description: FormRequest validation, missing user account/archived restore target, or another domain invariant failed.
+      operationId: post_user_accounts_account_memberships_membership_restore

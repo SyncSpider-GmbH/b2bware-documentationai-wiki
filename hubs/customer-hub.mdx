@@ -27,9 +27,9 @@ during the additive migration.
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/contacts` | List contacts with flat `per_page` pagination |
-| POST | `/contacts` | Create a company or person contact |
+| POST | `/contacts` | Create a company or person contact; optional `profiles` and retry-safe `idempotency_key` |
 | GET | `/contacts/{id}` | Get the complete contact detail projection |
-| PUT | `/contacts/{id}` | Update contact identity fields |
+| PUT | `/contacts/{id}` | Update contact identity fields and optionally enable profiles; `kind` is immutable |
 | DELETE | `/contacts/{id}` | Delete a contact |
 | POST | `/contacts/{id}/profiles/customer` | Idempotently enable the customer profile |
 | POST | `/contacts/{id}/profiles/supplier` | Idempotently enable the optional ProcurementHub supplier profile |
@@ -37,7 +37,18 @@ during the additive migration.
 Contact creation never creates a user account and never silently merges
 matching contacts. A person-to-company affiliation does not grant
 authorization; only a `company_membership` attached to a user account does.
-Profile enablement is idempotent.
+Profile enablement is idempotent. Requested profiles are validated and enabled
+through the compatibility bridge; unsupported profiles return `422`, while
+omitted profiles remain enabled. Identity updates refresh every active legacy
+projection.
+
+For retry-safe creation, send a stable `idempotency_key` (8–255 characters).
+The tenant-scoped receipt stores the canonical Contact ID before profile and
+legacy bridge phases. Retrying the same key and payload resumes that Contact
+instead of creating a duplicate. Reusing the key with a different payload
+returns `422`. Unkeyed creation remains supported but is not retry-safe after a
+post-create bridge failure. This is resumable orchestration, not a cross-store
+transaction.
 
 List filters are accepted either inside `filter` or as top-level compatibility
 parameters: `search`, `kind`, `profile`, `status`, and `profile_priority`.
@@ -50,6 +61,97 @@ The detail projection can expose identifiers, company/person affiliations,
 smart-action counts. `legacy_customer_id`, `legacy_company_id`, and
 `legacy_supplier_id` let integrations correlate canonical contacts without
 changing existing integer identifiers.
+
+  </Tab>
+  <Tab title="Contact Addresses">
+
+Admin-only canonical address links. Every route requires Bearer authentication,
+`admin.access`, and the permission shown below.
+
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| GET | `/contacts/{contact}/addresses` | `customer-hub.contact-addresses.view` | List active links; pass `include_archived=true` to include archived links |
+| GET | `/contacts/{contact}/addresses/{link}` | `customer-hub.contact-addresses.view` | Get one address link |
+| POST | `/contacts/{contact}/addresses` | `customer-hub.contact-addresses.create` | Link an existing `address_id` or create and link an inline `address` |
+| PUT | `/contacts/{contact}/addresses/{link}` | `customer-hub.contact-addresses.update` | Update link metadata or canonical address fields |
+| PATCH | `/contacts/{contact}/addresses/{link}` | `customer-hub.contact-addresses.update` | Partially update the link |
+| DELETE | `/contacts/{contact}/addresses/{link}` | `customer-hub.contact-addresses.delete` | Archive the link; no hard delete is exposed |
+| POST | `/contacts/{contact}/addresses/{link}/default` | `customer-hub.contact-addresses.set-default` | Make the link default for its purpose |
+| POST | `/contacts/{contact}/addresses/{link}/restore` | `customer-hub.contact-addresses.restore` | Restore an archived link |
+
+Create requires `purpose` and exactly one of `address_id` or `address`. Valid
+purposes are `billing`, `shipping`, `registered`, `legal`, `delivery`, `office`,
+and `other`. At most one active default exists per Contact and purpose. Optional
+`valid_from` and `valid_until` bound the relationship; `valid_until` cannot
+precede `valid_from`.
+
+Legacy links require a `legacy_type` and `legacy_id` pair. A
+`billing_address` map can only use `billing`; a `shipping_address` map can use
+`shipping` or `delivery`. Legacy mapping fields cannot be changed after create.
+
+  </Tab>
+  <Tab title="Contact Affiliations">
+
+Admin-only person-to-company relationships. Affiliations describe commercial
+relationships but never grant authorization.
+
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| GET | `/contacts/{contact}/affiliations` | `customer-hub.affiliations.view` | List active affiliations; pass `include_archived=true` to include archived records |
+| GET | `/contacts/{contact}/affiliations/{affiliation}` | `customer-hub.affiliations.view` | Get one affiliation |
+| POST | `/contacts/{contact}/affiliations` | `customer-hub.affiliations.create` | Create an affiliation; `company_contact_id` is required |
+| PUT | `/contacts/{contact}/affiliations/{affiliation}` | `customer-hub.affiliations.update` | Update an affiliation |
+| PATCH | `/contacts/{contact}/affiliations/{affiliation}` | `customer-hub.affiliations.update` | Partially update an affiliation |
+| DELETE | `/contacts/{contact}/affiliations/{affiliation}` | `customer-hub.affiliations.delete` | Archive the affiliation |
+| POST | `/contacts/{contact}/affiliations/{affiliation}/primary` | `customer-hub.affiliations.set-primary` | Make it primary |
+| POST | `/contacts/{contact}/affiliations/{affiliation}/restore` | `customer-hub.affiliations.restore` | Restore an archived affiliation |
+
+Only the set-primary operation with `mirror_legacy_company=true` mirrors the
+selected company into legacy `Customers.company_id`. Status is `active`,
+`inactive`, or `archived`; validity dates follow the same ordering rule as
+address links.
+
+  </Tab>
+  <Tab title="Account Memberships">
+
+Admin-only company memberships attached to user accounts. Memberships grant
+authorization; Contact affiliations do not.
+
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| GET | `/user-accounts/{account}/memberships` | `customer-hub.memberships.view` | List active memberships; pass `include_archived=true` to include archived records |
+| GET | `/user-accounts/{account}/memberships/{membership}` | `customer-hub.memberships.view` | Get one membership |
+| POST | `/user-accounts/{account}/memberships` | `customer-hub.memberships.create` | Create a membership; `company_contact_id` is required |
+| PUT | `/user-accounts/{account}/memberships/{membership}` | `customer-hub.memberships.update` | Update a membership |
+| PATCH | `/user-accounts/{account}/memberships/{membership}` | `customer-hub.memberships.update` | Partially update a membership |
+| DELETE | `/user-accounts/{account}/memberships/{membership}` | `customer-hub.memberships.delete` | Archive the membership |
+| POST | `/user-accounts/{account}/memberships/{membership}/default` | `customer-hub.memberships.set-default` | Make it the account's default membership |
+| POST | `/user-accounts/{account}/memberships/{membership}/deactivate` | `customer-hub.memberships.deactivate` | Set it inactive without archiving |
+| POST | `/user-accounts/{account}/memberships/{membership}/restore` | `customer-hub.memberships.restore` | Restore an archived membership |
+
+Only one active default membership exists per user account. Membership status
+is `active` or `inactive`; `role_id` is nullable. DELETE archives rather than
+hard-deletes.
+
+  </Tab>
+  <Tab title="Contact Notes">
+
+Admin-only Contact notes with compatibility projection to legacy notes.
+
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| GET | `/contacts/{contact}/notes` | `customer-hub.contact-notes.view` | List active notes; pass `include_archived=true` to include archived notes |
+| GET | `/contacts/{contact}/notes/{note}` | `customer-hub.contact-notes.view` | Get one Contact note |
+| POST | `/contacts/{contact}/notes` | `customer-hub.contact-notes.create` | Create a note |
+| PUT | `/contacts/{contact}/notes/{note}` | `customer-hub.contact-notes.update` | Replace note text |
+| PATCH | `/contacts/{contact}/notes/{note}` | `customer-hub.contact-notes.update` | Update note text |
+| DELETE | `/contacts/{contact}/notes/{note}` | `customer-hub.contact-notes.delete` | Archive the note |
+| POST | `/contacts/{contact}/notes/{note}/restore` | `customer-hub.contact-notes.restore` | Restore an archived note |
+
+`note` is required. Supplying `legacy_type` as `customer` or `company` uses that
+mapped legacy identity. When it is omitted, the service prefers the Contact
+kind's matching legacy identity, then any mapped legacy identity, and finally
+falls back to the canonical Contact model string and ID.
 
   </Tab>
   <Tab title="Customers" icon="users">
@@ -190,6 +292,23 @@ All dashboard endpoints accept a `period` query parameter — one of `7`, `30`, 
 
   </Tab>
 </Tabs>
+
+## Contact relationship errors
+
+The nested address, affiliation, membership, and Contact-note APIs are
+admin-only. A missing or invalid Bearer token returns `401`; an authenticated
+caller without `admin.access` or the route-specific permission returns `403`.
+For Contact-owned resources, a missing parent or active nested record returns
+`404`; a missing archived restore target returns `422`. Membership endpoints
+return `422` when the user account is missing, `404` when an active membership
+is missing, and `422` when an archived restore target is missing. FormRequest
+validation and other domain-invariant failures also return `422` with a message
+or validation errors.
+
+Relationship DELETE operations archive records. List endpoints hide archived
+records by default and include them when `include_archived=true`; restore
+endpoints reactivate archived records. There are no public hard-delete or repair
+endpoints for these relationships.
 
 ## Filters
 
