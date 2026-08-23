@@ -105,6 +105,18 @@ Only the supported vendor-bill fields are applied. Correcting line items
 normalizes their values and recomputes missing totals. The audit preserves the
 first original value across repeated corrections.
 
+## Reference Integrity and Department Visibility
+
+Supplier, purchase-order, and product references must resolve in the current
+installation. Optional ProductHub references are checked lazily, so custom
+purchase-order and vendor-bill lines remain valid without a product link.
+
+Purchase orders and vendor bills store `department_ids`. Goods receipts inherit
+the assignments from their purchase order. Users who have only own-department
+accounting-report access see documents that overlap their assigned departments;
+no assigned department fails closed. Full accounting-report access bypasses the
+restriction.
+
 ## Contact Matching and Snapshots
 
 Vendor bills retain `supplier_id` compatibility and can also reference
