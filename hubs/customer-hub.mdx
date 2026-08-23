@@ -33,6 +33,7 @@ during the additive migration.
 | DELETE | `/contacts/{id}` | Delete a contact |
 | POST | `/contacts/{id}/profiles/customer` | Idempotently enable the customer profile |
 | POST | `/contacts/{id}/profiles/supplier` | Idempotently enable the optional ProcurementHub supplier profile |
+| GET | `/contacts/{company}/affiliation-candidates` | Suggest unassigned people whose non-public email domain matches the company |
 
 Contact creation never creates a user account and never silently merges
 matching contacts. A person-to-company affiliation does not grant
@@ -62,6 +63,12 @@ smart-action counts. `legacy_customer_id`, `legacy_company_id`, and
 `legacy_supplier_id` let integrations correlate canonical contacts without
 changing existing integer identifiers.
 
+Create and update also accept `customer_number` for people and
+`company_number` plus `registration_number` for companies. Omitting a number
+keeps the configured legacy auto-numbering behavior. Company Contacts may set
+comma-separated `email_domains` and `auto_assign_by_domain` (`inherit`,
+`enabled`, or `disabled`).
+
   </Tab>
   <Tab title="Contact Addresses">
 
@@ -88,6 +95,9 @@ precede `valid_from`.
 Legacy links require a `legacy_type` and `legacy_id` pair. A
 `billing_address` map can only use `billing`; a `shipping_address` map can use
 `shipping` or `delivery`. Legacy mapping fields cannot be changed after create.
+When the Contact has a mapped legacy customer or company, creating a billing,
+shipping, or delivery address also creates the checkout-compatible legacy row
+and returns its mapping. Other purposes remain canonical only.
 
   </Tab>
   <Tab title="Contact Affiliations">
@@ -98,6 +108,7 @@ relationships but never grant authorization.
 | Method | Endpoint | Permission | Description |
 |--------|----------|------------|-------------|
 | GET | `/contacts/{contact}/affiliations` | `customer-hub.affiliations.view` | List active affiliations; pass `include_archived=true` to include archived records |
+| GET | `/contacts/{company}/affiliation-candidates` | `customer-hub.affiliations.view` | Suggest active, unassigned people with a matching non-public email domain |
 | GET | `/contacts/{contact}/affiliations/{affiliation}` | `customer-hub.affiliations.view` | Get one affiliation |
 | POST | `/contacts/{contact}/affiliations` | `customer-hub.affiliations.create` | Create an affiliation; `company_contact_id` is required |
 | PUT | `/contacts/{contact}/affiliations/{affiliation}` | `customer-hub.affiliations.update` | Update an affiliation |
@@ -110,6 +121,11 @@ Only the set-primary operation with `mirror_legacy_company=true` mirrors the
 selected company into legacy `Customers.company_id`. Status is `active`,
 `inactive`, or `archived`; validity dates follow the same ordering rule as
 address links.
+
+Domain-based automatic assignment creates only an affiliation. It never
+creates a membership or grants login access. The company override takes
+precedence over the tenant setting, and configured public email providers are
+always excluded.
 
   </Tab>
   <Tab title="Account Memberships">
