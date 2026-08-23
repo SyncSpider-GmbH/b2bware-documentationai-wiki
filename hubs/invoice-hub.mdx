@@ -27,6 +27,7 @@ Snapshots and generated document metadata are server-controlled after creation.
 | GET | `/invoices` | List invoices with `page` and `per_page` |
 | POST | `/invoices` | Create a manual invoice |
 | GET | `/invoices/{invoice}` | Return an invoice and its PDF projections |
+| GET | `/invoices/{invoice}/available-actions` | Return lifecycle actions allowed by the current status |
 | PUT | `/invoices/{invoice}` | Update a non-finalized invoice |
 | DELETE | `/invoices/{invoice}` | Delete an invoice that is not finalized |
 | POST | `/invoices/{invoice}/send` | Generate/freeze the PDF and transition to sent |
@@ -41,12 +42,17 @@ Snapshots and generated document metadata are server-controlled after creation.
 | GET | `/credit-notes` | List credit notes with `page` and `per_page` |
 | POST | `/credit-notes` | Create a draft or issued credit note |
 | GET | `/credit-notes/{creditNote}` | Return a credit note and its PDF projections |
+| GET | `/credit-notes/{creditNote}/available-actions` | Return lifecycle actions allowed by the current status |
 | PUT | `/credit-notes/{creditNote}` | Update a draft credit note |
 | DELETE | `/credit-notes/{creditNote}` | Delete a draft credit note |
 | POST | `/credit-notes/{creditNote}/issue` | Generate/freeze the PDF and issue the credit note |
 
   </Tab>
 </Tabs>
+
+The available-actions endpoints return an `actions` array. Admin clients use it
+to render only valid lifecycle controls instead of offering arbitrary status
+changes that the service would reject.
 
 ## Immutable Counterparty Snapshots
 

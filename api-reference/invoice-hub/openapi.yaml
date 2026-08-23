@@ -163,6 +163,28 @@ paths:
           description: Successful response
           content:
             application/json: {}
+  /api/v1/apps/invoice-hub/invoices/{invoice}/available-actions:
+    get:
+      tags:
+        - Invoices
+      summary: Get available invoice actions
+      description: Returns lifecycle actions allowed by the invoice's current status.
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: invoice
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
   /api/v1/apps/invoice-hub/invoices/{invoice}/send:
     post:
       tags:
@@ -347,6 +369,28 @@ paths:
       tags:
         - Credit notes
       summary: Delete credit note
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: creditNote
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/credit-notes/{creditNote}/available-actions:
+    get:
+      tags:
+        - Credit notes
+      summary: Get available credit-note actions
+      description: Returns lifecycle actions allowed by the credit note's current status.
       parameters:
         - name: installation-key
           in: header
