@@ -65,6 +65,19 @@ paths:
                   city: Vienna
                   country_code: AT
                 currency: EUR
+                attributes:
+                  - attribute_id: 42
+                    value: Project A
+                    auto_create_value: true
+                payment_method_snapshot:
+                  id: 4
+                  name: Invoice
+                  details: Pay within 14 days
+                shipping_method_snapshot:
+                  id: 7
+                  name: Express
+                  details: Tracked delivery
+                  price: 12.5
                 line_items:
                   - description: Consulting
                     quantity: 1
@@ -185,6 +198,33 @@ paths:
           description: Successful response
           content:
             application/json: {}
+  /api/v1/apps/invoice-hub/invoices/{invoice}/preview-pdf:
+    post:
+      tags:
+        - Invoices
+      summary: Generate or refresh the invoice PDF preview
+      description: >-
+        Generates a content-addressed PDF for the current editable invoice
+        without changing its lifecycle status. Unchanged content reuses the
+        existing version; changed content creates a new immutable version.
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: invoice
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Invoice with the current PDF projection
+          content:
+            application/json: {}
   /api/v1/apps/invoice-hub/invoices/{invoice}/send:
     post:
       tags:
@@ -289,8 +329,12 @@ paths:
                 invoice_id: 1
                 reason: Returned goods
                 line_items:
-                  - description: Credit
-                    quantity: 1
+                  - product_id: 21
+                    source_order_line_id: 31
+                    position: 1
+                    sku: SKU-001
+                    description: Credited product
+                    quantity: 2
                     unit_price: 50
                     tax_rate: 20
       parameters:
@@ -405,6 +449,33 @@ paths:
       responses:
         '200':
           description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/invoice-hub/credit-notes/{creditNote}/preview-pdf:
+    post:
+      tags:
+        - Credit notes
+      summary: Generate or refresh the credit-note PDF preview
+      description: >-
+        Generates a content-addressed PDF for the current editable credit note
+        without issuing it. Unchanged content reuses the existing version;
+        changed content creates a new immutable version.
+      requestBody:
+        content: {}
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: creditNote
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Credit note with the current PDF projection
           content:
             application/json: {}
   /api/v1/apps/invoice-hub/credit-notes/{creditNote}/issue:

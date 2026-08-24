@@ -28,6 +28,7 @@ Snapshots and generated document metadata are server-controlled after creation.
 | POST | `/invoices` | Create a manual invoice |
 | GET | `/invoices/{invoice}` | Return an invoice and its PDF projections |
 | GET | `/invoices/{invoice}/available-actions` | Return lifecycle actions allowed by the current status |
+| POST | `/invoices/{invoice}/preview-pdf` | Generate or refresh the current PDF preview without changing status |
 | PUT | `/invoices/{invoice}` | Update a non-finalized invoice |
 | DELETE | `/invoices/{invoice}` | Delete an invoice that is not finalized |
 | POST | `/invoices/{invoice}/send` | Generate/freeze the PDF and transition to sent |
@@ -43,6 +44,7 @@ Snapshots and generated document metadata are server-controlled after creation.
 | POST | `/credit-notes` | Create a draft or issued credit note |
 | GET | `/credit-notes/{creditNote}` | Return a credit note and its PDF projections |
 | GET | `/credit-notes/{creditNote}/available-actions` | Return lifecycle actions allowed by the current status |
+| POST | `/credit-notes/{creditNote}/preview-pdf` | Generate or refresh the current PDF preview without issuing |
 | PUT | `/credit-notes/{creditNote}` | Update a draft credit note |
 | DELETE | `/credit-notes/{creditNote}` | Delete a draft credit note |
 | POST | `/credit-notes/{creditNote}/issue` | Generate/freeze the PDF and issue the credit note |
@@ -60,6 +62,19 @@ Non-null `source_order_id`, `invoice_id`, and line-item `product_id` values must
 resolve in the current installation. Optional source hubs are checked lazily, so
 manual documents remain available when OrderHub or ProductHub is not installed.
 
+Selecting a source order creates a durable association through `source_order_id`
+and copies the customer, company, product lines, billing and shipping addresses,
+payment method, and shipping method into the invoice draft. These copied values
+remain editable while the invoice is a draft; changing the invoice does not
+rewrite the source order.
+
+Selecting an invoice for a credit note creates a durable association through
+`invoice_id` and preloads the invoice customer/contact references, immutable
+counterparty and address snapshots, departments, currency, source-order
+reference, and product lines. The resulting credit-note draft remains editable.
+For direct API creation, the service applies these values as defaults when they
+are omitted; explicitly supplied fields and `line_items` take precedence.
+
 Users with full accounting-report access can read all documents. Users who have
 only own-department report access can read invoices and credit notes whose
 `department_ids` overlap their assigned departments; no assigned department
@@ -74,19 +89,47 @@ captures historical values into:
 - `counterparty_snapshot`
 - `billing_address_snapshot`
 - `shipping_address_snapshot`
+- `payment_method_snapshot`
+- `shipping_method_snapshot`
 - `snapshot_source` (`capture_time`; explicit migrations may use `backfill_live`)
 
 Canonical contacts are preferred when contact IDs are supplied; legacy customer
 and company references remain supported. A supplied snapshot is normalized at
 capture time. Later contact, customer, company, or address changes do not rewrite
 the stored document snapshot, and snapshot fields are prohibited on update.
+Payment and shipping method snapshots are intentionally editable on draft
+invoices and are included in the generated PDF.
+
+## Invoice Custom Attributes
+
+InvoiceHub registers the `invoice` group type in AttributesHub. Attribute
+definitions assigned to a group of this type can be attached to invoices through
+the `attributes` request field:
+
+```json
+{
+  "attributes": [
+    {
+      "attribute_id": 42,
+      "value": "Project A",
+      "auto_create_value": true
+    }
+  ]
+}
+```
+
+Invoice responses include the resolved `attribute_values` relation. Sending a
+`null` value removes the corresponding assignment. Credit notes do not currently
+expose a separate attribute group type.
 
 ## Generated PDF Lifecycle
 
-Draft documents do not require generated media. Sending an invoice or issuing a
-credit note generates an immutable PDF before the lifecycle transition. The
-effective document content plus renderer version produces a SHA-256 content
-hash:
+Draft documents can generate a PDF preview without changing lifecycle status
+through the `preview-pdf` endpoints. The admin requests this preview after a
+draft is saved and when an existing editable document has no generated PDF.
+Sending an invoice or issuing a credit note still ensures that the current PDF
+exists before the lifecycle transition. The effective document content plus
+renderer version produces a SHA-256 content hash:
 
 - retrying unchanged content reuses the existing generated version;
 - changed effective content creates the next version;

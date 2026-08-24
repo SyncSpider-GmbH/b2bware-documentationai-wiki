@@ -39,6 +39,7 @@ All endpoints require admin access and the matching ProcurementHub permission.
 | GET | `/purchase-orders` | List purchase orders |
 | POST | `/purchase-orders` | Create a purchase order |
 | GET | `/purchase-orders/{purchaseOrder}` | Get a purchase order |
+| GET | `/purchase-orders/{purchaseOrder}/available-actions` | List lifecycle actions allowed in the current status |
 | PUT | `/purchase-orders/{purchaseOrder}` | Update a purchase order |
 | DELETE | `/purchase-orders/{purchaseOrder}` | Delete a purchase order |
 | POST | `/purchase-orders/{purchaseOrder}/approve` | Approve a purchase order |
@@ -67,6 +68,7 @@ All endpoints require admin access and the matching ProcurementHub permission.
 | POST | `/vendor-bills` | Create a manual vendor bill, optionally with PDF media |
 | POST | `/vendor-bills/capture` | Capture a PDF and request extraction |
 | GET | `/vendor-bills/{vendorBill}` | Get a vendor bill and current PDF projection |
+| GET | `/vendor-bills/{vendorBill}/available-actions` | List editing and matching actions allowed in the current status |
 | PUT | `/vendor-bills/{vendorBill}` | Update allowed business fields |
 | PATCH | `/vendor-bills/{vendorBill}/extraction` | Correct supported extracted fields |
 | POST | `/vendor-bills/{vendorBill}/match` | Match the bill to a purchase order |
@@ -74,6 +76,14 @@ All endpoints require admin access and the matching ProcurementHub permission.
 
   </Tab>
 </Tabs>
+
+## Available Actions
+
+Document workspaces use the `available-actions` responses instead of deriving
+buttons from status on the client. Purchase orders expose `edit`, `approve`,
+`send`, and `receive` only in valid lifecycle states. Vendor bills expose
+`edit` and `match` while review is allowed; paid and cancelled bills return no
+actions.
 
 ## Manual and PDF-First Capture
 

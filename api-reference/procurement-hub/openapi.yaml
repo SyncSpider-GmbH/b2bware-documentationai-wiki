@@ -322,6 +322,34 @@ paths:
           description: Successful response
           content:
             application/json: {}
+  /api/v1/apps/procurement-hub/purchase-orders/{purchase_order}/available-actions:
+    get:
+      tags:
+        - Purchase orders
+      summary: List available purchase order actions
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: purchase_order
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Actions allowed by the current purchase order status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  actions:
+                    type: array
+                    items:
+                      type: string
   /api/v1/apps/procurement-hub/purchase-orders/{purchase_order}/approve:
     post:
       tags:
@@ -729,6 +757,34 @@ paths:
           description: Successful response
           content:
             application/json: {}
+  /api/v1/apps/procurement-hub/vendor-bills/{vendor_bill}/available-actions:
+    get:
+      tags:
+        - Vendor bills
+      summary: List available vendor bill actions
+      parameters:
+        - name: installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installation_key}}'
+        - name: vendor_bill
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Actions allowed by the current vendor bill status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  actions:
+                    type: array
+                    items:
+                      type: string
   /api/v1/apps/procurement-hub/vendor-bills/{vendor_bill}/extraction:
     patch:
       tags:
