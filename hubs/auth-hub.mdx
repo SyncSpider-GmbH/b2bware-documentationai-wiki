@@ -47,6 +47,24 @@ Used by sales agents to act on behalf of a specific customer (cart, checkout, or
 | POST | `/impersonate/leave` | `auth:api` | Stop impersonating and return to the agent's own session. |
 
   </Tab>
+  <Tab title="Account deletion" icon="user-xmark">
+
+GDPR self-service deletion: the customer re-authenticates with their password, confirms with an emailed 6-digit code, and the account is soft-deleted after a grace period (default 14 days). Confirming also revokes every other active session.
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/me/deletion` | customer token | Current deletion request, or `{"deletion_request": null}`. |
+| POST | `/me/deletion` | customer token | Start the flow — requires `current_password`; emails a 6-digit code (1h expiry). `409` when a deletion is already scheduled. Rate limited 5/min. |
+| POST | `/me/deletion/confirm` | customer token | Confirm with `token` (the emailed code) — schedules the deletion after the grace period and revokes other sessions. Rate limited 10/min. |
+| DELETE | `/me/deletion` | customer token | Cancel the pending or scheduled deletion. |
+| GET | `/admin/customer/{customerId}/deletion-request` | admin (`auth-hub.account-deletion.view`) | Inspect a customer's deletion request. |
+| DELETE | `/admin/customer/{customerId}/deletion-request` | admin (`auth-hub.account-deletion.manage`) | Cancel the request on the customer's behalf. |
+
+<Callout kind="info">
+The `deletion_request` payload contains `id`, `status` (`awaiting_confirmation` or `scheduled`), `requested_at`, `expires_at`, `confirmed_at`, `scheduled_for`, and `grace_days`. Every transition (code sent, scheduled, cancelled, executed) triggers a NotificationHub email to the customer.
+</Callout>
+
+  </Tab>
 </Tabs>
 
 ## Related

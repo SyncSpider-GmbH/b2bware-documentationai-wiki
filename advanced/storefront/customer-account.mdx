@@ -175,6 +175,27 @@ Revokes the current `x-auth-token`. The storefront should also clear it from `lo
 
 Tokens are also revoked automatically when they go unused for too long (sliding idle window) — see [Storefront Customer Auth](/authentication/storefront-customer#sliding-idle-window).
 
+## Delete Account (GDPR)
+
+The customer can permanently delete their account from the storefront. The flow is two-step with a grace period:
+
+```bash
+POST   /api/v1/apps/auth-hub/me/deletion           # step 1 — body: {"current_password": "..."} → emails a 6-digit code
+POST   /api/v1/apps/auth-hub/me/deletion/confirm   # step 2 — body: {"token": "123456"} → schedules the deletion
+GET    /api/v1/apps/auth-hub/me/deletion           # current request, or {"deletion_request": null}
+DELETE /api/v1/apps/auth-hub/me/deletion           # cancel before it executes
+```
+
+Key behaviors the storefront UI should reflect:
+
+- **Password re-auth** — step 1 requires the current password (`422` when wrong); a stolen session token alone cannot delete the account.
+- **Grace period** — confirming does not delete immediately: the account is scheduled for deletion after `grace_days` (default 14). Show the `scheduled_for` date and a prominent **Cancel** action.
+- **Session revocation** — confirming revokes every *other* active session for the customer.
+- **`409` on re-request** — while a deletion is scheduled, a new request is rejected; the customer must cancel first.
+- **Emails** — the customer is emailed at every step: the confirmation code, the scheduled notice, cancellation, and final execution.
+
+The full request/response walkthrough lives in [Storefront Customer Auth → Account Deletion](/authentication/storefront-customer#account-deletion-gdpr).
+
 ## Impersonation (Sales Agent)
 
 Customers whose `role.type` is `agent` can act on behalf of another customer:
