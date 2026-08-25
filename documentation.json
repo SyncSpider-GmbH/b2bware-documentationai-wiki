@@ -216,6 +216,11 @@
                 "title": "DashboardHub",
                 "path": "hubs/dashboard-hub",
                 "icon": "gauge"
+              },
+              {
+                "title": "StorefrontBuilderHub",
+                "path": "hubs/storefront-builder-hub",
+                "icon": "layout"
               }
             ]
           },

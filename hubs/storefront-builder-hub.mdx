@@ -1,0 +1,109 @@
+---
+title: StorefrontBuilderHub
+description: Design print-ready documents (catalogs, price lists) in the visual builder and export them as PDFs with a queued, trackable export lifecycle.
+---
+
+## Overview
+
+The StorefrontBuilderHub powers the visual builder in the b2bware admin. Its public API surface covers **Documents** — print-ready designs such as catalogs and price lists built from your live product data — and **Generated PDFs**, the exports produced from those documents.
+
+A document can render in two modes: one PDF per record (e.g. a per-product datasheet) or a single catalog-style PDF over an entire record set (e.g. a grouped price list with a table of contents and page numbers). Documents support data tables with column formatting, category or value grouping, and repeatable header/footer regions.
+
+PDF export is asynchronous: you queue an export, poll its status, and download the finished file. Every export moves through a defined status lifecycle and keeps its history in the Generated PDFs list.
+
+**Base URL:** `api/v1/apps/storefront-builder-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication plus admin access. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Documents" icon="file-text">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/documents` | List all documents (paginated, filterable) |
+| POST | `/documents` | Create a document |
+| GET | `/documents/{id}` | Get a single document |
+| PUT | `/documents/{id}` | Update a document |
+| DELETE | `/documents/{id}` | Delete a document |
+| GET | `/documents/templates` | List the available document starting templates |
+| POST | `/documents/{id}/dataset/count` | Count the records the document's dataset currently matches |
+
+Document content is validated on create and update: an invalid document design (unknown widget settings, unsafe styling values, invalid data bindings) is rejected with a `422` response listing every problem found.
+
+  </Tab>
+  <Tab title="PDF Export" icon="download">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/documents/{id}/pdf` | Queue a PDF export for a document (returns `202`) |
+| GET | `/documents/{id}/pdf/status` | Get the status of the document's latest export |
+| GET | `/documents/{id}/pdf/download` | Download the document's latest completed PDF |
+
+Queueing while an export for the same document is already running returns `409`. Downloading before an export has completed returns `409`.
+
+  </Tab>
+  <Tab title="Generated PDFs" icon="files">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/generated-pdfs` | List all PDF exports (paginated, filterable) |
+| GET | `/generated-pdfs/{id}` | Get a single export with its status and progress |
+| GET | `/generated-pdfs/{id}/download` | Download a completed export |
+| DELETE | `/generated-pdfs/{id}` | Delete an export and its stored file |
+
+  </Tab>
+</Tabs>
+
+## Export Status Lifecycle
+
+Every export reports one of the following statuses:
+
+| Status | Meaning |
+|--------|---------|
+| `queued` | The export is waiting for a worker |
+| `processing` | The PDF is being rendered; `progress` reports 0–100 |
+| `completed` | The PDF is ready to download |
+| `failed` | Rendering failed; the export carries an error reference |
+| `cancelled` | The export was cancelled before completion |
+
+`completed`, `failed`, and `cancelled` are final — an export never leaves a final status. A failed or cancelled export stores no PDF file.
+
+## Permissions
+
+Document and export endpoints are guarded by granular permissions in addition to admin access:
+
+| Permission | Grants |
+|------------|--------|
+| `storefront-builder-hub.documents.view` | List/read documents, templates, dataset counts |
+| `storefront-builder-hub.documents.create` | Create documents |
+| `storefront-builder-hub.documents.update` | Update documents |
+| `storefront-builder-hub.documents.delete` | Delete documents |
+| `storefront-builder-hub.generated-pdfs.view` | List/read exports and export status |
+| `storefront-builder-hub.generated-pdfs.create` | Queue PDF exports |
+| `storefront-builder-hub.generated-pdfs.download` | Download completed PDFs |
+| `storefront-builder-hub.generated-pdfs.delete` | Delete exports |
+
+## Filters
+
+For filter syntax and operators, see [Filtering](/core-concepts/filtering).
+
+<Expandable title="Generated PDF Filters" default-open="true">
+
+| Filter Field | Type | Notes |
+|--------------|------|-------|
+| `id` | number | |
+| `document_id` | number | The document the export belongs to |
+| `status` | text | `queued`, `processing`, `completed`, `failed`, `cancelled` |
+| `title` | text | |
+| `generated_at` | date | When the export finished |
+
+</Expandable>
+
+<Callout kind="info">
+The wider builder surface — storefront pages, content blocks, email templates, theme slots, and the in-place theme editor — is managed through the b2bware admin UI and is not part of the public API contract yet.
+</Callout>
