@@ -3,6 +3,28 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-08-24" description="MCP Server: sign in with B2Bware" tags={["feature", "security"]}>
+
+## Sign in with B2Bware, instead of pasting a key
+
+The MCP Server is now hosted by B2Bware itself and supports **browser sign-in**. Point your client at `https://mcp.b2bware.com/mcp` with no key and no headers, and it takes you through a B2Bware login — the same shape as connecting GitHub to an editor.
+
+- **Nothing secret in your config**, so it is safe to commit and share. Each person signs in as themselves.
+- **Connect several B2Bware accounts** and choose per request which one a call applies to.
+- **Your own permissions, re-checked on every call** by the same code that answers the admin panel. No MCP-specific permission model.
+- **Revoke from Developers → MCP Server**, effective on the next request. Access also ends by itself when an account is removed, company access is withdrawn, or a company is deactivated.
+- Signing in currently exposes **6 read-only tools**. An **API key still gives the full 163-tool surface** including writes and bulk operations, and remains supported — see [MCP Server](/ai-tools/mcp-server).
+
+## Storefront assistant for your customers
+
+Buyers in your shop can connect their own assistant to their own account — **20 tools** covering catalog search at their prices, their own and their company's order history, reorder, their addresses, cart, and checkout. Off by default; enable per shop in **Developers → MCP Server**. Optionally served on your own domain.
+
+## Deprecated: API keys in the URL
+
+`?key=…` is deprecated and **stops working on 1 November 2026**. A key that has appeared in a URL has been in proxy logs, browser history and `Referer` headers — move to the `Authorization` header **and rotate the key**. Relocating it does not undo the exposure.
+
+</Update>
+
 <Update label="2026-08-18" description="Parent category branch display mode" tags={["feature", "storefront"]}>
 
 ## Parent category products on the storefront

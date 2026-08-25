@@ -46,27 +46,18 @@ For live data access, add the MCP server to `.mcp.json`:
 
 ```json
 {
-  "inputs": [
-    {
-      "id": "api_key",
-      "type": "promptString",
-      "description": "B2Bware API Key",
-      "password": true
-    }
-  ],
   "servers": {
     "b2bware": {
-      "type": "sse",
-      "url": "https://mcp.b2bware.com/sse",
-      "headers": {
-        "Authorization": "Bearer ${input:api_key}"
-      }
+      "type": "http",
+      "url": "https://mcp.b2bware.com/mcp"
     }
   }
 }
 ```
 
-See [MCP Server](/ai-tools/mcp-server) for details.
+No key in the file — Claude Code opens a browser sign-in on the first request, so this is safe to commit and share with the team. Each person signs in as themselves.
+
+See [MCP Server](/ai-tools/mcp-server) for what the signed-in surface covers, and for the API-key setup if you need write and bulk tools.
 
   </Step>
   <Step title="Start using Claude Code" icon="play">

@@ -5,17 +5,61 @@ description: Connect AI assistants directly to your live DataHub data using the 
 
 ## B2Bware MCP Server
 
-The B2Bware MCP Server is a hosted remote service that connects AI assistants to your live DataHub using the [Model Context Protocol (MCP)](https://modelcontextprotocol.io). No local installation is required: configure your API key and interact with products, customers, orders, carts, checkout, and tax through natural language.
+The B2Bware MCP Server connects AI assistants to your live DataHub using the [Model Context Protocol (MCP)](https://modelcontextprotocol.io). It is hosted by B2Bware — nothing to install, nothing to run.
 
-**Server URL:** `https://mcp.b2bware.com/sse`
+**Server URL:** `https://mcp.b2bware.com/mcp`
 
 <Callout kind="info" title="What is MCP?">
-The Model Context Protocol (MCP) is an open standard that lets AI assistants call external tools and access data sources. With the B2Bware MCP Server connected, your assistant can browse the product catalog, search customers, manage carts, preview and complete checkout, calculate tax, and create or update orders — all in conversation.
+The Model Context Protocol (MCP) is an open standard that lets AI assistants call external tools and read live data. With B2Bware connected, your assistant can browse the catalog, look up orders and customers, build carts and complete checkout — in conversation, against your real data.
+</Callout>
+
+## Two ways to connect
+
+Both are supported, and both stay supported. They are not two routes to the same place, so pick on what you are doing rather than on which looks newer.
+
+| | Sign in with B2Bware | API key |
+| --- | --- | --- |
+| How you authenticate | Browser sign-in, like connecting GitHub to an editor | Paste a key into your client's config |
+| What it is for | A person using an assistant | Server-to-server, scripts, integrations |
+| Tools available | **6**, read-only (catalog, orders, customers) | **163**, including writes and bulk operations |
+| Multiple B2Bware accounts | Yes — pick which ones to connect, switch per request | One key, one tenant |
+| Permissions | Exactly what your own B2Bware login can do | Whatever the key was issued for |
+| Revoking access | **Developers → MCP Server** in admin, takes effect immediately | Rotate the key |
+
+<Callout kind="alert" title="Read this before choosing">
+Signing in gives you **6 read-only tools today**. If you need to create products, sync stock, or place orders from your assistant, you need an **API key** — the sign-in path does not expose write tools yet. The two surfaces are converging, but they are not equivalent right now.
+</Callout>
+
+## Deprecations
+
+| What | Status | Stops working |
+| --- | --- | --- |
+| **API key in the URL** (`?key=…`) | Deprecated | **1 November 2026** |
+| `npx b2bware-mcp` (local install from npm) | No longer published; versions up to `1.14.0` stay installable | No date — but it gets no new tools |
+| `/sse` endpoint (legacy transport) | Supported for existing clients | No date announced |
+
+<Callout kind="alert" title="If your key is in a URL, treat it as leaked">
+A key in a query string ends up in proxy logs, browser history and `Referer` headers. Move to the `Authorization` header, then **rotate the key** — moving it alone does not undo the exposure. After 1 November 2026 requests carrying `?key=` are refused with `QUERY_KEY_DISABLED`.
 </Callout>
 
 ## Available Tools
 
-The MCP Server exposes **163 tools** and **4 workflow prompts** (v1.13.0) for server-to-server admin, integration, and operator analytics. Auth is **Bearer API key only** — no storefront `installation-key` or guest session headers. Order responses include a synthetic `order_number`; status `"processing"` is normalized from the API’s internal spelling.
+### Signed in with B2Bware
+
+Six read-only tools. Each one runs as *you*: same roles, same permissions, same row-level scope as the admin panel. There is no MCP-specific permission model to configure, and nothing an assistant can read that you could not open yourself.
+
+| Tool | Description |
+|------|-------------|
+| `list_products`, `get_product` | Catalog read |
+| `list_orders`, `get_order` | Order read, with line items |
+| `list_customers` | Customer read |
+| `list_accounts` | Which B2Bware accounts this connection covers |
+
+When you connect more than one account, every call takes an `account_id` so the assistant has to say which workspace it means. Call `list_accounts` to see them.
+
+### With an API key
+
+**163 tools** and **4 workflow prompts** for server-to-server admin, integration, and operator analytics. Order responses include a synthetic `order_number`; status `"processing"` is normalized from the API's internal spelling.
 
 <Tabs>
   <Tab title="Core" icon="box">
@@ -135,7 +179,36 @@ Clients that support **MCP prompts** can fetch curated playbooks via `prompts/li
 
 Optional arguments personalize context (e.g. `checkout_safe_flow` with `customer_id`, `cart_id`). Cursor **skills** remain recommended for day-to-day use; prompts help Claude Desktop and other MCP clients without skill files.
 
-## Getting Your API Key
+## Signing in with B2Bware
+
+There is no key to create or copy. Point your client at the server and it takes you through a browser sign-in.
+
+<Steps>
+  <Step title="Add the server to your client" icon="plus">
+    Use `https://mcp.b2bware.com/mcp` with **no** key and **no** headers. Your client discovers on its own that the server wants you to sign in.
+  </Step>
+  <Step title="Sign in" icon="log-in">
+    A browser window opens on B2Bware. Sign in the way you normally do.
+  </Step>
+  <Step title="Choose which accounts to connect" icon="check-square">
+    Tick the B2Bware accounts this assistant may reach. Connect several, or one.
+  </Step>
+  <Step title="Approve" icon="shield">
+    The window closes and the client is connected. Your password never reaches the assistant, and no long-lived key exists anywhere on your machine.
+  </Step>
+</Steps>
+
+Your client needs to support MCP's OAuth flow — Cursor, Claude Desktop, Claude Code and VS Code all do. Older clients that do not will ask for a key instead; use the API key path for those.
+
+### Managing and revoking connections
+
+**Developers → MCP Server** in the B2Bware admin lists everything connected: which client, which accounts, when it was last used. Revoking there takes effect on the next request — not when a token happens to expire.
+
+Access also ends on its own, without anyone revoking anything, when the thing it depended on goes away: your B2Bware account is removed, your access to a company is withdrawn, or a company is deactivated. Nothing has to be remembered at offboarding time.
+
+## Getting an API key
+
+For server-to-server use, scripts, integrations, and any client without OAuth support.
 
 <Steps>
   <Step title="Log in to B2Bware" icon="log-in">
@@ -149,40 +222,59 @@ Optional arguments personalize context (e.g. `checkout_safe_flow` with `customer
   </Step>
 </Steps>
 
-## Authentication Methods
-
-<Tabs>
-  <Tab title="Header-Based (Recommended)" icon="shield">
-
-Pass your API key via the `Authorization` header:
+Send it in the `Authorization` header:
 
 ```
-URL: https://mcp.b2bware.com/sse
+URL: https://mcp.b2bware.com/mcp
 Header: Authorization: Bearer YOUR_B2BWARE_API_KEY
 ```
 
-<Callout kind="tip">
-The header approach is more secure since the API key does not appear in server logs or browser history.
+<Callout kind="alert" title="Not in the URL">
+`?key=…` still works until **1 November 2026** and then stops. See [Deprecations](#deprecations) — a key that has been in a URL should be rotated, not just relocated.
 </Callout>
-
-  </Tab>
-  <Tab title="URL Parameter" icon="link">
-
-For clients that do not support custom headers, pass the API key as a query parameter:
-
-```
-https://mcp.b2bware.com/sse?key=YOUR_B2BWARE_API_KEY
-```
-
-Use URL parameters only when custom headers are not supported by your client.
-
-  </Tab>
-</Tabs>
 
 ## Client Configuration
 
 <Tabs>
-  <Tab title="Cursor" icon="code">
+  <Tab title="Sign in (any OAuth client)" icon="shield">
+
+The same config works for Cursor, Claude Desktop, Claude Code and VS Code. There is no key in it.
+
+```json
+{
+  "mcpServers": {
+    "b2bware": {
+      "url": "https://mcp.b2bware.com/mcp"
+    }
+  }
+}
+```
+
+| Client | File |
+| --- | --- |
+| Cursor | `~/.cursor/mcp.json` · `%USERPROFILE%\.cursor\mcp.json` |
+| Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json` · `%APPDATA%\Claude\claude_desktop_config.json` |
+| Claude Code | `.mcp.json` in the project |
+| Windsurf | `~/.codeium/windsurf/mcp_config.json` — use `serverUrl` instead of `url` |
+
+<Steps>
+  <Step title="Save the config and restart the client" icon="refresh-cw">
+    On the first request the client discovers that B2Bware wants you to sign in.
+  </Step>
+  <Step title="Sign in and pick your accounts" icon="log-in">
+    A browser window opens. Approve, and it closes again.
+  </Step>
+  <Step title="Check the tools appeared" icon="check">
+    Six tools. If you see none, see [Troubleshooting](#troubleshooting).
+  </Step>
+</Steps>
+
+<Callout kind="tip">
+Nothing in this config is secret, so it is safe to commit and share with your team. Each person signs in as themselves and sees only what their own B2Bware login allows.
+</Callout>
+
+  </Tab>
+  <Tab title="Cursor (API key)" icon="code">
 
 **File:** `~/.cursor/mcp.json` (Mac) or `%USERPROFILE%\.cursor\mcp.json` (Windows)
 
@@ -190,7 +282,7 @@ Use URL parameters only when custom headers are not supported by your client.
 {
   "mcpServers": {
     "b2bware": {
-      "url": "https://mcp.b2bware.com/sse",
+      "url": "https://mcp.b2bware.com/mcp",
       "headers": {
         "Authorization": "Bearer YOUR_B2BWARE_API_KEY"
       }
@@ -211,8 +303,12 @@ Use URL parameters only when custom headers are not supported by your client.
   </Step>
 </Steps>
 
+<Callout kind="alert">
+This file now contains a live credential. Keep it out of version control.
+</Callout>
+
   </Tab>
-  <Tab title="Claude Desktop" icon="monitor">
+  <Tab title="Claude Desktop (API key)" icon="monitor">
 
 **File:** `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
 
@@ -220,7 +316,7 @@ Use URL parameters only when custom headers are not supported by your client.
 {
   "mcpServers": {
     "b2bware": {
-      "url": "https://mcp.b2bware.com/sse",
+      "url": "https://mcp.b2bware.com/mcp",
       "headers": {
         "Authorization": "Bearer YOUR_B2BWARE_API_KEY"
       }
@@ -242,7 +338,7 @@ Use URL parameters only when custom headers are not supported by your client.
 </Steps>
 
   </Tab>
-  <Tab title="Claude Code" icon="terminal">
+  <Tab title="Claude Code (API key)" icon="terminal">
 
 Add to your project's `.mcp.json` or Claude Code settings:
 
@@ -258,8 +354,8 @@ Add to your project's `.mcp.json` or Claude Code settings:
   ],
   "servers": {
     "b2bware": {
-      "type": "sse",
-      "url": "https://mcp.b2bware.com/sse",
+      "type": "http",
+      "url": "https://mcp.b2bware.com/mcp",
       "headers": {
         "Authorization": "Bearer ${input:api_key}"
       }
@@ -273,7 +369,7 @@ Claude Code prompts you for the API key securely at startup. The key is never st
 </Callout>
 
   </Tab>
-  <Tab title="Windsurf" icon="wind">
+  <Tab title="Windsurf (API key)" icon="wind">
 
 **File:** `~/.codeium/windsurf/mcp_config.json` (Mac) or `%USERPROFILE%\.codeium\windsurf\mcp_config.json` (Windows)
 
@@ -281,7 +377,7 @@ Claude Code prompts you for the API key securely at startup. The key is never st
 {
   "mcpServers": {
     "b2bware": {
-      "serverUrl": "https://mcp.b2bware.com/sse",
+      "serverUrl": "https://mcp.b2bware.com/mcp",
       "headers": {
         "Authorization": "Bearer YOUR_B2BWARE_API_KEY"
       }
@@ -297,36 +393,47 @@ Windsurf uses `serverUrl` instead of `url`. Make sure to use the correct key nam
   </Tab>
   <Tab title="Claude.ai" icon="globe">
 
-For Claude.ai (web), use the URL parameter method:
+Add `https://mcp.b2bware.com/mcp` as an MCP integration and **sign in** when prompted. Claude.ai supports the OAuth flow, so no key is involved.
 
+**Language preference:**
 ```
-https://mcp.b2bware.com/mcp?key=YOUR_B2BWARE_API_KEY
-```
-
-**With language preference:**
-```
-https://mcp.b2bware.com/sse?key=YOUR_B2BWARE_API_KEY&lang=de
+https://mcp.b2bware.com/mcp?lang=de
 ```
 
 Supported languages: `de` (German), `en` (English), `fr` (French), `es` (Spanish)
 
-<Callout kind="info">
-Leave the OAuth fields empty when adding this as an MCP integration in Claude.ai. The API key in the URL is sufficient for authentication.
+<Callout kind="alert" title="Do not put a key in this URL">
+Earlier versions of this page suggested `?key=…` here. Claude.ai handles sign-in properly now, and a key placed in a URL you paste into a web app is exposed. If you followed the old instructions, **rotate that key**.
 </Callout>
 
   </Tab>
 </Tabs>
 
+## For your customers: the storefront assistant
+
+Separate from everything above. Buyers in your shop can connect their own AI assistant to **their own account** — their orders, their addresses, their cart — and nothing else.
+
+- Turned **off** by default. Enable it per shop in **Developers → MCP Server**.
+- **20 tools**: search the catalog at the prices that buyer actually gets, read their own and their company's order history, reorder, manage their own addresses, build a cart, preview and place an order.
+- A buyer sees exactly what they see when signed in to your storefront — same roles, same company scope. A colleague's private address is not reachable; a draft product is not reachable.
+- Buyers connect from their account area, and can disconnect there.
+- Optionally served on **your own domain** (`https://shop.example.com/mcp`) instead of `mcp.b2bware.com`, on a hostname your storefront already answers on.
+
+Company-wide carts shared between colleagues are not part of this yet — carts are per-buyer.
+
 ## Security
 
-<Callout kind="alert" title="Connection Isolation">
-Every connection is fully isolated by your API key. The server stores no keys — they only live in memory for the duration of the active session and are discarded immediately on disconnect.
+<Callout kind="alert" title="What an assistant can reach">
+Whatever you can reach, and nothing more. Tools do not run with elevated rights: your roles, permissions and company scope are re-evaluated on every single call, by the same code that answers the admin panel and the storefront. There is no separate MCP permission model to keep in step.
 </Callout>
 
-- API keys are never persisted on the MCP server
-- Each session is isolated — no cross-session data leakage
-- Prefer header-based authentication over URL parameters
-- Never commit API keys to version control — use environment variables or secure input prompts
+- **Signing in leaves no long-lived credential on your machine.** Access tokens are short-lived and refreshed automatically; refresh tokens rotate on every use, and a reused one kills the whole chain.
+- **Revocation is immediate**, from **Developers → MCP Server** — checked per request, not on token expiry.
+- **Access ends by itself** when your account is removed, your company access is withdrawn, or the company is deactivated.
+- **An assistant cannot act as someone else.** Authorization is refused outright while an operator is impersonating a customer, so a support session cannot be turned into a lasting grant.
+- **A token works only at the endpoint it was issued for** (RFC 8707), so a token for one shop cannot be replayed against another.
+- **API keys are never stored** by the MCP server — they live in memory for the session and are discarded on disconnect.
+- Never commit API keys to version control. The sign-in config contains no secret and is safe to share.
 
 ## Example Prompts
 
@@ -351,10 +458,30 @@ Once connected, try these prompts with your AI assistant:
 
 <Expandable title="Server not connecting" default-open="false">
 
-1. Verify your API key is correct (test it with a direct API call first)
-2. Check the server status at [mcp.b2bware.com](https://mcp.b2bware.com)
-3. Ensure your client supports SSE (Server-Sent Events) transport
-4. Restart your AI tool after changing the configuration
+1. Check the server status at [mcp.b2bware.com](https://mcp.b2bware.com)
+2. Using an API key: verify it works with a direct REST API call first
+3. Restart your AI tool after changing the configuration
+4. Using `/sse`: make sure your client supports SSE. New setups should use `/mcp`
+
+</Expandable>
+
+<Expandable title="The sign-in window never opens" default-open="false">
+
+Your client is probably not asking for one — most clients only start the OAuth flow if they were added **without** any `headers` block. Remove any `Authorization` header from the config and restart.
+
+If it still does not appear, the client does not support MCP's OAuth flow. Use an API key instead.
+
+</Expandable>
+
+<Expandable title="It asks me to sign in again" default-open="false">
+
+Something ended the grant rather than it merely expiring — expiry is handled silently in the background. In order of likelihood:
+
+1. The connection was revoked in **Developers → MCP Server**
+2. Your access to the account was withdrawn, or the company was deactivated
+3. A refresh token was reused — usually two copies of the same client config running at once, which is treated as a compromise and ends the whole chain
+
+The error text names the reason. Re-connecting fixes the third; the first two need someone to restore the access.
 
 </Expandable>
 
@@ -364,5 +491,12 @@ Once connected, try these prompts with your AI assistant:
 2. Verify the JSON syntax is valid (no trailing commas, correct quotes)
 3. For Windsurf: use `serverUrl` instead of `url`
 4. Restart the application after saving the config
+5. Signed in and seeing only six tools? That is correct — see [Two ways to connect](#two-ways-to-connect)
+
+</Expandable>
+
+<Expandable title="Every call says I must name an account" default-open="false">
+
+You connected more than one B2Bware account, so the assistant has to say which one each call applies to. Ask it to run `list_accounts` and then name the workspace you mean.
 
 </Expandable>
