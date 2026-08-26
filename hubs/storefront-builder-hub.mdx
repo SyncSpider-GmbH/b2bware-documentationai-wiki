@@ -1,0 +1,74 @@
+---
+title: StorefrontBuilderHub
+description: Visual builder APIs for storefront pages, documents, theme slots, and reusable sections.
+---
+
+## Overview
+
+StorefrontBuilderHub powers the authenticated admin builder. It stores page,
+document, email, and theme-slot content as validated builder JSON and renders
+that content for previews and storefront delivery.
+
+All management endpoints require an authenticated admin. Mutation endpoints
+also enforce the matching StorefrontBuilderHub permission.
+
+## Reusable section library
+
+The section library stores one detached builder `section` node plus the data
+sources that section references. Saved sections belong to the current
+installation. Curated read-only sections provided by the platform can appear
+alongside your own.
+
+- Saved records carry the current `installation_key`.
+- Platform-provided sections are read-only: they can be inserted, but not
+  edited or deleted.
+- Inserting a section creates a detached copy; later library edits do not
+  change pages that already use it.
+- Thumbnail generation is asynchronous and writes the resulting image through
+  MediaHub.
+
+### Endpoints
+
+- `GET /api/v1/apps/storefront-builder-hub/library-sections` lists the
+  sections visible to the installation. It accepts `search`, `category`,
+  `tags[]`, `scope`, `page`, and `per_page`.
+- `GET /api/v1/apps/storefront-builder-hub/library-sections/{id}` returns the
+  complete section payload.
+- `POST /api/v1/apps/storefront-builder-hub/library-sections` creates a saved
+  section.
+- `PUT /api/v1/apps/storefront-builder-hub/library-sections/{id}` updates
+  metadata or content. Scope is immutable.
+- `DELETE /api/v1/apps/storefront-builder-hub/library-sections/{id}` soft
+  deletes the record.
+- `POST /api/v1/apps/storefront-builder-hub/library-sections/{id}/thumbnail`
+  queues thumbnail regeneration.
+- `POST /api/v1/apps/storefront-builder-hub/library-sections/{id}/thumbnail/upload`
+  replaces the thumbnail with an uploaded image (`file`, PNG/JPEG/WebP, max
+  4 MB).
+
+Create and update payloads accept `name`, `description`, `category`, `tags`,
+`section_json`, and `data_sources`. Create also requires `scope: tenant`.
+
+Library records are bounded to 256 KiB, 200 nodes, and 10 data sources.
+
+## Global page context
+
+Every storefront page can bind to curated `context` roots for the signed-in
+customer (`me`), store, cart summary, normalized cart items, visitor
+capabilities, and locale/currency. A root is resolved only when the document
+references its declared source, so unused customer, cart, and store context
+does not add render work. Context-dependent output is never stored in the
+shared guest HTML cache.
+
+## Page previews and authored SEO
+
+`POST /api/v1/apps/storefront-builder-hub/pages/{id}/preview-link` returns the
+canonical storefront URL. Draft pages receive a short-lived signed preview
+token. Page share tokens are not created through the generic builder token
+endpoint.
+
+Page SEO and access settings live inside `content_json`. Authored SEO supports
+standard metadata, Open Graph fields, robots flags, and bounded JSON-LD.
+
+The complete endpoint catalog is available under
+**API Reference → StorefrontBuilderHub**.

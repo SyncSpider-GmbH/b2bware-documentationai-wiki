@@ -216,6 +216,11 @@
                 "title": "DashboardHub",
                 "path": "hubs/dashboard-hub",
                 "icon": "gauge"
+              },
+              {
+                "title": "StorefrontBuilderHub",
+                "path": "hubs/storefront-builder-hub",
+                "icon": "layout"
               }
             ]
           },
@@ -450,6 +455,12 @@
             "group": "DashboardHub",
             "icon": "gauge",
             "openapi": "api-reference/dashboard-hub/openapi.yaml",
+            "pages": []
+          },
+          {
+            "group": "StorefrontBuilderHub",
+            "icon": "layout",
+            "openapi": "api-reference/storefront-builder-hub/openapi.yaml",
             "pages": []
           }
         ]
