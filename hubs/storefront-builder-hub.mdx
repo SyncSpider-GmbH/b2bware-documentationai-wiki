@@ -1,11 +1,11 @@
 ---
 title: StorefrontBuilderHub
-description: Design print-ready documents (catalogs, price lists) in the visual builder and export them as PDFs with a queued, trackable export lifecycle.
+description: Visual builder APIs for storefront pages, print-ready documents, reusable sections, and theme slots — including the queued, trackable PDF export lifecycle.
 ---
 
 ## Overview
 
-The StorefrontBuilderHub powers the visual builder in the b2bware admin. Its public API surface covers **Documents** — print-ready designs such as catalogs and price lists built from your live product data — and **Generated PDFs**, the exports produced from those documents.
+The StorefrontBuilderHub powers the visual builder in the b2bware admin. It stores page, document, email, and theme-slot content as validated builder JSON and renders that content for previews and storefront delivery. Its public API surface also covers **Documents** — print-ready designs such as catalogs and price lists built from your live product data — and **Generated PDFs**, the exports produced from those documents.
 
 A document can render in two modes: one PDF per record (e.g. a per-product datasheet) or a single catalog-style PDF over an entire record set (e.g. a grouped price list with a table of contents and page numbers). Documents support data tables with column formatting, category or value grouping, and repeatable header/footer regions.
 
@@ -14,7 +14,7 @@ PDF export is asynchronous: you queue an export, poll its status, and download t
 **Base URL:** `api/v1/apps/storefront-builder-hub/`
 
 <Callout kind="info">
-All endpoints require Bearer token authentication plus admin access. See [Authentication](/authentication).
+All endpoints require Bearer token authentication plus admin access, and mutations enforce the matching StorefrontBuilderHub permission. See [Authentication](/authentication).
 For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
 </Callout>
 
@@ -57,6 +57,30 @@ Queueing while an export for the same document is already running returns `409`.
 | DELETE | `/generated-pdfs/{id}` | Delete an export and its stored file |
 
   </Tab>
+  <Tab title="Library Sections" icon="layout">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/library-sections` | List the sections visible to the installation (`search`, `category`, `tags[]`, `scope`, `page`, `per_page`) |
+| GET | `/library-sections/{id}` | Return the complete section payload |
+| POST | `/library-sections` | Create a saved section |
+| PUT | `/library-sections/{id}` | Update metadata or content (scope is immutable) |
+| DELETE | `/library-sections/{id}` | Soft delete the record |
+| POST | `/library-sections/{id}/thumbnail` | Queue thumbnail regeneration |
+| POST | `/library-sections/{id}/thumbnail/upload` | Replace the thumbnail with an uploaded image (`file`, PNG/JPEG/WebP, max 4 MB) |
+
+Create and update payloads accept `name`, `description`, `category`, `tags`, `section_json`, and `data_sources`. Create also requires `scope: tenant`.
+
+  </Tab>
+  <Tab title="Pages" icon="browser">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/pages/{id}/preview-link` | Return the canonical storefront URL for a page |
+
+Draft pages receive a short-lived signed preview token. Page share tokens are not created through the generic builder token endpoint.
+
+  </Tab>
 </Tabs>
 
 ## Export Status Lifecycle
@@ -72,6 +96,25 @@ Every export reports one of the following statuses:
 | `cancelled` | The export was cancelled before completion |
 
 `completed`, `failed`, and `cancelled` are final — an export never leaves a final status. A failed or cancelled export stores no PDF file.
+
+## Reusable section library
+
+The section library stores one detached builder `section` node plus the data sources that section references. Saved sections belong to the current installation. Curated read-only sections provided by the platform can appear alongside your own.
+
+- Saved records carry the current `installation_key`.
+- Platform-provided sections are read-only: they can be inserted, but not edited or deleted.
+- Inserting a section creates a detached copy; later library edits do not change pages that already use it.
+- Thumbnail generation is asynchronous and writes the resulting image through MediaHub.
+
+Library records are bounded to 256 KiB, 200 nodes, and 10 data sources.
+
+## Global page context
+
+Every storefront page can bind to curated `context` roots for the signed-in customer (`me`), store, cart summary, normalized cart items, visitor capabilities, and locale/currency. A root is resolved only when the document references its declared source, so unused customer, cart, and store context does not add render work. Context-dependent output is never stored in the shared guest HTML cache.
+
+## Page previews and authored SEO
+
+Page SEO and access settings live inside `content_json`. Authored SEO supports standard metadata, Open Graph fields, robots flags, and bounded JSON-LD.
 
 ## Permissions
 
@@ -105,5 +148,5 @@ For filter syntax and operators, see [Filtering](/core-concepts/filtering).
 </Expandable>
 
 <Callout kind="info">
-The wider builder surface — storefront pages, content blocks, email templates, theme slots, and the in-place theme editor — is managed through the b2bware admin UI and is not part of the public API contract yet.
+The complete endpoint catalog — including blocks, emails, fonts, form submissions, product views, slots, and the in-place theme editor — is available under **API Reference → StorefrontBuilderHub**.
 </Callout>

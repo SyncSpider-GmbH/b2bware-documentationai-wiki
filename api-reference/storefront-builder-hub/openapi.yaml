@@ -1,0 +1,1425 @@
+openapi: 3.0.0
+info:
+  title: StorefrontBuilderHub API
+  description: >-
+    Complete API collection for StorefrontBuilderHub — generated from
+    routes/api.php
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Blocks
+  - name: Builder
+  - name: Documents
+  - name: Emails
+  - name: Fonts
+  - name: Form Submissions
+  - name: Generated Pdfs
+  - name: Library Sections
+  - name: Pages
+  - name: Product Views
+  - name: Slots
+  - name: Theme Editor
+  - name: Theme Slots
+paths:
+  /api/v1/apps/storefront-builder-hub/blocks:
+    get:
+      tags:
+        - Blocks
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Blocks
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/blocks/render-types/list:
+    get:
+      tags:
+        - Blocks
+      summary: Get Render Types
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/blocks/types/list:
+    get:
+      tags:
+        - Blocks
+      summary: Get Block Types
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/blocks/{id}:
+    get:
+      tags:
+        - Blocks
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Blocks
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Blocks
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/blocks/{id}/render:
+    get:
+      tags:
+        - Blocks
+      summary: Render
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/canvas-styles:
+    get:
+      tags:
+        - Builder
+      summary: Canvas Styles
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/collections:
+    get:
+      tags:
+        - Builder
+      summary: Collections
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/context:
+    get:
+      tags:
+        - Builder
+      summary: Context Fields
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/hubs:
+    get:
+      tags:
+        - Builder
+      summary: Hubs
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/reference:
+    get:
+      tags:
+        - Builder
+      summary: Reference
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/sample:
+    get:
+      tags:
+        - Builder
+      summary: Sample
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/sample-rows:
+    get:
+      tags:
+        - Builder
+      summary: Sample Rows
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/schema:
+    get:
+      tags:
+        - Builder
+      summary: Schema
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/layouts:
+    get:
+      tags:
+        - Builder
+      summary: Layouts
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/preview/{token}:
+    get:
+      tags:
+        - Builder
+      summary: Show
+      parameters:
+        - name: token
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/sources/entities:
+    get:
+      tags:
+        - Builder
+      summary: Entities
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/sources/entities/{entityId}/fields:
+    get:
+      tags:
+        - Builder
+      summary: Fields
+      parameters:
+        - name: entityId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/versions:
+    get:
+      tags:
+        - Builder
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Builder
+      summary: Snapshot
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/diagnostics:
+    post:
+      tags:
+        - Builder
+      summary: Diagnostics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/preview:
+    post:
+      tags:
+        - Builder
+      summary: Preview
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/preview/token:
+    post:
+      tags:
+        - Builder
+      summary: Create Token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/versions/{id}/publish:
+    post:
+      tags:
+        - Builder
+      summary: Publish
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/builder/versions/{id}/revert:
+    post:
+      tags:
+        - Builder
+      summary: Revert
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/documents:
+    get:
+      tags:
+        - Documents
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Documents
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/documents/templates:
+    get:
+      tags:
+        - Documents
+      summary: Templates
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/documents/{id}:
+    get:
+      tags:
+        - Documents
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Documents
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Documents
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/documents/{id}/pdf/download:
+    get:
+      tags:
+        - Documents
+      summary: Download
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/documents/{id}/pdf/status:
+    get:
+      tags:
+        - Documents
+      summary: Status
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/documents/{id}/dataset/count:
+    post:
+      tags:
+        - Documents
+      summary: Dataset Count
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/documents/{id}/pdf:
+    post:
+      tags:
+        - Documents
+      summary: Queue
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/emails:
+    get:
+      tags:
+        - Emails
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Emails
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/emails/{id}:
+    get:
+      tags:
+        - Emails
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Emails
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Emails
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/emails/preview:
+    post:
+      tags:
+        - Emails
+      summary: Preview
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/emails/send-test:
+    post:
+      tags:
+        - Emails
+      summary: Send Test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/emails/{id}/send:
+    post:
+      tags:
+        - Emails
+      summary: Send
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/fonts:
+    get:
+      tags:
+        - Fonts
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Fonts
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/fonts/google:
+    get:
+      tags:
+        - Fonts
+      summary: Google Catalog
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/fonts/{id}:
+    delete:
+      tags:
+        - Fonts
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/form-submissions:
+    get:
+      tags:
+        - Form Submissions
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/form-submissions/export:
+    get:
+      tags:
+        - Form Submissions
+      summary: Export
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/form-submissions/{id}:
+    get:
+      tags:
+        - Form Submissions
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Form Submissions
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Form Submissions
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/generated-pdfs:
+    get:
+      tags:
+        - Generated Pdfs
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/generated-pdfs/{id}:
+    get:
+      tags:
+        - Generated Pdfs
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Generated Pdfs
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/generated-pdfs/{id}/download:
+    get:
+      tags:
+        - Generated Pdfs
+      summary: Download
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/library-sections:
+    get:
+      tags:
+        - Library Sections
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Library Sections
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/library-sections/{id}:
+    get:
+      tags:
+        - Library Sections
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Library Sections
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Library Sections
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/library-sections/{id}/thumbnail:
+    post:
+      tags:
+        - Library Sections
+      summary: Regenerate Thumbnail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/library-sections/{id}/thumbnail/upload:
+    post:
+      tags:
+        - Library Sections
+      summary: Upload Thumbnail
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/pages:
+    get:
+      tags:
+        - Pages
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Pages
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/pages/link-targets:
+    get:
+      tags:
+        - Pages
+      summary: Link Targets
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/pages/resolve/{urlKey}:
+    get:
+      tags:
+        - Pages
+      summary: Resolve
+      parameters:
+        - name: urlKey
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/pages/statuses/list:
+    get:
+      tags:
+        - Pages
+      summary: Get Statuses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/pages/{id}:
+    get:
+      tags:
+        - Pages
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Pages
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Pages
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/pages/{id}/preview-link:
+    post:
+      tags:
+        - Pages
+      summary: Preview Link
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/product-views:
+    get:
+      tags:
+        - Product Views
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/slots:
+    get:
+      tags:
+        - Slots
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Slots
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/slots/{id}:
+    get:
+      tags:
+        - Slots
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Slots
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Slots
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/theme-editor/manifest:
+    get:
+      tags:
+        - Theme Editor
+      summary: Manifest
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/theme-editor/edit-token:
+    post:
+      tags:
+        - Theme Editor
+      summary: Edit Token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/theme-editor/slot-fragment:
+    post:
+      tags:
+        - Theme Editor
+      summary: Slot Fragment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/theme-slots/manifest:
+    get:
+      tags:
+        - Theme Slots
+      summary: Manifest
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

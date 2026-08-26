@@ -456,6 +456,12 @@
             "icon": "gauge",
             "openapi": "api-reference/dashboard-hub/openapi.yaml",
             "pages": []
+          },
+          {
+            "group": "StorefrontBuilderHub",
+            "icon": "layout",
+            "openapi": "api-reference/storefront-builder-hub/openapi.yaml",
+            "pages": []
           }
         ]
       },
