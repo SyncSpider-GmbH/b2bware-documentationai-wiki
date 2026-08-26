@@ -434,7 +434,7 @@ Earlier versions of this page suggested `?key=…` here. Claude.ai handles sign-
 
 Separate from everything above. Buyers in your shop can connect their own AI assistant to **their own account** — their orders, their addresses, their cart — and nothing else.
 
-- Turned **off** by default. Enable it per shop in **Developers → MCP Server**.
+- Turned **off** by default. Enable it per shop in **Store Setup → Features → Enable AI assistant access**. Connection details and revocation remain under **Developers → MCP Server**.
 - **20 tools**: search the catalog at the prices that buyer actually gets, read their own and their company's order history, reorder, manage their own addresses, build a cart, preview and place an order.
 - A buyer sees exactly what they see when signed in to your storefront — same roles, same company scope. A colleague's private address is not reachable; a draft product is not reachable.
 - Buyers connect from their account area, and can disconnect there.
@@ -445,7 +445,7 @@ Company-wide carts shared between colleagues are not part of this yet — carts 
 ## Security
 
 <Callout kind="alert" title="What an assistant can reach">
-Whatever you can reach, and nothing more. Tools do not run with elevated rights: your roles, permissions and company scope are re-evaluated on every single call, by the same code that answers the admin panel and the storefront. There is no separate MCP permission model to keep in step.
+Whatever you can reach, and nothing more. Tools do not run with elevated rights: your role, the storefront's effective policies and feature settings, and your customer/company scope are re-evaluated on every single call by the same application code that serves the storefront. There is no separate MCP-only allow-list that can grant broader access.
 </Callout>
 
 - **Signing in leaves no long-lived credential on your machine.** Access tokens are short-lived and refreshed automatically; refresh tokens rotate on every use, and a reused one kills the whole chain.

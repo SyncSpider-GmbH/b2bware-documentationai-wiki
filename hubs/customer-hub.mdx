@@ -292,6 +292,20 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 
 </Expandable>
 
+<Expandable title="Update Customer — PUT /customers/{id}" default-open="false">
+
+Back-office users may update fields allowed by their role. A storefront
+customer may update only their own customer record. Attempts to update another
+customer return HTTP `403`.
+
+Storefront self-service cannot change fields that determine identity, access,
+account standing, or pricing: `role_id`, `company_id`, `customer_group_id`,
+`status`, and `token` return HTTP `403`. Invalid values and duplicate
+`email`, `customer_number`, or `company_number` values return HTTP `422`;
+an unknown customer id returns HTTP `404`.
+
+</Expandable>
+
 <Expandable title="Create Company — POST /companies" default-open="false">
 
 | Field | Rules |
