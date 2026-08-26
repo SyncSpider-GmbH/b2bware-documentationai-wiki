@@ -200,6 +200,27 @@ There is no key to create or copy. Point your client at the server and it takes 
 
 Your client needs to support MCP's OAuth flow — Cursor, Claude Desktop, Claude Code and VS Code all do. Older clients that do not will ask for a key instead; use the API key path for those.
 
+## OAuth consumer contract
+
+This is the public contract for a client that signs in. Internals of how B2Bware talks to itself are not part of it.
+
+| What | Where |
+| --- | --- |
+| MCP endpoint | `https://mcp.b2bware.com/mcp` |
+| Protected resource metadata | `/.well-known/oauth-protected-resource` on that host |
+| Authorization server metadata | `/.well-known/oauth-authorization-server` |
+| Admin connections UI | **Developers → MCP Server** |
+| Storefront connections UI | Customer account → **MCP Server**, only if the shop has switched the feature on |
+| Branded shop endpoint | `https://<shop-host>/mcp` on a hostname the storefront already serves |
+
+Rules that do not change:
+
+- The assistant acts as **you**. It cannot impersonate another user.
+- Admin sign-in exposes the tools your own B2Bware login may already use. Today that is six read tools; the API-key path remains the full 163-tool surface until those converge.
+- Storefront sign-in is **self-only**: your catalog, your orders, your cart, your addresses, your profile. Company-wide carts are not part of this contract.
+- A token issued for one shop host cannot be replayed at another.
+- Turning the storefront MCP switch off, deactivating a company, or removing the user revokes access. Revocation is immediate on the next call.
+
 ### Managing and revoking connections
 
 **Developers → MCP Server** in the B2Bware admin lists everything connected: which client, which accounts, when it was last used. Revoking there takes effect on the next request — not when a token happens to expire.
