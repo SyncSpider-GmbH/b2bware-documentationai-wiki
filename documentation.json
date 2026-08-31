@@ -319,6 +319,11 @@
                     "icon": "database"
                   },
                   {
+                    "title": "Pricing",
+                    "path": "advanced/storefront-themes/pricing",
+                    "icon": "tag"
+                  },
+                  {
                     "title": "AJAX & Runtime",
                     "path": "advanced/storefront-themes/ajax-and-runtime",
                     "icon": "refresh-cw"
