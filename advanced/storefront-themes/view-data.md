@@ -166,7 +166,7 @@ Never fetch customer orders or account PII through `@fetch` — use these keys.
 | `$catalogExportSummary` | array\|null | Safe export readiness fields (no raw token). |
 | `$apiKeysCount` | int | API key count for badges. |
 | `$priceViews` | array | Catalog/favorites listings: `[product_id => tax-split view-model]`. **Lazy** — resolved only when Blade touches it (the listing controller offers products; it does not hit a price provider up front). Empty when the page has no products or prices are hidden. Product detail still passes `$priceView` / `$crossSellPriceViews` eagerly because variant rows embed them. |
-| `$pricingRows` | array | Vendor-neutral per-customer extras `[product_id => row]` from an OrderHub row provider (ERP addons). Keys: `unit_price`, `list_price`, `discount_label`, `price_unit`, `sales_lot_size`, `is_stock_item`, `package_metrics`, `quantity_unit`, `skipped`. **Always `[]` when no addon is installed.** Lazy. Themes must not name a vendor; guard extra columns with `count($pricingRows)` / `data_get`. |
+| `$pricingRows` | array | Vendor-neutral per-customer extras `[product_id => row]` from an OrderHub row provider (ERP addons). Keys: `unit_price`, `list_price`, `discount_label`, `price_unit`, `sales_lot_size`, `is_stock_item`, `package_metrics`, `quantity_unit`, `skipped`. **Always `[]` when no addon is installed.** Lazy. Themes must not name a vendor; guard extra columns with `count($pricingRows)` / `data_get`. Full row contract + example: see § Per-customer pricing below. |
 
 **Home page:** an uploaded theme may add `pages/home.blade.php` (`/{locale}/home`).
 It receives the same globals + optional keys. Prefer `$me` / `$me->company` (including
@@ -220,6 +220,57 @@ The view-model carries `current_excl`, `current_incl`, `compare_excl`, `compare_
 When the tenant connects a pricing integration (for example an ERP such as **Mesonic** real-time pricing), the platform automatically fills these same view-models with the **signed-in customer's own price** — and that displayed price is exactly what the cart will charge. The catalog list price is shown struck-through next to it when it is higher. This needs **no theme changes**: a theme that simply renders `$priceViews` / `$priceView` shows personalised prices for free. (Older themes that fetched ERP prices client-side with `@fetch` should drop that and just render the supplied view-models — `@fetch` is for content, never pricing.)
 
 Extra ERP *display* fields (pack size, discount label, unit of measure, skip flags) are **not** Mesonic-specific in the theme. They arrive as lazy `$pricingRows` only when the installed addon implements OrderHub's row-provider interface. A theme that does not read `$pricingRows` never triggers that lookup. StorefrontHub does not import or name the addon.
+
+#### The `$pricingRows` row contract
+
+`$pricingRows` is a `[product_id => row]` map. Each row may carry:
+
+| Key | Meaning |
+| --- | ------- |
+| `unit_price` | The customer's unit price. |
+| `list_price` | The list price (strikethrough context). |
+| `discount_label` | Human-readable discount text (e.g. "-15 %"). |
+| `price_unit` | Unit the price refers to (e.g. "per 100"). |
+| `sales_lot_size` | Pack/lot size the product is sold in. |
+| `is_stock_item` | Whether it is a stocked item. |
+| `package_metrics` | Packaging details. |
+| `quantity_unit` | Unit of measure for quantities. |
+| `skipped` | Product could not be priced — show "price on request" instead of a figure. |
+
+Rules for using it:
+
+- **Always `[]` when no pricing addon is installed** — the theme must render fine without it. Guard everything with `count($pricingRows)` / `data_get`.
+- **Lazy** — resolved only when Blade reads it. Only touch it where you actually show the extras.
+- **Never name a vendor** in theme code (no "Mesonic" strings or conditions) — the contract is vendor-neutral and works with any installed pricing addon.
+
+```blade
+@php $row = data_get($pricingRows ?? [], (string) $product->id, []); @endphp
+
+@if(count($pricingRows ?? []))
+    @if(data_get($row, 'discount_label'))
+        <span class="badge badge--discount">{{ data_get($row, 'discount_label') }}</span>
+    @endif
+
+    @if(data_get($row, 'price_unit'))
+        <span class="price-unit">/ {{ data_get($row, 'price_unit') }}</span>
+    @endif
+
+    @if(data_get($row, 'sales_lot_size'))
+        <span class="lot-size">@t('Sold in packs of') {{ data_get($row, 'sales_lot_size') }}</span>
+    @endif
+
+    @if(data_get($row, 'skipped'))
+        <span class="unavailable">@t('Price on request')</span>
+    @endif
+@endif
+```
+
+#### Per-customer pricing checklist
+
+1. ✅ Render prices exclusively from `$priceViews` / `$priceView` / `$cartLines` (ideally via `components/price`).
+2. ✅ Gate every price on `$canSeePrices`, and add-to-cart on `$canAddToCart`.
+3. ✅ Optionally read `$pricingRows` for ERP extras — vendor-neutral, guarded with `data_get`, degrades to nothing when absent.
+4. ❌ No `@fetch` for pricing, no vendor names, no client-side price API calls, no tax/discount math.
 
 ### Gating add-to-cart
 
