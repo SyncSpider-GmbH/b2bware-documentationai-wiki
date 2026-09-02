@@ -526,6 +526,10 @@
                 "path": "help-center/guides/erp-sync-setup"
               },
               {
+                "title": "Embed Integration Hub",
+                "path": "help-center/guides/embed-integration-hub"
+              },
+              {
                 "title": "Product Import Guide",
                 "path": "help-center/guides/product-import"
               }
