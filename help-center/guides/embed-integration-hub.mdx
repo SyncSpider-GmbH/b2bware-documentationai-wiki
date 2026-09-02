@@ -1,0 +1,359 @@
+---
+title: Embed Integration Hub in your ERP
+description: Client guide for embedding DataHub Integration Hub — HTML snippet vs JavaScript SDK, partner JWT, and host events.
+---
+
+## Overview
+
+Integration Hub can run **inside your own ERP or admin UI** as an embedded widget. Your staff create connectors, configure credentials, and run syncs without logging into the B2Bware / DataHub admin.
+
+The embed ships as one loader file (`integration-hub.js`). That file powers **two ways to install**:
+
+1. **Embed snippet** — declarative HTML with `data-*` attributes (auto-mount)
+2. **Embed SDK** — `DataHubIntegrationHub.mount(…)` with events and lifecycle control
+
+Both use the same iframe UI and the same security model. Your page never receives a Desk Bearer token.
+
+```
+Your ERP page
+  → loads integration-hub.js (snippet or SDK)
+  → iframe on the DataHub admin host
+  → bootstrap (installation key + public token OR partner JWT + parent origin)
+  → Integration Hub UI (list, create, sync)
+  → (SDK) postMessage events back to the host
+```
+
+## Snippet vs SDK
+
+| | **Embed snippet** | **Embed SDK** |
+|---|---|---|
+| How you install | Paste HTML; script auto-mounts from `data-*` | Load the script, then call `DataHubIntegrationHub.mount()` |
+| Host JavaScript | Not required | Required |
+| Events (`session.ready`, `integration.created`, …) | Not exposed to your page | Yes — `ih.on(…)` |
+| Unmount | Leave / reload the page | `ih.destroy()` |
+| Typical auth | `data-embed-token` (`ihpub_…`) in HTML | Prefer short-lived `partnerToken` from your backend |
+| Theme / locale / deep-link | `data-theme`, `data-locale`, `data-path` | `theme`, `locale`, `path` options |
+| Best for | Quick paste into a static ERP page | SPAs, tabs, analytics, production hardening |
+
+**Same loader URL for both:** `/apps/b2bware/embed/integration-hub.js`  
+**TypeScript types (SDK):** `/apps/b2bware/embed/integration-hub.d.ts`
+
+<Callout kind="tip" title="Which should you pick?">
+Use the **snippet** to prove the embed works. Use the **SDK** when the ERP must react to creates/syncs, mount on a route change, or avoid shipping a long-lived public token in View Source.
+</Callout>
+
+## Prerequisites
+
+- A DataHub tenant with Integration Hub available
+- Access to **Configuration → Integrations** (or **Integrations → Settings**) in the B2Bware admin
+- A page in your ERP where you can paste HTML / JavaScript
+- The **exact browser origin** of that ERP page (scheme + host + optional port, **no path**)
+
+Examples of valid origins:
+
+| ERP URL | Origin to allowlist |
+|---------|---------------------|
+| `https://erp.client.com/integrations` | `https://erp.client.com` |
+| `https://admin.client.com:8443/app` | `https://admin.client.com:8443` |
+| `http://localhost:3000/ih` | `http://localhost:3000` |
+
+## Setup (tenant admin in B2Bware)
+
+<Steps>
+  <Step title="Open Integration settings" icon="settings">
+    In B2Bware go to **Configuration → Integrations**, or **Integrations → Settings**.
+  </Step>
+  <Step title="Limit the catalog (optional)" icon="filter">
+    Under **Connector catalog**:
+    - **Allowed connectors** — leave empty to show every active connector, or pick a subset (e.g. only WooCommerce / Shopify).
+    - **Maximum integrations** — leave empty (or `0`) for unlimited; otherwise the API blocks create / duplicate / import when the cap is reached (drafts count).
+  </Step>
+  <Step title="Enable embed" icon="globe">
+    Under **Embed**:
+    - Turn **Enable embed** on.
+    - Add one or more **Allowed parent origins** (your ERP origin, as above).
+    - Choose **Embed UI**:
+      - **Simple** — credentials, decisions, activate, sync (hides field mapping / preview).
+      - **Advanced** — full wizard.
+      - **Both** — simple by default, with a toggle to the full wizard.
+    - Save settings. DataHub generates an embed public token (`ihpub_…`) and a partner **signing secret** (`ihsec_…`) automatically.
+  </Step>
+  <Step title="Copy install material" icon="clipboard">
+    On the same settings page you get three blocks:
+    - **Embed snippet** — paste-ready HTML
+    - **Embed SDK** — programmatic example
+    - **Partner signing secret** — for your ERP backend only (production JWT minting)
+  </Step>
+</Steps>
+
+<Callout kind="warning" title="Treat tokens as secrets">
+The embed public token is not a Desk admin password, but anyone with the token **and** a page on an allowlisted origin can use Integration Hub for that tenant. Do not publish the snippet in a public repo. Use **Rotate embed token** / **Rotate signing secret** if either leaks — then update the ERP.
+</Callout>
+
+## Option A — Embed snippet
+
+Paste on the ERP page that should show integrations:
+
+```html
+<div id="dh-integrations"></div>
+<script
+  src="https://{your-datahub-admin-host}/apps/b2bware/embed/integration-hub.js?v=1"
+  data-installation-key="{installation-key}"
+  data-embed-token="ihpub_…"
+  data-target="#dh-integrations"
+  data-theme="system"
+  async
+></script>
+```
+
+| Attribute | Value |
+|-----------|--------|
+| `src` | Loader URL from settings. Stable path: `/apps/b2bware/embed/integration-hub.js`. |
+| `data-installation-key` | Tenant **installation key** (UUID). Required. |
+| `data-embed-token` | Public token (`ihpub_…`). |
+| `data-target` | CSS selector for the mount node. Optional — if omitted, the loader inserts a container next to the script. |
+| `data-theme` | `light`, `dark`, or `system` (default). |
+| `data-locale` | Optional locale code for the embed UI. |
+| `data-path` | Optional deep-link (`create`, `{id}`, `{id}/edit`). |
+| `data-partner-token` | Optional short-lived partner JWT (alternative to `data-embed-token`). |
+
+<Callout kind="warning" title="Empty installation key">
+If the copied snippet has `data-installation-key=""`, it will **not** work. Desk admin sessions often do not store an AuthHub installation key in the browser. Paste a real tenant installation key before shipping to the client.
+</Callout>
+
+## Option B — Embed SDK (recommended for apps)
+
+Load the same script, then mount when your page is ready. **Do not call `mount()` before the script has finished loading** (`async` alone races).
+
+```html
+<div id="dh-integrations"></div>
+<script
+  src="https://{admin}/apps/b2bware/embed/integration-hub.js?v=1"
+  async
+  onload="window.__dhIhBoot && window.__dhIhBoot()"
+></script>
+<script>
+  window.__dhIhBoot = function () {
+    const ih = DataHubIntegrationHub.mount('#dh-integrations', {
+      installationKey: '…',
+      // Production: mint partnerToken on your backend with the signing secret.
+      partnerToken: window.__DH_PARTNER_TOKEN__, // set from your server-rendered page / API
+      // Dev / simple: embedToken: 'ihpub_…',
+      theme: 'system',
+      // path: 'create',
+    });
+
+    ih.on('session.ready', (e) => console.log('ready', e));
+    ih.on('session.error', (e) => console.error(e));
+    ih.on('integration.created', (e) => console.log('created', e));
+    ih.on('integration.updated', (e) => console.log('updated', e));
+    ih.on('integration.deleted', (e) => console.log('deleted', e));
+    ih.on('sync.started', (e) => console.log('sync', e));
+    ih.on('navigate', (e) => console.log('route', e.path));
+    ih.on('resize', (e) => console.log('height', e.height));
+
+    // Later (SPA leave): ih.destroy();
+  };
+
+  if (window.DataHubIntegrationHub) window.__dhIhBoot();
+</script>
+```
+
+### SDK API
+
+| Method | Purpose |
+|--------|---------|
+| `DataHubIntegrationHub.mount(target, options)` | Create the iframe and start bootstrap |
+| `ih.on(event, handler)` | Subscribe; returns an unsubscribe function |
+| `ih.once(event, handler)` | Subscribe once |
+| `ih.off(event, handler?)` | Unsubscribe |
+| `ih.destroy()` | Remove iframe, clear listeners |
+| `DataHubIntegrationHub.destroyAll()` | Destroy every instance on the page |
+
+### Host events (protocol v1)
+
+| Event | When |
+|-------|------|
+| `session.ready` | Bootstrap succeeded |
+| `session.error` | Bootstrap / session failed |
+| `resize` | Iframe height changed (`{ height }`) |
+| `navigate` | Route changed inside the embed (`{ path, basePath }`) |
+| `integration.created` / `updated` / `deleted` | Integration lifecycle |
+| `sync.started` | A sync was triggered from the embed UI |
+| `destroy` | `ih.destroy()` ran |
+
+## Partner JWT (production)
+
+1. Turn on **Require partner JWT (recommended)** in Embed settings.
+2. Click **Rotate signing secret** and copy the value **once** into the ERP backend vault (GET settings only shows a mask afterward).
+3. On each page load, mint an HS256 JWT:
+
+```json
+{
+  "iss": "dh-ih-partner",
+  "ik": "<installation-key>",
+  "sub": "<erp-user-id>",
+  "email": "ops@client.com",
+  "name": "Ops User",
+  "role": "integrations_admin",
+  "iat": 1710000000,
+  "exp": 1710000300
+}
+```
+
+`sub` / `email` / `name` / `role` are optional but recommended — logged on bootstrap and carried in the embed session for audit.
+
+4. Pass the JWT as `partnerToken` to `DataHubIntegrationHub.mount()`. Never put `ihsec_…` in the browser.
+
+Smoke-test: `POST /api/v1/apps/integration-hub/settings/embed/mint-partner-token` (admin auth) accepts optional actor fields.
+
+Production admin host is typically your DataHub frontend host (for example `https://datahub.syncspider.com`). Always use the `src` from **your** settings page so environments stay correct.
+
+<Callout kind="tip">
+The iframe height auto-resizes via `postMessage`. Give the host container full width; avoid a fixed height that clips the wizard. The loader sets sandbox / referrerpolicy / clipboard permissions for OAuth popups. Optional CSP: see `/apps/b2bware/embed/CSP.md` (`VITE_IH_EMBED_FRAME_ANCESTORS`).
+</Callout>
+
+## How to test locally
+
+<Steps>
+  <Step title="Allowlist the test page origin" icon="globe">
+    In Configuration → Integrations, add the origin of the page that will host the embed (exact match). Examples: `http://localhost:5500`, `http://127.0.0.1:5500`. Save.
+  </Step>
+  <Step title="Use complete credentials" icon="key">
+    Real installation key UUID + matching `ihpub_…` (or a partner JWT).
+  </Step>
+  <Step title="Serve a host HTML page" icon="code">
+    Put the snippet **or** SDK boot code on a page whose origin you allowlisted. Opening the `.js` URL alone is not enough.
+  </Step>
+  <Step title="Open the host page" icon="eye">
+    You should see the Integrations UI in the iframe. With the SDK, the console should log `ready`. If it stays on “Waiting for host page”, init never arrived. If bootstrap fails, check Network for `POST …/embed/bootstrap` (401 token, 403 origin / embed disabled).
+  </Step>
+</Steps>
+
+Quick smoke HTML — **snippet** (serve it, do not use `file://`):
+
+```html
+<!doctype html>
+<html>
+  <body>
+    <h1>IH embed smoke (snippet)</h1>
+    <div id="dh-integrations"></div>
+    <script
+      src="http://localhost:5173/apps/b2bware/embed/integration-hub.js?v=1"
+      data-installation-key="YOUR_INSTALLATION_KEY"
+      data-embed-token="ihpub_…"
+      data-target="#dh-integrations"
+      async
+    ></script>
+  </body>
+</html>
+```
+
+Quick smoke HTML — **SDK**:
+
+```html
+<!doctype html>
+<html>
+  <body>
+    <h1>IH embed smoke (SDK)</h1>
+    <div id="dh-integrations"></div>
+    <script
+      src="http://localhost:5173/apps/b2bware/embed/integration-hub.js?v=1"
+      async
+      onload="window.__dhIhBoot && window.__dhIhBoot()"
+    ></script>
+    <script>
+      window.__dhIhBoot = function () {
+        const ih = DataHubIntegrationHub.mount('#dh-integrations', {
+          installationKey: 'YOUR_INSTALLATION_KEY',
+          embedToken: 'ihpub_…',
+          theme: 'system',
+        });
+        ih.on('session.ready', (e) => console.log('ready', e));
+      };
+      if (window.DataHubIntegrationHub) window.__dhIhBoot();
+    </script>
+  </body>
+</html>
+```
+
+Serve with e.g. `npx serve -p 5500` and allowlist `http://localhost:5500` (or whatever origin `serve` prints).
+
+## What your users can do
+
+With a valid embed session, staff can typically:
+
+- Browse allowed connectors and create integrations
+- Enter credentials / OAuth (provider windows still open as usual)
+- Configure decisions and activate
+- Run syncs and open sync run history
+
+They **cannot** (by design):
+
+- Change Integration Hub settings (catalog, embed, tokens)
+- Manage the global connector catalog CRUD outside the allowed list
+- Act as a Desk / SpiderDesk admin (`Gate::before` admin bypass is never used for embed)
+
+## Security model (short)
+
+| Check | Role |
+|-------|------|
+| `Require partner JWT` setting | When on, bootstrap **rejects** long-lived `ihpub_` — only partner JWT |
+| `partnerToken` / `data-embed-token` | Short-lived HS256 JWT (recommended) **or** public token (dev / legacy) |
+| Partner JWT claims | `ik` required; optional `sub`, `email`, `name`, `role` for audit (logged on bootstrap, carried in session) |
+| Signing secret | Stored server-side; GET settings returns a **mask**; full value only on **Rotate signing secret** |
+| `installation-key` | Scopes the session to the tenant company |
+| Allowed parent origins | Bootstrap rejects any other parent / request Origin |
+| Session token (`X-IH-Embed-Token`) | Short-lived Crypt payload inside the iframe; refreshed automatically |
+| Rate limit | Bootstrap / refresh throttled per IP + installation key |
+| Iframe sandbox | Scripts/forms/popups for OAuth; host page isolated |
+| CSP `frame-ancestors` | Optional on the admin host via `VITE_IH_EMBED_FRAME_ANCESTORS` / nginx (see `/apps/b2bware/embed/CSP.md`). Multi-tenant SaaS relies on bootstrap origin checks. |
+
+### Residual risk (accepted)
+
+Session material lives in the embed iframe JS memory (same class of risk as a logged-in admin SPA). Parent ERP XSS cannot read the iframe session cross-origin; XSS on the **admin** origin could. Prefer partner JWT + `require_partner_token` so a leaked HTML snippet alone is not enough.
+
+The installation key alone is **not** enough to call Integration Hub write APIs from the browser.
+
+
+## Custom hosting notes
+
+Most teams use the snippet or `DataHubIntegrationHub.mount`. If you build a custom shell:
+
+1. Load the iframe from the same admin host as the loader (`…/embed/integrations`).
+2. After the iframe loads (or on `ready`), send:
+
+```js
+iframe.contentWindow.postMessage(
+  {
+    source: 'dh-ih-embed-loader',
+    protocolVersion: 1,
+    type: 'init',
+    installationKey: '…',
+    embedToken: 'ihpub_…', // or partnerToken: 'eyJ…'
+    theme: 'system',
+  },
+  '{admin-origin}', // must match the iframe origin
+);
+```
+
+3. Listen for messages from the iframe (`source: 'dh-ih-embed'`, `protocolVersion: 1`) — see the event table above.
+
+## Troubleshooting
+
+| Symptom | Likely cause |
+|---------|----------------|
+| “Waiting for host page” forever | Snippet/SDK not on the page, or `postMessage` blocked / wrong admin origin |
+| `DataHubIntegrationHub is not defined` | Called `mount()` before the loader finished — use `onload` (see SDK example) |
+| Bootstrap 401 invalid credentials | Wrong / rotated token or bad partner JWT |
+| Bootstrap 403 parent origin | ERP origin not in **Allowed parent origins** (exact match; include port if non-default) |
+| Bootstrap 403 embed not enabled | Enable embed and save in Configuration → Integrations |
+| Connectors missing | **Allowed connectors** allowlist hides them |
+| Cannot create more integrations | **Maximum integrations** cap (includes drafts) |
+| Settings / Manage connectors missing in embed | Expected — configure those in B2Bware admin |
+
+## Related
+
+- [ERP Sync Setup](/help-center/guides/erp-sync-setup) — API-level ERP ↔ DataHub sync patterns
+- [Installation Key](/authentication/installation-key) — how tenant installation keys work
+- [CORS and Browser Clients](/authentication/cors-and-browsers) — browser access patterns to the API
