@@ -528,6 +528,10 @@
               {
                 "title": "Product Import Guide",
                 "path": "help-center/guides/product-import"
+              },
+              {
+                "title": "Export Products as JSON",
+                "path": "help-center/guides/export-products-json"
               }
             ]
           }
