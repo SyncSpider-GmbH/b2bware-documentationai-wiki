@@ -139,7 +139,7 @@ See [Authentication](/authentication) for details.
 
 <Expandable title="409 — Cart Currency Mismatch" default-open="false">
 
-**Cause:** A cart mutation (adding/updating items, checkout) was sent with a negotiated currency different from the currency the cart was created in.
+**Cause:** A cart mutation (adding/updating items, checkout) was sent with a negotiated currency different from the currency the cart was created in, and the cart already holds items. An empty cart adopts the newly negotiated currency instead of returning this error.
 
 ```json
 {
@@ -152,7 +152,7 @@ See [Authentication](/authentication) for details.
 
 **Solution:**
 - Send the same `Accept-Currency` header the cart was created with (the cart's `currency_code` field)
-- To switch currencies, start a new cart
+- To switch currencies, empty the cart (it then adopts the newly negotiated currency) or start a new cart
 
 </Expandable>
 

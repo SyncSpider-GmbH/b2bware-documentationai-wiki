@@ -82,7 +82,9 @@ For the complete list of endpoints, filters, includes, and validation rules (e.g
 creation. All subsequent cart mutations (item add/update, checkout) must
 negotiate the same currency or the API responds with **409
 `cart_currency_mismatch`** (body carries `cart_currency` and
-`requested_currency`). The completed order inherits the cart's
+`requested_currency`). An **empty** cart is the exception — it adopts the
+newly negotiated currency instead of returning 409. The completed order
+inherits the cart's
 `currency_code`. Carts created before multi-currency support count as
 base-currency carts. See
 [Currency Negotiation](/core-concepts/common-patterns#currency-negotiation).

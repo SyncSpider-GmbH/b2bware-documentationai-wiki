@@ -182,9 +182,12 @@ Never assume the installation's default currency on the storefront — read
 A cart **snapshots** the negotiated currency at creation (`currency_code` on the
 cart). Every subsequent mutation (adding items, changing quantities, checkout)
 must negotiate the same currency, otherwise the API responds with
-**409 `cart_currency_mismatch`**. The completed order inherits the cart's
-currency. Carts created before multi-currency support are treated as
-base-currency carts. To switch currencies mid-session, start a new cart.
+**409 `cart_currency_mismatch`**. An **empty** cart (no items) is the one
+exception: it holds no snapshotted prices, so it silently adopts the newly
+negotiated currency instead of returning 409. The completed order inherits
+the cart's currency. Carts created before multi-currency support are treated
+as base-currency carts. To switch currencies mid-session, empty the cart (or
+start a new one) and continue in the new currency.
 
 ## Coupons and Cart Rules
 
