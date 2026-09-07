@@ -127,6 +127,11 @@
                 "icon": "layers"
               },
               {
+                "title": "Sub-Companies",
+                "path": "core-concepts/sub-companies",
+                "icon": "network"
+              },
+              {
                 "title": "Error Handling",
                 "path": "core-concepts/error-handling",
                 "icon": "alert-circle"
