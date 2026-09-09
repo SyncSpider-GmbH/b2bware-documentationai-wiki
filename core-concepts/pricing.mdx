@@ -42,9 +42,15 @@ For a logged-in customer, the API walks the following precedence (highest wins):
 
 Tier price selection runs separately on top of that base:
 
-1. Find all tier prices where `qty_from <= cart_qty`.
-2. From the customer's group, take the highest `qty_from` matching tier (else from "all customers").
+1. Find all tier prices matching the cart quantity under the installation's
+   **tier min quantity comparison** setting (`product_hub.settings.pricing.tier_quantity_comparison`):
+   - `gte` (default): `min_quantity <= cart_qty` (apply at or above the break)
+   - `gt`: `min_quantity < cart_qty` (apply only strictly above the break — e.g. min 2 from qty 3)
+2. From the customer's group, take the highest `min_quantity` matching tier (else from "all customers").
 3. The cart applies that price to **all units** of the line item (not a per-bracket markup).
+
+Storefront SPAs can read the active mode from `GET /api/v1/apps/product-hub/pricing-config`
+(`tier_quantity_comparison`, plus `group_source`).
 
 So `finalPrice` on the catalog response is the "1-unit price" — the price the customer would pay if they bought one. As they raise the quantity, the cart preview returns the relevant tier price.
 
@@ -91,15 +97,16 @@ Example:
 ]
 ```
 
-A "save more when you buy more" table:
+A "save more when you buy more" table (label the break with `≥` when
+`tier_quantity_comparison` is `gte`, or `>` when it is `gt`):
 
 ```jsx
 <table>
   <thead><tr><th>Quantity</th><th>Price</th><th>Save</th></tr></thead>
   <tbody>
     {product.final_tier_prices.map(t => (
-      <tr key={t.qty_from}>
-        <td>≥ {t.qty_from}</td>
+      <tr key={t.min_quantity ?? t.qty_from}>
+        <td>{comparison === 'gt' ? '>' : '≥'} {t.min_quantity ?? t.qty_from}</td>
         <td>{format({ price: t.price, currency: t.currency })}</td>
         <td>{((1 - t.price / product.final_price.price) * 100).toFixed(0)}%</td>
       </tr>
@@ -108,6 +115,7 @@ A "save more when you buy more" table:
 </table>
 ```
 
+The field on the API is `min_quantity` (docs historically said `qty_from`).
 ## Net vs Gross (Taxes)
 
 The catalog stores **net** prices. Tax is applied by **TaxHub** during checkout, based on:
