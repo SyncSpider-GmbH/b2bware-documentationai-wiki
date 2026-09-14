@@ -1,0 +1,137 @@
+---
+title: Getting started with B2Bware Admin
+description: Open B2Bware Admin, learn the workspace chrome, navigate the left sidebar hubs, and jump to Products, Orders, or Customers.
+---
+
+{/* VIDEO: Getting started walkthrough — EN voice-over (Andrew), pronounce B2Bware as "B to B ware". Embed after media upload. */}
+{/* Example:
+<Video
+  src="https://video-cdn.documentation.ai/.../getting-started-en-v2.mp4"
+  title="Getting started with B to B ware Admin"
+  render-type="video"
+  controls="true"
+/>
+*/}
+
+<Callout kind="info" title="Sample review">
+  This page is a **style sample** on branch `docs/user-guide-getting-started-sample`. Screenshots and the screencast upload next; do not merge to `main` until reviewed.
+</Callout>
+
+
+## What you'll learn
+
+- Open B2Bware Admin from the SyncSpider launcher or a direct URL
+- Recognize workspace chrome: store label, language switcher, and **Go to store**
+- Navigate the left sidebar hubs and use search to jump to a module
+
+## Open B2Bware Admin
+
+You can open Admin in either of these ways:
+
+<Steps>
+  <Step title="From the SyncSpider launcher">
+    Sign in at [app.syncspider.com](https://app.syncspider.com), open the app launcher, and choose **B2Bware Admin**.
+
+    ![SyncSpider launcher with B2Bware Admin](screenshots/login.png)
+  </Step>
+  <Step title="From a direct URL">
+    Go to:
+
+    `https://datahub.syncspider.com/apps/b2bware/admin/dashboard`
+
+    Bookmark this URL if you work in Admin daily.
+  </Step>
+</Steps>
+
+<Callout kind="info" title="Access">
+  You need an active SyncSpider account with permission for the B2Bware tenant. If Admin does not open, ask your workspace owner to grant access.
+</Callout>
+
+## Know your workspace
+
+After you land on the dashboard, check the top of the screen:
+
+![B2Bware Admin dashboard with workspace chrome](screenshots/01-dashboard.png)
+
+| Element | What it does |
+| --- | --- |
+| **B2B Portal Demo Store** (or your store name) | Confirms which tenant workspace you are in |
+| Language switcher | Changes the Admin UI language |
+| **Go to store** | Opens the storefront for the current tenant |
+
+<Callout kind="warning" title="Storefront URL">
+  The storefront URL is tenant-specific. If **Go to store** opens a marketing site instead of your shop, ask your admin for the correct storefront URL for this workspace.
+</Callout>
+
+## Find your way around the left sidebar
+
+The left sidebar is the main navigation. Modules are grouped into hubs so related work stays together.
+
+### Catalog and commerce (upper sidebar)
+
+![Left sidebar — catalog and commerce hubs](screenshots/02-sidebar-top.png)
+
+| Hub | Modules |
+| --- | --- |
+| **Dashboard** | Home overview |
+| **Demo Generator** | Sample data helpers (when enabled) |
+| **Products** | All Products, Categories, Stock Locations, Pricelists, Vendors, Customer SKUs |
+| **Orders** | All Orders, Proposals |
+| **Customers** | All Customers, Companies, Contacts, Roles, Segmentation |
+
+Expand a hub to see its modules:
+
+![Products hub expanded](screenshots/products-expanded.png)
+
+![Orders hub expanded](screenshots/orders-expanded.png)
+
+![Customers hub expanded](screenshots/customers-expanded.png)
+
+### Finance, content, and ops (lower sidebar)
+
+![Left sidebar — finance, content, and ops hubs](screenshots/03-sidebar-lower.png)
+
+| Hub group | Modules |
+| --- | --- |
+| Catalog extras | Attributes |
+| Finance | Tax, Rules, Loyalty, Invoices, Procurement, Accounting |
+| Content | Notifications, Media, Storefront Builder |
+| Ops / setup | Automation Hub, Store Setup, Mobile App, Integrations, Import/Export, Settings, Developer, Help & Support |
+
+![Settings in the sidebar](screenshots/settings.png)
+
+![Developer tools in the sidebar](screenshots/developer.png)
+
+## Use search to jump to a module
+
+When you know the module name, search is faster than scrolling the sidebar.
+
+<Steps>
+  <Step title="Open search">
+    Focus the Admin search field (keyboard shortcut if your tenant enables one, or click the search control).
+  </Step>
+  <Step title="Type a module name">
+    Enter a stable term such as **Products**, **Orders**, **Customers**, or **Settings**.
+  </Step>
+  <Step title="Open the result">
+    Select the matching module to navigate there directly.
+  </Step>
+</Steps>
+
+![Admin search jumping to a module](screenshots/search.png)
+
+## Where to go next
+
+Pick the path that matches your next job:
+
+<Columns cols={3}>
+  <Card title="Products" href="/user-guide/products/overview">
+    Create and maintain catalog items, categories, stock locations, and pricelists.
+  </Card>
+  <Card title="Orders" href="/user-guide/orders/overview">
+    Review All Orders and Proposals as they move through fulfillment.
+  </Card>
+  <Card title="Customers" href="/user-guide/customers/overview">
+    Manage companies, contacts, roles, and segmentation for B2B buyers.
+  </Card>
+</Columns>
