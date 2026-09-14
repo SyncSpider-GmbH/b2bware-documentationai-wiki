@@ -3,6 +3,8 @@ title: Storefront Themes
 description: Build a custom, server-rendered Blade storefront theme for a B2Bware DataHub store — the full authoring contract.
 ---
 
+{/* redeploy-2026-09-14: replace unsupported Info/CardGroup */}
+
 <Callout kind="info">
 This is the authoring contract for **Blade storefront themes** (the server-rendered
 storefront). If you are integrating the storefront over HTTP/JSON as an SPA or API consumer,
