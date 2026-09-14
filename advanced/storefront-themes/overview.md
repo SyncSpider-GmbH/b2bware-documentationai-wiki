@@ -3,11 +3,11 @@ title: Storefront Themes
 description: Build a custom, server-rendered Blade storefront theme for a B2Bware DataHub store — the full authoring contract.
 ---
 
-<Info>
+<Callout kind="info">
 This is the authoring contract for **Blade storefront themes** (the server-rendered
 storefront). If you are integrating the storefront over HTTP/JSON as an SPA or API consumer,
 see [Advanced → Storefront](/advanced/storefront/browse-catalog) instead.
-</Info>
+</Callout>
 
 A storefront theme is a zip of Blade templates and assets that you upload from the store admin.
 The platform validates every upload against a fixed contract (a canonical file surface, a safe
@@ -21,7 +21,7 @@ Both repos below share the same project layout — `theme/` is the uploadable th
 docs, bash build/refresh scripts, and `.cursor/rules` for AI assistants. The store admin
 **Themes** page links to them under **Get theme source**.
 
-<CardGroup cols={2}>
+<Columns cols={2}>
   <Card title="Theme Starter Kit" icon="github" href="https://github.com/SyncSpider-GmbH/theme_b2bware_starter_kit">
     Blank canvas: no layouts, partials or pages — you build them. Pick this to design from scratch.
   </Card>
@@ -29,7 +29,7 @@ docs, bash build/refresh scripts, and `.cursor/rules` for AI assistants. The sto
     The complete default theme — every layout, partial, component and page. Pick this to restyle
     what the store already ships.
   </Card>
-</CardGroup>
+</Columns>
 
 Fork either one, use it as a template, or download the ZIP. Working in Cursor is recommended
 (not required).
