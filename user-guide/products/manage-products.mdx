@@ -1,95 +1,50 @@
 ---
 title: Manage products
-description: Open All Products in B2Bware Admin, switch views and filters, add a new product, use Import / Export, and open a product for editing.
+description: Open All Products, search and filter the catalog, and create a new product in B2Bware Admin.
 ---
 
-## What you'll learn
+Use **All Products** to find items, open an existing product, or create a new one.
 
-- Open **All Products** (`/admin/products`)
-- Switch views, filters, sort, and bulk actions
-- Add a product and open an existing one
+<Image
+  src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404816099-c6umj3903fq-all-products.png?fm=auto&auto=compress%2Cformat"
+  alt="All Products list"
+/>
 
 ## Open All Products
 
 <Steps>
-  <Step title="Expand Products">
+  <Step title="Open the Products hub">
     In the left sidebar, expand **Products**.
   </Step>
-  <Step title="Open All Products">
-    Select **All Products**. The page subtitle is: *Manage and track all your products.*
+  <Step title="Choose All Products">
+    Select **All Products** to open the catalog list.
   </Step>
 </Steps>
 
-{/* Screenshot pending upload: All Products list (../../screenshots/products/all-products.png) */}
+## Find a product
 
-## Views, filters, and list tools
-
-Use the toolbar above the product list:
-
-| Control | What it does |
-| --- | --- |
-| **Default View** | Active saved view |
-| **Save as View** | Save the current layout and filters as a view |
-| **Add Filter** | Narrow the list |
-| **Sort By** | Change list order |
-| **Expand All** | Expand rows that support expansion |
-| **Bulk edit** | Edit several selected products at once |
-| **Bulk delete** | Delete selected products |
-| **Customize** | Customize visible columns and layout |
-| **Import / Export** | Bring products in or export the list |
-| **Go to trash** | Open deleted products |
-| **Add New Product** | Create a catalog item |
-
-### List views
-
-Switch between **Compact**, **Standard**, **Table**, and **Cards**.
-
-### List columns
-
-Headers you may see on **All Products**:
-
-**ID**, **IMAGE**, **NAME**, **SKU**, **STOCK**, **PRICE**, **DESCRIPTION**, **VARIATIONS**, **PRODUCT STATUS**, **VOLUME**, **SCENT**, **DIOPTRIE**, **+ADD ATTRIBUTE**.
+- Use the search field for name, SKU, or other indexed fields
+- Use column filters when the list is long
+- Sort by clicking a column header when available
 
 <Callout kind="info" title="Attribute columns">
-  Extra headers such as **VOLUME**, **SCENT**, and **DIOPTRIE** come from product attributes. Use **+ADD ATTRIBUTE** when you need another attribute column on the list.
+  Extra attribute columns may appear depending on your tenant setup. Treat them as filters for your catalog, not as required fields for every product.
 </Callout>
 
-## Add a new product
+## Create a product
 
 <Steps>
-  <Step title="Click Add New Product">
-    On **All Products**, select **Add New Product**.
+  <Step title="Start create">
+    Click **Create** (or the equivalent primary action) on All Products.
   </Step>
-  <Step title="Complete the product">
-    Fill in the fields on the product form, then save with **Update** (or the create action shown on that screen).
+  <Step title="Enter basics">
+    Fill in at least name and SKU (and any required fields your tenant shows).
+  </Step>
+  <Step title="Save">
+    Save the product, then continue on the product detail tabs for media, price, and stock.
   </Step>
 </Steps>
 
-## Import or export products
+## Next steps
 
-Select **Import / Export** on **All Products** when you need to load products in bulk or download the current catalog set.
-
-## Open a product
-
-<Steps>
-  <Step title="Find the product">
-    Use **Add Filter**, **Sort By**, or search within the list until you see the row.
-  </Step>
-  <Step title="Open the row">
-    Select the product (for example by **NAME** or **ID**) to open **Edit Product** on the **General** tab (`/products/{id}/general`).
-  </Step>
-</Steps>
-
-## Where to go next
-
-<Columns cols={3}>
-  <Card title="Edit a product" href="/user-guide/products/edit-product">
-    Update General, Price, Stock, and the other Edit Product tabs.
-  </Card>
-  <Card title="Categories" href="/user-guide/products/categories">
-    Assign structure with Add New Category and the category tree.
-  </Card>
-  <Card title="Products overview" href="/user-guide/products/overview">
-    Return to the Products hub map.
-  </Card>
-</Columns>
+- [Edit a product](/user-guide/products/edit-product) — General, Price, and Stock tabs

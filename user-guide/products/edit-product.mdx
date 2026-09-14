@@ -1,164 +1,61 @@
 ---
 title: Edit a product
-description: Edit a B2Bware product across General, Variants, Attributes, Price, SEO, Shipping, Stock, Cross Sell, and Upsell—with steps for General, Price, and Stock.
+description: Update General, Price, and Stock tabs on a product in B2Bware Admin.
 ---
 
-## What you'll learn
-
-- Open **Edit Product** and move between tabs
-- Update **General** fields and the product gallery
-- Set **Price** and **Stock** for a product
-
-## Open Edit Product
-
-From **All Products**, open a product. You land on **General** at a path like `/products/1/general`.
-
-Tabs across the top:
-
-**General** · **Variants** · **Attributes** · **Price** · **SEO** · **Shipping** · **Stock** · **Cross Sell** · **Upsell**
-
-Header actions on Edit Product: **Back**, **Preview**, **Duplicate**, **Update**.
+Open a product from **All Products**, then use the tabs to maintain identity, pricing, and inventory.
 
 ## General
 
-{/* Screenshot pending upload: Edit Product — General tab (../../screenshots/products/detail-general.png) */}
+<Image
+  src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404825814-w0bijm3rty-detail-general.png?fm=auto&auto=compress%2Cformat"
+  alt="Edit Product — General tab"
+/>
 
-Use **General** for identity, gallery, and core catalog fields.
-
-| Field / area | Purpose |
-| --- | --- |
-| **Product Gallery** | Product images |
-| **Upload Images** | Add images to the gallery |
-| **Name** | Product name |
-| **Price** | Base price shown on General |
-| **SKU** | Stock keeping unit |
-| **Category** | Category assignment |
-| **Brand/Manufacturer** | Brand or manufacturer |
-| **Stock** | Stock summary on General |
-| **EAN** | EAN code |
-| **Status** | Product status |
-| **Tax Class** | Tax class |
-| **Description** | Full description |
-| **Short Description** | Short description |
-| **AI Translation** | AI-assisted translation |
-| **Update** | Save General changes |
-
-### Update General
+Typical General fields include name, SKU, description, categories, and media.
 
 <Steps>
-  <Step title="Open General">
-    Confirm the **General** tab is selected.
+  <Step title="Open the product">
+    From **All Products**, select the product row.
   </Step>
-  <Step title="Upload or reorder images">
-    Use **Upload Images** in **Product Gallery**. Drag images to change order when needed.
+  <Step title="Edit General">
+    Update name, description, and other identity fields.
   </Step>
-  <Step title="Edit fields">
-    Set **Name**, **Price**, **SKU**, **Category**, **Brand/Manufacturer**, **Stock**, **EAN**, **Status**, **Tax Class**, **Description**, and **Short Description** as required.
+  <Step title="Add or reorder photos">
+    Upload images and set the primary photo when your tenant supports it.
   </Step>
   <Step title="Save">
-    Select **Update**.
+    Save before switching tabs if your UI requires an explicit save.
   </Step>
 </Steps>
 
 <Callout kind="info" title="Reorder photos">
-  In **Product Gallery**, reorder photos so the primary image appears first before you select **Update**.
+  Drag thumbnails when the UI allows it so the first image is the one buyers see first.
 </Callout>
 
 ## Price
 
-Open the **Price** tab (path segment `/stock-and-price`).
+<Image
+  src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404829280-g3qw7ceri8r-detail-price.png?fm=auto&auto=compress%2Cformat"
+  alt="Edit Product — Price tab"
+/>
 
-{/* Screenshot pending upload: Edit Product — Price tab (../../screenshots/products/detail-price.png) */}
+Use the Price tab for base price and any list- or contract-related fields your tenant shows.
 
-| Control / field | Purpose |
-| --- | --- |
-| **Product Price** | Main price section |
-| **Price** | Regular price |
-| **Sales Price** | Sale price |
-| **Sale Starts** | Sale start |
-| **Sale Ends** | Sale end |
-| **Cost Price** | Cost |
-| **Profit** | Profit display |
-| **See Tier Prices** | Open tier prices |
-| **See Group Prices** | Open group prices |
-| **Clear Sale Price** | Clear the sale price |
-| **Update Product** | Save price changes |
-| **Vatiants Prices** | Variant prices heading (label as shown in Admin) |
-
-### Update price
-
-<Steps>
-  <Step title="Open Price">
-    Select the **Price** tab.
-  </Step>
-  <Step title="Set Product Price">
-    Enter **Price**, and optionally **Sales Price**, **Sale Starts**, **Sale Ends**, and **Cost Price**. Review **Profit**.
-  </Step>
-  <Step title="Optional: tiers and groups">
-    Use **See Tier Prices** or **See Group Prices** when you need those price types. Use **Clear Sale Price** to remove an active sale.
-  </Step>
-  <Step title="Save">
-    Select **Update Product**.
-  </Step>
-</Steps>
-
-<Callout kind="warning" title="Vatiants Prices label">
-  The Admin heading **Vatiants Prices** appears with that spelling on the Price screen. Use that exact label when matching the UI.
+<Callout kind="warning" title="Variants prices label">
+  Some tenants show a label such as **Vatiants Prices** (spelling as in the UI). Use that section for variant-level prices when products have variants.
 </Callout>
 
 ## Stock
 
-Open the **Stock** tab (path segment `/stock`).
+<Image
+  src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404832291-noqwqvkbe5-detail-stock.png?fm=auto&auto=compress%2Cformat"
+  alt="Edit Product — Stock tab"
+/>
 
-{/* Screenshot pending upload: Edit Product — Stock tab (../../screenshots/products/detail-stock.png) */}
+Assign quantities per stock location. Create locations first under **Stock Locations** if the list is empty.
 
-| Control / field | Purpose |
-| --- | --- |
-| **Add New Stock** | Start a new stock row |
-| **Select Warehouse** | Choose the warehouse |
-| **Stock Quantity** | Quantity for that warehouse |
-| **Add Stock** | Confirm the new stock row |
+## Next steps
 
-Example row you may see: **Default** with quantity **100**.
-
-### Add stock
-
-<Steps>
-  <Step title="Open Stock">
-    Select the **Stock** tab.
-  </Step>
-  <Step title="Add New Stock">
-    Select **Add New Stock**.
-  </Step>
-  <Step title="Choose warehouse and quantity">
-    Set **Select Warehouse** and **Stock Quantity**.
-  </Step>
-  <Step title="Confirm">
-    Select **Add Stock**.
-  </Step>
-</Steps>
-
-## Other tabs
-
-| Tab | Use when you need to… |
-| --- | --- |
-| **Variants** | Manage product variants |
-| **Attributes** | Edit product attributes |
-| **SEO** | Set SEO fields |
-| **Shipping** | Configure shipping-related product data |
-| **Cross Sell** | Manage cross-sell links |
-| **Upsell** | Manage upsell links |
-
-## Where to go next
-
-<Columns cols={3}>
-  <Card title="Manage products" href="/user-guide/products/manage-products">
-    Return to All Products for views, filters, and bulk actions.
-  </Card>
-  <Card title="Stock locations" href="/user-guide/products/stock-locations">
-    Define warehouses used in Select Warehouse.
-  </Card>
-  <Card title="Pricelists" href="/user-guide/products/pricelists">
-    Deploy pricelists across the catalog.
-  </Card>
-</Columns>
+- [Stock locations](/user-guide/products/stock-locations)
+- [Pricelists](/user-guide/products/pricelists)
