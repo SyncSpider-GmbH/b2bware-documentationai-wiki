@@ -1,0 +1,95 @@
+---
+title: Manage products
+description: Open All Products in B2Bware Admin, switch views and filters, add a new product, use Import / Export, and open a product for editing.
+---
+
+## What you'll learn
+
+- Open **All Products** (`/admin/products`)
+- Switch views, filters, sort, and bulk actions
+- Add a product and open an existing one
+
+## Open All Products
+
+<Steps>
+  <Step title="Expand Products">
+    In the left sidebar, expand **Products**.
+  </Step>
+  <Step title="Open All Products">
+    Select **All Products**. The page subtitle is: *Manage and track all your products.*
+  </Step>
+</Steps>
+
+![All Products list](../../screenshots/products/all-products.png)
+
+## Views, filters, and list tools
+
+Use the toolbar above the product list:
+
+| Control | What it does |
+| --- | --- |
+| **Default View** | Active saved view |
+| **Save as View** | Save the current layout and filters as a view |
+| **Add Filter** | Narrow the list |
+| **Sort By** | Change list order |
+| **Expand All** | Expand rows that support expansion |
+| **Bulk edit** | Edit several selected products at once |
+| **Bulk delete** | Delete selected products |
+| **Customize** | Customize visible columns and layout |
+| **Import / Export** | Bring products in or export the list |
+| **Go to trash** | Open deleted products |
+| **Add New Product** | Create a catalog item |
+
+### List views
+
+Switch between **Compact**, **Standard**, **Table**, and **Cards**.
+
+### List columns
+
+Headers you may see on **All Products**:
+
+**ID**, **IMAGE**, **NAME**, **SKU**, **STOCK**, **PRICE**, **DESCRIPTION**, **VARIATIONS**, **PRODUCT STATUS**, **VOLUME**, **SCENT**, **DIOPTRIE**, **+ADD ATTRIBUTE**.
+
+<Callout kind="info" title="Attribute columns">
+  Extra headers such as **VOLUME**, **SCENT**, and **DIOPTRIE** come from product attributes. Use **+ADD ATTRIBUTE** when you need another attribute column on the list.
+</Callout>
+
+## Add a new product
+
+<Steps>
+  <Step title="Click Add New Product">
+    On **All Products**, select **Add New Product**.
+  </Step>
+  <Step title="Complete the product">
+    Fill in the fields on the product form, then save with **Update** (or the create action shown on that screen).
+  </Step>
+</Steps>
+
+## Import or export products
+
+Select **Import / Export** on **All Products** when you need to load products in bulk or download the current catalog set.
+
+## Open a product
+
+<Steps>
+  <Step title="Find the product">
+    Use **Add Filter**, **Sort By**, or search within the list until you see the row.
+  </Step>
+  <Step title="Open the row">
+    Select the product (for example by **NAME** or **ID**) to open **Edit Product** on the **General** tab (`/products/{id}/general`).
+  </Step>
+</Steps>
+
+## Where to go next
+
+<Columns cols={3}>
+  <Card title="Edit a product" href="/user-guide/products/edit-product">
+    Update General, Price, Stock, and the other Edit Product tabs.
+  </Card>
+  <Card title="Categories" href="/user-guide/products/categories">
+    Assign structure with Add New Category and the category tree.
+  </Card>
+  <Card title="Products overview" href="/user-guide/products/overview">
+    Return to the Products hub map.
+  </Card>
+</Columns>
