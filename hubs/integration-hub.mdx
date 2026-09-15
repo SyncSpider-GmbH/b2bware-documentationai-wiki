@@ -1,0 +1,193 @@
+---
+title: IntegrationHub
+description: Bidirectional sync framework — connectors, mappings, sync jobs, file feeds, Response Relay, and embed sessions.
+---
+
+## Overview
+
+IntegrationHub connects DataHub to external platforms (WooCommerce, Shopify, Walmart, FTP file feeds, and more). Operators configure integrations in the B2Bware admin (or an [embedded iframe](/help-center/guides/embed-integration-hub)); workers on the `integration-sync` queue import and export data through field mappings and blueprints.
+
+**Base URL:** `api/v1/apps/integration-hub/`
+
+<Callout kind="info">
+Most routes require Bearer `auth:api` plus a `permission:integration-hub.*` key. Public exceptions: OAuth callback / app-login and `POST embed/bootstrap` + `POST embed/refresh` (throttled). Pagination follows [Common Patterns](/core-concepts/common-patterns) (`per_page`, flat `data` / `total` / `current_page` / `total_pages`).
+</Callout>
+
+Operator walkthrough: [Integration Hub guide](/help-center/guides/integration-hub). There is no published OpenAPI collection for this hub yet; use the tables below as the endpoint map.
+
+## Architecture
+
+| Store | What lives there |
+|---|---|
+| **MySQL** | `integrations`, `integration_entities`, `integration_field_mappings`, `sync_runs`, `integration_relay_routes`, hub settings |
+| **MongoDB** | `sync_logs_{integration_id}`, `integration_responses_{integration_id}`, Hub records in `items_{entity_id}` |
+| **Redis / Horizon** | Queue `integration-sync` (import, export, relay jobs) |
+
+```
+Connector package (Integrations/*)
+  → ConnectorRegistry
+  → SyncService → ImportSyncJob / ExportSyncJob
+  → TransformService (+ optional RelayForwardJob)
+  → Mongo items_* / sync_logs_* / integration_responses_*
+```
+
+### Jobs
+
+| Job | Purpose |
+|---|---|
+| `ImportSyncJob` | Pull from connector → write Hub items |
+| `ExportSyncJob` | Read Hub items → push to connector; capture response JSON |
+| `RelayForwardJob` | Map captured export response → push to another integration |
+
+## Auth and embed
+
+| Mode | How identity works |
+|---|---|
+| Admin / API token | `auth:api` → installation SpiderDesk user; Gate grants admin for Desk users |
+| Embed session | Host bootstraps with public token or partner JWT; subsequent calls send `X-IH-Embed-Token`. Permissions are an allow-list (`EmbedOperator`); Desk admin bypass is suppressed when that header is present. `Auth::user()` remains the installation Desk user for company scoping (SpiderDeskGuard is not overridden). |
+
+See [Embed Integration Hub](/help-center/guides/embed-integration-hub).
+
+## Core concepts
+
+| Concept | Description |
+|---|---|
+| **Integration** | Top-level connection: connector type, credentials / OAuth state, status, schedule |
+| **Entity** | One source ↔ target pair with direction (inbound / outbound), decisions, filters |
+| **Field mapping** | Source path → target field + transform pipeline |
+| **Blueprint** | Connector-provided defaults, decision questions, discovery helpers |
+| **SyncRun** | One execution with counters (+ optional `relay_stats`) |
+| **SyncLog** | Per-record audit in Mongo |
+| **Relay route** | After export success, map captured response into another integration |
+
+## API endpoints
+
+Paths below are relative to `/api/v1/apps/integration-hub`.
+
+### Settings
+
+| Method | Endpoint | Permission |
+|---|---|---|
+| GET | `/settings`, `/settings/groups/list`, `/settings/{group}` | `settings.view` |
+| POST | `/settings`, `/settings/{group}`, `/settings/reset`, `/settings/{group}/reset` | `settings.update` |
+| POST | `/settings/embed/rotate-token` | `settings.update` |
+| POST | `/settings/embed/rotate-signing-secret` | `settings.update` |
+| POST | `/settings/embed/mint-partner-token` | `settings.update` |
+
+### Connectors and OAuth
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/connectors`, `/connectors/gallery`, `/connectors/gallery/{slug}` | List / gallery |
+| GET | `/connectors/categories`, `/connectors/hubs` | Metadata |
+| GET | `/connectors/{type}/auth-schema`, `/entities`, `/schema/{entityType}` | Wizard schemas |
+| POST | `/connectors/{type}/test-connection` | Validate credentials |
+| POST | `/connectors/{type}/oauth/authorize-url`, `/exchange-code`, `/claim`, `/app-authorize` | OAuth2 (authenticated) |
+| GET | `/oauth/callback`, `/connectors/{type}/oauth/app-login` | Public OAuth browser hits |
+| POST | `/ai/suggest-mappings` | AI field mapping hints |
+
+### Integrations and config
+
+| Method | Endpoint | Description |
+|---|---|---|
+| CRUD | `/integrations` | Permission resource `integration-hub.integrations` |
+| GET | `/integrations/summary`, `/integrations/health-summary` | List optimisations |
+| GET | `/integrations/{id}/wizard-state`, `/mapping-editor` | Wizard / mapping bundle |
+| POST | `/integrations/{id}/test-connection`, `/cancel-draft`, `/disconnect` | Ops |
+| POST | `/integrations/import`, `/integrations/{id}/duplicate` | Config copy |
+| GET | `/integrations/{id}/export` | Export config JSON |
+
+### Entities, filters, mappings
+
+| Method | Endpoint | Description |
+|---|---|---|
+| CRUD | `/entities`, `/field-mappings` | Permission resources |
+| GET/PUT | `/entities/{entity}/matching-rules` | Match strategy projection |
+| GET/PUT | `/entities/{entity}/filters` | Filter document |
+| GET | `/entities/{entity}/filter-capabilities`, `/filter-capabilities` | Push-down vs core |
+| POST | `/entities/{entity}/filters/preview-plan`, `/apply-template` | Plan / templates |
+| CRUD | `/filter-templates` | Saved filter templates |
+| POST | `/entities/{entityId}/field-mappings/bulk` | Bulk mapping write |
+| CRUD | `/integration-templates` | Mapping templates |
+
+### Blueprints and discovery
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/blueprints/{type}` | Blueprint definition |
+| POST | `/integrations/{id}/apply-blueprint` | Apply to integration |
+| POST | `/connectors/{type}/discover-fields/{entityType}` | Live field discovery |
+| POST | `/connectors/{type}/discover-attributes/{entityType}` | Attributes |
+| POST | `/connectors/{type}/preview-sample/{entityType}` | Sample rows |
+
+### Sync, payload, logs
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/integrations/{id}/sync`, `/entities/{id}/sync` | Start sync (`full` / `incremental`) |
+| POST | `/entities/{id}/sync/test` | Test sync |
+| POST | `/entities/{id}/lock` | Entity lock |
+| POST | `/sync-runs/{id}/cancel`, `/rerun` | Control run |
+| DELETE | `/sync-runs/{id}` | Delete run |
+| POST | `/entities/{id}/payload/inspect` | Payload inspector |
+| GET | `/entities/{id}/source-samples` | Source samples |
+| GET | `/sync-runs`, `/sync-runs/{id}`, `/integrations/{id}/sync-runs` | Run history |
+| GET | `/sync-runs/stats`, `/integrations/{id}/sync-runs/stats` | Aggregates |
+| GET | `/integrations/{id}/logs`, `/logs/run/{runId}` | Sync logs |
+
+### File feed
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/file-feed/match-profile`, `/compile-profile`, `/validate-profile`, … | Profile pipeline |
+| POST | `/file-feed/ai-profile`, `/ai-chat`, `/upload-sample`, `/create-attributes` | AI / sample |
+| GET | `/integrations/{id}/file-runs`, `/file-runs/{id}` | File run history |
+
+### Response Relay
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/integrations/{id}/relay-routes` | List routes |
+| GET | `/integrations/{id}/relay-routes/captured`, `/sample/{entity}` | Capture helpers |
+| POST | `/integrations/{id}/relay-routes/preview` | Preview mapping |
+| POST/PUT/DELETE | `/relay-routes[/{id}]` | CRUD routes |
+
+### Public embed
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/embed/bootstrap` | Mint short-lived session (public token or partner JWT + parent origin) |
+| POST | `/embed/refresh` | Refresh session (`X-IH-Embed-Token`) |
+
+## Transform types
+
+`TransformService` pipelines (chainable):
+
+| Type | Role |
+|---|---|
+| `direct`, `cast`, `map`, `format`, `expression`, `round` | Value shaping |
+| `replace`, `prefix`, `suffix`, `substring` | String ops |
+| `lowercase`, `uppercase`, `default`, `conditional` | Normalise / branch |
+| `custom`, `ai` | Extension / external AI |
+
+## Response Relay flow
+
+1. **Capture** — export upserts connector JSON into `integration_responses_{integration_id}`.
+2. **Routes** — MySQL `integration_relay_routes` (mapping, filter, optional `match_config`, `on_export_success`).
+3. **Forward** — `RelayForwardJob` maps, matches remote id, `pushEntity`, optional multi-hop (max 5).
+4. **Observe** — `sync_runs.relay_stats` on Sync Run Detail.
+
+## Adding a connector (high level)
+
+1. Add `packages/Integrations/{Vendor}/` with a class extending `AbstractConnector`.
+2. Register it on `ConnectorRegistry` from the package service provider.
+3. Wire composer autoload + provider in the root app.
+
+Full PHP recipe, OAuth helpers, Horizon concurrency, and sync-progress semantics live in the package developer guide under `packages/Utility/IntegrationHub/docs/developer-guide.md` (internal DataHub repo). Use the IntegrationHub connector skill when scaffolding a new vendor package.
+
+## Related
+
+- [Integrations User Guide](/user-guide/integrations/overview)
+- [Embed Integration Hub](/help-center/guides/embed-integration-hub)
+- [Authentication](/authentication)
+- [Common Patterns](/core-concepts/common-patterns)

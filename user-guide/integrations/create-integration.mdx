@@ -1,0 +1,58 @@
+---
+title: Create an integration
+description: Walk through the Integration Hub wizard — connector, authentication, decisions, mapping, preview, and activate.
+---
+
+## Before you start
+
+- Know which **connector** you need (store URL, API keys, or OAuth app credentials from the vendor).
+- Decide **import** vs **export** for each entity you will sync.
+- For ERP iframe installs, use [Embed Integration Hub](/help-center/guides/embed-integration-hub) instead of (or in addition to) the full admin wizard.
+
+From **Integrations → Create**, the wizard has six steps. You can **Save draft** and return later; **Back to integrations** returns to the list without discarding a saved draft.
+
+## Wizard steps
+
+<Steps>
+  <Step title="Connector" icon="plug">
+    Pick a connector from the gallery (category filters apply). Tenant **Settings** may hide connectors or enforce a maximum number of integrations — if create is blocked, an admin must raise the catalog limits.
+  </Step>
+  <Step title="Authentication" icon="lock">
+    Enter credentials from the connector's auth schema, or use **Connect** for OAuth2 connectors (authorize in the provider window; tokens are stored encrypted on the integration). Use **Test connection** before continuing.
+  </Step>
+  <Step title="Decisions" icon="sliders">
+    For each entity the connector supports, set direction (Import / Export), enable or disable the entity, and answer blueprint **decision** questions (sync policies, media, variations, and connector-specific defaults).
+  </Step>
+  <Step title="Field mapping" icon="git-branch">
+    Map source fields to DataHub (or the reverse on export). Use Core fields, Attributes, and Dynamic fields; apply transforms; mark variation axes with **Use as variant**. See [Mapping and filters](/user-guide/integrations/mapping-and-filters).
+  </Step>
+  <Step title="Preview" icon="eye">
+    Inspect a sample mapped payload before going live. Fix gaps in mapping or decisions if the preview looks wrong.
+  </Step>
+  <Step title="Name and activate" icon="check-circle">
+    Name the integration, choose a **schedule** (Manual, every 15 minutes, hourly, every 6 hours, or daily), then activate. Manual means sync only when an operator (or API) triggers it.
+  </Step>
+</Steps>
+
+## Simple vs Advanced UI
+
+When Integration Hub runs inside an **embed**, the tenant can offer:
+
+| Mode | Typical use |
+|---|---|
+| **Simple** | Credentials, decisions, activate, sync — hides deep field mapping / preview. |
+| **Advanced** | Full six-step wizard. |
+| **Both** | Simple by default, with a toggle to the full wizard. |
+
+In the full B2Bware admin you always get the full wizard.
+
+## After activation
+
+- Open **Integration detail** to run syncs, edit entities, configure filters, or set up Response Relay.
+- Use **Edit** to change connection, mapping, or schedule.
+- **Duplicate** / **Export config** / **Import config** copy setups between tenants or environments (permissions required).
+
+## Next steps
+
+- [Mapping and filters](/user-guide/integrations/mapping-and-filters)
+- [Sync runs](/user-guide/integrations/sync-runs)

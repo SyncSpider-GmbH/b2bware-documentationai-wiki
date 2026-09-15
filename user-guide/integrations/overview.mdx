@@ -1,0 +1,53 @@
+---
+title: Integrations overview
+description: Connect external platforms to DataHub with Integration Hub — import, export, file feeds, and ERP embed.
+---
+
+## What is Integration Hub?
+
+**Integration Hub** connects your B2Bware / DataHub catalog to external systems (WooCommerce, Shopify, Walmart, FTP file feeds, and more). Operators configure credentials, field mappings, and schedules in the admin UI; background jobs move data in or out without writing custom sync scripts.
+
+Open it from the left sidebar under **Integrations** (or your tenant's equivalent label).
+
+## What you can do
+
+| Capability | What it means |
+|---|---|
+| **Import** | Pull products, orders, customers, stock, etc. from the connector into DataHub (`items_{entity}` collections). |
+| **Export** | Push DataHub records to the external system. |
+| **File feed** | Import from CSV / XLSX / XML profiles (sample upload, AI-assisted profiling, file-run history). |
+| **Response Relay** | After a successful export, forward the connector's response JSON into another integration. |
+| **Embed** | Host the same Integration Hub UI inside your ERP via a snippet or JavaScript SDK. See [Embed Integration Hub](/help-center/guides/embed-integration-hub). |
+
+## Screens you'll use
+
+| Screen | Purpose |
+|---|---|
+| **Integrations list** | All integrations for the tenant: status, health, last sync, create / duplicate / import config. |
+| **Create wizard** | Six steps from connector pick to activate (drafts can be saved and resumed). |
+| **Integration detail** | Entities, sync actions, filters, Response Relay, file runs, sync-run history. |
+| **Edit** | Reopen connection, decisions, mapping, and schedule after activation. |
+| **Sync run detail** | Counters, per-record logs, diagnostics, relay stats. |
+| **Settings** | Catalog limiter (allowed connectors / max integrations) and embed configuration. |
+
+## Import vs export
+
+Each **entity** on an integration has a direction:
+
+- **Import (inbound)** — source is the connector; target is a DataHub hub entity (e.g. ProductHub products).
+- **Export (outbound)** — source is DataHub; target is the connector's remote resource.
+
+Bidirectional as a single entity direction is legacy; new setups pick import or export per entity.
+
+## Catalog connectors vs file feed
+
+- **Catalog connectors** talk to a remote API (or OAuth app) and discover schemas, attributes, and samples live.
+- **File feed** integrations use an import profile against uploaded or scheduled files; progress and history appear under **File Runs** on the detail page.
+
+## Next steps
+
+- [Create an integration](/user-guide/integrations/create-integration) — wizard steps 1–6
+- [Mapping and filters](/user-guide/integrations/mapping-and-filters)
+- [Sync runs](/user-guide/integrations/sync-runs)
+- [File feed and Response Relay](/user-guide/integrations/file-feed-and-relay)
+- [Embed in your ERP](/help-center/guides/embed-integration-hub)

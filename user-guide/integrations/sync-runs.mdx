@@ -1,0 +1,57 @@
+---
+title: Sync runs
+description: Run full or incremental syncs, inspect payloads, lock entities, and read sync logs and diagnostics.
+---
+
+## Starting a sync
+
+From **Integration detail** (or entity cards):
+
+| Action | Effect |
+|---|---|
+| **Sync integration** | Runs all enabled entities for that integration. |
+| **Sync entity** | Runs one entity only. |
+| **Test sync** | Small / dry-style run to validate mapping without a full catalog pull (connector-dependent). |
+| **Cancel** | Stops a running sync run when the job still accepts cancel. |
+| **Re-run** | Starts again from a previous run's context where supported. |
+
+### Full vs incremental
+
+| Type | Behaviour |
+|---|---|
+| **Full** | Re-process the entity scope (connector may still paginate; policies from Decisions apply). |
+| **Incremental** | Prefer records changed since the last successful watermark when the connector supports it. |
+
+Schedule presets (Manual, every 15 minutes, hourly, every 6 hours, daily) only enqueue work; workers on the `integration-sync` queue must be running for jobs to finish.
+
+## Progress and counters
+
+Sync Run Detail shows:
+
+- **Processed / total** in source-parent units (e.g. styles or variable products).
+- Optional **child** counters when one source expands into many hub rows (variations).
+- Status filters on the runs list (running, completed, failed, cancelled).
+
+## Payload inspector
+
+**Inspect** on an entity opens a read-only preview of mapped payloads (and source samples). Use it to debug transforms without writing to the remote or Hub until you are ready.
+
+## Lock
+
+**Lock** on an entity blocks conflicting syncs for that entity while you investigate or edit. Unlock when finished so scheduled runs can proceed.
+
+## Logs and diagnostics
+
+| Surface | What you see |
+|---|---|
+| **Sync runs list** | History for the integration or across integrations. |
+| **Sync run detail** | Stage, timings, KPIs, diagnostics rail, record-level outcomes. |
+| **Logs** | Per-record audit trail for the integration / run. |
+| **Health / reachability** | High-level connection and recent-run health on list and detail. |
+
+Failed rows show error messages on the log; fix mapping, credentials, or filters, then re-run.
+
+## Next steps
+
+- [File feed and Response Relay](/user-guide/integrations/file-feed-and-relay)
+- [Mapping and filters](/user-guide/integrations/mapping-and-filters)

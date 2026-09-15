@@ -1,0 +1,54 @@
+---
+title: Mapping and filters
+description: Map connector fields to DataHub, apply transforms, set variation axes, entity filters, and matching rules.
+---
+
+## Field mapping workspace
+
+On the wizard **Field mapping** step (or Edit → Mapping), each enabled entity has a mapping workspace:
+
+| Area | Purpose |
+|---|---|
+| **Core** | Built-in hub fields (SKU, name, price, …) from the blueprint / schema. |
+| **Attributes** | Catalog attributes discovered from the connector or AttributesHub. |
+| **Dynamic fields** | Extra source keys not in the static schema. |
+
+Search and pickers help on large catalogs. Incomplete rows with an empty target are skipped on save rather than failing the whole mapping.
+
+### Transforms
+
+Each mapping row can chain transforms (direct, cast, map, format, lowercase / uppercase, prefix / suffix, and more). Use the transform side panel or config dialog for options such as value maps and templates.
+
+### Variations — Use as variant
+
+Discovered attributes that can act as variation axes show a **Use as variant** control:
+
+- **On** — the attribute becomes a variation axis; the product imports as configurable with children per value (maps to a **select**-type attribute).
+- **Off** — treated as a regular attribute. If every discovered axis is off, many connectors import each variation as its own simple product.
+
+Do not confuse discovery eligibility with the user choice: only **Use as variant** is persisted as the operator decision.
+
+### AI suggest mappings
+
+Where enabled, **Suggest mappings** proposes field pairs from schemas; always review before activate.
+
+## Entity filters
+
+On create, edit, or integration detail (**Filters** on an entity card), you can limit which records sync:
+
+| Kind | When it runs |
+|---|---|
+| **API / push-down** | Sent to the connector when it supports remote filters (fewer rows fetched). |
+| **After-fetch (core)** | Applied in DataHub after the connector returns rows. |
+| **Mixed** | Some leaves push down; others run after fetch. |
+
+Filter templates can be saved and applied across entities. Use **Preview plan** to see how the engine will execute the tree.
+
+## Matching rules
+
+Matching rules decide how an inbound row finds an existing DataHub record (and related export match behaviour). They project onto the entity's `match_strategy` / sync config. Open them from the entity configuration when you need custom match fields beyond blueprint defaults.
+
+## Next steps
+
+- [Sync runs](/user-guide/integrations/sync-runs)
+- [Create an integration](/user-guide/integrations/create-integration)

@@ -1,0 +1,42 @@
+---
+title: File feed and Response Relay
+description: File-run history for file-feed integrations, Response Relay after export, and embedding Integration Hub in an ERP.
+---
+
+## File feed
+
+File-feed integrations import from profiles (CSV, XLSX, XML, and related formats) instead of (or alongside) live API catalog connectors.
+
+### File runs
+
+On **Integration detail → File Runs** you see each processed file: status, timing, and outcome. Use this tab to confirm scheduled or manual file imports completed and to open a specific run for detail.
+
+### Profiles and samples
+
+During setup, operators upload samples, match or compile profiles, and optionally use AI-assisted profiling. Attribute creation from the profile can seed AttributesHub when permitted. Day-to-day operators mostly monitor **File Runs** and re-trigger sync after new files land.
+
+## Response Relay
+
+Response Relay forwards a **connector export response** (not the raw Hub record) into another integration after a successful outbound sync.
+
+### How it works
+
+1. **Capture** — Every successful export stores the connector JSON in DataHub (keyed by source entity and Hub id).
+2. **Routes** — On **Integration detail → Response Relay**, define source entity → target integration entity, field mapping, optional filters, and optional match config (how to find an existing remote id).
+3. **Forward** — After the export run completes, a background job maps the captured response, resolves a remote id when possible, pushes to the target connector, and may chain hops (capped).
+4. **Observability** — Sync Run Detail shows relay counters (`forwarded` / `skipped` / `failed`) under post-hooks / relay.
+
+Use **sample** and **preview** on the relay UI to validate mapping before enabling a route.
+
+## Embed in your ERP
+
+To run Integration Hub inside your own admin UI (iframe + loader script), follow the dedicated client guide:
+
+- [Embed Integration Hub](/help-center/guides/embed-integration-hub) — HTML snippet vs JavaScript SDK, partner JWT, allowed origins, security model
+
+Tenant admins configure embed under **Integrations → Settings** (or Configuration → Integrations).
+
+## Next steps
+
+- [Integrations overview](/user-guide/integrations/overview)
+- [Sync runs](/user-guide/integrations/sync-runs)
