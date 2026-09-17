@@ -1,0 +1,72 @@
+---
+title: Hub Settings
+description: Installation-scoped App Settings for each DataHub hub — groups, field references, and where to find them in the API docs.
+---
+
+## What are hub settings?
+
+Most hubs expose **App Settings**: installation-scoped configuration edited in the admin under each hub’s **Settings** screen, and via that hub’s `/settings` HTTP API (`GET/POST /api/v1/apps/<hub>/settings`, per-group routes, and reset where supported).
+
+Settings are organized into **groups** (for example ProductHub `stock`, `visibility`, `pricing`). Each group contains typed fields (boolean, number, select, text, nested objects). Values apply to the current installation (tenant), not globally across all companies.
+
+<Callout kind="info">
+Per-hub **field references** (key, type, default, behavior) live on each [hub page](/hubs/overview) under **Settings** / **Settings Groups**. This page is the index.
+</Callout>
+
+## Settings vs SettingsHub
+
+| Concept | Where | Purpose |
+|---------|-------|---------|
+| **Hub App Settings** | Each hub’s `/settings` + admin App Settings | Domain behavior (stock defaults, notifications, tax calculation, …) |
+| **SettingsHub** | `settings-hub` | Platform config: locales, translations, cache, indexing, and **currency / i18n** (`global_config.value.i18n`) |
+
+See [SettingsHub](/hubs/settings-hub) for currency keys; see each hub below for App Settings groups.
+
+## Hub → settings groups
+
+| Hub | Groups | Field reference |
+|-----|--------|-----------------|
+| [ProductHub](/hubs/product-hub#settings) | `stock`, `visibility`, `destination_pricing`, `pricing` | On hub page |
+| [OrderHub](/hubs/order-hub#settings) | `general`, `transitions`, `stock_management`, `abandoned_cart`, `no_order_alerts` | On hub page |
+| [CustomerHub](/hubs/customer-hub#settings) | `registration`, `customer_groups`, `address_validation`, `notifications`, `company`, `permissions` | On hub page |
+| [TaxHub](/hubs/tax-hub#settings-groups) | `general`, `calculation`, `product_pricing`, `vat`, `import` | On hub page |
+| [NotificationHub](/hubs/notification-hub#settings) | `global`, `email_branding`, `email`, `sms`, `push`, `slack`, `broadcast`, `database` | On hub page |
+| [EventHub](/hubs/event-hub#settings) | `webhook_delivery`, `failure_handling`, `logs` | On hub page |
+| [AutomationHub](/hubs/automation-hub#settings) | (flat schema) | On hub page |
+| [LicenseHub](/hubs/license-hub#settings) | `fulfillment`, `stock_management` | On hub page |
+| [IntegrationHub](/hubs/integration-hub#settings) | `catalog`, `embed` | On hub page |
+| [SettingsHub](/hubs/settings-hub#currency-i18n) | Currency via `global_config` i18n (not FormGenerator groups) | On hub page |
+| [InvoiceHub](/hubs/invoice-hub#settings) | `automation`, `numbering`, `defaults`, `credit_notes`, `payments`, `documents`, `company`, `dunning`, `emails` | On hub page |
+| [LoyaltyHub](/hubs/loyalty-hub#settings) | `global`, `enrollment_channels` | On hub page |
+| [StorefrontHub](/hubs/storefront-hub#settings) | Theme pointer + `tenant_config` flags | On hub page |
+| [AiHub](/hubs/ai-hub#settings) | `general` | On hub page |
+| [PunchOutHub](/hubs/punch-out-hub#settings) | `general`, `storefront`, `security`, `mapping` | On hub page |
+| [Customer SKU module](/hubs/customer-sku-module#settings) | `search`, `display` | On hub page |
+| [DTOneHub](/hubs/dtone-hub#settings) | `fulfillment`, `storefront` | On hub page |
+| [A1 Top-Up module](/hubs/a1-top-up-module#settings) | `connection`, `trigger`, `default_mapping`, `retry` | On hub page |
+| [Mesonic real-time pricing](/hubs/mesonic-realtime-pricing#settings) | `general` | On hub page |
+
+## Hubs without App Settings
+
+These hubs in the documentation set have **no** FormGenerator App Settings group:
+
+- [AttributesHub](/hubs/attributes-hub)
+- [MediaHub](/hubs/media-hub)
+- [AuthHub](/hubs/auth-hub)
+- [RuleHub](/hubs/rule-hub)
+- [DashboardHub](/hubs/dashboard-hub)
+- [Storefront Builder Hub](/hubs/storefront-builder-hub)
+
+## API pattern
+
+Typical endpoints (exact paths vary slightly by hub):
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/api/v1/apps/<hub>/settings` | Schema + values (+ defaults when exposed) |
+| `GET` | `/api/v1/apps/<hub>/settings/{group}` | One group |
+| `POST` | `/api/v1/apps/<hub>/settings` | Save one or more groups |
+| `POST` | `/api/v1/apps/<hub>/settings/{group}` | Save one group |
+| `POST` | `/api/v1/apps/<hub>/settings/reset` | Reset to defaults (when supported) |
+
+Authentication and permissions follow each hub’s admin API rules. Secrets (SMTP passwords, API keys, signing secrets) may be **masked** on read.

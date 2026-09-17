@@ -1,0 +1,36 @@
+---
+title: Mesonic real-time pricing
+description: Installation-scoped App Settings for Mesonic Dataflow ERP live pricing — enable switch, API base URL, and API key.
+---
+
+## Overview
+
+The Mesonic Dataflow real-time pricing integration replaces catalog prices with live ERP prices for signed-in customers linked by customer number. This page documents **App Settings** only. See also [Hub Settings](/core-concepts/hub-settings).
+
+**Base URL:** `api/v1/apps/mesonic-dataflow-real-time-pricing/`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List settings groups |
+| GET | `/settings` | Get all settings |
+| POST | `/settings` | Update settings |
+| POST | `/settings/reset` | Reset all groups to defaults |
+| GET | `/settings/{group}` | Get one group (`general`) |
+| POST | `/settings/{group}` | Update one group |
+| POST | `/settings/{group}/reset` | Reset one group |
+
+## Settings
+
+Group: `general`. The `api_key` is a secret used only to authenticate to the Mesonic Dataflow ERP API (sent as `X-Api-Key`); it is not returned in plain text for documentation examples.
+
+<Expandable title="general — Settings Reference" default-open="true">
+
+**general** — ERP Connection
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enabled` | boolean | `false` | Enable real-time ERP pricing for linked customers. |
+| `base_url` | text (URL) | — | Mesonic Dataflow API base URL. |
+| `api_key` | password (secret) | — | ERP-issued API key for authenticated pricing requests. |
+
+</Expandable>

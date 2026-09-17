@@ -1,0 +1,51 @@
+---
+title: LoyaltyHub
+description: Installation-scoped App Settings for loyalty programs — global toggles and enrollment channels.
+---
+
+## Overview
+
+LoyaltyHub runs points programs, redemption, and enrollment. This page documents **App Settings** only. See also [Hub Settings](/core-concepts/hub-settings).
+
+**Base URL:** `api/v1/apps/loyalty-hub/`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List settings groups |
+| GET | `/settings` | Get all settings |
+| POST | `/settings` | Update settings |
+| POST | `/settings/reset` | Reset all groups to defaults |
+| GET | `/settings/{group}` | Get one group (`global`, `enrollment_channels`) |
+| POST | `/settings/{group}` | Update one group |
+| POST | `/settings/{group}/reset` | Reset one group |
+
+## Settings
+
+Groups: `global`, `enrollment_channels`.
+
+<Expandable title="global — Settings Reference" default-open="true">
+
+**global** — Global Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `loyalty_enabled` | boolean | `true` | Master switch for the loyalty program. |
+| `default_program_id` | number | `1` | Default loyalty program ID. |
+| `stacking_default` | select (`max_multiplier` / `sum_bonus` / `first_match`) | `max_multiplier` | How multiple earning actions stack by default. |
+| `reservation_ttl_minutes` | number | `30` | TTL in minutes for redemption point reservations. |
+| `receipt_auto_suggest` | boolean | `true` | Auto-suggest points when a receipt is uploaded. |
+
+</Expandable>
+
+<Expandable title="enrollment_channels — Settings Reference" default-open="false">
+
+**enrollment_channels** — Where customers can join the program
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `registration` | boolean | `true` | Offer enrollment during registration. |
+| `checkout` | boolean | `true` | Offer enrollment at checkout. |
+| `customer_account` | boolean | `true` | Offer enrollment in the customer account area. |
+| `admin` | boolean | `true` | Allow enrollment from the admin backoffice. |
+
+</Expandable>

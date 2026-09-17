@@ -385,6 +385,167 @@ curl -s -X POST \
   </Step>
 </Steps>
 
+## Settings Groups
+
+NotificationHub channel settings are edited in the admin under **NotificationHub → Settings** (also available via the `/settings` endpoints in the Dashboard & Settings tab). Groups: `global`, `email_branding`, `email`, `sms`, `push`, `slack`, `broadcast`, `database`. See also [Hub Settings](/core-concepts/hub-settings).
+
+<Expandable title="global — Settings Reference" default-open="true">
+
+**global** — Global Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `default_channels` | select (multi) | — | Default delivery channels: `email`, `database`, `sms`, `push`, `slack`, `broadcast`. |
+| `fallback_channel` | select (`database` / `email`) | — | Channel used when primary delivery fails. |
+| `quiet_hours_enabled` | boolean | `false` | Suppress non-urgent notifications during quiet hours. |
+| `default_quiet_hours_start` | text | — | Quiet-hours start time (`HH:MM`, e.g. `22:00`). |
+| `default_quiet_hours_end` | text | — | Quiet-hours end time (`HH:MM`, e.g. `08:00`). |
+| `default_timezone` | text | — | Timezone for quiet hours (e.g. `UTC`). |
+
+</Expandable>
+
+<Expandable title="email_branding — Settings Reference" default-open="false">
+
+**email_branding** — Email Branding
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `logo_url` | media-library | — | Logo image from Media Library (`public_url`). Max 2 MB; up to 400×200. |
+| `show_header_icon` | boolean | `false` | Show an emoji icon in the header when no logo is set. |
+| `header_icon` | text | `📧` | Emoji displayed in the email header. |
+| `show_header_title` | boolean | `true` | Show the header title. |
+| `default_header_title` | text | — | Fallback title when the notification has none. Supports `@t('...')` translation. |
+| `show_header_subtitle` | boolean | `false` | Show the header subtitle. |
+| `default_header_subtitle` | text | — | Default subtitle. Supports `@t('...')` translation. |
+| `header_background_color` | text | `#667eea` | Header background / gradient start color. |
+| `header_background_color_secondary` | text | `#764ba2` | Header gradient end color. |
+| `header_text_color` | text | `#ffffff` | Header text color. |
+| `hide_notification_type` | boolean | `false` | Hide the notification-type badge at the top of the email body. |
+| `button_color` | text | `#667eea` | CTA button background color. |
+| `button_text_color` | text | `#ffffff` | CTA button text color. |
+| `show_thank_you_message` | boolean | `true` | Show a “Thank you!” line at the end of the email body. |
+| `company_name` | text | — | Company name shown in the footer. |
+| `footer_text` | rich-text | `This is an automated notification. Please do not reply to this email.` | Footer body. Supports `@t('...')` translation. |
+| `footer_links` | array of `{ label, url }` | — | Footer links. `label` supports `@t('...')`. |
+| `social_links` | object | — | Social profile URLs: `facebook`, `twitter`, `instagram`, `linkedin`. |
+
+</Expandable>
+
+<Expandable title="email — Settings Reference" default-open="false">
+
+**email** — Email Channel
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enabled` | boolean | `false` | Enable the email channel. |
+| `driver` | select (`smtp` / `sendmail` / `mailgun` / `ses` / `postmark` / `log`) | — | Mail transport driver. |
+| `host` | text | — | SMTP host (SMTP driver; root-level for backward compatibility). |
+| `port` | number | — | SMTP port (e.g. `587`). |
+| `encryption` | select (`none` / `tls` / `ssl`) | — | SMTP encryption. |
+| `username` | text | — | SMTP username / account identifier. |
+| `password` | password | — | SMTP password. Store the tenant secret; do not commit real values. |
+| `mailgun_settings` | object | — | Mailgun credentials when `driver=mailgun`: <ul><li>`domain` — Mailgun sending domain</li><li>`secret` — API key (password)</li><li>`endpoint` — `api.mailgun.net` (US) or `api.eu.mailgun.net` (EU)</li></ul> |
+| `ses_settings` | object | — | Amazon SES credentials when `driver=ses`: <ul><li>`key` — AWS Access Key ID</li><li>`secret` — AWS Secret Access Key (password)</li><li>`region` — AWS region (e.g. `us-east-1`, `eu-central-1`)</li></ul> |
+| `postmark_settings` | object | — | Postmark credentials when `driver=postmark`: <ul><li>`token` — Server API token (password)</li><li>`message_stream` — Message stream (default `outbound`)</li></ul> |
+| `sendmail_settings` | object | — | Sendmail path when `driver=sendmail`: <ul><li>`path` — Binary path (e.g. `/usr/sbin/sendmail -bs -i`)</li></ul> |
+| `from_settings` | object | — | From / Reply-To (all drivers): <ul><li>`from_address` — Sender address (required when enabled)</li><li>`from_name` — Sender display name</li><li>`reply_to_address` — Reply-To address</li><li>`reply_to_name` — Reply-To display name</li></ul> |
+| `test_mode` | boolean | `false` | Route sends to the test address instead of real recipients. |
+| `test_email` | text | — | Destination when test mode is on. |
+
+</Expandable>
+
+<Expandable title="sms — Settings Reference" default-open="false">
+
+**sms** — SMS Channel
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enabled` | boolean | `false` | Enable the SMS channel. |
+| `provider` | select (`twilio` / `nexmo` / `messagebird` / `plivo` / `infobip`) | — | SMS provider. |
+| `from_number` | text | — | Sender phone number / alphanumeric ID. |
+| `twilio_settings` | object | — | Twilio credentials: <ul><li>`account_sid` — Account SID</li><li>`auth_token` — Auth token (password)</li><li>`messaging_service_sid` — Optional Messaging Service SID</li></ul> |
+| `nexmo_settings` | object | — | Nexmo/Vonage credentials: <ul><li>`api_key` — API key</li><li>`api_secret` — API secret (password)</li></ul> |
+| `messagebird_settings` | object | — | MessageBird credentials: <ul><li>`access_key` — Access key (password)</li></ul> |
+| `plivo_settings` | object | — | Plivo credentials: <ul><li>`auth_id` — Auth ID</li><li>`auth_token` — Auth token (password)</li></ul> |
+| `infobip_settings` | object | — | Infobip credentials: <ul><li>`base_url` — API base URL</li><li>`api_key` — API key (password)</li></ul> |
+| `general_settings` | object | — | Delivery constraints: <ul><li>`webhook_url` — Delivery-status webhook</li><li>`country_codes_allowed` — Allowed codes (empty = all)</li><li>`country_codes_blocked` — Blocked codes</li></ul> |
+| `test_mode` | boolean | `false` | Route SMS to the test number. |
+| `test_number` | text | — | Destination phone when test mode is on. |
+
+</Expandable>
+
+<Expandable title="push — Settings Reference" default-open="false">
+
+**push** — Push Notifications
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enabled` | boolean | `false` | Enable the push channel. |
+| `provider` | select (`firebase` / `onesignal` / `pusher_beams`) | — | Push provider. |
+| `firebase_settings` | object | — | Firebase (FCM) when `provider=firebase`: <ul><li>`project_id` — Firebase project ID</li><li>`credentials_json` — Service account JSON (secret)</li></ul> |
+| `onesignal_settings` | object | — | OneSignal when `provider=onesignal`: <ul><li>`app_id` — App ID</li><li>`api_key` — REST API key (password)</li></ul> |
+| `pusher_beams_settings` | object | — | Pusher Beams when `provider=pusher_beams`: <ul><li>`instance_id` — Instance ID</li><li>`secret_key` — Secret key (password)</li></ul> |
+| `apns_settings` | object | — | Optional direct Apple APNs (iOS): <ul><li>`key_id` — APNs key ID</li><li>`team_id` — Apple Developer Team ID</li><li>`key_file` — Path to `.p8` key file</li><li>`production` — Use production APNs (`false` by default)</li></ul> |
+| `general_settings` | object | — | Shared push options: <ul><li>`default_ttl_seconds` — Default TTL (e.g. `86400`)</li></ul> |
+| `test_mode` | boolean | `false` | Route pushes to the test device token. |
+| `test_device_token` | text | — | Device token used in test mode. |
+
+</Expandable>
+
+<Expandable title="slack — Settings Reference" default-open="false">
+
+**slack** — Slack Channel
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enabled` | boolean | `false` | Enable the Slack channel. |
+| `webhook_url` | text | — | Incoming webhook URL. |
+| `bot_token` | password | — | Bot OAuth token (`xoxb-…`). Store the tenant secret; do not commit real values. |
+| `default_channel` | text | — | Default Slack channel (e.g. `#notifications`). |
+| `username` | text | — | Bot display name. |
+| `icon_emoji` | text | — | Bot icon emoji (e.g. `:bell:`). |
+| `icon_url` | text | — | Bot icon image URL. |
+| `unfurl_links` | boolean | `false` | Unfurl URLs in messages. |
+| `unfurl_media` | boolean | `false` | Unfurl media in messages. |
+| `test_mode` | boolean | `false` | Route messages to the test channel. |
+| `test_channel` | text | — | Channel used in test mode. |
+
+</Expandable>
+
+<Expandable title="broadcast — Settings Reference" default-open="false">
+
+**broadcast** — Broadcast Channel (WebSocket)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enabled` | boolean | `false` | Enable the broadcast channel. |
+| `driver` | select (`pusher` / `redis` / `ably` / `log`) | — | Broadcast driver. |
+| `pusher_settings` | object | — | Pusher when `driver=pusher`: <ul><li>`app_id` — App ID</li><li>`app_key` — App key</li><li>`app_secret` — App secret (password)</li><li>`cluster` — Cluster (e.g. `mt1`, `eu`, `ap1`)</li><li>`encrypted` — TLS (`true` by default)</li></ul> |
+| `redis_settings` | object | — | Redis when `driver=redis`: <ul><li>`connection` — Laravel Redis connection name</li></ul> |
+| `ably_settings` | object | — | Ably when `driver=ably`: <ul><li>`key` — API key (password)</li></ul> |
+| `general_settings` | object | — | Shared options: <ul><li>`channel_prefix` — Prefix for broadcast channel names</li></ul> |
+| `test_mode` | boolean | `false` | Enable test-mode broadcasting. |
+
+</Expandable>
+
+<Expandable title="database — Settings Reference" default-open="false">
+
+**database** — Database Channel (Always Active)
+
+Database storage is always on; these keys control retention and in-app behaviour. Maintenance runs daily via `notificationhub:maintenance`.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `auto_cleanup` | boolean | `false` | Delete old notifications based on retention. |
+| `retention_days` | number | `90` | Age in days after which notifications are deleted (1–365). |
+| `cleanup_batch_size` | number | `1000` | Notifications deleted per maintenance batch (100–10000). |
+| `max_per_user` | number | `0` | Max notifications kept per user (`0` = unlimited); oldest removed first. |
+| `mark_read_on_view` | boolean | `false` | Mark as read on `GET /notifications/{id}`. |
+| `group_similar` | boolean | `false` | Group same-type notifications to the same user within a time window. |
+| `group_time_window_minutes` | number | `60` | Grouping window in minutes (1–1440). |
+
+</Expandable>
+
 ## Related
 
 <Columns cols={2}>

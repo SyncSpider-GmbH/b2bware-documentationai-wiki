@@ -393,6 +393,105 @@ curl -s -X GET \
   </Step>
 </Steps>
 
+## Settings Groups
+
+CustomerHub App Settings cover registration defaults, segmentation, address validation, customer notifications, company rules, and permission overrides. Edit via the **Settings** tab endpoints above. See also [Hub Settings](/core-concepts/hub-settings).
+
+<Expandable title="registration — Settings Reference" default-open="false">
+
+**registration** — Customer Registration
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `default_status` | select (`active` / `pending` / `inactive`) | `pending` | Status assigned to newly registered customers. |
+| `default_role_code` | select | `user` | Role assigned to newly registered customers. |
+| `require_email_verification` | boolean | `true` | Customers must verify email before account activation. |
+| `require_phone_verification` | boolean | `false` | Customers must verify phone number before account activation. |
+| `require_admin_approval` | boolean | `false` | New registrations require manual admin approval. |
+| `auto_generate_customer_number` | boolean | `true` | Automatically generate a unique customer number on registration. |
+| `customer_number_prefix` | text | `CUST-` | Prefix for auto-generated customer numbers. |
+| `customer_number_length` | number | `5` | Digit count in the customer number (excluding prefix); range 3–10. |
+| `password_min_length` | number | `8` | Minimum password length; range 6–32. |
+| `require_strong_password` | boolean | `true` | Password must contain uppercase, lowercase, number, and special character. |
+
+</Expandable>
+
+<Expandable title="customer_groups — Settings Reference" default-open="false">
+
+**customer_groups** — Customer Groups (Segmentation)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enable_customer_groups` | boolean | `true` | Allow categorizing customers into groups. |
+| `default_group_code` | select | `general` | Group assigned to new customers by default. |
+
+</Expandable>
+
+<Expandable title="address_validation — Settings Reference" default-open="false">
+
+**address_validation** — Address Validation
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `require_shipping_address` | boolean | `false` | Customers must have at least one shipping address. |
+| `require_billing_address` | boolean | `false` | Customers must have at least one billing address. |
+| `shipping_required_fields` | select (multi) | `["street", "city", "country", "postal_code"]` | Required fields on shipping addresses. |
+| `billing_required_fields` | select (multi) | `["street", "city", "country", "postal_code"]` | Required fields on billing addresses. |
+| `validate_postal_code_format` | boolean | `true` | Validate postal code format based on country. |
+| `validate_vat_number` | boolean | `false` | Validate VAT number format and optionally via VIES. |
+| `vat_validation_service` | select (`none` / `vies`) | `none` | VAT validation backend: format-only or EU VIES. |
+| `max_shipping_addresses` | number | `10` | Maximum shipping addresses per customer (`0` = unlimited). |
+| `max_billing_addresses` | number | `5` | Maximum billing addresses per customer (`0` = unlimited). |
+| `allowed_countries` | text | `""` | Comma-separated ISO country codes. Empty = allow all. |
+
+</Expandable>
+
+<Expandable title="notifications — Settings Reference" default-open="false">
+
+**notifications** — Customer Notifications
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enable_notifications` | boolean | `true` | Master switch for all customer notifications. |
+| `notify_on_registration` | boolean | `true` | Welcome notification on registration. |
+| `notify_on_verification` | boolean | `true` | Notification when a customer is verified. |
+| `notify_on_status_change` | boolean | `true` | Notification when customer status changes. |
+| `notify_on_group_change` | boolean | `false` | Notification when customer group changes. |
+| `notify_admin_on_registration` | boolean | `false` | Notify admins on new registration. |
+| `admin_notification_emails` | text | `""` | Comma-separated admin emails for registration alerts. |
+| `guest_role_codes` | select (multi) | `["guest"]` | Role codes treated as guest. |
+| `skip_guest_registration_notification` | boolean | `true` | Skip welcome notification for guest customers. |
+
+</Expandable>
+
+<Expandable title="company — Settings Reference" default-open="false">
+
+**company** — Company Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `require_company` | boolean | `false` | Customers must be associated with a company. |
+| `allow_company_creation` | boolean | `true` | Customers can create companies during registration. |
+| `company_required_fields` | select (multi) | `["name"]` | Required fields when creating/updating a company. |
+| `default_company_type` | select | `business` | Default company type (`business`, `individual`, `non_profit`, `government`). |
+| `auto_generate_company_code` | boolean | `true` | Automatically generate a unique company code. |
+| `company_code_prefix` | text | `COMP-` | Prefix for auto-generated company codes. |
+| `allow_multiple_customers_per_company` | boolean | `true` | Multiple customers can belong to the same company. |
+| `max_customers_per_company` | number | `0` | Maximum customers per company (`0` = unlimited). |
+
+</Expandable>
+
+<Expandable title="permissions — Settings Reference" default-open="false">
+
+**permissions** — Permission Overrides
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `disabled_keys` | json | `[]` | Permission keys hidden from role editors and stripped when a role is saved. |
+| `relabeled` | json | `{}` | Map of permission key → custom label. |
+
+</Expandable>
+
 ## Related
 
 <Columns cols={2}>

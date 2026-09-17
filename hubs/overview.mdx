@@ -34,6 +34,20 @@ Each hub page in this section covers the most common endpoints in tables, along 
 | [AutomationHub](/hubs/automation-hub) | `api/v1/apps/automation-hub/` | Flow automation: triggers, actions, runs, activities, and shared resolvers |
 | [DashboardHub](/hubs/dashboard-hub) | `api/v1/apps/dashboard-hub/` | Per-installation dashboard layouts assembled from hub-contributed widgets |
 | [IntegrationHub](/hubs/integration-hub) | `api/v1/apps/integration-hub/` | Connectors, field mappings, sync jobs, file feeds, Response Relay, embed |
+| [StorefrontHub](/hubs/storefront-hub) | `api/v1/apps/storefront-hub/` | Blade storefront theme pointer and `tenant_config` storefront flags |
+| [StorefrontBuilderHub](/hubs/storefront-builder-hub) | `api/v1/apps/storefront-builder-hub/` | Visual storefront page builder |
+| [InvoiceHub](/hubs/invoice-hub) | `api/v1/apps/invoice-hub/` | Invoices, credit notes, dunning, document templates |
+| [LoyaltyHub](/hubs/loyalty-hub) | `api/v1/apps/loyalty-hub/` | Loyalty programs, wallets, enrollments, rewards |
+| [AiHub](/hubs/ai-hub) | `api/v1/apps/ai-hub/` | AI provider config, admin and storefront assistants |
+| [PunchOutHub](/hubs/punch-out-hub) | `api/v1/apps/punch-out-hub/` | OCI/cXML punchout sessions and buyer config |
+| [Customer SKU module](/hubs/customer-sku-module) | `api/v1/apps/customer-sku-module/` | Customer-specific product SKUs / part numbers |
+| [DTOneHub](/hubs/dtone-hub) | `api/v1/apps/dtone-hub/` | DT One top-up fulfillment |
+| [A1 Top-Up module](/hubs/a1-top-up-module) | `api/v1/apps/a1-top-up-module/` | A1 voucher top-up connection and mapping |
+| [Mesonic real-time pricing](/hubs/mesonic-realtime-pricing) | `api/v1/apps/mesonic-dataflow-real-time-pricing/` | Mesonic Dataflow live price lookups |
+
+<Callout kind="info">
+Per-hub **App Settings** field references are indexed under [Hub Settings](/core-concepts/hub-settings).
+</Callout>
 
 ## Hub Capabilities
 
@@ -82,5 +96,17 @@ Each hub page in this section covers the most common endpoints in tables, along 
   </Card>
   <Card title="IntegrationHub" icon="plug" href="/hubs/integration-hub">
     Connectors, mappings, sync jobs, file feeds, Response Relay, and ERP embed sessions.
+  </Card>
+  <Card title="StorefrontHub" icon="store" href="/hubs/storefront-hub">
+    Storefront theme pointer and tenant storefront feature flags.
+  </Card>
+  <Card title="InvoiceHub" icon="file-invoice" href="/hubs/invoice-hub">
+    Invoices, credit notes, payments documents, and dunning automation settings.
+  </Card>
+  <Card title="LoyaltyHub" icon="gift" href="/hubs/loyalty-hub">
+    Loyalty programs, enrollment channels, and wallet settings.
+  </Card>
+  <Card title="AiHub" icon="sparkles" href="/hubs/ai-hub">
+    AI provider configuration and admin / storefront assistants.
   </Card>
 </Columns>

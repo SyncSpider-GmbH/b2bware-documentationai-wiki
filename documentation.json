@@ -195,6 +195,11 @@
                     "icon": "tag"
                   },
                   {
+                    "title": "Hub Settings",
+                    "path": "core-concepts/hub-settings",
+                    "icon": "sliders"
+                  },
+                  {
                     "title": "Media URLs",
                     "path": "core-concepts/media-urls",
                     "icon": "image"
@@ -326,9 +331,54 @@
                     "icon": "plug"
                   },
                   {
+                    "title": "StorefrontHub",
+                    "path": "hubs/storefront-hub",
+                    "icon": "store"
+                  },
+                  {
                     "title": "StorefrontBuilderHub",
                     "path": "hubs/storefront-builder-hub",
                     "icon": "layout"
+                  },
+                  {
+                    "title": "InvoiceHub",
+                    "path": "hubs/invoice-hub",
+                    "icon": "file-invoice"
+                  },
+                  {
+                    "title": "LoyaltyHub",
+                    "path": "hubs/loyalty-hub",
+                    "icon": "gift"
+                  },
+                  {
+                    "title": "AiHub",
+                    "path": "hubs/ai-hub",
+                    "icon": "sparkles"
+                  },
+                  {
+                    "title": "PunchOutHub",
+                    "path": "hubs/punch-out-hub",
+                    "icon": "cart-shopping"
+                  },
+                  {
+                    "title": "Customer SKU module",
+                    "path": "hubs/customer-sku-module",
+                    "icon": "barcode"
+                  },
+                  {
+                    "title": "DTOneHub",
+                    "path": "hubs/dtone-hub",
+                    "icon": "mobile"
+                  },
+                  {
+                    "title": "A1 Top-Up module",
+                    "path": "hubs/a1-top-up-module",
+                    "icon": "sim-card"
+                  },
+                  {
+                    "title": "Mesonic real-time pricing",
+                    "path": "hubs/mesonic-realtime-pricing",
+                    "icon": "chart-line"
                   }
                 ]
               },

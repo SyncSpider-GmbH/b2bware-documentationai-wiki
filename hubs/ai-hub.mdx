@@ -1,0 +1,44 @@
+---
+title: AiHub
+description: Installation-scoped App Settings for the shared AI wrapper — provider, model, assistants, and retention.
+---
+
+## Overview
+
+AiHub centralizes AI credentials and defaults for the installation. Other hubs call the shared AI wrapper. This page documents the **`general`** App Settings group. See also [Hub Settings](/core-concepts/hub-settings).
+
+**Base URL:** `api/v1/apps/ai-hub/`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List settings groups |
+| GET | `/settings` | Get all settings |
+| POST | `/settings` | Update settings |
+| POST | `/settings/reset` | Reset all groups to defaults |
+| GET | `/settings/{group}` | Get one group (`general`) |
+| POST | `/settings/{group}` | Update one group |
+| POST | `/settings/{group}/reset` | Reset one group |
+
+## Settings
+
+Group: `general`. Secrets such as `api_key` are masked on read.
+
+<Expandable title="general — Settings Reference" default-open="true">
+
+**general** — AI Configuration
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enabled` | boolean | `true` | Master switch. When off, the AI wrapper refuses all calls. |
+| `b2bware_ai_enabled` | boolean | `true` | Use the managed b2bWare AI account (overrides provider selection; usage-billed). |
+| `provider` | select (`openai` / `anthropic` / `google` / `ollama` / `custom_url`) | `openai` | AI service when b2bWare AI is off. |
+| `custom_endpoint` | text | `""` | Base URL for OpenAI-compatible APIs when provider is `custom_url`. |
+| `api_key` | secret (masked) | `""` | Optional BYOK provider API key for OpenAI / Anthropic / Google. Stored securely; never returned in plain text. |
+| `model` | text | `gpt-4o-mini` | Default model name; callers may override per request. |
+| `global_instruction` | textarea | helpful B2Bware admin assistant prompt | System instruction prepended to every AI request. |
+| `context_prompt` | textarea | page-context guidance | Extra text appended to the injected client context block. |
+| `admin_assistant_enabled` | boolean | `true` | Platform Assist for admin users (may be overridden by `PLATFORM_ASSIST_ENABLED`). |
+| `storefront_assistant_enabled` | boolean | `false` | Customer-facing storefront assistant. |
+| `chat_history_retention_days` | select (`7` / `30` / `90` / `365` / `unlimited`) | `30` | How long Platform Assist chat sessions are kept. |
+
+</Expandable>

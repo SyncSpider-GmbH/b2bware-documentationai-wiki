@@ -1,0 +1,48 @@
+---
+title: DTOneHub
+description: Installation-scoped App Settings for DT One digital fulfillment — order-status triggers and storefront widget billing methods.
+---
+
+## Overview
+
+DTOneHub creates DT One transactions for digital top-up products. This page documents **App Settings** only. See also [Hub Settings](/core-concepts/hub-settings).
+
+**Base URL:** `api/v1/apps/dtone-hub/`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List settings groups |
+| GET | `/settings` | Get all settings |
+| POST | `/settings` | Update settings |
+| POST | `/settings/reset` | Reset all groups to defaults |
+| GET | `/settings/{group}` | Get one group (`fulfillment`, `storefront`) |
+| POST | `/settings/{group}` | Update one group |
+| POST | `/settings/{group}/reset` | Reset one group |
+
+## Settings
+
+Groups: `fulfillment`, `storefront`.
+
+<Expandable title="fulfillment — Settings Reference" default-open="true">
+
+**fulfillment** — Transaction Fulfillment
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `trigger_statuses` | select (multi) | `["paid", "processing", "completed"]` | Order statuses that create DT One transactions. |
+| `trigger_on_order_created` | boolean | `false` | Also attempt at order creation when the initial status is already in `trigger_statuses`. |
+
+</Expandable>
+
+<Expandable title="storefront — Settings Reference" default-open="false">
+
+**storefront** — Widget Checkout Billing Methods
+
+Used by the embedded WOW top-up widget. Selected on-account methods bypass the normal checkout visibility gate for authenticated storefront customers only.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `default_billing_method_id` | select | `null` | Billing method when the widget does not pass `billing_method_id`. Always permitted. |
+| `topup_billing_method_ids` | select (multi) | `[]` | Additional billing method ids the widget may pass explicitly. |
+
+</Expandable>

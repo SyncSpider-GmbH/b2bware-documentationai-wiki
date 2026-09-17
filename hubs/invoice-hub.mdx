@@ -1,0 +1,151 @@
+---
+title: InvoiceHub
+description: Installation-scoped App Settings for invoices — automation, numbering, defaults, credit notes, payments, PDF documents, company identity, dunning, and emails.
+---
+
+## Overview
+
+InvoiceHub manages invoices, credit notes, payment documents, and overdue dunning. This page documents **App Settings** only (FormGenerator groups). See also [Hub Settings](/core-concepts/hub-settings).
+
+**Base URL:** `api/v1/apps/invoice-hub/`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List settings groups |
+| GET | `/settings` | Get all settings |
+| POST | `/settings` | Update settings |
+| POST | `/settings/reset` | Reset all groups to defaults |
+| GET | `/settings/{group}` | Get one group |
+| POST | `/settings/{group}` | Update one group |
+| POST | `/settings/{group}/reset` | Reset one group |
+
+## Settings
+
+Groups: `automation`, `numbering`, `defaults`, `credit_notes`, `payments`, `documents`, `company`, `dunning`, `emails`.
+
+<Expandable title="automation — Settings Reference" default-open="true">
+
+**automation** — Order to Invoice Automation
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `auto_create_from_order` | boolean | `false` | Master switch. When off, invoices are only created manually. |
+| `trigger_statuses` | select (multi) | `["paid"]` | Order statuses that create an invoice when entered. |
+| `initial_status` | select (`draft` / `sent`) | `draft` | Status of the auto-created invoice. `sent` also stamps the sent timestamp. |
+| `skip_if_exists` | boolean | `true` | Do not create a second invoice for an order that already has one. |
+| `copy_line_items` | boolean | `true` | Mirror order line items onto the invoice. When off, only header totals are copied. |
+| `auto_send_email` | boolean | `false` | Email the invoice (PDF attached) immediately after auto-creation. |
+| `mark_paid_on_order_paid` | boolean | `true` | Mark open linked invoices as paid when the source order becomes paid. |
+
+</Expandable>
+
+<Expandable title="numbering — Settings Reference" default-open="false">
+
+**numbering** — Document Numbering
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `invoice_prefix` | text | `INV` | Prefix for generated invoice numbers (e.g. `INV-000001`). |
+| `credit_note_prefix` | text | `CN` | Prefix for generated credit note numbers. |
+| `number_padding` | number | `6` | Zero-padding width for the running number (1–12). |
+
+</Expandable>
+
+<Expandable title="defaults — Settings Reference" default-open="false">
+
+**defaults** — Document Defaults
+
+Document currency comes from SettingsHub global format currency (`global_config.i18n.currency`), not from this group.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `default_due_days` | number | `14` | Days after issue date used when no due date is provided. |
+| `default_tax_rate` | number | `0` | Fallback tax rate (%) for line items without their own rate. |
+
+</Expandable>
+
+<Expandable title="credit_notes — Settings Reference" default-open="false">
+
+**credit_notes** — Credit Notes
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `auto_refund_on_issue` | boolean | `false` | When a credit note is issued, attempt an automatic refund to the original payment method. |
+
+</Expandable>
+
+<Expandable title="payments — Settings Reference" default-open="false">
+
+**payments** — Partial Payment Documents
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `partial_payment_document` | select (`none` / `advance_invoice` / `receipt`) | `none` | Document trail when a manual payment leaves the invoice partially paid. |
+| `advance_invoice_prefix` | text | `ADV` | Prefix for advance invoice numbers. |
+| `receipt_prefix` | text | `RCPT` | Prefix for receipt activity numbers. |
+| `advance_vat_treatment_note` | text | `""` | Optional note copied onto generated advance invoices. |
+
+</Expandable>
+
+<Expandable title="documents — Settings Reference" default-open="false">
+
+**documents** — PDF Documents
+
+Storefront Builder document templates used when rendering PDFs. Empty advance/receipt template falls back to the invoice template.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `invoice_template_id` | select | `null` | Storefront Builder document for invoice PDFs. |
+| `credit_note_template_id` | select | `null` | Storefront Builder document for credit note PDFs. |
+| `advance_invoice_template_id` | select | `null` | Storefront Builder document for advance invoice PDFs. |
+| `receipt_template_id` | select | `null` | Storefront Builder document for payment receipt PDFs. |
+
+</Expandable>
+
+<Expandable title="company — Settings Reference" default-open="false">
+
+**company** — Seller Identity on Documents
+
+Empty fields fall back to store identity from Storefront settings (name, email, phone).
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `company_name` | text | `""` | Legal / display name on documents. |
+| `company_email` | text | `""` | Contact email on documents. |
+| `company_phone` | text | `""` | Contact phone on documents. |
+| `company_address_line1` | text | `""` | Address line 1. |
+| `company_address_line2` | text | `""` | Address line 2. |
+| `company_postal_code` | text | `""` | Postal code. |
+| `company_city` | text | `""` | City. |
+| `company_country` | text | `""` | Country. |
+| `company_vat_number` | text | `""` | VAT number. |
+| `company_registration_number` | text | `""` | Company registration number. |
+
+</Expandable>
+
+<Expandable title="dunning — Settings Reference" default-open="false">
+
+**dunning** — Overdue Invoice Reminders
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `dunning_enabled` | boolean | `false` | Master switch for automatic overdue-invoice reminders. |
+| `invoice_default_enabled` | boolean | `true` | New invoices inherit dunning enabled unless overridden per invoice. |
+| `minimum_amount` | number | `0` | Ignore invoices with balance due at or below this amount. |
+| `levels` | array | level 1 / 2 / 3 (3, 10, 21 days) | Dunning levels: `level`, `days_after_due`, `template_key` (NotificationHub template). |
+| `escalate_after_final_level` | boolean | `true` | After the highest level is sent, mark the case as escalated. |
+| `cc_emails` | text | `""` | Comma-separated CC recipients for dunning emails. |
+| `bcc_emails` | text | `""` | Comma-separated BCC recipients for dunning emails. |
+
+</Expandable>
+
+<Expandable title="emails — Settings Reference" default-open="false">
+
+**emails** — Invoice Email Delivery
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `cc_emails` | text | `""` | Comma-separated CC addresses on every sent invoice email. |
+| `bcc_emails` | text | `""` | Comma-separated BCC addresses on every sent invoice email. |
+
+</Expandable>

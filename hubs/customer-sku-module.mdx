@@ -1,0 +1,47 @@
+---
+title: Customer SKU module
+description: Installation-scoped App Settings for customer-specific SKUs — storefront search scope and where SKUs are shown.
+---
+
+## Overview
+
+The Customer SKU module maps customer-owned SKUs to catalog products. This page documents **App Settings** only. Admin product search always matches globally; the search setting affects storefront requests only. See also [Hub Settings](/core-concepts/hub-settings).
+
+**Base URL:** `api/v1/apps/customer-sku-module/`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List settings groups |
+| GET | `/settings` | Get all settings |
+| POST | `/settings` | Update settings |
+| POST | `/settings/reset` | Reset all groups to defaults |
+| GET | `/settings/{group}` | Get one group (`search`, `display`) |
+| POST | `/settings/{group}` | Update one group |
+| POST | `/settings/{group}/reset` | Reset one group |
+
+## Settings
+
+Groups: `search`, `display`.
+
+<Expandable title="search — Settings Reference" default-open="true">
+
+**search** — Storefront search scope
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `storefront_search_scope` | select (`customer` / `global`) | `customer` | `customer` — match only the logged-in customer’s (or company/group) SKUs. `global` — match any customer SKU. |
+
+</Expandable>
+
+<Expandable title="display — Settings Reference" default-open="false">
+
+**display** — Where customer SKUs appear on the storefront
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `show_on_detail_page` | boolean | `true` | Show the customer’s SKU on the product detail page. |
+| `show_on_list_page` | boolean | `true` | Show on product cards in listing / category pages. |
+| `show_in_cart` | boolean | `true` | Show on cart line items. |
+| `show_in_order_overview` | boolean | `true` | Show the snapshotted customer SKU in order overview / history. |
+
+</Expandable>

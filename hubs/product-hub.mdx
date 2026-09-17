@@ -810,9 +810,24 @@ curl -s -X GET \
 
 ProductHub settings are edited in the admin under **ProductHub → Settings** (also
 available via the `/settings` endpoints above). Groups: `stock`, `visibility`,
-`destination_pricing`, `pricing`.
+`destination_pricing`, `pricing`. See also [Hub Settings](/core-concepts/hub-settings).
 
-### Product Visibility
+### Settings Groups
+
+<Expandable title="stock — Settings Reference" default-open="false">
+
+**stock** — Stock Defaults (prefills new stock rows; some keys also affect cart validation)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `default_stock_availability` | boolean | `true` | Default in-stock flag for new stock rows. |
+| `default_backorders` | select | `no_backorders` | Default backorders policy: `no_backorders`, `allow_qty_below_0`, or `allow_pre_orders`. |
+| `default_out_of_stock_threshold` | number | `null` | Default qty threshold at which items become out of stock. |
+| `default_min_qty_in_cart` | number | `null` | Prefills new stock rows’ minimum cart qty. |
+| `default_max_qty_in_cart` | number | `null` | Prefills new stock rows and caps storefront add/update/bulk cart FormRequest validation when set. Leave empty for no hub-wide FormRequest max (per-product max still applies in OrderHub). |
+| `allow_upcoming_quantity` | boolean | `true` | Whether upcoming (future) quantity is allowed on stock rows by default. |
+
+</Expandable>
 
 <Expandable title="visibility — Settings Reference" default-open="true">
 
@@ -823,6 +838,30 @@ available via the `/settings` endpoints above). Groups: `stock`, `visibility`,
 | `default_status` | select (`draft` / `private` / `public`) | `draft` | Default status for newly created products. |
 | `show_stock_tab_for_configurable_products` | boolean | `false` | When on, the Stock tab is shown on configurable parent products in the admin. |
 | `sync_parent_status_from_variants` | boolean | `false` | When on, a configurable parent's `status` follows its variants: if any variant is `public` or `private`, the parent becomes `public`; if every variant is `draft` (or there are no variants), the parent becomes `draft`. The parent is only updated when the computed status differs. |
+
+</Expandable>
+
+<Expandable title="destination_pricing — Settings Reference" default-open="false">
+
+**destination_pricing** — Parent price fallback when exporting/syncing to marketplaces
+
+Nested under `parent_product_price_if_missing` per marketplace (`e_bay`, `etsy`):
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `mode` | select | `do_nothing` | When parent has no price: `send_specific_value`, `take_price_from_cheapest_child`, or `do_nothing`. |
+| `specific_value` | number | `null` | Parent price to send when `mode` is `send_specific_value`. |
+
+</Expandable>
+
+<Expandable title="pricing — Settings Reference" default-open="false">
+
+**pricing** — Group and volume-tier pricing
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `group_source` | select | `customer` | Which group drives group/tier prices: `customer`, `company`, `customer_then_company`, or `company_then_customer`. |
+| `tier_quantity_comparison` | select | `gte` | When a volume tier applies: `gte` (at or above min qty) or `gt` (strictly above min qty). |
 
 </Expandable>
 

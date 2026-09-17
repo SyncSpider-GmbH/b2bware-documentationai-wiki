@@ -1,0 +1,74 @@
+---
+title: PunchOutHub
+description: Installation-scoped App Settings for OCI/cXML PunchOut — protocols, storefront handoff, security allowlists, and field mapping.
+---
+
+## Overview
+
+PunchOutHub lets a buyer’s procurement system launch into the storefront, build a cart, and return it to the ERP (OCI / cXML). This page documents **App Settings** only. See also [Hub Settings](/core-concepts/hub-settings).
+
+**Base URL:** `api/v1/apps/punch-out-hub/`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List settings groups |
+| GET | `/settings` | Get all settings |
+| POST | `/settings` | Update settings |
+| POST | `/settings/reset` | Reset all groups to defaults |
+| GET | `/settings/{group}` | Get one group |
+| POST | `/settings/{group}` | Update one group |
+| POST | `/settings/{group}/reset` | Reset one group |
+
+## Settings
+
+Groups: `general`, `storefront`, `security`, `mapping`.
+
+<Expandable title="general — Settings Reference" default-open="true">
+
+**general** — Protocols & provisioning
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enable_oci` | boolean | `true` | Enable OCI (SAP / Mercateo). |
+| `enable_cxml` | boolean | `false` | Enable cXML (Ariba / Coupa / Jaggaer). |
+| `test_mode` | boolean | `true` | Run PunchOut in test mode. |
+| `auto_provision_users` | boolean | `false` | Auto-provision unknown ERP users. |
+
+</Expandable>
+
+<Expandable title="storefront — Settings Reference" default-open="false">
+
+**storefront** — Session handoff
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `storefront_handler` | text | `nexus` | Storefront app handler (e.g. `nexus`). |
+| `storefront_installation_key` | text | `""` | Optional override for the storefront installation key. |
+| `storefront_base_url` | text | `""` | Optional storefront base URL (e.g. dev/staging). |
+
+</Expandable>
+
+<Expandable title="security — Settings Reference" default-open="false">
+
+**security** — Return URL & session
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `return_url_allowlist` | select (multi, taggable) | `[]` | Allowed return-URL hosts. Empty allowlists reject setups (fail-closed). |
+| `session_ttl_minutes` | number | `240` | PunchOut session lifetime in minutes. |
+
+</Expandable>
+
+<Expandable title="mapping — Settings Reference" default-open="false">
+
+**mapping** — Field & unit mapping
+
+Schema UI fields; defaults also include `uom_map` and `field_mapping` used by cart builders.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `uom_source_attribute` | text | `unit` | Attribute code used as unit-of-measure source. |
+| `default_uom` | text | `C62` | Fallback ISO/UNECE unit. |
+| `price_mode` | select (`net` / `gross`) | `net` | Whether punch-out cart prices are net or gross unit prices. |
+
+</Expandable>

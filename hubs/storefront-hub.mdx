@@ -1,0 +1,95 @@
+---
+title: StorefrontHub
+description: Theme pointer and tenant_config flags that drive the server-rendered storefront — guest access, checkout, SEO, analytics, and contact.
+---
+
+## Overview
+
+StorefrontHub renders the customer storefront. Runtime behaviour is driven by the active theme pointer (`storefronthub.active_theme_id`) and the installation-scoped `tenant_config` configuration row (also used by the Nexus SPA). See also [Hub Settings](/core-concepts/hub-settings).
+
+**Base URL:** `api/v1/apps/storefront-hub/`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List App Settings groups |
+| GET | `/settings` | Get App Settings |
+| POST | `/settings` | Update App Settings |
+| POST | `/settings/reset` | Reset App Settings |
+| GET | `/settings/{group}` | Get one group |
+| POST | `/settings/{group}` | Update one group |
+| POST | `/settings/{group}/reset` | Reset one group |
+
+The `/settings` routes cover FormGenerator App Settings (e.g. which storefront to open). The keys below are the **runtime** theme pointer and `tenant_config` flags exposed to themes as `$store` / `storeFlags()`.
+
+## Settings
+
+<Expandable title="active_theme — Theme pointer" default-open="true">
+
+**`storefronthub.active_theme_id`** — Active theme
+
+Stored as GeneralConfig `value.theme_id`. When unset, the platform default theme is used.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `theme_id` | number \| null | `null` | Active Theme id for the current installation. |
+
+</Expandable>
+
+<Expandable title="tenant_config — Store flags" default-open="true">
+
+**`tenant_config`** — Capability flags (`storeFlags()`)
+
+Public names match the theme `$store` bag. Underlying storage keys are noted where they differ.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `home_page` | text | `/products` | Landing path for `/` (empty or `/` → `/products`). Stored as `home_page`. |
+| `allow_guest` | boolean | `true` | Guests may browse. Inverse of `require_login_to_use_storefront` (default `false`). |
+| `allow_guest_checkout` | boolean | `false` | Guests may complete checkout without an account. |
+| `restrict_registration` | boolean | `false` | Self-service registration disabled. Stored as `register.restricted`. |
+| `company_required` | boolean | `false` | Registration must collect a company block. Stored as `register.company.required`. |
+| `coupons_enabled` | boolean | `true` | Coupon entry on cart/checkout. Stored as `checkout.enable_coupons`. |
+| `require_login_for_prices` | boolean | `false` | Hide prices from anonymous visitors. |
+| `delivery_date_enabled` | boolean | `true` | Preferred delivery date per cart line. Stored as `checkout.allow_custom_delivery_date`. |
+| `zero_price_as_quote` | boolean | `false` | Show “Request quote” for zero prices. Stored as `treat_zero_prices_as_request_quote`. |
+| `favorites_enabled` | boolean | `true` | Wishlist / favorites. Stored as `favorites.enabled`. |
+| `reorder_enabled` | boolean | `true` | Re-order from account order history. Stored as `reorder.enabled`. |
+| `order_documents_enabled` | boolean | `false` | Print order documents from order details. Stored as `allow_order_documents`. |
+| `catalog_export_enabled` | boolean | `false` | Catalog export + public product feed. Stored as `catalog_export.enabled`. |
+| `quick_order_enabled` | boolean | `false` | Quick Order & CSV upload. Stored as `quick_order.enabled`. |
+| `mcp_enabled` | boolean | `false` | Buyers may connect an AI assistant over MCP. Stored as `mcp.enabled`. |
+| `variation_display_mode` | select (`table` / `dropdown`) | `table` | How configurable variants are presented. Stored as `product.variation_display_mode`. |
+| `branch_display_mode` | select (`children` / `products` / `both`) | `children` | Parent category pages with children. Stored as `categories.branch_display_mode`. |
+| `indexable` | boolean | `true` | Search engines may index. False when `seo.robots` is `noindex`. |
+
+</Expandable>
+
+<Expandable title="tenant_config — Analytics" default-open="false">
+
+**`analytics.*`** — Google Analytics / Tag Manager
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `analytics.enabled` | boolean | `false` | Opt-in master switch for Google tags. |
+| `analytics.method` | select (`gtm` / `ga4`) \| null | `null` | Chosen delivery method; the other tag is not loaded. |
+| `analytics.gtm_container_id` | text | `""` | GTM container id (e.g. `GTM-XXXXXXX`). |
+| `analytics.ga4_measurement_id` | text | `""` | GA4 measurement id (e.g. `G-XXXXXXXXXX`). |
+| `analytics.item_brand_attribute` | text | `""` | Product attribute code exposed as GA4 `item_brand`. |
+
+</Expandable>
+
+<Expandable title="tenant_config — Contact & branding" default-open="false">
+
+**Contact & store identity** (admin store-setup / Appearance)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `name` | text | `null` | Store display name. |
+| `contact.email` | text | `null` | Contact email in header / footer. |
+| `contact.phone` | text | `null` | Contact phone in header / footer. |
+| `theme.light.logo*` | URL | `null` | Light logo (+ wordmark preferred) public URL. |
+| `theme.dark.logo*` | URL | `null` | Dark logo; falls back to light when unset. |
+| `theme.light.favicon` | URL | `null` | Favicon public URL. |
+| `theme.*.colors` / `storefront_palette` / `fonts` | object | `{}` | Brand colours, Storefront palette, and fonts from Appearance. |
+
+</Expandable>

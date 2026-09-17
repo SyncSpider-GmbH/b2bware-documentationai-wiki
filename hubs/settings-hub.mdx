@@ -31,17 +31,29 @@ SettingsHub does **not** expose any includes. All data is returned directly in t
 | PUT | `/config/{id}` | Update a configuration |
 | DELETE | `/config/{id}` | Delete a configuration |
 
+## Currency / i18n {#currency-i18n}
+
+Currency keys live under platform `global_config` (`value.i18n`), not a FormGenerator App Settings group. See also [Hub Settings](/core-concepts/hub-settings).
+
 **Multi-currency configuration.** The global config's `value.i18n` object
 holds the tenant's default currency (`currency`) and the list of additional
 supported currencies with exchange rates relative to it:
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `currency` | string | `EUR` | Base (default) currency code. |
+| `auto_exchange_rates` | boolean | `true` | Daily external exchange-rate refresh on/off. |
+| `exchange_rates_refreshed_at` | datetime | — | Last successful auto refresh (informational). |
+| `supported_currencies` | array | base currency only | List of `{ currency, exchange_rate, is_auto_rate }`. Base currency always has rate `1`. Manual overrides set `is_auto_rate: false`. |
 
 ```json
 {
   "i18n": {
     "currency": "EUR",
+    "auto_exchange_rates": true,
     "supported_currencies": [
-      { "currency": "EUR", "exchange_rate": 1 },
-      { "currency": "USD", "exchange_rate": 1.10 }
+      { "currency": "EUR", "exchange_rate": 1, "is_auto_rate": true },
+      { "currency": "USD", "exchange_rate": 1.10, "is_auto_rate": true }
     ]
   }
 }
