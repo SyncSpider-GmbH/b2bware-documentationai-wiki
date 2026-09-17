@@ -146,6 +146,19 @@ makes it manual and rate changes will no longer overwrite it. See
 | POST | `/demoData/deploy` | Deploy demo product catalog |
 
   </Tab>
+  <Tab title="Settings" icon="settings">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List ProductHub settings groups |
+| GET | `/settings` | Get all ProductHub settings |
+| POST | `/settings` | Update ProductHub settings |
+| POST | `/settings/reset` | Reset all groups to defaults |
+| GET | `/settings/{group}` | Get one settings group (`stock`, `visibility`, `destination_pricing`, `pricing`) |
+| POST | `/settings/{group}` | Update one settings group |
+| POST | `/settings/{group}/reset` | Reset one group to defaults |
+
+  </Tab>
 </Tabs>
 
 ## Filters
@@ -792,6 +805,26 @@ curl -s -X GET \
     </Request>
   </Step>
 </Steps>
+
+## Settings
+
+ProductHub settings are edited in the admin under **ProductHub → Settings** (also
+available via the `/settings` endpoints above). Groups: `stock`, `visibility`,
+`destination_pricing`, `pricing`.
+
+### Product Visibility
+
+<Expandable title="visibility — Settings Reference" default-open="true">
+
+**visibility** — Product Visibility
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `default_status` | select (`draft` / `private` / `public`) | `draft` | Default status for newly created products. |
+| `show_stock_tab_for_configurable_products` | boolean | `false` | When on, the Stock tab is shown on configurable parent products in the admin. |
+| `sync_parent_status_from_variants` | boolean | `false` | When on, a configurable parent's `status` follows its variants: if any variant is `public` or `private`, the parent becomes `public`; if every variant is `draft` (or there are no variants), the parent becomes `draft`. The parent is only updated when the computed status differs. |
+
+</Expandable>
 
 ## Related
 
