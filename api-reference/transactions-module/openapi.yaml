@@ -1,0 +1,120 @@
+openapi: 3.0.0
+info:
+  title: TransactionsModule API
+  description: >-
+    Complete API collection for TransactionsModule — generated from
+    routes/api.php
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Transactions
+paths:
+  /api/v1/apps/transactions-module/transactions:
+    get:
+      tags:
+        - Transactions
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Transactions
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/transactions-module/transactions/{transaction}:
+    get:
+      tags:
+        - Transactions
+      summary: Show
+      parameters:
+        - name: transaction
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/transactions-module/transactions/{transaction}/allocations:
+    post:
+      tags:
+        - Transactions
+      summary: Allocations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: transaction
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/transactions-module/transactions/{transaction}/reverse:
+    post:
+      tags:
+        - Transactions
+      summary: Reverse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: transaction
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

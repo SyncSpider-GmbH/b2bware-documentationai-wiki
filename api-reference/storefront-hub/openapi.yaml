@@ -1,0 +1,492 @@
+openapi: 3.0.0
+info:
+  title: StorefrontHub API
+  description: Complete API collection for StorefrontHub — generated from routes/api.php
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Custom Domains
+  - name: Info
+  - name: Proposals
+  - name: Settings
+  - name: Theme Translation Keys
+  - name: Theme Uploads
+  - name: Theme Versions
+  - name: Themes
+paths:
+  /api/v1/apps/storefront-hub/custom-domains:
+    get:
+      tags:
+        - Custom Domains
+      summary: Show
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Custom Domains
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Custom Domains
+      summary: Destroy
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/custom-domains/verify:
+    post:
+      tags:
+        - Custom Domains
+      summary: Verify
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/info:
+    get:
+      tags:
+        - Info
+      summary: Info
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/proposals/{quote}/preview-url:
+    get:
+      tags:
+        - Proposals
+      summary: Show
+      parameters:
+        - name: quote
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/settings:
+    get:
+      tags:
+        - Settings
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/settings/groups/list:
+    get:
+      tags:
+        - Settings
+      summary: Get Groups List
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/settings/{group}:
+    get:
+      tags:
+        - Settings
+      summary: Show
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/settings/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/settings/{group}/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/theme-translation-keys:
+    get:
+      tags:
+        - Theme Translation Keys
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/theme-uploads:
+    get:
+      tags:
+        - Theme Uploads
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/theme-uploads/{upload}:
+    get:
+      tags:
+        - Theme Uploads
+      summary: Show
+      parameters:
+        - name: upload
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/theme-versions:
+    get:
+      tags:
+        - Theme Versions
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/theme-versions/{version}:
+    get:
+      tags:
+        - Theme Versions
+      summary: Show
+      parameters:
+        - name: version
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/theme-versions/{version}/diff:
+    get:
+      tags:
+        - Theme Versions
+      summary: Diff
+      parameters:
+        - name: version
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/theme-versions/{version}/activate:
+    post:
+      tags:
+        - Theme Versions
+      summary: Activate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: version
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/theme-versions/{version}/preview:
+    post:
+      tags:
+        - Theme Versions
+      summary: Preview
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: version
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/theme-versions/{version}/rollback:
+    post:
+      tags:
+        - Theme Versions
+      summary: Rollback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: version
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/themes:
+    get:
+      tags:
+        - Themes
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/themes/download-default:
+    get:
+      tags:
+        - Themes
+      summary: Download Default
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/themes/{theme}:
+    get:
+      tags:
+        - Themes
+      summary: Show
+      parameters:
+        - name: theme
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Themes
+      summary: Destroy
+      parameters:
+        - name: theme
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/themes/{theme}/download:
+    get:
+      tags:
+        - Themes
+      summary: Download
+      parameters:
+        - name: theme
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/themes/reset-default:
+    post:
+      tags:
+        - Themes
+      summary: Reset To Default
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

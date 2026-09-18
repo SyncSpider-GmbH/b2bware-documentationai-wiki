@@ -1,13 +1,48 @@
 ---
 title: Customer SKU module
-description: Installation-scoped App Settings for customer-specific SKUs — storefront search scope and where SKUs are shown.
+description: Customer-specific SKUs — admin CRUD/upsert, storefront my-references, and App Settings for search and display.
 ---
 
 ## Overview
 
-The Customer SKU module maps customer-owned SKUs to catalog products. This page documents **App Settings** only. Admin product search always matches globally; the search setting affects storefront requests only. See also [Hub Settings](/core-concepts/hub-settings).
+The Customer SKU module maps customer-owned SKUs to catalog products. Admin product search always matches globally; the search setting affects storefront requests only.
 
 **Base URL:** `api/v1/apps/customer-sku-module/`
+
+<Callout kind="info">
+Admin endpoints require Bearer token authentication. See [Authentication](/authentication).
+`GET /my-references` is storefront-scoped (Installation-Key / shop customer).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas, see the [Customer SKU module API Reference](/api-reference/customer-sku-module).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Customer SKUs" icon="barcode">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/customer-skus` | List customer SKU mappings |
+| POST | `/customer-skus` | Create a mapping |
+| GET | `/customer-skus/{id}` | Get mapping details |
+| PUT | `/customer-skus/{id}` | Update a mapping |
+| DELETE | `/customer-skus/{id}` | Delete a mapping |
+| POST | `/customer-skus/upsert` | Idempotent upsert on `(owner_type, owner_id, product_id)` |
+| POST | `/customer-skus/bulk-upsert` | Bulk upsert mappings |
+
+  </Tab>
+  <Tab title="Storefront" icon="store">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/my-references` | Logged-in shop customer’s own SKU map (empty for guests) |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -18,6 +53,11 @@ The Customer SKU module maps customer-owned SKUs to catalog products. This page 
 | GET | `/settings/{group}` | Get one group (`search`, `display`) |
 | POST | `/settings/{group}` | Update one group |
 | POST | `/settings/{group}/reset` | Reset one group |
+
+See also [Hub Settings](/core-concepts/hub-settings).
+
+  </Tab>
+</Tabs>
 
 ## Settings
 

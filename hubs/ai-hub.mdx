@@ -1,13 +1,69 @@
 ---
 title: AiHub
-description: Installation-scoped App Settings for the shared AI wrapper — provider, model, assistants, and retention.
+description: Shared AI wrapper — knowledge base, Platform Assist, models, usage logs, and App Settings for provider and assistants.
 ---
 
 ## Overview
 
-AiHub centralizes AI credentials and defaults for the installation. Other hubs call the shared AI wrapper. This page documents the **`general`** App Settings group. See also [Hub Settings](/core-concepts/hub-settings).
+AiHub centralizes AI credentials and defaults for the installation. Other hubs call the shared AI wrapper. This page covers knowledge CRUD, Platform Assist sessions, observability endpoints, and the **`general`** App Settings group.
 
 **Base URL:** `api/v1/apps/ai-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication (admin access). See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas, see the [AiHub API Reference](/api-reference/ai-hub).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Knowledge" icon="book">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/knowledge` | List knowledge entries |
+| POST | `/knowledge` | Create a knowledge entry |
+| GET | `/knowledge/{id}` | Get knowledge entry details |
+| PUT | `/knowledge/{id}` | Update a knowledge entry |
+| DELETE | `/knowledge/{id}` | Delete a knowledge entry |
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/context` | Resolved AI context (schema + operations + knowledge) |
+| GET | `/models` | Provider model catalog for dropdowns |
+
+  </Tab>
+  <Tab title="Platform Assist" icon="message-circle">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/assist/status` | Assist availability / status |
+| POST | `/assist/context-preview` | Preview injected context |
+| GET | `/assist/sessions` | List chat sessions |
+| POST | `/assist/sessions` | Create a chat session |
+| DELETE | `/assist/sessions` | Delete all sessions |
+| GET | `/assist/sessions/{id}` | Get a session |
+| DELETE | `/assist/sessions/{id}` | Delete a session |
+| POST | `/assist/sessions/{id}/messages` | Post a message |
+| POST | `/assist/sessions/{id}/tools/confirm` | Confirm a pending tool call |
+| POST | `/assist/intake/uploads` | Upload intake file |
+| POST | `/assist/intake/uploads/{uploadId}/process` | Process an intake upload |
+| POST | `/assist/intake/uploads/{uploadId}/resolve` | Resolve an intake gap |
+
+  </Tab>
+  <Tab title="Observability" icon="activity">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/usage-logs` | List AI usage logs |
+| GET | `/debug/requests` | Debug recent AI requests (superadmin-gated) |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -18,6 +74,11 @@ AiHub centralizes AI credentials and defaults for the installation. Other hubs c
 | GET | `/settings/{group}` | Get one group (`general`) |
 | POST | `/settings/{group}` | Update one group |
 | POST | `/settings/{group}/reset` | Reset one group |
+
+See also [Hub Settings](/core-concepts/hub-settings).
+
+  </Tab>
+</Tabs>
 
 ## Settings
 

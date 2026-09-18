@@ -1,13 +1,76 @@
 ---
 title: StorefrontHub
-description: Theme pointer and tenant_config flags that drive the server-rendered storefront — guest access, checkout, SEO, analytics, and contact.
+description: Blade storefront themes, custom domains, App Settings, and tenant_config flags for guest access, checkout, SEO, and analytics.
 ---
 
 ## Overview
 
-StorefrontHub renders the customer storefront. Runtime behaviour is driven by the active theme pointer (`storefronthub.active_theme_id`) and the installation-scoped `tenant_config` configuration row (also used by the Nexus SPA). See also [Hub Settings](/core-concepts/hub-settings).
+StorefrontHub renders the customer storefront. Admin APIs manage themes, theme versions/uploads, custom domains, proposal preview URLs, and App Settings. Runtime behaviour is also driven by the active theme pointer (`storefronthub.active_theme_id`) and the installation-scoped `tenant_config` row exposed to themes as `$store` / `storeFlags()`.
 
 **Base URL:** `api/v1/apps/storefront-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication and admin access (plus `storefronthub.installation`). See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas, see the [StorefrontHub API Reference](/api-reference/storefront-hub).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Themes" icon="palette">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/info` | Storefront hub info |
+| GET | `/theme-translation-keys` | Static `@t()` keys from default + active theme |
+| GET | `/themes` | List themes |
+| POST | `/themes` | Upload a theme (rate-limited) |
+| GET | `/themes/{theme}` | Get theme details |
+| GET | `/themes/{theme}/download` | Download a theme archive |
+| DELETE | `/themes/{theme}` | Delete a theme |
+| POST | `/themes/reset-default` | Reset to the platform default theme |
+| GET | `/themes/download-default` | Download the bundled default theme |
+
+**Theme uploads**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/theme-uploads` | List theme uploads |
+| GET | `/theme-uploads/{upload}` | Get upload details |
+
+**Theme versions**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/theme-versions` | List theme versions |
+| GET | `/theme-versions/{version}` | Get version details |
+| GET | `/theme-versions/{version}/diff` | Diff a version |
+| POST | `/theme-versions/{version}/activate` | Activate a version |
+| POST | `/theme-versions/{version}/rollback` | Roll back to a version |
+| POST | `/theme-versions/{version}/preview` | Create a preview for a version |
+
+  </Tab>
+  <Tab title="Custom domains" icon="globe">
+
+One domain per store. Ingress serves only verified (`active`) domains.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/custom-domains` | Get the custom domain |
+| POST | `/custom-domains` | Set / create the custom domain |
+| POST | `/custom-domains/verify` | Verify DNS A record |
+| DELETE | `/custom-domains` | Remove the custom domain |
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/proposals/{quote}/preview-url` | Customer-facing preview URL for a proposal/quote |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -20,6 +83,11 @@ StorefrontHub renders the customer storefront. Runtime behaviour is driven by th
 | POST | `/settings/{group}/reset` | Reset one group |
 
 The `/settings` routes cover FormGenerator App Settings (e.g. which storefront to open). The keys below are the **runtime** theme pointer and `tenant_config` flags exposed to themes as `$store` / `storeFlags()`.
+
+See also [Hub Settings](/core-concepts/hub-settings).
+
+  </Tab>
+</Tabs>
 
 ## Settings
 

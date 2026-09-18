@@ -8,7 +8,7 @@ description: Complete guide to the DataHub filter system using CommonFilterRepos
 All DataHub hubs use `CommonFilterRepository` for MongoDB-compatible filtering via Spatie QueryBuilder. Filters are passed as JSON-encoded arrays of condition objects in query parameters.
 
 <Callout kind="info">
-Each hub page documents its specific filterable fields. This page covers the generic filter syntax and operators that apply across all hubs.
+Each hub page documents its specific filterable fields when available. This page covers the generic filter syntax and operators that apply across all hubs. Classic examples below use Product, Customer, Order, and Attributes; the same `?filter[…]` pattern applies to Invoice, Loyalty, Accounting, Procurement, PunchOut, and other hubs that use `CommonFilterRepository`.
 </Callout>
 
 ## Filter Syntax

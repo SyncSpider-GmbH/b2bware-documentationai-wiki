@@ -1,0 +1,34 @@
+---
+title: Customer product permission module
+description: Product visibility restrictions per customer, company, or group.
+---
+
+## Overview
+
+The Customer product permission module stores product restriction rules that control which catalog products a customer (or company/group) may see or buy.
+
+**Base URL:** `api/v1/apps/customer-product-permission/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication and admin access. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas, see the [Customer product permission module API Reference](/api-reference/customer-product-permission-module).
+</Callout>
+
+## Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/restrictions` | List product restrictions |
+| POST | `/restrictions` | Create a restriction |
+| GET | `/restrictions/{id}` | Get restriction details |
+| PUT | `/restrictions/{id}` | Update a restriction |
+| DELETE | `/restrictions/{id}` | Delete a restriction |
+| GET | `/restrictions/by-product/{productId}` | Restrictions for a specific product |
+
+## App Settings
+
+This module has no FormGenerator App Settings routes. See [Hub Settings](/core-concepts/hub-settings) for hubs that do.

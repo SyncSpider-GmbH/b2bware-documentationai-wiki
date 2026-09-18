@@ -1,23 +1,65 @@
 ---
 title: A1 Top-Up module
-description: Installation-scoped App Settings for the A1 voucher top-up API — connection, LicenseKey trigger, field mapping, and retry.
+description: A1 voucher top-up — per-product rules, delivery logs, retry, and App Settings for connection, trigger, mapping, and retry.
 ---
 
 ## Overview
 
-The A1 Top-Up module posts voucher recharge requests to the A1 API when a LicenseKey reaches a configured status. This page documents **App Settings** only. See also [Hub Settings](/core-concepts/hub-settings).
+The A1 Top-Up module posts voucher recharge requests to the A1 API when a LicenseKey reaches a configured status. Admin APIs cover hub settings, per-product rules, and delivery audit logs.
 
 **Base URL:** `api/v1/apps/a1-top-up-module/`
 
+<Callout kind="info">
+All endpoints require Bearer token authentication and admin access. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas, see the [A1 Top-Up module API Reference](/api-reference/a1-top-up-module).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Rules" icon="list-checks">
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/settings/groups/list` | List settings groups |
+| GET | `/rules` | List per-product top-up rules |
+| POST | `/rules` | Create a rule |
+| GET | `/rules/{id}` | Get rule details |
+| PUT | `/rules/{id}` | Update a rule |
+| DELETE | `/rules/{id}` | Delete a rule |
+
+  </Tab>
+  <Tab title="Logs" icon="file-text">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/logs` | List delivery audit logs |
+| GET | `/logs/{id}` | Get log details |
+| PUT | `/logs/{id}` | Update a log entry |
+| DELETE | `/logs/{id}` | Delete a log entry |
+| POST | `/logs/{id}/retry` | Re-queue a failed delivery |
+
+Create (`POST /logs`) is not exposed; logs are written by the fulfillment pipeline.
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
 | GET | `/settings` | Get all settings |
 | POST | `/settings` | Update settings |
-| POST | `/settings/reset` | Reset all groups to defaults |
+| GET | `/settings/groups` | List settings groups |
 | GET | `/settings/{group}` | Get one group |
 | POST | `/settings/{group}` | Update one group |
 | POST | `/settings/{group}/reset` | Reset one group |
+
+See also [Hub Settings](/core-concepts/hub-settings).
+
+  </Tab>
+</Tabs>
 
 ## Settings
 

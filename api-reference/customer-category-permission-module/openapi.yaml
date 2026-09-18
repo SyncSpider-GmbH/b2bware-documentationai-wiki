@@ -1,0 +1,265 @@
+openapi: 3.0.0
+info:
+  title: CustomerCategoryPermissionModule API
+  description: >-
+    Complete API collection for CustomerCategoryPermissionModule — Customer
+    Category Access & Per-Category Branding
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Assignments
+  - name: Branding
+paths:
+  /api/v1/apps/customer-category-permission/assignments:
+    get:
+      tags:
+        - Assignments
+      summary: Get Landing Category for Customer
+      parameters:
+        - name: filter[customer_id]
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: filter[is_landing]
+          in: query
+          schema:
+            type: boolean
+          example: 'true'
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: category
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Assignments
+      summary: Create Assignment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                customer_id: 1
+                category_id: 5
+                is_landing: true
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-category-permission/assignments/1:
+    get:
+      tags:
+        - Assignments
+      summary: Show Assignment
+      parameters:
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: customer,category
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Assignments
+      summary: Update Assignment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                is_landing: true
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Assignments
+      summary: Delete Assignment
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-category-permission/assignments/bulk:
+    post:
+      tags:
+        - Assignments
+      summary: Bulk Assign Categories to Customer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                customer_id: 1
+                category_ids:
+                  - 5
+                  - 8
+                  - 12
+                landing_category_id: 5
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-category-permission/branding:
+    get:
+      tags:
+        - Branding
+      summary: Get Branding by Category
+      parameters:
+        - name: filter[category_id]
+          in: query
+          schema:
+            type: integer
+          example: '5'
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: category
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Branding
+      summary: Create/Upsert Branding
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                category_id: 5
+                logo:
+                  id: 42
+                  url: https://cdn.example.com/logos/electronics.png
+                  name: electronics-logo.png
+                logo_with_text:
+                  id: 43
+                  url: https://cdn.example.com/logos/electronics-text.png
+                  name: electronics-logo-text.png
+                favicon:
+                  id: 44
+                  url: https://cdn.example.com/favicons/electronics.ico
+                  name: electronics-favicon.ico
+                colors:
+                  brand: '#0077B6'
+                  accent_primary: '#00B4D8'
+                  accent_secondary: '#90E0EF'
+                  sidebar_background: '#CAF0F8'
+                  sidebar_foreground: '#03045E'
+                media:
+                  login_background_image:
+                    id: 45
+                    url: https://cdn.example.com/bg/electronics.jpg
+                  product_placeholder_image:
+                    id: 46
+                    url: https://cdn.example.com/placeholders/electronics.png
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-category-permission/branding/1:
+    get:
+      tags:
+        - Branding
+      summary: Show Branding
+      parameters:
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: category
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Branding
+      summary: Update Branding
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                colors:
+                  brand: '#E63946'
+                  accent_primary: '#457B9D'
+                  accent_secondary: '#1D3557'
+                  sidebar_background: '#F1FAEE'
+                  sidebar_foreground: '#1D3557'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Branding
+      summary: Delete Branding
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

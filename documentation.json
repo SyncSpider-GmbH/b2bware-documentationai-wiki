@@ -111,6 +111,50 @@
                     "icon": "share-2"
                   }
                 ]
+              },
+              {
+                "group": "Orders",
+                "icon": "shopping-cart",
+                "pages": [
+                  {
+                    "title": "Orders overview",
+                    "path": "user-guide/orders/overview",
+                    "icon": "list"
+                  }
+                ]
+              },
+              {
+                "group": "Customers",
+                "icon": "users",
+                "pages": [
+                  {
+                    "title": "Customers overview",
+                    "path": "user-guide/customers/overview",
+                    "icon": "list"
+                  }
+                ]
+              },
+              {
+                "group": "Invoices",
+                "icon": "file-text",
+                "pages": [
+                  {
+                    "title": "Invoices overview",
+                    "path": "user-guide/invoices/overview",
+                    "icon": "list"
+                  }
+                ]
+              },
+              {
+                "group": "Loyalty",
+                "icon": "gift",
+                "pages": [
+                  {
+                    "title": "Loyalty overview",
+                    "path": "user-guide/loyalty/overview",
+                    "icon": "list"
+                  }
+                ]
               }
             ]
           },
@@ -389,6 +433,36 @@
                     "title": "Mesonic real-time pricing",
                     "path": "hubs/mesonic-realtime-pricing",
                     "icon": "chart-line"
+                  },
+                  {
+                    "title": "AccountingHub",
+                    "path": "hubs/accounting-hub",
+                    "icon": "calculator"
+                  },
+                  {
+                    "title": "ProcurementHub",
+                    "path": "hubs/procurement-hub",
+                    "icon": "truck"
+                  },
+                  {
+                    "title": "Transactions module",
+                    "path": "hubs/transactions-module",
+                    "icon": "arrows-rotate"
+                  },
+                  {
+                    "title": "Stock movements module",
+                    "path": "hubs/stock-movements-module",
+                    "icon": "boxes-stacked"
+                  },
+                  {
+                    "title": "Customer product permission module",
+                    "path": "hubs/customer-product-permission-module",
+                    "icon": "eye-slash"
+                  },
+                  {
+                    "title": "Customer category permission module",
+                    "path": "hubs/customer-category-permission-module",
+                    "icon": "folder-lock"
                   }
                 ]
               },
@@ -637,6 +711,66 @@
                 "pages": []
               },
               {
+                "group": "IntegrationHub",
+                "icon": "plug",
+                "openapi": "api-reference/integration-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "StorefrontHub",
+                "icon": "store",
+                "openapi": "api-reference/storefront-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "InvoiceHub",
+                "icon": "file-invoice",
+                "openapi": "api-reference/invoice-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "LoyaltyHub",
+                "icon": "gift",
+                "openapi": "api-reference/loyalty-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "AiHub",
+                "icon": "sparkles",
+                "openapi": "api-reference/ai-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "PunchOutHub",
+                "icon": "cart-shopping",
+                "openapi": "api-reference/punch-out-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Customer SKU module",
+                "icon": "barcode",
+                "openapi": "api-reference/customer-sku-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "DTOneHub",
+                "icon": "mobile",
+                "openapi": "api-reference/dtone-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "A1 Top-Up module",
+                "icon": "sim-card",
+                "openapi": "api-reference/a1-top-up-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Mesonic real-time pricing",
+                "icon": "chart-line",
+                "openapi": "api-reference/mesonic-dataflow-real-time-pricing/openapi.yaml",
+                "pages": []
+              },
+              {
                 "group": "ProcurementHub",
                 "icon": "truck",
                 "openapi": "api-reference/procurement-hub/openapi.yaml",
@@ -646,6 +780,30 @@
                 "group": "AccountingHub",
                 "icon": "landmark",
                 "openapi": "api-reference/accounting-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Transactions module",
+                "icon": "arrows-rotate",
+                "openapi": "api-reference/transactions-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Stock movements module",
+                "icon": "boxes-stacked",
+                "openapi": "api-reference/stock-movements-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Customer product permission module",
+                "icon": "eye-slash",
+                "openapi": "api-reference/customer-product-permission-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Customer category permission module",
+                "icon": "folder-lock",
+                "openapi": "api-reference/customer-category-permission-module/openapi.yaml",
                 "pages": []
               }
             ]
@@ -725,6 +883,22 @@
                   {
                     "title": "Export Products as JSON",
                     "path": "help-center/guides/export-products-json"
+                  },
+                  {
+                    "title": "Invoices and dunning",
+                    "path": "help-center/guides/invoices"
+                  },
+                  {
+                    "title": "Loyalty programs",
+                    "path": "help-center/guides/loyalty"
+                  },
+                  {
+                    "title": "PunchOut (OCI / cXML)",
+                    "path": "help-center/guides/punchout"
+                  },
+                  {
+                    "title": "Product and category permissions",
+                    "path": "help-center/guides/permissions"
                   }
                 ]
               }
@@ -863,6 +1037,17 @@
                     "title": "Customer SKUs",
                     "path": "de/user-guide/products/customer-skus",
                     "icon": "barcode"
+                  }
+                ]
+              },
+              {
+                "group": "Integrationen",
+                "icon": "plug",
+                "pages": [
+                  {
+                    "title": "Integrationen Übersicht",
+                    "path": "de/user-guide/integrations/overview",
+                    "icon": "list"
                   }
                 ]
               }

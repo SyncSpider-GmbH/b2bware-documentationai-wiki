@@ -187,6 +187,24 @@ Rough cost on a tenant with ~10k products / 5k images:
 | PLP + `media` (gallery) | ~250 KB | Avoid. |
 | PLP + `translation` | ~200 KB | Avoid. |
 
+## InvoiceHub
+
+Invoice list / detail (customer + lines):
+
+```
+include=customer,company,lineItems,lineItems.product
+```
+
+## LoyaltyHub
+
+Wallet / enrollment screens:
+
+```
+include=program,customer,company
+```
+
+(Exact relation names follow each hub’s `allowedIncludes` — drop any that return `400`.)
+
 ## Common Pitfalls
 
 | Symptom | Cause | Fix |

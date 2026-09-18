@@ -1,27 +1,119 @@
 ---
 title: DTOneHub
-description: Installation-scoped App Settings for DT One digital fulfillment — order-status triggers and storefront widget billing methods.
+description: DT One digital fulfillment — configurations, transactions, API logs, storefront lookup/checkout, webhook, and App Settings.
 ---
 
 ## Overview
 
-DTOneHub creates DT One transactions for digital top-up products. This page documents **App Settings** only. See also [Hub Settings](/core-concepts/hub-settings).
+DTOneHub creates DT One transactions for digital top-up products. Admin routes cover configurations, transactions, and API logs. Storefront widget lookup/price endpoints use the Installation-Key header (no Bearer). A public webhook receives DT One callbacks.
 
 **Base URL:** `api/v1/apps/dtone-hub/`
 
+**Webhook:** `POST api/v1/webhooks/dtone/{installationKey}`
+
+<Callout kind="info">
+Admin endpoints require Bearer token authentication. See [Authentication](/authentication).
+Storefront lookup routes are guest-accessible with Installation-Key; top-up checkout requires an authenticated shop customer.
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas, see the [DTOneHub API Reference](/api-reference/dtone-hub).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Configurations" icon="sliders">
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/settings/groups/list` | List settings groups |
-| GET | `/settings` | Get all settings |
-| POST | `/settings` | Update settings |
+| GET | `/configurations/service-types/list` | List service types |
+| GET | `/configurations/transaction-types/list` | List transaction types |
+| GET | `/configurations/auto-confirm-options/list` | List auto-confirm options |
+| GET | `/configurations/stock-modes/list` | List stock modes |
+| GET | `/configurations/statuses/list` | List configuration statuses |
+| GET | `/configurations` | List configurations |
+| POST | `/configurations` | Create a configuration |
+| GET | `/configurations/{id}` | Get configuration details |
+| PUT | `/configurations/{id}` | Update a configuration |
+| DELETE | `/configurations/{id}` | Delete a configuration |
+
+  </Tab>
+  <Tab title="Transactions" icon="repeat">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/transactions/statuses/list` | List transaction statuses |
+| GET | `/transactions` | List transactions |
+| GET | `/transactions/{id}` | Get transaction details |
+| POST | `/transactions/{id}/confirm` | Confirm a transaction |
+| POST | `/transactions/{id}/retry` | Retry a transaction |
+| POST | `/transactions/{id}/cancel` | Cancel a transaction |
+
+  </Tab>
+  <Tab title="API Logs" icon="file-text">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api-logs/actions/list` | List log actions |
+| GET | `/api-logs/methods/list` | List HTTP methods |
+| GET | `/api-logs/statuses/list` | List log statuses |
+| GET | `/api-logs/health-metrics` | Health metrics |
+| GET | `/api-logs` | List API logs |
+| GET | `/api-logs/{id}` | Get API log details |
+
+  </Tab>
+  <Tab title="Storefront & Webhook" icon="store">
+
+Guest / Installation-Key (throttled):
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/lookup` | Mobile-number lookup |
+| POST | `/services` | Service discovery |
+| POST | `/products` | List DT One products |
+| POST | `/products/lookup` | Lookup products |
+| POST | `/calculate-price` | Calculate price |
+| GET | `/orders/{order}/transactions` | Order-scoped transactions (status / redeem PIN) |
+
+Authenticated shop customer:
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/carts/{cart}/topup-checkout` | Widget on-account top-up checkout |
+
+Public webhook (no auth):
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `api/v1/webhooks/dtone/{installationKey}` | DT One callback webhook |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List FormGenerator settings groups |
+| GET | `/settings` | Get hub settings |
+| POST | `/settings` | Update hub settings |
 | POST | `/settings/reset` | Reset all groups to defaults |
+| GET | `/settings/api` | Get DT One API connection settings |
+| PUT | `/settings/api` | Update DT One API connection settings |
+| POST | `/settings/test-connection` | Test API connection |
+| GET | `/settings/balance` | Get DT One account balance |
 | GET | `/settings/{group}` | Get one group (`fulfillment`, `storefront`) |
 | POST | `/settings/{group}` | Update one group |
 | POST | `/settings/{group}/reset` | Reset one group |
 
+See also [Hub Settings](/core-concepts/hub-settings).
+
+  </Tab>
+</Tabs>
+
 ## Settings
 
-Groups: `fulfillment`, `storefront`.
+Groups: `fulfillment`, `storefront`. API connection credentials are managed via `/settings/api`.
 
 <Expandable title="fulfillment — Settings Reference" default-open="true">
 

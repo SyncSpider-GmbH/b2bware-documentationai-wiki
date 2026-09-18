@@ -1,13 +1,63 @@
 ---
 title: PunchOutHub
-description: Installation-scoped App Settings for OCI/cXML PunchOut — protocols, storefront handoff, security allowlists, and field mapping.
+description: OCI/cXML PunchOut — buyer configs, sessions, logs, App Settings, and public setup/return endpoints.
 ---
 
 ## Overview
 
-PunchOutHub lets a buyer’s procurement system launch into the storefront, build a cart, and return it to the ERP (OCI / cXML). This page documents **App Settings** only. See also [Hub Settings](/core-concepts/hub-settings).
+PunchOutHub lets a buyer’s procurement system launch into the storefront, build a cart, and return it to the ERP (OCI / cXML). Admin routes live under the hub prefix; protocol setup/return use public `api/v1/punchout/{installationKey}` paths (buyer authenticated per protocol, not Bearer).
 
-**Base URL:** `api/v1/apps/punch-out-hub/`
+**Base URL (admin):** `api/v1/apps/punch-out-hub/`
+
+**Base URL (public PunchOut):** `api/v1/punchout/{installationKey}/`
+
+<Callout kind="info">
+Admin endpoints require Bearer token authentication. See [Authentication](/authentication).
+Public PunchOut routes do not use `auth:api`.
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas, see the [PunchOutHub API Reference](/api-reference/punch-out-hub).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Buyer configs" icon="building">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/buyer-configs` | List buyer configurations |
+| POST | `/buyer-configs` | Create a buyer configuration |
+| GET | `/buyer-configs/{id}` | Get buyer configuration details |
+| PUT | `/buyer-configs/{id}` | Update a buyer configuration |
+| DELETE | `/buyer-configs/{id}` | Delete a buyer configuration |
+
+  </Tab>
+  <Tab title="Sessions & Logs" icon="list">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/sessions` | List PunchOut sessions |
+| GET | `/sessions/{id}` | Get session details |
+| GET | `/logs` | List PunchOut logs |
+
+  </Tab>
+  <Tab title="Public PunchOut" icon="globe">
+
+Relative to `api/v1/punchout/{installationKey}/` (not under `apps/punch-out-hub`).
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/setup` | Inbound setup / launch (OCI) |
+| POST | `/setup` | Inbound setup / launch (cXML PunchOutSetupRequest) |
+| GET | `/enter/{token}` | One-time token exchange for the storefront SPA |
+| POST | `/return/{sessionId}` | Cart return → order + auto-submit form back to the ERP |
+| POST | `/echo` | Test echo sink for return testing without a real ERP |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -18,6 +68,11 @@ PunchOutHub lets a buyer’s procurement system launch into the storefront, buil
 | GET | `/settings/{group}` | Get one group |
 | POST | `/settings/{group}` | Update one group |
 | POST | `/settings/{group}/reset` | Reset one group |
+
+See also [Hub Settings](/core-concepts/hub-settings).
+
+  </Tab>
+</Tabs>
 
 ## Settings
 

@@ -1,13 +1,73 @@
 ---
 title: InvoiceHub
-description: Installation-scoped App Settings for invoices — automation, numbering, defaults, credit notes, payments, PDF documents, company identity, dunning, and emails.
+description: Invoices, credit notes, dunning, payments, PDF preview, and App Settings for numbering, automation, and documents.
 ---
 
 ## Overview
 
-InvoiceHub manages invoices, credit notes, payment documents, and overdue dunning. This page documents **App Settings** only (FormGenerator groups). See also [Hub Settings](/core-concepts/hub-settings).
+InvoiceHub manages invoices, credit notes, payment recording, PDF/HTML preview, and overdue dunning. Line items are part of the invoice / credit-note create and update payloads (there is no separate line-items resource).
 
 **Base URL:** `api/v1/apps/invoice-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas and filters, see the [InvoiceHub API Reference](/api-reference/invoice-hub).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Invoices" icon="file-invoice">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/invoices/statuses/list` | List invoice statuses |
+| GET | `/invoices` | List invoices |
+| POST | `/invoices` | Create an invoice (line items in body) |
+| GET | `/invoices/{invoice}` | Get invoice details |
+| PUT | `/invoices/{invoice}` | Update an invoice |
+| DELETE | `/invoices/{invoice}` | Delete an invoice |
+| GET | `/invoices/{invoice}/available-actions` | Available status/actions |
+| POST | `/invoices/{invoice}/send` | Send the invoice |
+| POST | `/invoices/{invoice}/mark-paid` | Mark invoice as paid |
+| POST | `/invoices/{invoice}/payments` | Record a (partial) payment |
+| POST | `/invoices/{invoice}/preview-pdf` | Preview invoice PDF |
+| POST | `/invoices/preview-html` | Preview invoice HTML |
+
+  </Tab>
+  <Tab title="Credit Notes" icon="file-minus">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/credit-notes/statuses/list` | List credit note statuses |
+| GET | `/credit-notes` | List credit notes |
+| POST | `/credit-notes` | Create a credit note (line items in body) |
+| GET | `/credit-notes/{creditNote}` | Get credit note details |
+| PUT | `/credit-notes/{creditNote}` | Update a credit note |
+| DELETE | `/credit-notes/{creditNote}` | Delete a credit note |
+| GET | `/credit-notes/{creditNote}/available-actions` | Available status/actions |
+| POST | `/credit-notes/{creditNote}/issue` | Issue a credit note |
+| POST | `/credit-notes/{creditNote}/refund` | Refund against a credit note |
+| POST | `/credit-notes/{creditNote}/preview-pdf` | Preview credit note PDF |
+| POST | `/credit-notes/preview-html` | Preview credit note HTML |
+
+  </Tab>
+  <Tab title="Dunning" icon="bell">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/invoices/{invoice}/dunning` | Get dunning state for an invoice |
+| POST | `/invoices/{invoice}/dunning/pause` | Pause dunning |
+| POST | `/invoices/{invoice}/dunning/resume` | Resume dunning |
+
+Dunning behaviour is also configured under the `dunning` App Settings group below.
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -18,6 +78,11 @@ InvoiceHub manages invoices, credit notes, payment documents, and overdue dunnin
 | GET | `/settings/{group}` | Get one group |
 | POST | `/settings/{group}` | Update one group |
 | POST | `/settings/{group}/reset` | Reset one group |
+
+See also [Hub Settings](/core-concepts/hub-settings).
+
+  </Tab>
+</Tabs>
 
 ## Settings
 

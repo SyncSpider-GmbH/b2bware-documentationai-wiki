@@ -1,9 +1,7 @@
 openapi: 3.0.0
 info:
-  title: StorefrontBuilderHub API
-  description: >-
-    Complete API collection for StorefrontBuilderHub — generated from
-    routes/api.php
+  title: LoyaltyHub API
+  description: Complete API collection for LoyaltyHub — generated from routes/api.php
   version: 1.0.0
 servers:
   - url: https://api.datahub.syncspider.com
@@ -15,34 +13,27 @@ components:
 security:
   - bearerAuth: []
 tags:
-  - name: Blocks
-  - name: Builder
-  - name: Documents
-  - name: Emails
-  - name: Fonts
-  - name: Form Submissions
-  - name: Generated Pdfs
-  - name: Library Sections
-  - name: Pages
-  - name: Product Views
-  - name: Slots
-  - name: Theme Editor
-  - name: Theme Slots
+  - name: Checkout
+  - name: Companies
+  - name: Conditions
+  - name: Customers
+  - name: Dashboard
+  - name: Ledger Entries
+  - name: Me
+  - name: Payout Runs
+  - name: Products
+  - name: Program Actions
+  - name: Programs
+  - name: Receipt Submissions
+  - name: Rewards
+  - name: Settings
+  - name: Wallets
 paths:
-  /api/v1/apps/storefront-builder-hub/blocks:
-    get:
-      tags:
-        - Blocks
-      summary: Index
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
+  /api/v1/apps/loyalty-hub/checkout/confirm:
     post:
       tags:
-        - Blocks
-      summary: Store
+        - Checkout
+      summary: Confirm
       requestBody:
         content:
           application/json:
@@ -60,288 +51,10 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/blocks/render-types/list:
-    get:
-      tags:
-        - Blocks
-      summary: Get Render Types
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/blocks/types/list:
-    get:
-      tags:
-        - Blocks
-      summary: Get Block Types
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/blocks/{id}:
-    get:
-      tags:
-        - Blocks
-      summary: Show
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    put:
-      tags:
-        - Blocks
-      summary: Update
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    delete:
-      tags:
-        - Blocks
-      summary: Destroy
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/blocks/{id}/render:
-    get:
-      tags:
-        - Blocks
-      summary: Render
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/canvas-styles:
-    get:
-      tags:
-        - Builder
-      summary: Canvas Styles
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/collections:
-    get:
-      tags:
-        - Builder
-      summary: Collections
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/context:
-    get:
-      tags:
-        - Builder
-      summary: Context Fields
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/hubs:
-    get:
-      tags:
-        - Builder
-      summary: Hubs
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/reference:
-    get:
-      tags:
-        - Builder
-      summary: Reference
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/sample:
-    get:
-      tags:
-        - Builder
-      summary: Sample
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/sample-rows:
-    get:
-      tags:
-        - Builder
-      summary: Sample Rows
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/dynamic-fields/schema:
-    get:
-      tags:
-        - Builder
-      summary: Schema
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/layouts:
-    get:
-      tags:
-        - Builder
-      summary: Layouts
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/preview/{token}:
-    get:
-      tags:
-        - Builder
-      summary: Show
-      parameters:
-        - name: token
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/sources/entities:
-    get:
-      tags:
-        - Builder
-      summary: Entities
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/sources/entities/{entityId}/fields:
-    get:
-      tags:
-        - Builder
-      summary: Fields
-      parameters:
-        - name: entityId
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/versions:
-    get:
-      tags:
-        - Builder
-      summary: Index
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
+  /api/v1/apps/loyalty-hub/checkout/preview:
     post:
       tags:
-        - Builder
-      summary: Snapshot
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/diagnostics:
-    post:
-      tags:
-        - Builder
-      summary: Diagnostics
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/preview:
-    post:
-      tags:
-        - Builder
+        - Checkout
       summary: Preview
       requestBody:
         content:
@@ -360,11 +73,11 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/preview/token:
+  /api/v1/apps/loyalty-hub/checkout/release:
     post:
       tags:
-        - Builder
-      summary: Create Token
+        - Checkout
+      summary: Release
       requestBody:
         content:
           application/json:
@@ -382,11 +95,11 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/versions/{id}/publish:
+  /api/v1/apps/loyalty-hub/checkout/reserve:
     post:
       tags:
-        - Builder
-      summary: Publish
+        - Checkout
+      summary: Reserve
       requestBody:
         content:
           application/json:
@@ -399,7 +112,29 @@ paths:
           schema:
             type: string
           example: application/json
-        - name: id
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/companies/{companyId}/enroll:
+    post:
+      tags:
+        - Companies
+      summary: Enroll Company
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: companyId
           in: path
           schema:
             type: string
@@ -409,37 +144,83 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/builder/versions/{id}/revert:
-    post:
-      tags:
-        - Builder
-      summary: Revert
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/documents:
+  /api/v1/apps/loyalty-hub/conditions/schema:
     get:
       tags:
-        - Documents
+        - Conditions
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/conditions/schema/{target}:
+    get:
+      tags:
+        - Conditions
+      summary: Show
+      parameters:
+        - name: target
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/customers/{customerId}/enroll:
+    post:
+      tags:
+        - Customers
+      summary: Enroll Customer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: customerId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/dashboard/pending-receipts:
+    get:
+      tags:
+        - Dashboard
+      summary: Pending Receipts
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/dashboard/wallet-overview:
+    get:
+      tags:
+        - Dashboard
+      summary: Wallet Overview
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/ledger-entries:
+    get:
+      tags:
+        - Ledger Entries
       summary: Index
       responses:
         '200':
@@ -448,7 +229,7 @@ paths:
             application/json: {}
     post:
       tags:
-        - Documents
+        - Ledger Entries
       summary: Store
       requestBody:
         content:
@@ -467,23 +248,13 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/documents/templates:
+  /api/v1/apps/loyalty-hub/ledger-entries/{ledger_entry}:
     get:
       tags:
-        - Documents
-      summary: Templates
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/documents/{id}:
-    get:
-      tags:
-        - Documents
+        - Ledger Entries
       summary: Show
       parameters:
-        - name: id
+        - name: ledger_entry
           in: path
           schema:
             type: string
@@ -493,84 +264,11 @@ paths:
           description: Successful response
           content:
             application/json: {}
-    put:
-      tags:
-        - Documents
-      summary: Update
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    delete:
-      tags:
-        - Documents
-      summary: Destroy
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/documents/{id}/pdf/download:
-    get:
-      tags:
-        - Documents
-      summary: Download
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/documents/{id}/pdf/status:
-    get:
-      tags:
-        - Documents
-      summary: Status
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/documents/{id}/dataset/count:
+  /api/v1/apps/loyalty-hub/ledger-entries/{id}/reverse:
     post:
       tags:
-        - Documents
-      summary: Dataset Count
+        - Ledger Entries
+      summary: Reverse
       requestBody:
         content:
           application/json:
@@ -593,37 +291,190 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/documents/{id}/pdf:
-    post:
-      tags:
-        - Documents
-      summary: Queue
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/emails:
+  /api/v1/apps/loyalty-hub/me/ledger:
     get:
       tags:
-        - Emails
+        - Me
+      summary: Me Ledger
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/me/receipts:
+    get:
+      tags:
+        - Me
+      summary: Me Receipts
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Me
+      summary: Store Receipt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/me/rewards:
+    get:
+      tags:
+        - Me
+      summary: Rewards
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/me/wallet:
+    get:
+      tags:
+        - Me
+      summary: Me Wallet
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/me/enroll:
+    post:
+      tags:
+        - Me
+      summary: Me Enroll
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/me/receipts/media:
+    post:
+      tags:
+        - Me
+      summary: Upload Receipt Media
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/me/rewards/{rewardId}/redeem:
+    post:
+      tags:
+        - Me
+      summary: Redeem Reward
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: rewardId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/payout-runs:
+    get:
+      tags:
+        - Payout Runs
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/payout-runs/trigger:
+    post:
+      tags:
+        - Payout Runs
+      summary: Trigger
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/products/{productId}/redeem-profile:
+    get:
+      tags:
+        - Products
+      summary: Product Redeem Profile
+      parameters:
+        - name: productId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/program-actions:
+    get:
+      tags:
+        - Program Actions
       summary: Index
       responses:
         '200':
@@ -632,7 +483,7 @@ paths:
             application/json: {}
     post:
       tags:
-        - Emails
+        - Program Actions
       summary: Store
       requestBody:
         content:
@@ -651,514 +502,53 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/emails/{id}:
+  /api/v1/apps/loyalty-hub/program-actions/effect-targets/list:
     get:
       tags:
-        - Emails
-      summary: Show
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+        - Program Actions
+      summary: Get Effect Targets
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-    put:
-      tags:
-        - Emails
-      summary: Update
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    delete:
-      tags:
-        - Emails
-      summary: Destroy
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/emails/preview:
-    post:
-      tags:
-        - Emails
-      summary: Preview
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/emails/send-test:
-    post:
-      tags:
-        - Emails
-      summary: Send Test
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/emails/{id}/send:
-    post:
-      tags:
-        - Emails
-      summary: Send
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/fonts:
+  /api/v1/apps/loyalty-hub/program-actions/effect-types/list:
     get:
       tags:
-        - Fonts
-      summary: Index
+        - Program Actions
+      summary: Get Effect Types
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-    post:
-      tags:
-        - Fonts
-      summary: Store
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/fonts/google:
+  /api/v1/apps/loyalty-hub/program-actions/stacking-modes/list:
     get:
       tags:
-        - Fonts
-      summary: Google Catalog
+        - Program Actions
+      summary: Get Stacking Modes
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/fonts/{id}:
-    delete:
-      tags:
-        - Fonts
-      summary: Destroy
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/form-submissions:
+  /api/v1/apps/loyalty-hub/program-actions/statuses/list:
     get:
       tags:
-        - Form Submissions
-      summary: Index
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/form-submissions/export:
-    get:
-      tags:
-        - Form Submissions
-      summary: Export
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/form-submissions/{id}:
-    get:
-      tags:
-        - Form Submissions
-      summary: Show
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    put:
-      tags:
-        - Form Submissions
-      summary: Update
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    delete:
-      tags:
-        - Form Submissions
-      summary: Destroy
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/generated-pdfs:
-    get:
-      tags:
-        - Generated Pdfs
-      summary: Index
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/generated-pdfs/{id}:
-    get:
-      tags:
-        - Generated Pdfs
-      summary: Show
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    delete:
-      tags:
-        - Generated Pdfs
-      summary: Destroy
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/generated-pdfs/{id}/download:
-    get:
-      tags:
-        - Generated Pdfs
-      summary: Download
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/library-sections:
-    get:
-      tags:
-        - Library Sections
-      summary: Index
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    post:
-      tags:
-        - Library Sections
-      summary: Store
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/library-sections/{id}:
-    get:
-      tags:
-        - Library Sections
-      summary: Show
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    put:
-      tags:
-        - Library Sections
-      summary: Update
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    delete:
-      tags:
-        - Library Sections
-      summary: Destroy
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/library-sections/{id}/thumbnail:
-    post:
-      tags:
-        - Library Sections
-      summary: Regenerate Thumbnail
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/pages:
-    get:
-      tags:
-        - Pages
-      summary: Index
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-    post:
-      tags:
-        - Pages
-      summary: Store
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: {}
-      parameters:
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/pages/link-targets:
-    get:
-      tags:
-        - Pages
-      summary: Link Targets
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/pages/resolve/{urlKey}:
-    get:
-      tags:
-        - Pages
-      summary: Resolve
-      parameters:
-        - name: urlKey
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/pages/statuses/list:
-    get:
-      tags:
-        - Pages
+        - Program Actions
       summary: Get Statuses
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/pages/{id}:
+  /api/v1/apps/loyalty-hub/program-actions/{program_action}:
     get:
       tags:
-        - Pages
+        - Program Actions
       summary: Show
       parameters:
-        - name: id
+        - name: program_action
           in: path
           schema:
             type: string
@@ -1170,7 +560,7 @@ paths:
             application/json: {}
     put:
       tags:
-        - Pages
+        - Program Actions
       summary: Update
       requestBody:
         content:
@@ -1184,7 +574,7 @@ paths:
           schema:
             type: string
           example: application/json
-        - name: id
+        - name: program_action
           in: path
           schema:
             type: string
@@ -1194,26 +584,10 @@ paths:
           description: Successful response
           content:
             application/json: {}
-    delete:
+    patch:
       tags:
-        - Pages
-      summary: Destroy
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/pages/{id}/preview-link:
-    post:
-      tags:
-        - Pages
-      summary: Preview Link
+        - Program Actions
+      summary: Update
       requestBody:
         content:
           application/json:
@@ -1226,7 +600,7 @@ paths:
           schema:
             type: string
           example: application/json
-        - name: id
+        - name: program_action
           in: path
           schema:
             type: string
@@ -1236,20 +610,25 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/product-views:
-    get:
+    delete:
       tags:
-        - Product Views
-      summary: Index
+        - Program Actions
+      summary: Destroy
+      parameters:
+        - name: program_action
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/slots:
+  /api/v1/apps/loyalty-hub/programs:
     get:
       tags:
-        - Slots
+        - Programs
       summary: Index
       responses:
         '200':
@@ -1258,7 +637,7 @@ paths:
             application/json: {}
     post:
       tags:
-        - Slots
+        - Programs
       summary: Store
       requestBody:
         content:
@@ -1277,13 +656,53 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/slots/{id}:
+  /api/v1/apps/loyalty-hub/programs/account-modes/list:
     get:
       tags:
-        - Slots
+        - Programs
+      summary: Get Account Modes
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/programs/active:
+    get:
+      tags:
+        - Programs
+      summary: Active Programs
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/programs/earn-modes/list:
+    get:
+      tags:
+        - Programs
+      summary: Get Earn Modes
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/programs/statuses/list:
+    get:
+      tags:
+        - Programs
+      summary: Get Statuses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/programs/{program}:
+    get:
+      tags:
+        - Programs
       summary: Show
       parameters:
-        - name: id
+        - name: program
           in: path
           schema:
             type: string
@@ -1295,7 +714,7 @@ paths:
             application/json: {}
     put:
       tags:
-        - Slots
+        - Programs
       summary: Update
       requestBody:
         content:
@@ -1309,7 +728,33 @@ paths:
           schema:
             type: string
           example: application/json
-        - name: id
+        - name: program
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Programs
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: program
           in: path
           schema:
             type: string
@@ -1321,9 +766,160 @@ paths:
             application/json: {}
     delete:
       tags:
-        - Slots
+        - Programs
       summary: Destroy
       parameters:
+        - name: program
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/receipt-submissions:
+    get:
+      tags:
+        - Receipt Submissions
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Receipt Submissions
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/receipt-submissions/statuses/list:
+    get:
+      tags:
+        - Receipt Submissions
+      summary: Get Statuses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/receipt-submissions/{receipt_submission}:
+    get:
+      tags:
+        - Receipt Submissions
+      summary: Show
+      parameters:
+        - name: receipt_submission
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Receipt Submissions
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: receipt_submission
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Receipt Submissions
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: receipt_submission
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Receipt Submissions
+      summary: Destroy
+      parameters:
+        - name: receipt_submission
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/receipt-submissions/{id}/approve:
+    post:
+      tags:
+        - Receipt Submissions
+      summary: Approve
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
         - name: id
           in: path
           schema:
@@ -1334,21 +930,47 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/theme-editor/manifest:
-    get:
+  /api/v1/apps/loyalty-hub/receipt-submissions/{id}/reject:
+    post:
       tags:
-        - Theme Editor
-      summary: Manifest
+        - Receipt Submissions
+      summary: Reject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/theme-editor/edit-token:
+  /api/v1/apps/loyalty-hub/rewards:
+    get:
+      tags:
+        - Rewards
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
     post:
       tags:
-        - Theme Editor
-      summary: Edit Token
+        - Rewards
+      summary: Store
       requestBody:
         content:
           application/json:
@@ -1366,11 +988,123 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/theme-editor/slot-fragment:
+  /api/v1/apps/loyalty-hub/rewards/fulfillment-types/list:
+    get:
+      tags:
+        - Rewards
+      summary: Get Fulfillment Types
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/rewards/statuses/list:
+    get:
+      tags:
+        - Rewards
+      summary: Get Statuses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/rewards/{reward}:
+    get:
+      tags:
+        - Rewards
+      summary: Show
+      parameters:
+        - name: reward
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Rewards
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: reward
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Rewards
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: reward
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Rewards
+      summary: Destroy
+      parameters:
+        - name: reward
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/settings:
+    get:
+      tags:
+        - Settings
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
     post:
       tags:
-        - Theme Editor
-      summary: Slot Fragment
+        - Settings
+      summary: Store
       requestBody:
         content:
           application/json:
@@ -1388,11 +1122,235 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/theme-slots/manifest:
+  /api/v1/apps/loyalty-hub/settings/groups/list:
     get:
       tags:
-        - Theme Slots
-      summary: Manifest
+        - Settings
+      summary: Get Groups List
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/settings/{group}:
+    get:
+      tags:
+        - Settings
+      summary: Show
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/settings/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/settings/{group}/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/wallets:
+    get:
+      tags:
+        - Wallets
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Wallets
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/wallets/company/{companyId}:
+    get:
+      tags:
+        - Wallets
+      summary: Find By Company
+      parameters:
+        - name: companyId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/wallets/customer/{customerId}:
+    get:
+      tags:
+        - Wallets
+      summary: Find By Customer
+      parameters:
+        - name: customerId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/wallets/{wallet}:
+    get:
+      tags:
+        - Wallets
+      summary: Show
+      parameters:
+        - name: wallet
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/wallets/{id}/adjust:
+    post:
+      tags:
+        - Wallets
+      summary: Adjust
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/loyalty-hub/wallets/{walletId}/revoke:
+    post:
+      tags:
+        - Wallets
+      summary: Revoke
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: walletId
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response

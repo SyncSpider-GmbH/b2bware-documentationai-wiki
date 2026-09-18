@@ -1,0 +1,32 @@
+---
+title: Stock movements module
+description: Stock movement ledger — list, create movements, and post inventory adjustments.
+---
+
+## Overview
+
+The Stock movements module records inventory movements and supports dedicated adjustment posts.
+
+**Base URL:** `api/v1/apps/stock-movements-module/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication and admin access. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas, see the [Stock movements module API Reference](/api-reference/stock-movements-module).
+</Callout>
+
+## Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/movements` | List stock movements |
+| GET | `/movements/{movement}` | Get movement details |
+| POST | `/movements` | Create a stock movement |
+| POST | `/movements/adjustments` | Create an inventory adjustment |
+
+## App Settings
+
+This module has no FormGenerator App Settings routes. See [Hub Settings](/core-concepts/hub-settings) for hubs that do.

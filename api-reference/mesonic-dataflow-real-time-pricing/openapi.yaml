@@ -1,0 +1,197 @@
+openapi: 3.0.0
+info:
+  title: MesonicDataflowRealTimePricing API
+  description: >-
+    Complete API collection for MesonicDataflowRealTimePricing — generated from
+    routes/api.php
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Misc
+  - name: Settings
+  - name: Skippable
+paths:
+  /api/v1/apps/mesonic-dataflow-real-time-pricing:
+    post:
+      tags:
+        - Misc
+      summary: Get Prices
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/mesonic-dataflow-real-time-pricing/settings:
+    get:
+      tags:
+        - Settings
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/mesonic-dataflow-real-time-pricing/settings/groups/list:
+    get:
+      tags:
+        - Settings
+      summary: Get Groups List
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/mesonic-dataflow-real-time-pricing/settings/{group}:
+    get:
+      tags:
+        - Settings
+      summary: Show
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/mesonic-dataflow-real-time-pricing/settings/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/mesonic-dataflow-real-time-pricing/settings/{group}/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/mesonic-dataflow-real-time-pricing/skippable:
+    post:
+      tags:
+        - Skippable
+      summary: Get Prices With Skippable SKUs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

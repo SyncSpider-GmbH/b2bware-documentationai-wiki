@@ -1,13 +1,35 @@
 ---
 title: Mesonic real-time pricing
-description: Installation-scoped App Settings for Mesonic Dataflow ERP live pricing — enable switch, API base URL, and API key.
+description: Mesonic Dataflow ERP live pricing — price lookup endpoints and App Settings for enable switch, API base URL, and API key.
 ---
 
 ## Overview
 
-The Mesonic Dataflow real-time pricing integration replaces catalog prices with live ERP prices for signed-in customers linked by customer number. This page documents **App Settings** only. See also [Hub Settings](/core-concepts/hub-settings).
+The Mesonic Dataflow real-time pricing integration replaces catalog prices with live ERP prices for signed-in customers linked by customer number.
 
 **Base URL:** `api/v1/apps/mesonic-dataflow-real-time-pricing/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas, see the [Mesonic real-time pricing API Reference](/api-reference/mesonic-dataflow-real-time-pricing).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Pricing" icon="chart-line">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/` | Get live ERP prices for requested SKUs |
+| POST | `/skippable` | Get prices, allowing skippable SKUs that have no ERP match |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -18,6 +40,11 @@ The Mesonic Dataflow real-time pricing integration replaces catalog prices with 
 | GET | `/settings/{group}` | Get one group (`general`) |
 | POST | `/settings/{group}` | Update one group |
 | POST | `/settings/{group}/reset` | Reset one group |
+
+See also [Hub Settings](/core-concepts/hub-settings).
+
+  </Tab>
+</Tabs>
 
 ## Settings
 

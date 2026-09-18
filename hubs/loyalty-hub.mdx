@@ -1,13 +1,154 @@
 ---
 title: LoyaltyHub
-description: Installation-scoped App Settings for loyalty programs — global toggles and enrollment channels.
+description: Loyalty programs, wallets, ledger, enrollments, rewards, payouts, checkout redemption, and App Settings.
 ---
 
 ## Overview
 
-LoyaltyHub runs points programs, redemption, and enrollment. This page documents **App Settings** only. See also [Hub Settings](/core-concepts/hub-settings).
+LoyaltyHub runs points programs, wallets, ledger entries, enrollments, rewards, receipt submissions, and payout runs. Admin routes sit behind `admin.access`; storefront/`me` and checkout routes use `auth:api` only.
 
 **Base URL:** `api/v1/apps/loyalty-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas and filters, see the [LoyaltyHub API Reference](/api-reference/loyalty-hub).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Programs" icon="gift">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/programs/statuses/list` | List program statuses |
+| GET | `/programs/account-modes/list` | List account modes |
+| GET | `/programs/earn-modes/list` | List earn modes |
+| GET | `/programs` | List loyalty programs |
+| POST | `/programs` | Create a program |
+| GET | `/programs/{program}` | Get program details |
+| PUT | `/programs/{program}` | Update a program |
+| PATCH | `/programs/{program}` | Partially update a program |
+| DELETE | `/programs/{program}` | Delete a program |
+| GET | `/programs/active` | List active programs (storefront) |
+
+**Program actions**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/program-actions/statuses/list` | List action statuses |
+| GET | `/program-actions/effect-types/list` | List effect types |
+| GET | `/program-actions/effect-targets/list` | List effect targets |
+| GET | `/program-actions/stacking-modes/list` | List stacking modes |
+| GET | `/program-actions` | List program actions |
+| POST | `/program-actions` | Create a program action |
+| GET | `/program-actions/{program_action}` | Get action details |
+| PUT | `/program-actions/{program_action}` | Update a program action |
+| PATCH | `/program-actions/{program_action}` | Partially update a program action |
+| DELETE | `/program-actions/{program_action}` | Delete a program action |
+
+**Condition schema**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/conditions/schema` | List condition schema targets |
+| GET | `/conditions/schema/{target}` | Get schema for a target |
+
+  </Tab>
+  <Tab title="Wallets & Ledger" icon="wallet">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/wallets` | List wallets |
+| POST | `/wallets` | Create a wallet |
+| GET | `/wallets/{wallet}` | Get wallet details |
+| GET | `/wallets/company/{companyId}` | Find wallet by company |
+| GET | `/wallets/customer/{customerId}` | Find wallet by customer |
+| POST | `/wallets/{id}/adjust` | Adjust wallet balance |
+| POST | `/wallets/{walletId}/revoke` | Revoke enrollment for a wallet |
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/ledger-entries` | List ledger entries |
+| POST | `/ledger-entries` | Create a ledger entry |
+| GET | `/ledger-entries/{ledger_entry}` | Get ledger entry details |
+| POST | `/ledger-entries/{id}/reverse` | Reverse a ledger entry |
+
+  </Tab>
+  <Tab title="Enrollments & Receipts" icon="user-plus">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/companies/{companyId}/enroll` | Enroll a company |
+| POST | `/customers/{customerId}/enroll` | Enroll a customer |
+| POST | `/me/enroll` | Self-enroll (storefront) |
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/receipt-submissions/statuses/list` | List receipt statuses |
+| GET | `/receipt-submissions` | List receipt submissions |
+| POST | `/receipt-submissions` | Create a receipt submission |
+| GET | `/receipt-submissions/{receipt_submission}` | Get receipt details |
+| PUT | `/receipt-submissions/{receipt_submission}` | Update a receipt |
+| PATCH | `/receipt-submissions/{receipt_submission}` | Partially update a receipt |
+| DELETE | `/receipt-submissions/{receipt_submission}` | Delete a receipt |
+| POST | `/receipt-submissions/{id}/approve` | Approve a receipt |
+| POST | `/receipt-submissions/{id}/reject` | Reject a receipt |
+
+  </Tab>
+  <Tab title="Rewards & Payouts" icon="award">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/rewards/statuses/list` | List reward statuses |
+| GET | `/rewards/fulfillment-types/list` | List fulfillment types |
+| GET | `/rewards` | List rewards |
+| POST | `/rewards` | Create a reward |
+| GET | `/rewards/{reward}` | Get reward details |
+| PUT | `/rewards/{reward}` | Update a reward |
+| PATCH | `/rewards/{reward}` | Partially update a reward |
+| DELETE | `/rewards/{reward}` | Delete a reward |
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/payout-runs` | List payout runs |
+| POST | `/payout-runs/trigger` | Trigger a payout run |
+
+  </Tab>
+  <Tab title="Storefront & Checkout" icon="shopping-bag">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/me/rewards` | List my redeemable rewards |
+| POST | `/me/rewards/{rewardId}/redeem` | Redeem a reward |
+| GET | `/products/{productId}/redeem-profile` | Product redemption profile |
+| GET | `/me/wallet` | My wallet |
+| GET | `/me/ledger` | My ledger |
+| GET | `/me/receipts` | My receipt submissions |
+| POST | `/me/receipts/media` | Upload receipt media |
+| POST | `/me/receipts` | Submit a receipt |
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/checkout/preview` | Preview points redemption |
+| POST | `/checkout/reserve` | Reserve points |
+| POST | `/checkout/confirm` | Confirm reserved points |
+| POST | `/checkout/release` | Release a reservation |
+
+  </Tab>
+  <Tab title="Dashboard" icon="gauge">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/dashboard/pending-receipts` | Pending receipts summary |
+| GET | `/dashboard/wallet-overview` | Wallet overview metrics |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -18,6 +159,11 @@ LoyaltyHub runs points programs, redemption, and enrollment. This page documents
 | GET | `/settings/{group}` | Get one group (`global`, `enrollment_channels`) |
 | POST | `/settings/{group}` | Update one group |
 | POST | `/settings/{group}/reset` | Reset one group |
+
+See also [Hub Settings](/core-concepts/hub-settings).
+
+  </Tab>
+</Tabs>
 
 ## Settings
 
