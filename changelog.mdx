@@ -24,6 +24,29 @@ description: Release history and version updates for the B2Bware DataHub platfor
 
 </Update>
 
+<Update label="2026-09-19" description="AccountingHub bank reconciliation & ProcurementHub" tags={["feature", "accounting", "procurement"]}>
+
+## AccountingHub — Bank Reconciliation
+
+- **Auto-match** — `POST /reconciliations/auto-match` scans unmatched bank transactions and links them to open documents when confidence ≥ the configurable threshold (default 0.9) with a clear runner-up gap; runs automatically after every import when enabled. New **Settings → Apps → Accounting Hub** group: `auto_match_enabled`, `auto_match_min_confidence`, `amount_tolerance`.
+- **Smarter suggestions** — candidates limited to open documents in the transaction's currency; invoices match on `balance_due`; confidence blends amount, reference, counterparty name, and booking-date proximity.
+- **Bank fees on match** — pass `fee_amount` (net settlement): the document settles on the gross `matched_amount`, the fee is stored on the reconciliation and mirrored to the ledger transaction.
+- **Documentless classification** — `POST /bank-transactions/{id}/classify` books `bank_fee` / `bank_interest` / `other` without a document so charges leave the unmatched pool with an audit trail.
+- **Unmatch** — `DELETE /reconciliations/{id}` removes a wrong link and returns the transaction to the unmatched pool; matching an already-paid invoice is now rejected with 422.
+- **Reconciliation report** — `GET /reports/reconciliation` (JSON) and `POST /reports/reconciliation/pdf` per bank account and period: opening/closing balance, credits/debits, fees, matched/classified/unmatched, per-transaction match detail.
+- **Currency guards** — imported rows inherit the account currency; cross-currency matches are rejected.
+- New hub page: [AccountingHub](/hubs/accounting-hub) with full [API reference](/api-reference/accounting-hub).
+
+## ProcurementHub
+
+- New hub page: [ProcurementHub](/hubs/procurement-hub) — purchase orders, goods receipts with automatic stock posting, vendor bills, three-way match, and document PDFs; full [API reference](/api-reference/procurement-hub).
+
+## InvoiceHub
+
+- **Credit notes as payments** — `POST /credit-notes/{id}/apply` applies an issued credit note to an open invoice as a payment, behind the `payments.credit_note_application` setting.
+
+</Update>
+
 <Update label="2026-08-18" description="Parent category branch display mode" tags={["feature", "storefront"]}>
 
 ## Parent category products on the storefront

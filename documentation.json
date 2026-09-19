@@ -346,6 +346,16 @@
                     "icon": "file-invoice"
                   },
                   {
+                    "title": "ProcurementHub",
+                    "path": "hubs/procurement-hub",
+                    "icon": "truck"
+                  },
+                  {
+                    "title": "AccountingHub",
+                    "path": "hubs/accounting-hub",
+                    "icon": "landmark"
+                  },
+                  {
                     "title": "LoyaltyHub",
                     "path": "hubs/loyalty-hub",
                     "icon": "gift"
@@ -619,6 +629,18 @@
                 "group": "StorefrontBuilderHub",
                 "icon": "layout",
                 "openapi": "api-reference/storefront-builder-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "ProcurementHub",
+                "icon": "truck",
+                "openapi": "api-reference/procurement-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "AccountingHub",
+                "icon": "landmark",
+                "openapi": "api-reference/accounting-hub/openapi.yaml",
                 "pages": []
               }
             ]

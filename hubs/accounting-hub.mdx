@@ -1,0 +1,233 @@
+---
+title: AccountingHub
+description: Bank accounts, statement imports, transaction reconciliation, department tagging, and accounting reports.
+---
+
+## Overview
+
+AccountingHub connects imported bank transactions to business documents such as invoices, credit notes, and vendor bills. It stores bank accounts, optional statement batches, transaction rows, reconciliation links, and department assignments, then books matched payments through the owning hub where supported.
+
+**Base URL:** `api/v1/apps/accounting-hub/`
+
+<Callout kind="info">
+All endpoints require bearer authentication plus the AccountingHub permission shown by the route group. List endpoints use the shared DataHub pagination contract: request `page` and `per_page`; responses are flat with `data`, `total`, `current_page`, `total_pages`, and `per_page`.
+</Callout>
+
+<Callout kind="warning" title="Currency matching">
+AccountingHub does not perform FX conversion. Imported rows without a currency inherit the bank account currency, suggestions only include same-currency documents, and manual cross-currency matches return HTTP 422.
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Bank accounts">
+
+Bank accounts can be manual accounts or connected provider accounts. They carry `currency`, `status`, and `last_imported_at`; imported transaction rows inherit the account currency when their row omits one.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/bank-accounts` | List bank accounts. Supports filters: `id`, `name`, `provider`, `status`, `currency`. |
+| POST | `/bank-accounts` | Create a bank account. |
+| GET | `/bank-accounts/{id}` | Get bank account details. |
+| PUT | `/bank-accounts/{id}` | Update a bank account. |
+| DELETE | `/bank-accounts/{id}` | Delete a bank account. |
+| GET | `/bank-accounts/{bankAccount}/connection` | Inspect provider connection status and whether a provider is configured. |
+| POST | `/bank-accounts/{bankAccount}/authorize` | Start provider authorization and return the authorization URL/access descriptor. |
+| POST | `/bank-accounts/{bankAccount}/callback` | Finalize provider authorization after the bank redirect. |
+| POST | `/bank-accounts/{bankAccount}/import` | Import transactions from the provider or from a manual `statement` + `transactions[]` payload. |
+
+Create/update fields:
+
+| Field | Notes |
+|---|---|
+| `name` | Required account label. |
+| `provider` | Optional provider key, for example `banksapi`. |
+| `iban_masked` | Optional masked IBAN. |
+| `currency` | Optional ISO currency used as the fallback for imported rows. |
+| `status` | `pending`, `connected`, `disconnected`, or `error`; defaults to `pending`. |
+
+Manual import example:
+
+```json
+{
+  "statement": {
+    "provider_statement_id": "stmt-2026-09",
+    "from_date": "2026-09-01",
+    "to_date": "2026-09-30",
+    "opening_balance": 1000,
+    "closing_balance": 1098.5,
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "provider_transaction_id": "tx-1001",
+      "booking_date": "2026-09-18",
+      "value_date": "2026-09-18",
+      "amount": 98.5,
+      "direction": "credit",
+      "counterparty_name": "ACME GmbH",
+      "counterparty_iban": "DE89370400440532013000",
+      "reference": "Invoice INV-1001"
+    }
+  ]
+}
+```
+
+Imports deduplicate by `provider_transaction_id` per account. If `reconciliation.auto_match_enabled` is enabled, the import finishes with a best-effort auto-match run and returns its summary under `auto_match`; auto-match failures are logged but do not fail the import.
+
+  </Tab>
+  <Tab title="Statements & transactions">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/bank-statements` | List read-only statement batches. Supports filters: `id`, `bank_account_id`, `currency`. |
+| GET | `/bank-transactions` | List read-only imported bank transactions. Supports filters: `id`, `bank_account_id`, `bank_statement_id`, `status`, `direction`, `department_id`, `reference`, `counterparty_name`, `counterparty_iban`, `amount`, `booking_date`. |
+| GET | `/bank-transactions/{id}` | Get one bank transaction. |
+
+`BankTransaction.amount` is signed; `direction` is `debit` or `credit`; `status` moves from `unmatched` to `matched` and can later become `reconciled`.
+
+  </Tab>
+  <Tab title="Reconciliation">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/reconciliations` | List reconciliation links. Supports filters: `id`, `bank_transaction_id`, `document_type`, `document_id`, `status`. |
+| GET | `/reconciliations/{id}` | Get one reconciliation link. |
+| DELETE | `/reconciliations/{reconciliation}` | Unmatch: delete a reconciliation link and return the bank transaction to `unmatched` when this was its last link. |
+| GET | `/bank-transactions/{bankTransaction}/suggestions` | Rank open document candidates for a transaction. |
+| POST | `/bank-transactions/{bankTransaction}/match` | Manually match a bank transaction to an invoice, credit note, or vendor bill. |
+| POST | `/bank-transactions/{bankTransaction}/classify` | Classify a documentless transaction as `bank_fee`, `bank_interest`, or `other`. |
+| POST | `/reconciliations/auto-match` | Scan unmatched transactions and match only clear, high-confidence suggestions. |
+
+Suggestions are restricted to open documents in the same currency and the caller's department scope. Incoming credits suggest invoices and settled Mollie payout ledger transactions; outgoing debits suggest vendor bills and credit notes. Invoices compare against `balance_due`, while other documents compare against `total`.
+
+Confidence scoring is capped at `1.0`:
+
+| Signal | Weight |
+|---|---:|
+| Amount within `reconciliation.amount_tolerance` | `0.6` |
+| Document number appears in the bank reference | `+0.4` |
+| Counterparty name overlaps | `+0.2` |
+| Booking date is within seven days of the document date | `+0.1` |
+
+Manual match example:
+
+```json
+{
+  "document_type": "invoice",
+  "document_id": 14,
+  "matched_amount": 100,
+  "fee_amount": 1.5
+}
+```
+
+`matched_amount` is the **gross** amount that settles the document. If omitted, it defaults to `abs(transaction.amount) + fee_amount`. `fee_amount` stores bank or PSP fees; if omitted and `matched_amount` is larger than the net bank amount, AccountingHub derives the fee as `matched_amount - abs(transaction.amount)`. For invoices, the match uses InvoiceHub's payment pipeline with `payment_uuid = bank-tx-{id}` and mirrors `fee_amount` onto the ledger row.
+
+Documentless classification example:
+
+```json
+{
+  "classification": "bank_fee",
+  "note": "Monthly maintenance fee"
+}
+```
+
+Classification creates a reconciliation without `document_id`, sets `match_method` to `classification`, marks the transaction `matched`, and is idempotent per transaction and classification.
+
+Auto-match accepts optional `bank_account_id` and `limit` (1–500). A transaction is matched only when the top suggestion reaches `reconciliation.auto_match_min_confidence` and leads the runner-up by at least `0.1`; ambiguous or low-confidence items remain for manual review. The response summary contains `scanned`, `matched[]`, `skipped_ambiguous`, `skipped_low_confidence`, and `failed`.
+
+  </Tab>
+  <Tab title="Departments & documents">
+
+Departments drive report grouping and department-scoped visibility.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/departments` | List departments. Supports filters: `id`, `name`, `code`. |
+| POST | `/departments` | Create a department. |
+| GET | `/departments/{id}` | Get a department. |
+| PUT | `/departments/{id}` | Update a department. |
+| DELETE | `/departments/{id}` | Delete a department. |
+| PUT | `/documents/{type}/{id}/departments` | Assign departments to a source document. `type` is `invoice`, `credit-note`, or `vendor-bill`. |
+
+Department payload:
+
+```json
+{
+  "name": "Sales",
+  "code": "SALES",
+  "user_ids": [12, 13],
+  "bank_account_id": 1
+}
+```
+
+Document assignment stamps `department_ids` directly onto the source document:
+
+```json
+{ "department_ids": [1, 2] }
+```
+
+Restricted operators can only re-tag documents already inside their department scope. Admins and roles with `accounting-hub.documents.view-all` are unrestricted.
+
+  </Tab>
+  <Tab title="Reports">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/reports/revenue-receivables` | Invoice count, invoiced total, paid total, outstanding total, and counts by status. |
+| GET | `/reports/payables` | Vendor bill count, billed total, paid total, outstanding total, and counts by status. |
+| GET | `/reports/credit-notes` | Credit note count, total, refunded total, and counts by refund status. |
+| GET | `/reports/department-profit-loss` | Inflow, outflow, and net grouped by department. |
+| GET | `/reports/reconciliation-status` | Transaction status counts, credit/debit totals, matched/unmatched totals, and reconciliation count. |
+| GET | `/reports/reconciliation` | Period reconciliation report for one account. Query: required `bank_account_id`, `from`, `to` (`Y-m-d`; `to` must be after or equal to `from`). |
+| POST | `/reports/reconciliation/pdf` | Render the same reconciliation report as a PDF and store it in MediaHub. Body: required `bank_account_id`, `from`, `to` with the same validation. |
+
+The reconciliation report derives opening and closing balances from imported transaction history and returns totals for credits, debits, net movement, fees, transaction count, matched count, classified count, unmatched count, per-transaction match details, and unmatched leftovers. The PDF endpoint requires StorefrontBuilderHub and MediaHub and returns `pdf_url` plus `pdf_media_id`.
+
+  </Tab>
+  <Tab title="Settings">
+
+Settings are exposed under **Settings → Apps → Accounting Hub** and through the `reconciliation` group.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/settings/groups/list` | List available settings groups. |
+| GET | `/settings` | Read all AccountingHub settings. |
+| POST | `/settings` | Save all AccountingHub settings. |
+| POST | `/settings/reset` | Reset all AccountingHub settings to defaults. |
+| GET | `/settings/{group}` | Read one settings group, for example `reconciliation`. |
+| POST | `/settings/{group}` | Save one settings group. |
+| POST | `/settings/{group}/reset` | Reset one settings group to defaults. |
+
+`reconciliation` settings:
+
+| Key | Type | Default | Meaning |
+|---|---|---:|---|
+| `auto_match_enabled` | switch | `false` | Run automatic matching after every successful bank import. |
+| `auto_match_min_confidence` | number | `0.9` | Minimum confidence for an automatic match; clamped from `0.5` to `1`. |
+| `amount_tolerance` | number | `0.01` | Absolute amount tolerance when comparing bank amount and document amount in the document currency. |
+
+  </Tab>
+</Tabs>
+
+## Permissions
+
+| Permission | Purpose |
+|---|---|
+| `accounting-hub.bank-accounts.view` | View bank accounts, statements, and transactions. |
+| `accounting-hub.bank-accounts.create` | Create bank accounts. |
+| `accounting-hub.bank-accounts.update` | Update bank accounts. |
+| `accounting-hub.bank-accounts.delete` | Delete bank accounts. |
+| `accounting-hub.bank-accounts.connect` | Authorize providers and import bank data. |
+| `accounting-hub.reconciliation.perform` | View reconciliation records, suggestions, manual matches, classifications, and auto-match. |
+| `accounting-hub.documents.assign-department` | Assign department tags to documents. |
+| `accounting-hub.documents.view-all` | Bypass department scope for accounting documents and reports. |
+| `accounting-hub.reports.view` | View accounting reports. |
+| `accounting-hub.settings.view` | View AccountingHub settings. |
+| `accounting-hub.settings.update` | Update AccountingHub settings. |
+
+## Related
+
+- [ProcurementHub](/hubs/procurement-hub) — vendor bills that can be paid by bank reconciliation.
+- [OrderHub](/hubs/order-hub) — order and payment lifecycle context.
+- [Common Patterns](/core-concepts/common-patterns) — pagination, filters, sorting, and error responses.
