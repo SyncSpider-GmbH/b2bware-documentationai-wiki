@@ -139,7 +139,7 @@ makes it manual and rate changes will no longer overwrite it. See
 | GET | `/enrichments/completeness` | Completeness badge score vs Attribute Hub required fields (`complete` / `partial` / `empty`) |
 
 <Callout kind="info">
-`POST /enrichments/job/run` requires `dry_run: true` and never writes catalog fields. Optimize (API `mode=rewrite`) needs `rewrite_confirmed: true`. An empty SEO field map skips SEO with a preview warning. Image and category scopes return stub plan steps. Job progress is available for about one hour. `POST /enrichments/job/apply` writes only the accepted fields from that preview.
+`POST /enrichments/job/run` requires `dry_run: true` and never writes catalog fields. Send `product_id`, `product_ids[]`, and/or `match_filter` plus the list `filter` (cap 500). Optimize (API `mode=rewrite`) needs `rewrite_confirmed: true`. An empty SEO field map skips SEO with a preview warning. Image and category scopes return stub plan steps. Job progress is available for about one hour and includes per-product status on bulk runs. `POST /enrichments/job/apply` writes only the accepted fields from that preview (`product_id` + `field` on bulk jobs).
 </Callout>
 
 **Customer Groups**
