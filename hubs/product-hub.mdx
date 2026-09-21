@@ -139,7 +139,7 @@ makes it manual and rate changes will no longer overwrite it. See
 | GET | `/enrichments/completeness` | Completeness badge score vs Attribute Hub required fields (`complete` / `partial` / `empty`) |
 
 <Callout kind="info">
-`POST /enrichments/job/run` requires `dry_run: true` and never writes catalog fields. Rewrite mode needs `rewrite_confirmed: true`. An empty SEO field map skips SEO with a preview warning. Image and category scopes return stub plan steps. Job progress is available for about one hour. `POST /enrichments/job/apply` writes only the accepted fields from that preview.
+`POST /enrichments/job/run` requires `dry_run: true` and never writes catalog fields. Optimize (API `mode=rewrite`) needs `rewrite_confirmed: true`. An empty SEO field map skips SEO with a preview warning. Image and category scopes return stub plan steps. Job progress is available for about one hour. `POST /enrichments/job/apply` writes only the accepted fields from that preview.
 </Callout>
 
 **Customer Groups**
@@ -884,7 +884,9 @@ Nested under `parent_product_price_if_missing` per marketplace (`e_bay`, `etsy`)
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `default_mode` | select | `only_missing` | `only_missing` never overwrites filled fields. `rewrite` requires an explicit confirm on each run. |
+| `default_mode` | select | `only_missing` | `only_missing` never overwrites filled fields. `rewrite` is Optimize and requires an explicit confirm on each run. |
+| `listing_length.product.*` | number | name 8/12, short 40/60, description 180/250 | Approx. word-count target / max for product listing Optimize. |
+| `listing_length.category.*` | number | name 6/10, short 30/50, description 120/180 | Placeholders for later category listing Optimize. |
 | `skills.gap_report` | boolean | `true` | Enable gap report skill. |
 | `skills.fill_attributes` | boolean | `true` | Enable structured attribute fill (Attribute Hub enums only). |
 | `skills.write_listing` | boolean | `true` | Enable listing copy skill (`name`, `description`, `short_description`). |
