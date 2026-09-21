@@ -3,6 +3,17 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-09-21" description="ProductHub listing-text Optimize" tags={["feature", "product-hub"]}>
+
+## ProductHub — Listing Optimize
+
+- Enrich Listing texts can **Optimize** already filled name, short description, and description. The run is still a dry-run preview; apply writes only accepted fields.
+- Optimize maps to API `mode=rewrite` and requires `rewrite_confirmed`.
+- New settings `listing_length.product.*` and `listing_length.category.*` hold approx. word-count targets. Category Optimize is a placeholder until that runner ships.
+- See [ProductHub → Settings → Enrichment](/hubs/product-hub#enrichment--settings-reference).
+
+</Update>
+
 <Update label="2026-09-20" description="ProductHub Enrichment draft job API" tags={["feature", "product-hub"]}>
 
 ## ProductHub — Enrichment job

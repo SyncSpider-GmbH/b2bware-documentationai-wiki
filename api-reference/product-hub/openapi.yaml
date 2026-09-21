@@ -1349,7 +1349,7 @@ paths:
       tags:
         - Enrichments
       summary: Run
-      description: Draft-only. Never persists. dry_run must be true. mode=rewrite requires rewrite_confirmed=true.
+      description: Draft-only. Never persists. dry_run must be true. Listing Optimize is mode=rewrite and requires rewrite_confirmed=true.
       requestBody:
         required: true
         content:
