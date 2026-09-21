@@ -136,10 +136,11 @@ makes it manual and rate changes will no longer overwrite it. See
 | POST | `/enrichments/job/run` | Queue a draft-only product enrichment job. Never persists catalog fields. |
 | GET | `/enrichments/job/progress` | Poll enrichment job progress and the draft proposal payload |
 | POST | `/enrichments/job/apply` | Persist only accepted preview fields. Recalculates completeness. |
+| POST | `/enrichments/ownership/unlock` | Clear field ownership so a later File Feed / ERP sync may write those fields again |
 | GET | `/enrichments/completeness` | Completeness badge score vs Attribute Hub required fields (`complete` / `partial` / `empty`) |
 
 <Callout kind="info">
-`POST /enrichments/job/run` requires `dry_run: true` and never writes catalog fields. Send `product_id`, `product_ids[]`, and/or `match_filter` plus the list `filter` (cap 500). Optimize (API `mode=rewrite`) needs `rewrite_confirmed: true`. An empty SEO field map skips SEO with a preview warning. Image and category scopes return stub plan steps. Job progress is available for about one hour and includes per-product status on bulk runs. `POST /enrichments/job/apply` writes only the accepted fields from that preview (`product_id` + `field` on bulk jobs).
+`POST /enrichments/job/run` requires `dry_run: true` and never writes catalog fields. Send `product_id`, `product_ids[]`, and/or `match_filter` plus the list `filter` (cap 500). Optimize (API `mode=rewrite`) needs `rewrite_confirmed: true`. An empty SEO field map skips SEO with a preview warning. Image and category scopes return stub plan steps. Job progress is available for about one hour and includes per-product status on bulk runs. `POST /enrichments/job/apply` writes only the accepted fields from that preview (`product_id` + `field` on bulk jobs). File Feed / ERP product sync does not overwrite `enrich_owned` or `manual_lock` fields until you unlock them. SKU, prices, stock, and identity IDs stay ERP-writable and are never written by Enrichment.
 </Callout>
 
 **Customer Groups**
