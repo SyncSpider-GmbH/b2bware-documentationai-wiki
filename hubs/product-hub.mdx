@@ -129,6 +129,17 @@ makes it manual and rate changes will no longer overwrite it. See
 | POST | `/translations/job/run` | Trigger AI translation job |
 | GET | `/translations/job/progress` | Check translation job progress |
 
+**Enrichments**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/enrichments/job/run` | Queue a draft-only product enrichment job. Never persists catalog fields. |
+| GET | `/enrichments/job/progress` | Poll enrichment job progress and the draft proposal payload |
+
+<Callout kind="info">
+`POST /enrichments/job/run` requires `dry_run: true` and never writes catalog fields. Rewrite mode needs `rewrite_confirmed: true`. An empty SEO field map skips SEO with a preview warning. Image and category scopes return stub plan steps. Job progress is available for about one hour.
+</Callout>
+
 **Customer Groups**
 
 | Method | Endpoint | Description |
@@ -154,7 +165,7 @@ makes it manual and rate changes will no longer overwrite it. See
 | GET | `/settings` | Get all ProductHub settings |
 | POST | `/settings` | Update ProductHub settings |
 | POST | `/settings/reset` | Reset all groups to defaults |
-| GET | `/settings/{group}` | Get one settings group (`stock`, `visibility`, `destination_pricing`, `pricing`) |
+| GET | `/settings/{group}` | Get one settings group (`stock`, `visibility`, `destination_pricing`, `pricing`, `enrichment`) |
 | POST | `/settings/{group}` | Update one settings group |
 | POST | `/settings/{group}/reset` | Reset one group to defaults |
 
@@ -810,7 +821,7 @@ curl -s -X GET \
 
 ProductHub settings are edited in the admin under **ProductHub → Settings** (also
 available via the `/settings` endpoints above). Groups: `stock`, `visibility`,
-`destination_pricing`, `pricing`. See also [Hub Settings](/core-concepts/hub-settings).
+`destination_pricing`, `pricing`, `enrichment`. See also [Hub Settings](/core-concepts/hub-settings).
 
 ### Settings Groups
 
@@ -862,6 +873,35 @@ Nested under `parent_product_price_if_missing` per marketplace (`e_bay`, `etsy`)
 |---------|------|---------|-------------|
 | `group_source` | select | `customer` | Which group drives group/tier prices: `customer`, `company`, `customer_then_company`, or `company_then_customer`. |
 | `tier_quantity_comparison` | select | `gte` | When a volume tier applies: `gte` (at or above min qty) or `gt` (strictly above min qty). |
+
+</Expandable>
+
+<Expandable title="enrichment — Settings Reference" default-open="false">
+
+**enrichment** — Product Enrichment. AI calls go through AiHub only. This settings group does not write marketing copy by itself.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `default_mode` | select | `only_missing` | `only_missing` never overwrites filled fields. `rewrite` requires an explicit confirm on each run. |
+| `skills.gap_report` | boolean | `true` | Enable gap report skill. |
+| `skills.fill_attributes` | boolean | `true` | Enable structured attribute fill (Attribute Hub enums only). |
+| `skills.write_listing` | boolean | `true` | Enable listing copy skill (`name`, `description`, `short_description`). |
+| `skills.seo` | boolean | `true` | Enable SEO fill. Runtime still requires a configured SEO map. |
+| `skills.localize` | boolean | `false` | Localize skill (off by default). |
+| `skills.categorize` | boolean | `false` | Category suggestions (off by default). |
+| `skills.images` | boolean | `false` | Images skill (off by default). |
+| `dos` / `donts` | textarea | empty | Tone / guardrail stubs. |
+| `source_locale` | text | `en-EN` | Source locale. |
+| `target_locales` | text | `en-EN` | Comma-separated target locales. |
+| `seo.meta_title` / `seo.meta_description` / `seo.slug` / `seo.focus_keyphrase` | text | empty | Field-code map. SEO fill runs only when at least one is set. |
+| `external.supplier_crawl` | boolean | `false` | Supplier URL crawl. **Default off.** |
+| `external.competitor_crawl` | boolean | `false` | Competitor URL crawl. **Default off.** |
+| `external.image_fetch` | boolean | `false` | Fetch images from supplier URLs. **Default off.** |
+| `images.generation_enabled` | boolean | `false` | AI image generation (off by default). |
+| `images.apply_disclosure` | boolean | `false` | AI image disclosure badge (off by default). |
+| `images.disclosure_position` | select | `bottom-right` | Badge corner. |
+
+Enrichment never writes SKU, prices, stock, or identity IDs. AI-filled merchandising fields stay protected from silent overwrite; a merchandiser edit locks them.
 
 </Expandable>
 

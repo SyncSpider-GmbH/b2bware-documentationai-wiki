@@ -3,6 +3,34 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-09-20" description="ProductHub Enrichment draft job API" tags={["feature", "product-hub"]}>
+
+## ProductHub — Enrichment job
+
+- New endpoints: `POST /enrichments/job/run` and `GET /enrichments/job/progress`.
+- Run is **draft-only** (`dry_run` required). Catalog fields are never written from this path.
+- `mode=rewrite` requires `rewrite_confirmed`. Empty SEO map skips SEO with a warning. Image and category scopes are stub plan steps.
+- Progress returns `job_id` plus a draft payload (`before` / `after` / `source` / `accepted`). Progress is available for about one hour.
+- AI runs only through AiHub (same availability gate as Mass Translate).
+
+</Update>
+
+<Update label="2026-09-20" description="ProductHub Enrichment settings and field ownership" tags={["feature", "product-hub"]}>
+
+## ProductHub — Enrichment settings
+
+- New App Settings group **`enrichment`**: default mode `only_missing`, skill toggles, do’s/don’ts, locales, SEO field map placeholders.
+- Supplier crawl, competitor crawl, and image fetch **default off**.
+- Image generation / AI disclosure keys stay off until configured.
+- See [ProductHub → Settings → Enrichment](/hubs/product-hub#enrichment--settings-reference).
+
+## ProductHub — Field ownership
+
+- Enrichment never writes SKU, prices, stock, or identity IDs.
+- AI-filled merchandising fields stay protected from silent overwrite; a merchandiser edit locks them.
+
+</Update>
+
 <Update label="2026-09-17" description="Complete hub settings field references" tags={["docs"]}>
 
 ## Hub Settings documentation

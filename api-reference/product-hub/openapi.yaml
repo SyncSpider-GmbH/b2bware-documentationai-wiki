@@ -26,6 +26,7 @@ tags:
   - name: Products
   - name: Stock
   - name: Translations
+  - name: Enrichments
   - name: Vendor
   - name: Warehouses
 paths:
@@ -1318,6 +1319,95 @@ paths:
           description: Successful response
           content:
             application/json: {}
+  /api/v1/apps/product-hub/enrichments/job/progress:
+    get:
+      tags:
+        - Enrichments
+      summary: Progress
+      parameters:
+        - name: installation_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: job_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Draft progress payload (status, job_id, plan_steps, warnings, proposals)
+          content:
+            application/json: {}
+        '404':
+          description: Job not started
+        '422':
+          description: Missing installation_key or job_id
+  /api/v1/apps/product-hub/enrichments/job/run:
+    post:
+      tags:
+        - Enrichments
+      summary: Run
+      description: Draft-only. Never persists. dry_run must be true. mode=rewrite requires rewrite_confirmed=true.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - installation_key
+                - product_id
+                - scopes
+                - dry_run
+              properties:
+                installation_key:
+                  type: string
+                product_id:
+                  type: integer
+                scopes:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - attributes
+                      - texts
+                      - seo
+                      - images
+                      - categories
+                      - translate
+                      - full
+                mode:
+                  type: string
+                  enum:
+                    - only_missing
+                    - rewrite
+                rewrite_confirmed:
+                  type: boolean
+                dry_run:
+                  type: boolean
+                language_code:
+                  type: string
+              example:
+                installation_key: '{{installation_key}}'
+                product_id: 1
+                scopes:
+                  - attributes
+                  - texts
+                mode: only_missing
+                rewrite_confirmed: false
+                dry_run: true
+                language_code: en-EN
+      responses:
+        '200':
+          description: Queued
+          content:
+            application/json: {}
+        '422':
+          description: Validation or AiHub unavailable
+        '503':
+          description: AiHub availability check failed internally
   /api/v1/apps/product-hub/translations/upsert/bulk:
     put:
       tags:

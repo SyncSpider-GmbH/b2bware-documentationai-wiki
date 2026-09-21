@@ -181,6 +181,7 @@ The most complex hub. Manages products, categories, pricing, stock, media, varia
 **Media**: CRUD at `/media`
 **Vendors**: CRUD at `/vendors`
 **Translations**: CRUD at `/translations`, `PUT /translations/upsert/single`, `PUT /translations/upsert/bulk`, `POST /translations/job/run`, `GET /translations/job/progress`
+**Enrichments**: `POST /enrichments/job/run` (draft-only), `GET /enrichments/job/progress`
 **Customer Groups**: CRUD at `/customer/groups`
 
 ### Product Filters (26 total)
