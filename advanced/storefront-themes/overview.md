@@ -59,6 +59,7 @@ here.
 | [Styling](styling.md) | Tailwind-first, the head cascade |
 | [Design tokens](tokens.md) | Full token reference, dark mode |
 | [Author checklist](checklist.md) | Override strategy, pre-upload checklist |
+| [Site to theme (visual parity)](/resources/site-to-theme/overview) | Measure-first rebuild of any live site section into Blade |
 
 ## Keeping an old download current
 

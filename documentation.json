@@ -530,6 +530,11 @@
                         "title": "Author Checklist",
                         "path": "advanced/storefront-themes/checklist",
                         "icon": "check-square"
+                      },
+                      {
+                        "title": "Site to Theme (Visual Parity)",
+                        "path": "resources/site-to-theme/overview",
+                        "icon": "scan"
                       }
                     ]
                   }

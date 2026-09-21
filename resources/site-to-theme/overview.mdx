@@ -1,0 +1,79 @@
+---
+title: Site to theme (visual parity)
+description: Measure-first workflow to rebuild any live website section inside a Theme_B2Bware Blade theme — with pixel-diff acceptance.
+---
+
+Rebuild an existing shop or marketing page **accurately** into a
+[Blade storefront theme](/advanced/storefront-themes/overview). This is for
+**parity** (legacy shop → Theme_B2Bware, competitor chrome → your theme), not
+for greenfield redesign.
+
+<Callout kind="info">
+Screenshots alone are a weak build instruction. Agents (and humans) must
+**measure** live CSS (`getComputedStyle`) and treat screenshots as
+**acceptance** only.
+</Callout>
+
+## Toolkit
+
+Open-source repo (skill + scripts):
+
+**[SyncSpider-GmbH/b2bware-site-to-theme](https://github.com/SyncSpider-GmbH/b2bware-site-to-theme)**
+
+| Piece | What it does |
+| --- | --- |
+| Cursor / Claude skill `site-to-theme` | Forces measure → SPEC → implement → pixel-diff |
+| `scripts/compare-screenshots.mjs` | Pixel-diff two PNGs (`pixelmatch`) — GO / NO-GO |
+| SPEC template | Per-section tokens, selectors, deltas |
+| Measure snippet | Browser helper to dump computed styles as JSON |
+
+Install the skill (Cursor example):
+
+```bash
+git clone https://github.com/SyncSpider-GmbH/b2bware-site-to-theme.git
+mkdir -p ~/.cursor/skills
+ln -sf "$(pwd)/b2bware-site-to-theme/skills/site-to-theme" ~/.cursor/skills/site-to-theme
+```
+
+Then restart Cursor / your agent session. Ask the assistant to use the
+**site-to-theme** skill when migrating a section.
+
+Pixel-diff:
+
+```bash
+cd b2bware-site-to-theme
+npm install
+node scripts/compare-screenshots.mjs source.png theme.png --out diff.png --threshold 0.1
+```
+
+## Workflow (one section at a time)
+
+1. **Scope** — source URL, theme URL, section (`header`, `footer`, `pdp`, `cart`, …), viewport (e.g. 1350px), login if needed.
+2. **Measure source** — DOM + `getComputedStyle` (font sizes in **px**, colours, padding, image natural vs rendered size).
+3. **Write a SPEC** — fill the template from the repo; store it in the theme repo or your ops notes.
+4. **Implement** in Theme_B2Bware (Default/Starter). Obey [Hard rules](/advanced/storefront-themes/hard-rules). Prefer explicit CSS when a Tailwind utility is not in the precompiled set.
+5. **Accept** — same viewport screenshots of source vs theme; run the compare script; fix **named CSS properties** until GO (or document intentional platform deltas).
+
+Do **not** dump React/Next/HTML from generic “AI site cloners” into the theme zip. Map structure to Blade partials and the storefront contract.
+
+## Optional: extract tokens without Figma
+
+If the brand has no Figma file, you can extract a first-pass token file from any
+public URL with community tools such as
+[extract-design-system](https://github.com/arvindrk/extract-design-system)
+(`tokens.css` + `DESIGN.md`). Treat that as a starting SoT; still measure
+section-critical nodes on the live source.
+
+## What we do not recommend for Blade parity
+
+- MagicPath / screenshot-to-code as a 1:1 shop cloner (great for **redesign**, weak for parity)
+- Morph / generic site cloners that emit Next/React (use their **measurements** if useful; discard foreign app code)
+- Eyeballing ALT/NEU screenshots without a SPEC
+
+## Related
+
+- [Storefront Themes overview](/advanced/storefront-themes/overview)
+- [Hard rules](/advanced/storefront-themes/hard-rules)
+- [Styling](/advanced/storefront-themes/styling)
+- [Download AI Skill (DataHub API)](/ai-tools/download-skill)
+- [Cursor setup](/ai-tools/cursor)
