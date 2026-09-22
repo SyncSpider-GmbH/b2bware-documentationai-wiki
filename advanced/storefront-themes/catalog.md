@@ -13,7 +13,7 @@ The catalog pages — `products.blade.php` (the All Products index) and `categor
 | --------------------- | --------------- | ------------------------------------------------------------------------------------------------------- |
 | `$products`           | LengthAwarePaginator | The product result set (already filtered / sorted / paginated). Use `->total()`, `->firstItem()`, `->lastItem()`, and iterate for cards. Present only when `$showProducts` is true (otherwise `null`). |
 | `$filters`            | array           | `['q' => '<search>']` — the active free-text query (echoed from the header search).                     |
-| `$sort`               | string          | The active sort key (see below). Default `'relevance'`.                                                  |
+| `$sort`               | string          | The active sort key. When the URL has no `sort`, this is the store's default sorting attribute (`<attribute_code>` or `-<attribute_code>`) or `'relevance'`. An explicit `sort` query, including `relevance`, is echoed as-is. |
 | `$sortOptions`        | array           | **Dynamic** sort entries `['key' => '<attribute_code>'|'-<attribute_code>', 'label' => '<name> ↑/↓']` from attributes flagged `use_for_sorting`. Append them after the five native options. |
 | `$view`              | string          | `'grid'` or `'list'` — the active listing layout.                                                       |
 | `$facets`             | Collection      | **Contextual** attribute facets: `['id', 'name', 'values' => ['<label>', …]]`. Only values present in the current result set appear (layered navigation); no counts. Empty when the tenant has no filterable attributes. |
@@ -50,7 +50,7 @@ Catalog filters are **plain `GET` forms** — never `@storefrontForm` (no route 
 | Param            | Shape                                  | Notes                                                                       |
 | ---------------- | -------------------------------------- | --------------------------------------------------------------------------- |
 | `q`              | string                                 | Free-text search (set by the header search form).                           |
-| `sort`           | `relevance\|newest\|oldest\|name_asc\|name_desc\|<attribute_code>\|-<attribute_code>` | Native keys + any `$sortOptions` key. Unknown keys fall back to natural order. |
+| `sort`           | `relevance\|newest\|oldest\|name_asc\|name_desc\|<attribute_code>\|-<attribute_code>` | Native keys + any `$sortOptions` key. Unknown keys fall back to natural order. Omitted `sort` applies the store's default sorting attribute in its configured direction when one is set; a present `sort` always wins. |
 | `attr[<id>][]`   | repeated                               | Selected attribute-value labels per filterable attribute id.                |
 | `price_min` / `price_max` | number                        | Price range (only honored when `$priceFilterEnabled`).                      |
 | `in_stock`       | `1`                                    | In-stock only (only honored when `$inStockAvailable`).                       |

@@ -59,6 +59,7 @@ Public names match the theme `$store` bag. Underlying storage keys are noted whe
 | `quick_order_enabled` | boolean | `false` | Quick Order & CSV upload. Stored as `quick_order.enabled`. |
 | `mcp_enabled` | boolean | `false` | Buyers may connect an AI assistant over MCP. Stored as `mcp.enabled`. |
 | `variation_display_mode` | select (`table` / `dropdown`) | `table` | How configurable variants are presented. Stored as `product.variation_display_mode`. |
+| Default sorting attribute | number \| null | `null` | Optional product attribute id stored as `product.default_sort_attribute_id`. Applied on All Products and category listings when the URL has no `sort`. Direction is `product.default_sort_direction` (`asc` default, or `desc`). Only attributes flagged `use_for_sorting` are selectable, and a saved id that is no longer sortable is ignored. An explicit `sort` (including `relevance`) wins. Themes see the result as `$sort` (`<attribute_code>` or `-<attribute_code>`), not a new `$store` key. |
 | `branch_display_mode` | select (`children` / `products` / `both`) | `children` | Parent category pages with children. Stored as `categories.branch_display_mode`. |
 | `indexable` | boolean | `true` | Search engines may index. False when `seo.robots` is `noindex`. |
 
