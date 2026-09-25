@@ -29,6 +29,32 @@ paths:
       tags:
         - BillingAddresses
       summary: Index
+      description: >-
+        Lists billing addresses. Supports `include` for `attributeValues`,
+        nested attribute value/translation/group relations, and the virtual
+        `attributeCollections` include. Supports native sorting by `id`,
+        `name`, `city`, `zip`, `country`, `_created_at`, `_updated_at`, plus
+        billing-address custom attribute codes flagged `use_for_sorting=true`.
+        Supports `filter[<attribute_code>]` for billing-address custom
+        attributes flagged `use_for_admin_filtering=true`.
+      parameters:
+        - name: include
+          in: query
+          schema:
+            type: string
+          description: Comma-separated includes.
+          example: attributeValues,attributeValues.value,attributeValues.value.translation,attributeValues.value.attribute,attributeValues.value.attribute.translation,attributeValues.value.attribute.group,attributeCollections
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Native field or sortable custom attribute code. Prefix with `-` for descending order.
+          example: -_updated_at
+        - name: filter[<attribute_code>]
+          in: query
+          schema:
+            type: string
+          description: JSON filter expression for a billing-address custom attribute flagged for admin filtering.
       responses:
         '200':
           description: Successful response
@@ -38,12 +64,36 @@ paths:
       tags:
         - BillingAddresses
       summary: Store
+      description: >-
+        Supports optional `attributes` entries of the form `{attribute_id,
+        value, auto_create_value}`. Use `value: null` on update to remove an
+        existing custom-attribute value. Invalid attribute payloads return HTTP
+        422.
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                name: Acme Billing
+                company_name: Acme GmbH
+                first_name: Jane
+                last_name: Doe
+                email: billing@example.com
+                phone: '+49123456789'
+                address_line_1: Main Street 1
+                address_line_2: Floor 2
+                city: Berlin
+                zip: '10115'
+                state: BE
+                country: DE
+                customer_id: 123
+                type: customer
+                default: true
+                attributes:
+                  - attribute_id: 17
+                    value: Accounts payable
+                    auto_create_value: true
       parameters:
         - name: Content-Type
           in: header
@@ -55,12 +105,24 @@ paths:
           description: Successful response
           content:
             application/json: {}
+        '422':
+          description: Validation error, including invalid `attributes` shape.
   /api/v1/apps/customer-hub/billingAddresses/{id}:
     get:
       tags:
         - BillingAddresses
       summary: Show
+      description: >-
+        Returns one billing address. Supports `include` for `attributeValues`,
+        nested attribute value/translation/group relations, and the virtual
+        `attributeCollections` include.
       parameters:
+        - name: include
+          in: query
+          schema:
+            type: string
+          description: Comma-separated includes.
+          example: attributeValues,attributeValues.value,attributeValues.value.translation,attributeValues.value.attribute,attributeValues.value.attribute.translation,attributeValues.value.attribute.group,attributeCollections
         - name: id
           in: path
           schema:
@@ -75,12 +137,28 @@ paths:
       tags:
         - BillingAddresses
       summary: Update
+      description: >-
+        Supports optional `attributes` entries of the form `{attribute_id,
+        value, auto_create_value}`. Use `value: null` on update to remove an
+        existing custom-attribute value. Invalid attribute payloads return HTTP
+        422.
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                name: Acme Billing
+                address_line_1: Main Street 2
+                city: Berlin
+                zip: '10115'
+                country: DE
+                customer_id: 123
+                type: customer
+                attributes:
+                  - attribute_id: 17
+                    value: null
+                    auto_create_value: false
       parameters:
         - name: Content-Type
           in: header
@@ -97,6 +175,8 @@ paths:
           description: Successful response
           content:
             application/json: {}
+        '422':
+          description: Validation error, including invalid `attributes` shape.
     delete:
       tags:
         - BillingAddresses
@@ -822,6 +902,32 @@ paths:
       tags:
         - ShippingAddresses
       summary: Index
+      description: >-
+        Lists shipping addresses. Supports `include` for `attributeValues`,
+        nested attribute value/translation/group relations, and the virtual
+        `attributeCollections` include. Supports native sorting by `id`,
+        `name`, `city`, `zip`, `country`, `_created_at`, `_updated_at`, plus
+        shipping-address custom attribute codes flagged `use_for_sorting=true`.
+        Supports `filter[<attribute_code>]` for shipping-address custom
+        attributes flagged `use_for_admin_filtering=true`.
+      parameters:
+        - name: include
+          in: query
+          schema:
+            type: string
+          description: Comma-separated includes.
+          example: attributeValues,attributeValues.value,attributeValues.value.translation,attributeValues.value.attribute,attributeValues.value.attribute.translation,attributeValues.value.attribute.group,attributeCollections
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Native field or sortable custom attribute code. Prefix with `-` for descending order.
+          example: -_updated_at
+        - name: filter[<attribute_code>]
+          in: query
+          schema:
+            type: string
+          description: JSON filter expression for a shipping-address custom attribute flagged for admin filtering.
       responses:
         '200':
           description: Successful response
@@ -831,12 +937,34 @@ paths:
       tags:
         - ShippingAddresses
       summary: Store
+      description: >-
+        Supports optional `attributes` entries of the form `{attribute_id,
+        value, auto_create_value}`. Use `value: null` on update to remove an
+        existing custom-attribute value. Invalid attribute payloads return HTTP
+        422.
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                name: Warehouse delivery
+                company_name: Acme GmbH
+                first_name: John
+                last_name: Doe
+                address_line_1: Main Street 1
+                address_line_2: Dock 3
+                city: Berlin
+                zip: '10115'
+                state: BE
+                country: DE
+                customer_id: 123
+                type: customer
+                default: true
+                attributes:
+                  - attribute_id: 42
+                    value: Dock 3
+                    auto_create_value: true
       parameters:
         - name: Content-Type
           in: header
@@ -848,12 +976,24 @@ paths:
           description: Successful response
           content:
             application/json: {}
+        '422':
+          description: Validation error, including invalid `attributes` shape.
   /api/v1/apps/customer-hub/shippingAddresses/{id}:
     get:
       tags:
         - ShippingAddresses
       summary: Show
+      description: >-
+        Returns one shipping address. Supports `include` for `attributeValues`,
+        nested attribute value/translation/group relations, and the virtual
+        `attributeCollections` include.
       parameters:
+        - name: include
+          in: query
+          schema:
+            type: string
+          description: Comma-separated includes.
+          example: attributeValues,attributeValues.value,attributeValues.value.translation,attributeValues.value.attribute,attributeValues.value.attribute.translation,attributeValues.value.attribute.group,attributeCollections
         - name: id
           in: path
           schema:
@@ -868,12 +1008,28 @@ paths:
       tags:
         - ShippingAddresses
       summary: Update
+      description: >-
+        Supports optional `attributes` entries of the form `{attribute_id,
+        value, auto_create_value}`. Use `value: null` on update to remove an
+        existing custom-attribute value. Invalid attribute payloads return HTTP
+        422.
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                name: Warehouse delivery
+                address_line_1: Main Street 2
+                city: Berlin
+                zip: '10115'
+                country: DE
+                customer_id: 123
+                type: customer
+                attributes:
+                  - attribute_id: 42
+                    value: null
+                    auto_create_value: false
       parameters:
         - name: Content-Type
           in: header
@@ -890,6 +1046,8 @@ paths:
           description: Successful response
           content:
             application/json: {}
+        '422':
+          description: Validation error, including invalid `attributes` shape.
     delete:
       tags:
         - ShippingAddresses

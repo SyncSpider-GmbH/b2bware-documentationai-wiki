@@ -141,8 +141,10 @@ include=company,role,customerGroup
 ### Address Book
 
 ```
-include=country
+include=attributeValues.value.attribute.translation,attributeValues.value.translation,attributeCollections
 ```
+
+Use this include set on `GET /customer-hub/shippingAddresses` and `GET /customer-hub/billingAddresses` when the address-book UI renders custom address attributes. Drop `attributeCollections` if you only need raw assigned values.
 
 ### Favorites
 

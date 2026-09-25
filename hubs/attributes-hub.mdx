@@ -54,6 +54,8 @@ For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts
 | DELETE | `/attributeGroups/{id}` | Delete an attribute group |
 | GET | `/attributeGroups/types/list` | List available group types |
 
+Built-in CustomerHub address groups are auto-seeded as `Billing Address Attributes` (`type=billing_address`) and `Shipping Address Attributes` (`type=shipping_address`). Attributes in these groups can be assigned to billing and shipping addresses and can power `?sort=<attribute_code>` / `?filter[<attribute_code>]` when their admin-grid flags are enabled.
+
   </Tab>
   <Tab title="Attributable Values" icon="link">
 
@@ -199,7 +201,7 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 | Field | Rules |
 |-------|-------|
 | `name` | required, string |
-| `type` | required, string, in: `dynamic` |
+| `type` | required, string — one of the available group types, such as `product`, `category`, `customer`, `company`, `billing_address`, `shipping_address`, or `order` |
 | `display_order` | sometimes, numeric |
 
 </Expandable>

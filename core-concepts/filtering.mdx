@@ -166,6 +166,8 @@ Both flags drive a denormalized field on the underlying document, so sorting and
 - `GET /api/v1/apps/product-hub/categories` (group type: `category`)
 - `GET /api/v1/apps/customer-hub/customers` (group type: `customer`)
 - `GET /api/v1/apps/customer-hub/companies` (group type: `company`)
+- `GET /api/v1/apps/customer-hub/shippingAddresses` (group type: `shipping_address`)
+- `GET /api/v1/apps/customer-hub/billingAddresses` (group type: `billing_address`)
 - `GET /api/v1/apps/order-hub/orders` (group type: `order`)
 
 ### Discovery — list the catalogue
@@ -180,7 +182,7 @@ GET /api/v1/apps/attributes-hub/attributes
     &per_page=200
 ```
 
-Swap `use_for_sorting` for `use_for_admin_filtering` to discover filterable attributes; swap `group.type` for the target group (`product`, `category`, `customer`, `company`, `order`).
+Swap `use_for_sorting` for `use_for_admin_filtering` to discover filterable attributes; swap `group.type` for the target group (`product`, `category`, `customer`, `company`, `shipping_address`, `billing_address`, `order`).
 
 Each row carries `id`, `attribute_code`, `name`, `type`, and (with `include=translation`) localized labels.
 
