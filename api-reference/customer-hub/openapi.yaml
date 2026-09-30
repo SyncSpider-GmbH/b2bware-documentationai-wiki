@@ -14,6 +14,7 @@ security:
   - bearerAuth: []
 tags:
   - name: BillingAddresses
+  - name: CompanyInvitations
   - name: Companies
   - name: CustomerGroups
   - name: Customers
@@ -110,6 +111,151 @@ paths:
       responses:
         '200':
           description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/company-invitations:
+    get:
+      tags:
+        - CompanyInvitations
+      summary: Index
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: string
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: string
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - CompanyInvitations
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: new.user@example.com
+                role_id: null
+                first_name: Ada
+                last_name: Lovelace
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/company-invitations/{invitation_id}/resend:
+    post:
+      tags:
+        - CompanyInvitations
+      summary: Resend
+      parameters:
+        - name: invitation_id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/company-invitations/{invitation_id}:
+    delete:
+      tags:
+        - CompanyInvitations
+      summary: Revoke
+      parameters:
+        - name: invitation_id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/{installation_key}/invitations/{invitation_token}:
+    get:
+      tags:
+        - CompanyInvitations
+      summary: Preview (public)
+      security: []
+      parameters:
+        - name: installation_key
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: invitation_token
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '410':
+          description: The invitation link is no longer valid
+          content:
+            application/json: {}
+  /api/v1/apps/customer-hub/{installation_key}/invitations/{invitation_token}/accept:
+    post:
+      tags:
+        - CompanyInvitations
+      summary: Accept (public)
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                password: Secret123!
+                first_name: Ada
+                last_name: Lovelace
+                phone: null
+      parameters:
+        - name: installation_key
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: invitation_token
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '410':
+          description: The invitation link is no longer valid
           content:
             application/json: {}
   /api/v1/apps/customer-hub/companies:

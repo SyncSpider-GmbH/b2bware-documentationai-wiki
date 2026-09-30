@@ -141,6 +141,44 @@ Read-only aggregates over CustomerHub data. Used by DashboardHub widgets but sta
 All dashboard endpoints accept a `period` query parameter — one of `7`, `30`, `90`, `365` (defaults to `30`) where applicable.
 
   </Tab>
+  <Tab title="Company Invitations" icon="user-plus">
+
+A company administrator invites people into their **own** company. The company is always
+taken from the caller's shop session, never from the request, so one administrator can
+never invite into another company.
+
+<Callout kind="warning">
+The four authenticated routes require the `storefront.account.manage-users` storefront
+permission, which **no role holds by default**. Grant it to whichever role acts as company
+administrator first, or every call returns `403`.
+</Callout>
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/company-invitations` | List the caller's company invitations (paginated, filterable) |
+| POST | `/company-invitations` | Create and send an invitation |
+| POST | `/company-invitations/{id}/resend` | Rotate the token, extend the expiry, send again |
+| DELETE | `/company-invitations/{id}` | Revoke a pending invitation |
+
+An id belonging to another company returns `404`, not `403`, so it never confirms the row exists.
+
+**Public routes** — used by the invitee, who has no account yet, so they take no
+authentication. The installation key travels in the path.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/{installationKey}/invitations/{token}` | Preview the invitation; does not consume the token |
+| POST | `/{installationKey}/invitations/{token}/accept` | Accept: set a password and join the company |
+
+Every unusable token — unknown, already used, revoked or expired — returns the same `410`,
+so the endpoints never disclose which.
+
+`POST .../accept` returns a session token, and the new customer inherits the company, its
+default addresses and its default role. When the tenant requires administrator approval and
+`invited_users_bypass_approval` is off, the account is created pending instead and no
+session is returned.
+
+  </Tab>
   <Tab title="Settings" icon="settings">
 
 | Method | Endpoint | Description |
@@ -155,6 +193,22 @@ All dashboard endpoints accept a `period` query parameter — one of `7`, `30`, 
 
   </Tab>
 </Tabs>
+
+## Settings Groups
+
+<Expandable title="Customer Settings Reference" default-open="false">
+
+**invitations** — Company User Invitations
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `enable_company_invitations` | boolean | Allow company administrators to invite users |
+| `invitation_expiry_days` | number | How long an invitation link stays usable (default 7) |
+| `max_pending_invitations_per_company` | number | Cap on invitations awaiting acceptance (default 50) |
+| `invitation_default_role_code` | string | Role used when the company has no default of its own |
+| `invited_users_bypass_approval` | boolean | When off, an invited user still waits for approval if **Require Admin Approval** is enabled. Defaults to off, so enabling admin approval keeps its meaning |
+
+</Expandable>
 
 ## Filters
 

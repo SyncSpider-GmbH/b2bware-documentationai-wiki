@@ -3,6 +3,24 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-09-30" description="Company user invitations" tags={["feature", "breaking", "customer-hub"]}>
+
+## Company user invitations
+
+A company administrator can now invite people into their own company from the storefront. The invitee has no account: they open a one-time link, set a password, and join the inviting company with its default role, addresses and permissions.
+
+- **Admin endpoints** — `GET/POST /customer-hub/company-invitations`, `POST .../{id}/resend`, `DELETE .../{id}`. The company is always taken from the caller's shop session, never from the request.
+- **Public endpoints** — `GET /customer-hub/{installationKey}/invitations/{token}` to preview and `POST .../accept` to join. No authentication; the invitee has no account yet. Any unusable token returns `410` without saying why.
+- **New Settings group** — **Company User Invitations** on CustomerHub: link validity, a cap on pending invitations, the default role, and whether invited users skip admin approval. See [CustomerHub → Settings Groups](/hubs/customer-hub).
+- **Email** — new configurable notification types `company_user_invitation` (to the invitee) and `company_user_invitation_accepted` (to the inviter).
+- **Audit trail** — every invitation records creation, sending, acceptance, revocation and expiry.
+
+<Callout kind="warning">
+**Breaking — a permission grant is required before the feature works.** The storefront permission `storefront.account.manage-users` was previously registered but unenforced. It now gates all four administrator endpoints and **no role holds it by default**, so the endpoints return `403` for everyone until a tenant grants it to whichever role acts as company administrator (Roles → storefront permissions). Nothing else changes for tenants that do not use invitations.
+</Callout>
+
+</Update>
+
 <Update label="2026-08-18" description="Parent category branch display mode" tags={["feature", "storefront"]}>
 
 ## Parent category products on the storefront
