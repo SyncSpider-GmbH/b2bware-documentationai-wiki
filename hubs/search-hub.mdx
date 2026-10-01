@@ -1,0 +1,79 @@
+---
+title: SearchHub
+description: Typesense search add-on. Mongo search remains the fallback.
+---
+
+SearchHub indexes selected hubs into Typesense and serves search, facets, and an embeddable box. Stores without the add-on, and any request Typesense cannot answer in time, use the existing Mongo search.
+
+## Settings
+
+<Expandable title="SearchHub settings reference">
+
+**general** — General
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `enabled` | boolean | Turn the add-on on for this store. Off uses Mongo search. |
+| `languages` | string | Comma-separated language codes. One collection per language. |
+| `typo_tolerance` | boolean | Allow typos. |
+| `num_typos` | number | Maximum typos when tolerance is on. |
+| `prefix` | boolean | Search-as-you-type. |
+
+**cluster** — Cluster
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `host` | string | Typesense admin host. |
+| `port` | number | Typesense port. Local Homebrew default is 8108. |
+| `protocol` | string | `http` or `https`. |
+| `api_key` | secret | Admin API key, stored encrypted. |
+| `public_host` | string | Host the browser should use. Empty means the admin host. |
+
+**ranking** — Ranking
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `query_by_weights` | string | `field:weight` pairs, for example `name:4,sku:3`. |
+
+**synonyms** — Synonyms
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `sets` | JSON | Synonym sets applied on the next reindex. |
+
+**curation** — Curation
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `overrides` | JSON | Pin and hide rules applied on the next reindex. |
+
+**facets** — Facets
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `fields` | string | Comma-separated facet fields. Default `categories,facet_values`. |
+
+**hubs** — Indexed hubs
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `index_products` | boolean | Index Product Hub. |
+| `index_customers` | boolean | Index Customer Hub. |
+| `product_fields` | string | Attribute codes (names, not ids) copied into facets. |
+| `customer_fields` | string | Customer fields included in the customer document. |
+
+</Expandable>
+
+## Product listings
+
+With the add-on on and Product Hub indexed, the storefront catalog search (`?q=`) and the admin product list search (`filter[search]`) take their matches from Typesense. Status, category, price and stock filters still apply on the catalog data. Without an explicit sort the list keeps the Typesense ranking and later pages continue it; choosing a sort orders the matched products by that field instead. If Typesense does not answer, the request falls back to the catalog's own text search.
+
+## Search API
+
+`GET /api/v1/apps/search-hub/search?q=&lang=en&hub=product-hub&limit=20&page=1`
+
+Response `engine` is `typesense` or `mongo`. `hits` contain `id`, `name`, and `sku`; `found` is the total and `page` echoes the requested page.
+
+Scoped keys: `POST /api/v1/apps/search-hub/keys`. A key only lists that store's collections.
+
+Public embed (rate-limited): `GET /api/v1/apps/search-hub/embed.js` and `GET /api/v1/apps/search-hub/embed/{installationKey}/key`.
