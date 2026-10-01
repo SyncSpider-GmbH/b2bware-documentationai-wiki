@@ -76,6 +76,10 @@ Each language in `general.languages` gets its own collection. Documents carry th
 
 Saving or deleting a product, its categories, attribute values, prices, stock, translations, media or variant links queues an update of that product's document within a few seconds; several changes to one product in that window become one update. Changing a variant updates its parent. Settings changes that affect the whole index (languages, indexed hubs, synonyms, curation, facet fields) run a full reindex instead.
 
+## What a product document contains
+
+Name, SKU, description, category names, attribute labels (all in the collection language), variant SKUs, the primary image URL, the regular price and a regular price per customer group, and the product's visibility. Visibility follows the product permissions set in Product Hub: products visible to everyone, allowed for selected customer groups, or hidden from selected groups. Browser searches with a scoped key only return what that visitor may see; a signed-in customer's group is part of the key.
+
 ## Search API
 
 `GET /api/v1/apps/search-hub/search?q=&lang=en&hub=product-hub&limit=20&page=1`
