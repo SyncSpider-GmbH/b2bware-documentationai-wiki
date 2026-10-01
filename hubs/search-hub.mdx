@@ -27,7 +27,7 @@ SearchHub indexes selected hubs into Typesense and serves search, facets, and an
 | `port` | number | Typesense port. Local Homebrew default is 8108. |
 | `protocol` | string | `http` or `https`. |
 | `api_key` | secret | Admin API key, stored encrypted. |
-| `public_host` | string | Host the browser should use. Empty means the admin host. |
+| `public_host` | string | Host the browser should use for the embedded search box (production default `search.b2bware.com`). Empty means the admin host. |
 
 **ranking** — Ranking
 
@@ -88,9 +88,26 @@ A rebuild never interrupts search: the new index is built next to the current on
 
 Synonym sets and pin/hide rules are checked when you save: broken JSON, a missing `id`, a rule without an action, or a pin without a position is refused with a message that names the entry, instead of failing the next rebuild.
 
+## Search box on any site
+
+SearchHub ships a small search widget that runs in the visitor's browser and talks to the search node directly, so a partner site, a landing page or a custom theme can offer the same search as the storefront without going through the store's API.
+
+```html
+<div data-searchhub-box
+     data-installation="YOUR-SEARCHHUB-INSTALLATION-KEY"
+     data-lang="en"
+     data-product-url="https://shop.example.com/en/products/{slug}"
+     data-currency="EUR"></div>
+<script src="https://YOUR-B2BWARE-HOST/api/v1/apps/search-hub/embed.js" defer></script>
+```
+
+By default the box renders a full search page: an input, a facet sidebar built from categories and the attributes you index, a result list with image, name, SKU and price, and paging. With `data-mode="dropdown"` and `data-attach="<css selector>"` it instead adds a suggestion panel under existing search inputs, with a *See all results* link that points to `data-results-url`. Other attributes: `data-customer-group` (show that group's prices and visibility), `data-limit`, `data-placeholder`, `data-color` (accent), `data-facets="off"` or a comma-separated list of facet fields, and `data-skip-path` to keep the dropdown off your own results page. The storefront's default theme already mounts the dropdown in its header for stores with SearchHub enabled.
+
+The widget first asks B2Bware for a short-lived search key and only then queries the search node. That key is limited to the store's own collections, to products that are public, and to what the given customer group may see; it cannot change anything and it cannot read another store. Product links use the product's SEO slug, or its id when none is set. Search results are only as fresh as the index, so a product changed moments ago shows up once the incremental sync has run.
+
 ## What a product document contains
 
-Name, SKU, description, category names, attribute labels (all in the collection language), variant SKUs, the primary image URL, the regular price and a regular price per customer group, and the product's visibility. Visibility follows the product permissions set in Product Hub: products visible to everyone, allowed for selected customer groups, or hidden from selected groups. Browser searches with a scoped key only return what that visitor may see; a signed-in customer's group is part of the key.
+Name, SKU, description, category names, attribute labels (all in the collection language), variant SKUs, the primary image URL, the regular price and a regular price per customer group, the product's status and URL slug, and the product's visibility. Visibility follows the product permissions set in Product Hub: products visible to everyone, allowed for selected customer groups, or hidden from selected groups. Browser searches with a scoped key only return public products that visitor may see; a signed-in customer's group is part of the key.
 
 ## Search API
 
@@ -102,4 +119,4 @@ Scoped keys: `POST /api/v1/apps/search-hub/keys`. A key only lists that store's 
 
 Index status: `GET /api/v1/apps/search-hub/status` returns `enabled`, `health` (`ok`, `host`), `collections` (`hub`, `lang`, `alias`, `built`, `documents`, `building`), `reindex` (`running`, `started_at`, `batch` with `total_jobs`, `processed_jobs`, `failed_jobs`, `progress`, and `last` with `swapped`, `failed_jobs`, `error`) and `worker` (`state` `alive` | `dead` | `unknown`, `backlog`). `POST /api/v1/apps/search-hub/reindex` queues a full rebuild and answers `409` while one is running.
 
-Public embed (rate-limited): `GET /api/v1/apps/search-hub/embed.js` and `GET /api/v1/apps/search-hub/embed/{installationKey}/key`.
+Public embed (no authentication, rate-limited per IP): `GET /api/v1/apps/search-hub/embed.js` serves the widget; `GET /api/v1/apps/search-hub/embed/{installationKey}/key?customer_group=` returns `key` (scoped search key), `expires_at`, `public_url` (the search node the browser should call), `hubs` (hub → language → collection), `languages`, `default_lang` and `search` (`query_by`, `query_by_weights`, `facet_by`, `num_typos`, `prefix`). `installationKey` may be any of the store company's installation keys (the storefront's or the SearchHub one). It answers `404` when the company has no SearchHub or the add-on is off and `503` when no key can be issued. `GET /api/v1/apps/search-hub/public/search?installation=&q=` is the server-side variant for pages that cannot call the search node directly; it only returns public products visible to everyone.
