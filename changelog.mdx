@@ -3,6 +3,16 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-01" description="SubscriptionHub webhooks, MCP tools and API reference" tags={["feature"]}>
+
+## SubscriptionHub: webhooks, AI assistant tools and API reference
+
+- **Webhook events** — ten `subscriptionhub.subscription.*` events in EventHub (`created`, `activated`, `renewed`, `renewal_paid`, `paused`, `resumed`, `cancelled`, `ended`, `payment_failed`, `updated`). Each delivery carries the subscription as `data` and the history entry as `meta` (`history_type`, `actor`, `details`). See [Webhooks](/core-concepts/webhooks).
+- **MCP tools** — `list_subscriptions`, `get_subscription`, `list_subscription_history`, `pause_subscription`, `resume_subscription`, `cancel_subscription` and `end_subscription` on both the API-key [MCP Server](/ai-tools/mcp-server) (v1.17.0) and the signed-in MCP surface; status changes follow the admin rules and are recorded with `via: mcp`.
+- **API reference** — SubscriptionHub OpenAPI spec under API Reference.
+
+</Update>
+
 <Update label="2026-10-01" description="SubscriptionHub renewals and billing settings" tags={["feature"]}>
 
 ## SubscriptionHub: renewals and recurring payments

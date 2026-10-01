@@ -137,6 +137,25 @@ The events below are what each hub dispatches today, by canonical slug. The **pa
 
 </Expandable>
 
+<Expandable title="SubscriptionHub events" default-open="false">
+
+Every entry SubscriptionHub writes to a subscription's history raises one event. The payload root is the `Subscription` model after the change (status, interval, price, next_due_at, …); add `customer`, `product`, `billingMethod`, `shippingMethod` or `history` to `payload_includes` to enrich it. Each delivery also carries a top-level `meta` object from the history entry: `history_type`, `actor` (`{type, id, name}`; `via: "mcp"` when an AI assistant made the change) and `details` (e.g. `reason`, `from`, `changes`, the renewal `order_id`).
+
+| Slug | Fired when |
+|---|---|
+| `subscriptionhub.subscription.created` | A subscription was created from a checkout order (`pending` until an online first payment arrives, otherwise `active`). |
+| `subscriptionhub.subscription.activated` | The first cycle started: right at creation when the subscription starts active (invoice / on-account, or an online order already paid), or when the pending first payment arrives. |
+| `subscriptionhub.subscription.renewed` | A renewal order was placed for the next cycle (`meta.details.order_id`). |
+| `subscriptionhub.subscription.renewal_paid` | A renewal order sent as a payment link was paid (`meta.details.order_id`). |
+| `subscriptionhub.subscription.paused` | The subscription was paused. |
+| `subscriptionhub.subscription.resumed` | Resumed after a pause, a pending cancel or a failed payment. |
+| `subscriptionhub.subscription.cancelled` | Cancelled by an admin, an assistant or the customer; it ends with the current period. |
+| `subscriptionhub.subscription.ended` | Ended; it never renews again. |
+| `subscriptionhub.subscription.payment_failed` | A renewal payment could not be collected (`meta.details.reason`, see [Renewals](/hubs/subscription-hub#renewals)). |
+| `subscriptionhub.subscription.updated` | Addresses, methods, saved card, quantity or the cycle limit changed. `meta.history_type` is `address_updated` or `updated`; one edit of both raises two events. |
+
+</Expandable>
+
 ### Example payload envelope
 
 A real delivery body looks like this (whatever the source event):

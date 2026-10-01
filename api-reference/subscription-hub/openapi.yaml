@@ -1,0 +1,920 @@
+openapi: 3.0.0
+info:
+  title: SubscriptionHub API
+  description: Complete API collection for SubscriptionHub — generated from routes/api.php
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Carts
+  - name: Interval Units
+  - name: Product Settings
+  - name: Renewal Payment
+  - name: Settings
+  - name: Subscription History
+  - name: Subscriptions
+paths:
+  /api/v1/apps/subscription-hub/carts/{cart}/subscription-checkout:
+    post:
+      tags:
+        - Carts
+      summary: Checkout
+      description: >-
+        Signed-in storefront customers only. Subscribe to the single line of the
+        caller's own active cart and place the first order.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                interval:
+                  unit: month
+                  count: 1
+                billing_method_id: 3
+                shipping_method_id: 2
+                billing_address_id: 11
+                shipping_address_is_same_as_billing: true
+                billing_method:
+                  redirect_url: https://shop.example.com/account/orders
+                  save_payment_method: true
+                comment: null
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: cart
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/interval-units:
+    get:
+      tags:
+        - Interval Units
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Interval Units
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                code: quarter
+                name: Quarter
+                active: true
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/interval-units/{id}:
+    get:
+      tags:
+        - Interval Units
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Interval Units
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                code: quarter
+                name: Quarter
+                active: true
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Interval Units
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/product-settings:
+    get:
+      tags:
+        - Product Settings
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Product Settings
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                product_id: 101
+                enabled: true
+                purchase_mode: one_time_and_subscription
+                intervals:
+                  - unit: week
+                    count: 2
+                    price: 18.9
+                    active: true
+                  - unit: month
+                    count: 1
+                    price: 34.9
+                    active: true
+                max_cycles: null
+                price_policy: locked
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/product-settings/price-policies/list:
+    get:
+      tags:
+        - Product Settings
+      summary: Get Price Policies
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/product-settings/product/{productId}:
+    get:
+      tags:
+        - Product Settings
+      summary: Find By Product
+      parameters:
+        - name: productId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/product-settings/purchase-modes/list:
+    get:
+      tags:
+        - Product Settings
+      summary: Get Purchase Modes
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/product-settings/trash:
+    get:
+      tags:
+        - Product Settings
+      summary: Trash Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/product-settings/{id}:
+    get:
+      tags:
+        - Product Settings
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Product Settings
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                product_id: 101
+                enabled: true
+                purchase_mode: one_time_and_subscription
+                intervals:
+                  - unit: week
+                    count: 2
+                    price: 18.9
+                    active: true
+                  - unit: month
+                    count: 1
+                    price: 34.9
+                    active: true
+                max_cycles: null
+                price_policy: locked
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Product Settings
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/product-settings/trash/restore/bulk:
+    patch:
+      tags:
+        - Product Settings
+      summary: Bulk Restore
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                ids:
+                  - 1
+                  - 2
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/product-settings/trash/{id}/restore:
+    patch:
+      tags:
+        - Product Settings
+      summary: Restore
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/product-settings/trash/delete/bulk:
+    delete:
+      tags:
+        - Product Settings
+      summary: Bulk Force Delete
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/product-settings/trash/empty:
+    delete:
+      tags:
+        - Product Settings
+      summary: Empty Trash
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/product-settings/trash/{id}:
+    delete:
+      tags:
+        - Product Settings
+      summary: Force Delete
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/renewal-payment/{installationKey}/{order}:
+    get:
+      security: []
+      tags:
+        - Renewal Payment
+      summary: Pay
+      description: >-
+        Public, signed link emailed for unpaid renewals (query parameters
+        `expires` and `signature`); expires at the payment deadline. Redirects
+        (302) to the payment provider. No bearer token.
+      parameters:
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: order
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/settings:
+    get:
+      tags:
+        - Settings
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                billing:
+                  billing_collection_mode: auto_charge
+                  recurring_provider: null
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/settings/groups/list:
+    get:
+      tags:
+        - Settings
+      summary: Get Groups List
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/settings/{group}:
+    get:
+      tags:
+        - Settings
+      summary: Show
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                billing_collection_mode: pay_now_email
+                recurring_provider: null
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/settings/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/settings/{group}/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscription-history:
+    get:
+      tags:
+        - Subscription History
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscription-history/subscription/{subscriptionId}:
+    get:
+      tags:
+        - Subscription History
+      summary: Find By Subscription
+      parameters:
+        - name: subscriptionId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscription-history/{id}:
+    get:
+      tags:
+        - Subscription History
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions:
+    get:
+      tags:
+        - Subscriptions
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions/statuses/list:
+    get:
+      tags:
+        - Subscriptions
+      summary: Get Statuses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions/trash:
+    get:
+      tags:
+        - Subscriptions
+      summary: Trash Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions/{id}:
+    get:
+      tags:
+        - Subscriptions
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Subscriptions
+      summary: Update
+      description: >-
+        Update addresses, methods, saved card, quantity or max cycles. Use the
+        lifecycle actions to change the status.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                shipping_address_id: 12
+                billing_method_id: 3
+                quantity: 2
+                max_cycles: 12
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Subscriptions
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions/{id}/cancel:
+    post:
+      tags:
+        - Subscriptions
+      summary: Cancel
+      description: >-
+        Cancel at the end of the current period. Optional reason (max 500 chars)
+        is stored in the history.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                reason: Customer is on holiday
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions/{id}/end:
+    post:
+      tags:
+        - Subscriptions
+      summary: End
+      description: >-
+        End immediately (terminal). Optional reason (max 500 chars) is stored in
+        the history.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                reason: Customer is on holiday
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions/{id}/pause:
+    post:
+      tags:
+        - Subscriptions
+      summary: Pause
+      description: >-
+        Pause. No renewals until resumed; resuming moves the next due date by
+        the paused time. Optional reason (max 500 chars) is stored in the
+        history.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                reason: Customer is on holiday
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions/{id}/resume:
+    post:
+      tags:
+        - Subscriptions
+      summary: Resume
+      description: >-
+        Resume a paused or payment_failed subscription, or undo a pending
+        cancel. Optional reason (max 500 chars) is stored in the history.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                reason: Customer is on holiday
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions/trash/restore/bulk:
+    patch:
+      tags:
+        - Subscriptions
+      summary: Bulk Restore
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                ids:
+                  - 1
+                  - 2
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions/trash/{id}/restore:
+    patch:
+      tags:
+        - Subscriptions
+      summary: Restore
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions/trash/delete/bulk:
+    delete:
+      tags:
+        - Subscriptions
+      summary: Bulk Force Delete
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions/trash/empty:
+    delete:
+      tags:
+        - Subscriptions
+      summary: Empty Trash
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions/trash/{id}:
+    delete:
+      tags:
+        - Subscriptions
+      summary: Force Delete
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

@@ -33,6 +33,35 @@ Subscriptions are created only by a signed-in storefront customer at checkout (p
 | `payment_failed` | Renewals are halted until an admin resumes, cancels or ends the subscription. `last_error.reason` explains why. |
 | `ended` | Terminal. |
 
+```text
+                first payment arrives
+ checkout ──► pending ─────────────────► active ◄────────────── resume ─────────┐
+                 │                       │ │ │                                  │
+   first payment │                 pause │ │ │ renewal not collected            │
+   fails / order │                       ▼ │ ▼                                  │
+   cancelled     │                  paused │ payment_failed ────────────────────┤
+                 │                    │  │ │       │                            │
+                 │                    │  │ │cancel │                            │
+                 │                    │  │ ▼       ▼                            │
+                 │                    │  └─► cancelled ─── undo cancel ─────────┤
+                 │                    │          │                              │
+                 │                    └──────────┼───────── resume ─────────────┘
+                 │                               │ period runs out
+                 ▼                               ▼
+               ended ◄───── end (admin, assistant or max_cycles reached, from any live status)
+```
+
+| From | Allowed transitions |
+|---|---|
+| `pending` | `active` (first payment), `ended` |
+| `active` | `paused`, `cancelled`, `payment_failed`, `ended` |
+| `paused` | `active` (resume), `cancelled`, `ended` |
+| `payment_failed` | `active` (resume), `cancelled`, `ended` |
+| `cancelled` | `active` (undo cancel), `ended` |
+| `ended` | none |
+
+Invoice / on-account checkouts skip `pending` and start `active`. Every arrow writes a history entry and raises the matching [webhook event](#webhook-events).
+
 An admin action on a subscription that is being renewed at that moment answers **409**; retry shortly.
 
 ### Customer account
@@ -102,7 +131,7 @@ Lifecycle actions accept an optional `reason` (max 500 characters), stored in hi
   </Tab>
   <Tab title="Checkout" icon="shopping-cart">
 
-Storefront customer endpoint (`auth:api` + a resolved shop customer; guests get 401).
+Signed-in storefront customers only; guests get 401.
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -189,6 +218,38 @@ How the order is paid depends on the billing method and the collection mode:
 | Invoice / on account | The order is placed; nothing is collected online. |
 | `auto_charge` with a saved card | The saved card is charged. A decline sets `payment_failed` and cancels the order. |
 | `pay_now_email`, or `auto_charge` without a saved card | The order is placed unpaid and the customer is emailed a payment link (NotificationHub type `subscription_renewal_payment_link`). |
+
+```text
+ hourly scheduler: active subscriptions whose next_due_at has passed
+ (cancelled ones too, while a payment link is open)
+        │
+        ▼
+ previous payment link unpaid? ── before its deadline ─► wait
+        │ no / paid                 deadline passed ─────► order cancelled, payment_failed
+        ▼
+ max_cycles already reached? ──── yes ─► ended
+        │ no
+        ▼
+ previous card charge processing? ── yes ─► wait (failed at the provider ─► payment_failed)
+        │ no
+        ▼
+ place the renewal order in OrderHub ── fails ─► retried hourly (24×), then payment_failed
+        │
+        ├─ invoice / on account ──► nothing collected online ──────────────┐
+        ├─ payment link ──────────► link emailed ──────────────────────────┤
+        └─ saved card ────────────► charge off-session                     │
+                                       ├─ paid / processing ───────────────┤
+                                       ├─ declined ─► order cancelled,     │
+                                       │              payment_failed       │
+                                       └─ provider error ─► retried hourly │
+                                                   (24×), then payment_failed
+                                                                           ▼
+             history `renewed` + webhook subscriptionhub.subscription.renewed;
+             next_due_at moves one interval
+
+ a payment link paid in time records `renewal_paid` (when the order is paid,
+ or at the next run if the payment event was missed)
+```
 
 **Payment links.** The customer has until the next due date — and at least 3 days after the email — to pay. Until then no further renewal order is placed. If the order is still unpaid after the deadline, it is cancelled and the subscription moves to `payment_failed` (`renewal_unpaid`); a resume orders that cycle again. A customer who never received the email is not halted; sending is retried at every run. Pausing moves the deadline by the paused time; ending the subscription cancels the unpaid order and closes its payment link.
 
@@ -282,8 +343,38 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 
 </Expandable>
 
+## Webhook events
+
+Every history entry raises an EventHub event that merchants can subscribe a webhook to. The delivery's `data` is the subscription after the change; `meta` carries the history entry (`history_type`, `actor`, `details`). Full table and payload notes: [Webhooks → SubscriptionHub events](/core-concepts/webhooks#per-hub-event-reference).
+
+| History entry | Event slug |
+|---|---|
+| `created` | `subscriptionhub.subscription.created` (plus `activated` when it starts active: invoice / on-account, or an online order already paid) |
+| `resumed` from `pending` (first payment arrived) | `subscriptionhub.subscription.activated` |
+| `renewed` | `subscriptionhub.subscription.renewed` |
+| `renewal_paid` | `subscriptionhub.subscription.renewal_paid` |
+| `paused` / `resumed` / `cancelled` / `ended` | `subscriptionhub.subscription.paused` / `resumed` / `cancelled` / `ended` |
+| `payment_failed` | `subscriptionhub.subscription.payment_failed` |
+| `address_updated`, `updated` | `subscriptionhub.subscription.updated` |
+
+`status_changed` entries raise no event. A failing webhook listener never undoes the change that raised it.
+
+## MCP tools
+
+AI assistants connected through the [MCP Server](/ai-tools/mcp-server) can read and manage subscriptions:
+
+| Tool | Permission | What it does |
+|---|---|---|
+| `list_subscriptions` | `subscription-hub.subscriptions.view` | Paginated list (newest first) with customer, company and product names; filter by `status`, `customer_id`, `company_id`, `product_id`. |
+| `get_subscription` | `subscription-hub.subscriptions.view` | One subscription with addresses, method ids, dates, open renewal orders and the last error. |
+| `list_subscription_history` | `subscription-hub.history.view` | The history of one subscription, newest first. |
+| `pause_subscription`, `resume_subscription`, `cancel_subscription`, `end_subscription` | `subscription-hub.subscriptions.update` | The lifecycle actions above with the same transition rules; optional `reason` (max 500 characters). |
+
+Status changes are written to the history with the authorizing user as actor and `via: "mcp"`, and raise the same webhook events as the admin. Payment tokens are never returned. An operator without `subscription-hub.subscriptions.view` only reaches their own subscriptions; anything else answers like a missing subscription.
+
 ## Related
 
+- API Reference → SubscriptionHub — the OpenAPI spec of every endpoint above.
 - [OrderHub](/hubs/order-hub) — renewal orders, billing methods and saved payment methods.
 - [NotificationHub](/hubs/notification-hub) — the `subscription_renewal_payment_link` email template.
 - [Storefront Themes → Forms](/advanced/storefront-themes/forms) — the `subscription-checkout` form on the product page and the `subscription-cancel` form on the account page.

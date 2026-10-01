@@ -15,7 +15,7 @@ The Model Context Protocol (MCP) is an open standard that lets AI assistants cal
 
 ## Available Tools
 
-The MCP Server exposes **163 tools** and **4 workflow prompts** (v1.13.0) for server-to-server admin, integration, and operator analytics. Auth is **Bearer API key only** — no storefront `installation-key` or guest session headers. Order responses include a synthetic `order_number`; status `"processing"` is normalized from the API’s internal spelling.
+The MCP Server exposes **184 tools** and **4 workflow prompts** (v1.17.0) for server-to-server admin, integration, and operator analytics. Auth is **Bearer API key only** — no storefront `installation-key` or guest session headers. Order responses include a synthetic `order_number`; status `"processing"` is normalized from the API’s internal spelling.
 
 <Tabs>
   <Tab title="Core" icon="box">
@@ -99,6 +99,17 @@ The MCP Server exposes **163 tools** and **4 workflow prompts** (v1.13.0) for se
 | `list_license_keys`, `get_license_key`, `generate_license_keys` | LicenseHub |
 | `validate_license_key`, `activate_license_key` | Key lifecycle |
 | `upload_media`, `list_media`, `get_media`, `set_primary_media` | MediaHub |
+
+  </Tab>
+  <Tab title="Subscriptions" icon="repeat">
+
+| Tool | Description |
+|------|-------------|
+| `list_subscriptions`, `get_subscription` | Subscriptions with customer, company and product names; filter by status, customer, company or product |
+| `list_subscription_history` | The audit log of one subscription (newest first) |
+| `pause_subscription`, `resume_subscription`, `cancel_subscription`, `end_subscription` | Status changes through the same rules as the admin; optional `reason` stored in the history with the actor `via: mcp` |
+
+Signed-in operators need `subscription-hub.subscriptions.view` to read subscriptions, `subscription-hub.history.view` for the history and `subscription-hub.subscriptions.update` to change a status. Without the view key, an operator only reaches their own subscriptions.
 
   </Tab>
 </Tabs>
