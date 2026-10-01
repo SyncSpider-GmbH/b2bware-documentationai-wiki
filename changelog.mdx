@@ -20,6 +20,7 @@ description: Release history and version updates for the B2Bware DataHub platfor
 
 - **Product page** — products with an enabled subscription setup show their delivery intervals and prices under the SKU. Signed-in customers open a **Subscribe** dialog, pick an interval, quantity, addresses, shipping and payment method, and place the first order directly; guests get a sign-in link. The customer's regular cart is never touched.
 - **Theme contract** — new `@storefrontForm('subscription-checkout')` form type (see [Forms](/advanced/storefront-themes/forms)). The markup is a module contribution to the `product.detail.meta` slot; themes may restyle it with `modules/subscription-hub/product-subscription.blade.php`.
+- **My subscriptions** — new account page `/account/subscriptions` (sidebar entry once the customer has a subscription) listing the customer's subscriptions with a **Cancel subscription** action that ends the subscription after the period already paid for, and **Pay now** for an unpaid renewal. New `@storefrontForm('subscription-cancel')` form type; restyle via `modules/subscription-hub/account-subscriptions.blade.php`.
 
 </Update>
 

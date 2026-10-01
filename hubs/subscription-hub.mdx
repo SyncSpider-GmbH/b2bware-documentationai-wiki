@@ -35,6 +35,15 @@ Subscriptions are created only by a signed-in storefront customer at checkout (p
 
 An admin action on a subscription that is being renewed at that moment answers **409**; retry shortly.
 
+### Customer account
+
+Signed-in customers manage their subscriptions on the storefront under **My account → Subscriptions** (`/{locale}/account/subscriptions`). The sidebar entry appears once the customer has a subscription.
+
+- The page lists only the customer's own subscriptions with product, interval, quantity, price per delivery, status and the next delivery (or end) date.
+- **Cancel subscription** is offered for `active`, `paused` and `payment_failed` subscriptions. The subscription moves to `cancelled`: it no longer renews and ends at the end of the period already paid for. The history entry records the customer as the actor (`impersonated` when a sales agent shops as them).
+- An unpaid payment-link renewal shows **Pay now** (the same payment page as the email) until the payment deadline. This also applies after a cancel: the customer keeps the current period only by paying that renewal; otherwise it is cancelled at the deadline and the subscription ends.
+- Themes may restyle the page with `modules/subscription-hub/account-subscriptions.blade.php`; the cancel button is the `subscription-cancel` [form type](/advanced/storefront-themes/forms).
+
 ## Endpoints
 
 <Tabs>
@@ -261,4 +270,4 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 
 - [OrderHub](/hubs/order-hub) — renewal orders, billing methods and saved payment methods.
 - [NotificationHub](/hubs/notification-hub) — the `subscription_renewal_payment_link` email template.
-- [Storefront Themes → Forms](/advanced/storefront-themes/forms) — the `subscription-checkout` form on the product page.
+- [Storefront Themes → Forms](/advanced/storefront-themes/forms) — the `subscription-checkout` form on the product page and the `subscription-cancel` form on the account page.
