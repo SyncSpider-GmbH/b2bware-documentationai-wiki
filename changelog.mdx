@@ -3,6 +3,15 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-01" description="Subscription checkout on the product page" tags={["feature", "storefront"]}>
+
+## Subscribe from the product page
+
+- **Product page** — products with an enabled subscription setup show their delivery intervals and prices under the SKU. Signed-in customers open a **Subscribe** dialog, pick an interval, quantity, addresses, shipping and payment method, and place the first order directly; guests get a sign-in link. The customer's regular cart is never touched.
+- **Theme contract** — new `@storefrontForm('subscription-checkout')` form type (see [Forms](/advanced/storefront-themes/forms)). The markup is a module contribution to the `product.detail.meta` slot; themes may restyle it with `modules/subscription-hub/product-subscription.blade.php`.
+
+</Update>
+
 <Update label="2026-08-18" description="Parent category branch display mode" tags={["feature", "storefront"]}>
 
 ## Parent category products on the storefront
