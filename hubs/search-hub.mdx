@@ -80,6 +80,10 @@ Saving or deleting a product, its categories, attribute values, prices, stock, t
 
 Both settings pages (the **Search** entry in the sidebar and **Settings → Apps → Search**) end with a *Search index* panel. It shows whether the search node is reachable, whether a queue worker is running, each indexed hub and language with its document count, and when the last rebuild finished. **Reindex now** rebuilds every indexed collection; while it runs the panel shows a progress bar and the button is disabled, and a second request is refused until the first one finishes. The button needs the *Run a search reindex* permission. A warning appears when nothing is processing the queue, because neither a rebuild nor the incremental updates can run without a worker.
 
+A rebuild never interrupts search: the new index is built next to the current one and only replaces it once every chunk has finished. If a chunk fails, the rebuild stops, the previous index stays in use, and the panel shows *Failed, previous index kept* with the reason. Product changes made while a rebuild runs are written to both indexes, so nothing is lost at the switch.
+
+Synonym sets and pin/hide rules are checked when you save: broken JSON, a missing `id`, a rule without an action, or a pin without a position is refused with a message that names the entry, instead of failing the next rebuild.
+
 ## What a product document contains
 
 Name, SKU, description, category names, attribute labels (all in the collection language), variant SKUs, the primary image URL, the regular price and a regular price per customer group, and the product's visibility. Visibility follows the product permissions set in Product Hub: products visible to everyone, allowed for selected customer groups, or hidden from selected groups. Browser searches with a scoped key only return what that visitor may see; a signed-in customer's group is part of the key.
@@ -92,6 +96,6 @@ Response `engine` is `typesense` or `mongo`. `hits` contain `id`, `name`, and `s
 
 Scoped keys: `POST /api/v1/apps/search-hub/keys`. A key only lists that store's collections.
 
-Index status: `GET /api/v1/apps/search-hub/status` returns `enabled`, `health` (`ok`, `host`), `collections` (`hub`, `lang`, `alias`, `built`, `documents`, `building`), `reindex` (`running`, `started_at`, `batch` with `total_jobs`, `processed_jobs`, `failed_jobs`, `progress`, and `last`) and `worker` (`state` `alive` | `dead` | `unknown`, `backlog`). `POST /api/v1/apps/search-hub/reindex` queues a full rebuild and answers `409` while one is running.
+Index status: `GET /api/v1/apps/search-hub/status` returns `enabled`, `health` (`ok`, `host`), `collections` (`hub`, `lang`, `alias`, `built`, `documents`, `building`), `reindex` (`running`, `started_at`, `batch` with `total_jobs`, `processed_jobs`, `failed_jobs`, `progress`, and `last` with `swapped`, `failed_jobs`, `error`) and `worker` (`state` `alive` | `dead` | `unknown`, `backlog`). `POST /api/v1/apps/search-hub/reindex` queues a full rebuild and answers `409` while one is running.
 
 Public embed (rate-limited): `GET /api/v1/apps/search-hub/embed.js` and `GET /api/v1/apps/search-hub/embed/{installationKey}/key`.
