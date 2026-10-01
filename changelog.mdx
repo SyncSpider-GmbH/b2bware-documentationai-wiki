@@ -3,6 +3,17 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-01" description="SubscriptionHub renewals and billing settings" tags={["feature"]}>
+
+## SubscriptionHub: renewals and recurring payments
+
+- **New hub page** — [SubscriptionHub](/hubs/subscription-hub) documents product settings, interval units, subscriptions, history, checkout and the status lifecycle.
+- **Billing settings** — new `billing` settings group: `billing_collection_mode` (`auto_charge`: charge the card saved at the first checkout; `pay_now_email`: email a payment link for every renewal) and `recurring_provider` (optional single online billing method for automatic charges). Subscription checkout offers only the billing methods the mode allows.
+- **Renewal payments** — automatic Stripe / Mollie card charges with hourly retries for temporary errors; payment-link renewals stay open until the next due date (at least 3 days), after which the order is cancelled and the subscription moves to `payment_failed`.
+- **Payment link** — public signed `GET /api/v1/apps/subscription-hub/renewal-payment/{installationKey}/{order}` and a seeded NotificationHub email type `subscription_renewal_payment_link`.
+
+</Update>
+
 <Update label="2026-10-01" description="Subscription checkout on the product page" tags={["feature", "storefront"]}>
 
 ## Subscribe from the product page

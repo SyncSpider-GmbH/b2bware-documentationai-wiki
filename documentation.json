@@ -311,6 +311,11 @@
                     "icon": "gavel"
                   },
                   {
+                    "title": "SubscriptionHub",
+                    "path": "hubs/subscription-hub",
+                    "icon": "repeat"
+                  },
+                  {
                     "title": "AutomationHub",
                     "path": "hubs/automation-hub",
                     "icon": "bolt"

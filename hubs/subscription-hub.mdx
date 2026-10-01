@@ -1,0 +1,264 @@
+---
+title: SubscriptionHub
+description: Product subscriptions — per-product intervals and prices, customer subscriptions with a status lifecycle, automatic renewal orders, and recurring payment collection.
+---
+
+## Overview
+
+SubscriptionHub lets customers subscribe to a product and receive it again at a fixed interval (every 2 weeks, every month, …). The merchant configures which products can be subscribed, at which intervals and prices; every renewal is placed as a regular [OrderHub](/hubs/order-hub) order.
+
+**Base URL:** `api/v1/apps/subscription-hub/`
+
+<Callout kind="info">
+Subscriptions are created only by a signed-in storefront customer at checkout (product page or the API checkout below). There is no admin endpoint that creates a subscription; admins manage existing ones.
+</Callout>
+
+## Concepts
+
+| Entity | Purpose |
+|---|---|
+| **Product settings** | Per product: enabled flag, purchase mode (`subscription_only`, `one_time_and_subscription`), offered intervals `{unit, count, price, active}`, optional max cycles, price policy (`locked` or `current`). Variants use the setting of their configurable parent. |
+| **Interval units** | Extendable list of units (`day`, `week`, `month`, `year`). A unit used by product settings or live subscriptions cannot be deleted, deactivated or renamed (409). |
+| **Subscriptions** | One per subscribed product. Snapshots interval, price, quantity, addresses and billing / shipping method at checkout. |
+| **History** | Append-only audit log of every lifecycle event (`created`, `renewed`, `renewal_paid`, `paused`, `resumed`, `cancelled`, `ended`, `payment_failed`, `address_updated`, `updated`, `status_changed`). |
+
+### Status lifecycle
+
+| Status | Meaning |
+|---|---|
+| `pending` | The first order is waiting for its online payment. Nothing renews yet; the subscription becomes `active` when the order is paid and `ended` if that payment fails or the order is cancelled. Invoice / on-account orders start `active` at once. |
+| `active` | Renews at every due date. |
+| `paused` | No renewals. Resuming moves the next due date by the paused time. |
+| `cancelled` | Pending cancel: no more renewals, but the current period runs out, then the subscription ends. Can be undone before the period ends. |
+| `payment_failed` | Renewals are halted until an admin resumes, cancels or ends the subscription. `last_error.reason` explains why. |
+| `ended` | Terminal. |
+
+An admin action on a subscription that is being renewed at that moment answers **409**; retry shortly.
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Product Settings" icon="sliders">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET    | `/product-settings` | List settings (paginated, filterable). |
+| GET    | `/product-settings/{id}` | Show a setting. |
+| GET    | `/product-settings/product/{productId}` | The setting of a product. |
+| POST   | `/product-settings` | Create a setting. |
+| PUT    | `/product-settings/{id}` | Update a setting. |
+| DELETE | `/product-settings/{id}` | Move to trash. |
+| GET    | `/product-settings/purchase-modes/list` | Purchase modes. |
+| GET    | `/product-settings/price-policies/list` | Price policies. |
+
+Trash endpoints (require the `delete` permission): `GET /product-settings/trash`, `PATCH /product-settings/trash/{id}/restore`, `DELETE /product-settings/trash/{id}`, `PATCH /product-settings/trash/restore/bulk`, `DELETE /product-settings/trash/delete/bulk`, `DELETE /product-settings/trash/empty`. Restoring a setting while the product already has a live one answers 409; bulk restore skips such settings.
+
+  </Tab>
+  <Tab title="Interval Units" icon="clock">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET    | `/interval-units` | List units. |
+| GET    | `/interval-units/{id}` | Show a unit. |
+| POST   | `/interval-units` | Create a unit. |
+| PUT    | `/interval-units/{id}` | Update a unit. |
+| DELETE | `/interval-units/{id}` | Delete a unit (409 while in use). |
+
+  </Tab>
+  <Tab title="Subscriptions" icon="repeat">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET    | `/subscriptions` | List subscriptions (paginated, filterable). |
+| GET    | `/subscriptions/{id}` | Show a subscription. |
+| PUT    | `/subscriptions/{id}` | Update addresses, methods, saved card, quantity or max cycles. |
+| DELETE | `/subscriptions/{id}` | Move to trash (its history is trashed with it). |
+| POST   | `/subscriptions/{id}/pause` | Pause. |
+| POST   | `/subscriptions/{id}/resume` | Resume a paused or `payment_failed` subscription, or undo a pending cancel. |
+| POST   | `/subscriptions/{id}/cancel` | Cancel at the end of the current period. |
+| POST   | `/subscriptions/{id}/end` | End immediately. |
+| GET    | `/subscriptions/statuses/list` | Statuses. |
+
+Lifecycle actions accept an optional `reason` (max 500 characters), stored in history. The same six trash endpoints exist under `/subscriptions/trash`.
+
+  </Tab>
+  <Tab title="History" icon="clock-rotate-left">
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/subscription-history` | List entries (paginated, filterable). |
+| GET | `/subscription-history/{id}` | Show an entry. |
+| GET | `/subscription-history/subscription/{subscriptionId}` | Entries of one subscription. |
+
+  </Tab>
+  <Tab title="Checkout" icon="shopping-cart">
+
+Storefront customer endpoint (`auth:api` + a resolved shop customer; guests get 401).
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/carts/{cart}/subscription-checkout` | Subscribe to the single line of the caller's own active cart and place the first order. |
+
+The line is copied into a dedicated cart that is checked out, so the customer's regular cart is consumed on success and restored on failure. A second submit while the first is running answers 409. Coupons and automatic cart price rules do not apply. Only the billing methods the [collection mode](#settings) allows are accepted (422 otherwise).
+
+  </Tab>
+  <Tab title="Payment Link" icon="link">
+
+Public endpoint, emailed to the customer for renewals paid by link. The URL is signed and expires at the payment deadline.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/renewal-payment/{installationKey}/{order}` | Opens a payment for the unpaid renewal order and redirects to the payment provider. |
+
+| Status | When |
+|---|---|
+| 302 | Redirect to the provider's payment page. |
+| 403 | Missing, tampered or expired signature. |
+| 404 | Not an open renewal order paid by link. |
+| 409 | Already paid. |
+| 410 | Cancelled or failed. |
+| 422 | The order's billing method has no online provider. |
+| 502 | The provider could not be reached. |
+
+Browsers get a short HTML page for the error outcomes; clients sending `Accept: application/json` get a JSON `message`.
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
+
+Requires `subscription-hub.settings.view` (read) and `subscription-hub.settings.update` (write).
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET  | `/settings/groups/list` | List settings groups. |
+| GET  | `/settings` | All groups: schema, values and defaults. |
+| POST | `/settings` | Save several groups at once (`{"billing": {...}}`). |
+| POST | `/settings/reset` | Reset all groups to defaults. |
+| GET  | `/settings/{group}` | One group. |
+| POST | `/settings/{group}` | Save one group. |
+| POST | `/settings/{group}/reset` | Reset one group. |
+
+Invalid values answer 422 with per-field `errors` (`billing.<field>` when saving several groups).
+
+  </Tab>
+</Tabs>
+
+## Settings
+
+**billing** — how renewal orders are paid.
+
+| Setting | Type | Default | Description |
+|---|---|---|---|
+| `billing_collection_mode` | select | `auto_charge` | `auto_charge`: the card the customer saved at the first checkout is charged automatically at every renewal. `pay_now_email`: every renewal order is created unpaid and the customer gets an email with a payment link. |
+| `recurring_provider` | select (billing method) | none | Optional. In `auto_charge` mode, the only online billing method offered at subscription checkout. Only billing methods whose provider supports automatic charges (Stripe, Mollie) can be chosen. |
+
+Which billing methods subscription checkout offers:
+
+| Billing method | `auto_charge` | `pay_now_email` |
+|---|---|---|
+| Invoice / on account (no provider) | yes | yes |
+| Online provider with automatic charges (Stripe, Mollie) | yes — the card is always saved at the first payment; only the `recurring_provider` when one is set | yes |
+| Other online providers | no | yes |
+
+## Renewals
+
+An hourly scheduler renews every subscription whose next due date has passed. Each renewal is a regular OrderHub order (marked `meta_data.subscription_renewal`) for the subscription's customer, at the locked subscription price — or, with price policy `current`, the product setting's current interval price. Coupons and automatic cart price rules never apply, and renewals are placed even when the product is out of stock.
+
+How the order is paid depends on the billing method and the collection mode:
+
+| Case | What happens |
+|---|---|
+| Invoice / on account | The order is placed; nothing is collected online. |
+| `auto_charge` with a saved card | The saved card is charged. A decline sets `payment_failed` and cancels the order. |
+| `pay_now_email`, or `auto_charge` without a saved card | The order is placed unpaid and the customer is emailed a payment link (NotificationHub type `subscription_renewal_payment_link`). |
+
+**Payment links.** The customer has until the next due date — and at least 3 days after the email — to pay. Until then no further renewal order is placed. If the order is still unpaid after the deadline, it is cancelled and the subscription moves to `payment_failed` (`renewal_unpaid`); a resume orders that cycle again. A customer who never received the email is not halted; sending is retried at every run.
+
+**Temporary problems** (order creation failed, payment provider unreachable) keep the subscription active and are retried every hour for up to 24 attempts, then the subscription moves to `payment_failed`. A card charge is never repeated while an earlier attempt may have gone through: when the provider's answer cannot be confirmed, the subscription halts with `charge_unresolved` and keeps the order. Check the payment at the provider before resuming.
+
+### Failure reasons (`last_error.reason`)
+
+| Reason | Meaning |
+|---|---|
+| `price_unavailable`, `product_unavailable` | The product or its price can no longer be ordered. |
+| `address_missing`, `method_missing`, `customer_unavailable` | The snapshotted address, billing / shipping method or customer is gone, disabled or no longer belongs to the customer. |
+| `charge_failed` | The card was declined (`decline_code` from the provider when available), or no saved card can be charged any more (`decline_code` = `payment_method_unavailable`). |
+| `charge_unavailable`, `order_failed` | Temporary; retried hourly. |
+| `charge_unresolved` | The charge result could not be confirmed after all retries. |
+| `renewal_unpaid` | A payment-link renewal was not paid before its deadline. |
+| `payment_link_unsent` | The payment-link email could not be sent yet; retried at every run (no halt). |
+
+## Filters
+
+For filter syntax and operators, see [Filtering](/core-concepts/filtering).
+
+| Resource | Filter keys |
+|---|---|
+| **Subscriptions** | `id`, `customer_id`, `company_id`, `product_id`, `source_order_id`, `status`, `interval_unit`, `next_due_at` (date) |
+| **Product settings** | `id`, `product_id`, `enabled`, `purchase_mode`, `price_policy` |
+| **Interval units** | `id`, `code`, `active` |
+| **History** | `id`, `subscription_id`, `type` |
+
+## Includes
+
+For include syntax, see [Includes & Relations](/core-concepts/includes).
+
+| Resource | Available includes |
+|---|---|
+| **Subscriptions** | `history`, `customer`, `company`, `product`, `billingMethod`, `shippingMethod` |
+| **Product settings** | `product` |
+
+## Validation Rules
+
+<Expandable title="Create / update product settings" default-open="true">
+
+| Field | Rules |
+|---|---|
+| `product_id` | required, existing product, not a variant |
+| `enabled` | required, boolean |
+| `purchase_mode` | required, in: `subscription_only`, `one_time_and_subscription` |
+| `intervals` | required, array, min:1; each unit + count once |
+| `intervals.*.unit` | required, an active interval unit (`day`, `week`, `month`, `year`) |
+| `intervals.*.count` | required, integer, min:1 |
+| `intervals.*.price` | required, numeric, min:0 |
+| `intervals.*.active` | required, boolean |
+| `max_cycles` | nullable, integer, min:1 |
+| `price_policy` | required, in: `locked`, `current` |
+
+</Expandable>
+
+<Expandable title="Update subscription" default-open="false">
+
+| Field | Rules |
+|---|---|
+| `billing_address_id` | integer, an address of the customer or their company |
+| `shipping_address_id` | nullable, integer, same ownership rule; `null` ships to a copy of the billing address |
+| `billing_method_id`, `shipping_method_id` | integer, existing and enabled |
+| `customer_payment_method_id` | nullable, integer, a saved payment method of the customer |
+| `quantity` | integer, min:1 |
+| `max_cycles` | nullable, integer, min:1 |
+
+`status`, `id` and free-form `billing_address` / `shipping_address` objects are rejected; use the lifecycle actions to change the status.
+
+</Expandable>
+
+<Expandable title="Subscription checkout" default-open="false">
+
+| Field | Rules |
+|---|---|
+| `interval.unit` | required, in: `day`, `week`, `month`, `year` — must be an active interval of the product |
+| `interval.count` | required, integer, min:1 |
+| `billing_method_id`, `shipping_method_id` | required, enabled; billing method allowed by the collection mode |
+| `billing_address_id` | required, the customer's or their company's address |
+| `shipping_address_id` | required unless `shipping_address_is_same_as_billing`; same ownership rule |
+| `shipping_address_is_same_as_billing` | boolean |
+| `billing_method.redirect_url` | nullable, string — where the provider returns the customer |
+| `billing_method.customer_payment_method_id` | nullable, a saved card of the customer |
+| `comment` | nullable, string |
+
+</Expandable>
+
+## Related
+
+- [OrderHub](/hubs/order-hub) — renewal orders, billing methods and saved payment methods.
+- [NotificationHub](/hubs/notification-hub) — the `subscription_renewal_payment_link` email template.
+- [Storefront Themes → Forms](/advanced/storefront-themes/forms) — the `subscription-checkout` form on the product page.
