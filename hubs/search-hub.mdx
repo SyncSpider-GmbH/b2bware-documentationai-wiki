@@ -68,11 +68,15 @@ SearchHub indexes selected hubs into Typesense and serves search, facets, and an
 
 With the add-on on and Product Hub indexed, the storefront catalog search (`?q=`) and the admin product list search (`filter[search]`) take their matches from Typesense. Status, category, price and stock filters still apply on the catalog data. Without an explicit sort the list keeps the Typesense ranking and later pages continue it; choosing a sort orders the matched products by that field instead. If Typesense does not answer, the request falls back to the catalog's own text search.
 
+## Languages
+
+Each language in `general.languages` gets its own collection. Documents carry the product translation for that language (name, description, category names, attribute labels) and the base value where no translation exists. Storefront searches use the page locale, admin searches the tenant default language. A language that is not indexed, or whose collection is still being built, is answered by the first indexed language.
+
 ## Search API
 
 `GET /api/v1/apps/search-hub/search?q=&lang=en&hub=product-hub&limit=20&page=1`
 
-Response `engine` is `typesense` or `mongo`. `hits` contain `id`, `name`, and `sku`; `found` is the total and `page` echoes the requested page.
+Response `engine` is `typesense` or `mongo`. `hits` contain `id`, `name`, and `sku`; `found` is the total, `page` echoes the requested page and `lang` names the collection language that served the hits. `lang` in the query is optional and defaults to the request language.
 
 Scoped keys: `POST /api/v1/apps/search-hub/keys`. A key only lists that store's collections.
 
