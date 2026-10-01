@@ -14,7 +14,7 @@ SearchHub indexes selected hubs into Typesense and serves search, facets, and an
 | Setting | Type | Description |
 |---------|------|-------------|
 | `enabled` | boolean | Turn the add-on on for this store. Off uses Mongo search. |
-| `languages` | string | Comma-separated language codes. One collection per language. |
+| `languages` | list | Languages to index, picked from the languages configured in Settings → General → Language. One collection per language. |
 | `typo_tolerance` | boolean | Allow typos. |
 | `num_typos` | number | Maximum typos when tolerance is on. |
 | `prefix` | boolean | Search-as-you-type. |
@@ -33,25 +33,25 @@ SearchHub indexes selected hubs into Typesense and serves search, facets, and an
 
 | Setting | Type | Description |
 |---------|------|-------------|
-| `query_by_weights` | string | `field:weight` pairs, for example `name:4,sku:3`. |
+| `weights` | object | A weight (0–10) per searchable field: `name`, `sku`, `attribute_text`, `description`, `variant_skus`. A match in a heavier field ranks higher. Applies to the next search, no reindex. |
 
 **synonyms** — Synonyms
 
 | Setting | Type | Description |
 |---------|------|-------------|
-| `sets` | JSON | Synonym sets applied on the next reindex. |
+| `sets` | list | Synonym sets, one row per set: `synonyms` (words that find the same products) and an optional `root` (fill it for a one-way rule: searching the root also finds the words, not the reverse). Applied on the next reindex. |
 
 **curation** — Curation
 
 | Setting | Type | Description |
 |---------|------|-------------|
-| `overrides` | JSON | Pin and hide rules applied on the next reindex. |
+| `overrides` | list | Pin and hide rules, one row per search term: `query`, `match` (`exact` or `contains`), `pinned` (products shown first, in order) and `hidden` (products never shown for that term). Products are picked by name. Applied on the next reindex. |
 
 **facets** — Facets
 
 | Setting | Type | Description |
 |---------|------|-------------|
-| `fields` | string | Comma-separated facet fields. Default `categories,facet_values`. |
+| `fields` | list | Filters shown next to search results with a count per value: `categories`, `facet_values` (attribute values). Default both. |
 
 **hubs** — Indexed hubs
 
@@ -86,7 +86,7 @@ Both settings pages (the **Search** entry in the sidebar and **Settings → Apps
 
 A rebuild never interrupts search: the new index is built next to the current one and only replaces it once every chunk has finished. If a chunk fails, the rebuild stops, the previous index stays in use, and the panel shows *Failed, previous index kept* with the reason. Product changes made while a rebuild runs are written to both indexes, so nothing is lost at the switch.
 
-Synonym sets and pin/hide rules are checked when you save: broken JSON, a missing `id`, a rule without an action, or a pin without a position is refused with a message that names the entry, instead of failing the next rebuild.
+Synonym sets and pin/hide rules are checked when you save: a set with a single word and no root, or a rule without pinned or hidden products, is refused with a message that names the entry, instead of failing the next rebuild. Settings saved by earlier versions as comma-separated text or JSON keep working and are shown in the new form.
 
 ## Search box on any site
 
@@ -110,6 +110,8 @@ The widget first asks B2Bware for a short-lived search key and only then queries
 Name, SKU, description, category names, attribute labels (all in the collection language), variant SKUs, the primary image URL, the regular price and a regular price per customer group, the product's status and URL slug, and the product's visibility. Visibility follows the product permissions set in Product Hub: products visible to everyone, allowed for selected customer groups, or hidden from selected groups. Browser searches with a scoped key only return public products that visitor may see; a signed-in customer's group is part of the key.
 
 ## Search API
+
+Admin endpoints run under the company's SearchHub installation: an `installation-key` header of any of the company's apps (or none at all, as the admin shell sends) is resolved to it; `422` when the company has no SearchHub.
 
 `GET /api/v1/apps/search-hub/search?q=&lang=en&hub=product-hub&limit=20&page=1`
 
