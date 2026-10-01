@@ -76,6 +76,10 @@ Each language in `general.languages` gets its own collection. Documents carry th
 
 Saving or deleting a product, its categories, attribute values, prices, stock, translations, media or variant links queues an update of that product's document within a few seconds; several changes to one product in that window become one update. Changing a variant updates its parent. Settings changes that affect the whole index (languages, indexed hubs, synonyms, curation, facet fields) run a full reindex instead.
 
+## Reindex from the admin
+
+Both settings pages (the **Search** entry in the sidebar and **Settings → Apps → Search**) end with a *Search index* panel. It shows whether the search node is reachable, whether a queue worker is running, each indexed hub and language with its document count, and when the last rebuild finished. **Reindex now** rebuilds every indexed collection; while it runs the panel shows a progress bar and the button is disabled, and a second request is refused until the first one finishes. The button needs the *Run a search reindex* permission. A warning appears when nothing is processing the queue, because neither a rebuild nor the incremental updates can run without a worker.
+
 ## What a product document contains
 
 Name, SKU, description, category names, attribute labels (all in the collection language), variant SKUs, the primary image URL, the regular price and a regular price per customer group, and the product's visibility. Visibility follows the product permissions set in Product Hub: products visible to everyone, allowed for selected customer groups, or hidden from selected groups. Browser searches with a scoped key only return what that visitor may see; a signed-in customer's group is part of the key.
@@ -87,5 +91,7 @@ Name, SKU, description, category names, attribute labels (all in the collection 
 Response `engine` is `typesense` or `mongo`. `hits` contain `id`, `name`, and `sku`; `found` is the total, `page` echoes the requested page and `lang` names the collection language that served the hits. `lang` in the query is optional and defaults to the request language.
 
 Scoped keys: `POST /api/v1/apps/search-hub/keys`. A key only lists that store's collections.
+
+Index status: `GET /api/v1/apps/search-hub/status` returns `enabled`, `health` (`ok`, `host`), `collections` (`hub`, `lang`, `alias`, `built`, `documents`, `building`), `reindex` (`running`, `started_at`, `batch` with `total_jobs`, `processed_jobs`, `failed_jobs`, `progress`, and `last`) and `worker` (`state` `alive` | `dead` | `unknown`, `backlog`). `POST /api/v1/apps/search-hub/reindex` queues a full rebuild and answers `409` while one is running.
 
 Public embed (rate-limited): `GET /api/v1/apps/search-hub/embed.js` and `GET /api/v1/apps/search-hub/embed/{installationKey}/key`.
