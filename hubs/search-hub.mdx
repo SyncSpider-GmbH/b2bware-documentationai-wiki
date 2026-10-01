@@ -68,6 +68,10 @@ SearchHub indexes selected hubs into Typesense and serves search, facets, and an
 
 With the add-on on and Product Hub indexed, the storefront catalog search (`?q=`) and the admin product list search (`filter[search]`) take their matches from Typesense. Status, category, price and stock filters still apply on the catalog data. Without an explicit sort the list keeps the Typesense ranking and later pages continue it; choosing a sort orders the matched products by that field instead. If Typesense does not answer, the request falls back to the catalog's own text search.
 
+## Facets on search pages
+
+On a storefront search page the attribute filters and the category counts in the sidebar are built from the same set of products the search engine matched, so a typo-tolerant or synonym match shows up in the filters exactly as it does in the grid, and a category badge counts the matches inside that category. Category pages and the full catalog keep their usual filters and catalog-wide counts.
+
 ## Languages
 
 Each language in `general.languages` gets its own collection. Documents carry the product translation for that language (name, description, category names, attribute labels) and the base value where no translation exists. Storefront searches use the page locale, admin searches the tenant default language. A language that is not indexed, or whose collection is still being built, is answered by the first indexed language.
