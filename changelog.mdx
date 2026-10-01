@@ -10,7 +10,8 @@ description: Release history and version updates for the B2Bware DataHub platfor
 - **New hub page** — [SubscriptionHub](/hubs/subscription-hub) documents product settings, interval units, subscriptions, history, checkout and the status lifecycle.
 - **Billing settings** — new `billing` settings group: `billing_collection_mode` (`auto_charge`: charge the card saved at the first checkout; `pay_now_email`: email a payment link for every renewal) and `recurring_provider` (optional single online billing method for automatic charges). Subscription checkout offers only the billing methods the mode allows.
 - **Renewal payments** — automatic Stripe / Mollie card charges with hourly retries for temporary errors; payment-link renewals stay open until the next due date (at least 3 days), after which the order is cancelled and the subscription moves to `payment_failed`.
-- **Payment link** — public signed `GET /api/v1/apps/subscription-hub/renewal-payment/{installationKey}/{order}` and a seeded NotificationHub email type `subscription_renewal_payment_link`.
+- **Payment link** — public signed `GET /api/v1/apps/subscription-hub/renewal-payment/{installationKey}/{order}` and a seeded NotificationHub email type `subscription_renewal_payment_link`. Never opens a second payment while one is being prepared or processed (409), and stops working once the subscription ended or no longer waits for the order (410). The page answers in the customer's language (English, German).
+- **Safer renewals** — an order cancelled in OrderHub while its charge is retried is never charged (`order_closed`); ending a subscription cancels its unpaid renewal order; pausing moves the payment deadline; a card charge still processing at the provider (e.g. SEPA) is checked before the next cycle is ordered (`charge_pending`).
 
 </Update>
 
