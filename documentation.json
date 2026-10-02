@@ -256,6 +256,30 @@
                     "icon": "list"
                   }
                 ]
+              },
+              {
+                "group": "Media",
+                "icon": "image",
+                "pages": [
+                  {
+                    "title": "Media overview",
+                    "path": "user-guide/media/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Notifications",
+                "icon": "bell",
+                "pages": [
+                  {
+                    "title": "Notifications overview",
+                    "path": "user-guide/notifications/overview"
+                  },
+                  {
+                    "title": "Delivery Logs",
+                    "path": "user-guide/notifications/delivery-logs"
+                  }
+                ]
               }
             ]
           },
