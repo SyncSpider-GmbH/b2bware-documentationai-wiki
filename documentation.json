@@ -1511,6 +1511,16 @@
                     "path": "de/user-guide/storefront-builder/overview"
                   }
                 ]
+              },
+              {
+                "group": "Automation",
+                "icon": "zap",
+                "pages": [
+                  {
+                    "title": "Automation Hub — Überblick",
+                    "path": "de/user-guide/automation/overview"
+                  }
+                ]
               }
             ]
           }
