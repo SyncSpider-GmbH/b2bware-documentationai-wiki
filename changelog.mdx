@@ -3,6 +3,14 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-02" description="Cart-line favorite state" tags={["improvement", "storefront"]}>
+
+## Cart-line favorite state
+
+Cart lines expose `$line['is_favorite']` for the customer's active favorites list, replacing repeated Blade lookups. The value is `false` for guests and when favorites are disabled; disabled favorites skip the lookup. See [View data](/advanced/storefront-themes/view-data).
+
+</Update>
+
 <Update label="2026-08-18" description="Parent category branch display mode" tags={["feature", "storefront"]}>
 
 ## Parent category products on the storefront
