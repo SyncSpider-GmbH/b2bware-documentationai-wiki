@@ -1461,6 +1461,16 @@
                     "path": "de/user-guide/loyalty/overview"
                   }
                 ]
+              },
+              {
+                "group": "Licenses",
+                "icon": "key",
+                "pages": [
+                  {
+                    "title": "Licenses — Überblick",
+                    "path": "de/user-guide/licenses/overview"
+                  }
+                ]
               }
             ]
           }

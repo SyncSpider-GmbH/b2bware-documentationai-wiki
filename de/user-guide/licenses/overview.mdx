@@ -1,0 +1,96 @@
+---
+title: Licenses — Überblick
+description: Optionaler License Hub in B2Bware — License Keys, Pools, Rules, Configurations und Usage Logs; wie digitale Entitlements zu Products und Orders stehen, mit Abhängigkeiten und Fallstricken.
+---
+
+**Licenses** in B2Bware Admin ist die UI für den optionalen **License Hub** — Inventar und Lifecycle von **License Keys**, gruppiert in **Pools**, gesteuert durch **License Rules** / **Configurations**, mit **Usage Logs** für Activation- und Validation-Events.
+
+| Konzept | Rolle |
+| --- | --- |
+| **License Hub** | Optional installiertes Package. Wenn vorhanden und der Operator es sehen darf, zeigt Admin **Licenses** mit fünf Children. |
+| **License Key** | Individuelles Entitlement-Credential mit Status (z. B. available / sold / used / revoked / expired — dynamisch aus Entity Options). |
+| **License Pool** | Product-scoped Key-Bestand mit Auto-Assign-Helpers und Available-Count. |
+| **License Rule** | Per-Product Licensing-Constraints (Limits, Expiration, Reassignment Policy). |
+| **Configurations** | Hub-/Product-Licensing-Konfigurations-Surface. |
+| **Usage Logs** | Activation-, Deactivation-, Validation-, Status-Check-Style Audit-Zeilen. |
+
+**Mentales Modell:** Products verkaufen *was*; License Hub speichert *welcher Key reserviert/zugewiesen/aktiviert* wurde für dieses digitale Entitlement. Pools sind das Warehouse der Keys; Rules begrenzen, wie Keys genutzt werden dürfen; Usage Logs beweisen, was passiert ist.
+
+<Callout kind="alert" collapsed="false">
+License Hub ist **optional** (`hasLicenseHub`). Wenn der Tenant ihn nicht installiert hat, fehlt die Sidebar-Gruppe **Licenses** — und Soft-License-Cards auf Order-/Product-UIs fehlen ebenfalls. Demo-Store-Präsenz bedeutet **nicht**, dass jeder Tenant Licenses hat.
+</Callout>
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Rule Hub** | Price-/Cart-Promotions |
+| **Tax Rules** | VAT-Engine |
+| **Stock Locations / Stock Movements** | Physisches / Qty-Inventar |
+| **Customer Roles** | Admin-/Shop-Permissions — keine License Keys |
+
+## Warum Teams Licenses nutzen
+
+1. **Digitale Entitlements verkaufen** — Keys getrennt von physischer Stock-Qty tracken.
+2. **Pool-basiertes Assignment** — Reservoir pro Product halten; Auto-Assign auf Fulfilment-Pfaden, wenn konfiguriert.
+3. **Lifecycle-Kontrolle** — Activate / Deactivate / Revoke / Validate, ohne die Order umzuschreiben.
+4. **Bulk Ops** — CSV Import/Export von Keys mit Filtern.
+5. **Support-Triage** — Usage Logs beantworten „wurde dieser Key aktiviert / revoked?“
+6. **Policy pro Product** — License Rules kodieren Limits und Expiry-Erwartungen.
+
+Nutzen Sie **[Stock Locations](/de/user-guide/products/stock-locations)** für physische On-Hand-Qty. Nutzen Sie **Licenses** für Key-Inventar und Entitlement-State.
+
+## Wie Keys zu Catalog und Orders stehen
+
+1. **License Rules / Configurations** für Products definieren, die Entitlement-Verhalten brauchen.
+2. **Keys erstellen oder importieren** in **Pools**, die an Products gebunden sind.
+3. Bei Sale-/Fulfilment-Flows (tenant-spezifische Automation oder Operatoren) wechseln Keys den Status (z. B. available → sold/used) und können Customers/Orders zugewiesen werden.
+4. **Activate- / Validate- / Revoke**-Endpoints unterstützen den Post-Sale-Lifecycle.
+5. **Usage Logs** hängen Actions für Audit an.
+6. Order Hub / Product Hub können **soft-coupled** License Panels zeigen, wenn der Hub installiert ist — fehlen, wenn nicht.
+
+Statuses und Log-Actions sind **dynamische Options** aus der Entity-Konfiguration — behandeln Sie sie als tenant-konfigurierbare Listen, nicht als eingefrorenes globales Enum.
+
+**Demo-Children → Überblick-Intent:** License Keys, License Pools, License Rules, Configurations, Usage Logs.
+
+## So nutzen Sie den Hub
+
+1. Bestätigen Sie, dass **Licenses** sichtbar ist (`hasLicenseHub`) und die Rolle Keys/Pools verwalten darf.
+2. Konfigurieren Sie **Rules/Configurations** für Entitlement-Products, bevor Sie Auto-Delivery versprechen.
+3. Laden Sie **Pools** (manuell erstellen oder CSV-Import); prüfen Sie den **Available-Count** vor Campaigns.
+4. Bevorzugen Sie Pool-**Assign** statt ad-hoc Key Copy-Paste in E-Mails.
+5. Nutzen Sie **Usage Logs**, wenn ein Buyer behauptet, ein Key „funktioniert nicht“.
+6. Halten Sie physischen **Stock** und **License-Pool-Depth** operational abgestimmt, wenn beides für dasselbe SKU gilt — es sind getrennte Systeme.
+7. Revoken Sie bewusst; revoked/expired Keys sollten ohne neue Assignment-Policy nicht erneut versprochen werden.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **License Hub installiert** | Sidebar + APIs |
+| **Product Hub** | Pools/Rules auf Products keyed |
+| **Order Hub** | Commercial Assignment Context; Soft Order Cards |
+| **Customer Hub** | Assignees / Customer Context |
+| **Auth + Admin Access** | Admin Writes; Import/Export |
+| **Notification Hub (optional)** | Pool-Warning-Notifications können in manchen Tenants existieren — nicht garantiert |
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Licenses auf jedem Tenant erwarten | Optional Install | Install-Caveat; Demo ≠ alle Tenants |
+| License Rules mit Rule Hub verwechseln | Falscher Promotions-Screen | Hubs präzise benennen |
+| Leerer Pool zum Sale-Zeitpunkt | Buyer erhält Order ohne Key | Available-Count monitoren |
+| Key-Liste als Warehouse-Qty behandeln | Dual Systems | Ops-Prozess syncen, wenn beides genutzt wird |
+| Status-Strings in SOPs hardcoden | Dynamische Options | Statuses aus UI / List-APIs lesen |
+| Annehmen, Order Soft Card sei immer da | Install-gated | License Hub prüfen |
+
+## Verwandt
+
+- [Produkt bearbeiten](/de/user-guide/products/edit-product) — Entitlement-SKUs
+- [Products verwalten](/de/user-guide/products/manage-products)
+- [Order Lifecycle](/de/user-guide/orders/lifecycle) — Fulfilment / Soft Cards
+- [Stock Locations](/de/user-guide/products/stock-locations) — physische Qty ≠ Keys
+- [Rules — Überblick](/de/user-guide/rules/overview) — nicht vermischen
+- [Customers — Überblick](/de/user-guide/customers/overview) — Assignees
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
