@@ -1407,6 +1407,16 @@
                     "path": "de/user-guide/rules/usage-logs"
                   }
                 ]
+              },
+              {
+                "group": "Media",
+                "icon": "image",
+                "pages": [
+                  {
+                    "title": "Media — Überblick",
+                    "path": "de/user-guide/media/overview"
+                  }
+                ]
               }
             ]
           }

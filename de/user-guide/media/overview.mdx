@@ -1,0 +1,124 @@
+---
+title: Media — Überblick
+description: Wie Media Hub polymorphe Product- und Category-Assets in B2Bware speichert — Primary vs Gallery, Admin Media vs Edit Product, Abhängigkeiten und Fallstricke.
+---
+
+**Media** in B2Bware Admin ist die UI für **Media Hub** — das Shared Package, das **Media-Records** (Bilder, Videos, Dokumente, Audio) speichert und sie über einen **polymorphen** Link (`mediable_type` + `mediable_id`) an andere Records hängt, nicht über einen product-only Foreign Key.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Media Hub** (`media-hub`) | Installiertes Package, das Media-Model, APIs, Events und den Admin-**Media**-Eintrag besitzt |
+| **Media-Record** | Ein anhängbares Asset: Typ, URL / File-Referenz, Alt-Text, Primary-Flag, Sort Order |
+| **Mediable** | Jedes Model mit `HasMedia` — belegt für **Product** und **Category** |
+| **Primary / Main Media** | `is_primary`-Zeile (oder erste nach Sort) als Default-Hero / `mainMedia`-Include |
+| **Sort Order** | Anzeigereihenfolge innerhalb der Gallery eines Mediable |
+| **Top-level Media** | Flacher Admin-Eintrag (`/admin/media`) — Library-Liste/Create/Update/Delete und Attach-to-Model-Helfer |
+
+**Mentales Modell:** Media Hub ist die **Attachment-Schicht** für Katalog- (und andere) Objekte. Product **Edit → General** zeigt weiterhin eine **Media Gallery** am Product, weil Products Media Hub *nutzen*; der Sidebar-**Media**-Screen ist der hub-weite Ort, um diese Attachments zu finden und zu verwalten — kein paralleler „Image-Katalog“, den die Storefront statt des Products liest.
+
+<Callout kind="info" collapsed="false">
+Media Hub ist in der Admin-Hub-Registry **core-listed** (nicht `isOptional` wie Tax oder Rule), aber der Sidebar-Eintrag **Media** erscheint trotzdem nur, wenn der Hub **installiert** ist und der Operator das Modul sehen darf. Demo-Store-Präsenz bedeutet **nicht**, dass jeder Tenant Media zeigt.
+</Callout>
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Volles DAM / Brand Portal** | Media Hub ist eine Attachment-Library, keine Ordner-/Rechte-DAM-Suite |
+| **Product Edit → General Gallery** | Day-to-day pro-SKU-UX, die Media Hub *nutzt* — kein zweiter Store |
+| **Notifications-Attachments / Event-Hub-Payloads** | Message- und Event-Systeme; sie besitzen keine Catalog-Media-Zeilen |
+| **Import-/Export-File-Feeds** | Bulk-File-Transfer — nicht das polymorphe Media-Model |
+
+## Warum Teams Media nutzen
+
+1. **Ein Media-System für Products und Categories** — Gleiches Attach- / Primary- / Sort-Modell statt siloierter File-Tabellen pro Entity.
+2. **Storefront-Merchandising** — Primary Image und geordnete Galleries treiben PLP-/PDP-Darstellung, wenn Themes `media` / `mainMedia` konsumieren.
+3. **Ops-Triage** — Verwaiste oder falsche Attachments finden, Alt-Text korrigieren, Primary neu setzen, umsortieren, ohne nur in einem Product-Formular zu suchen.
+4. **Bulk- / Import-Kontinuität** — Product-Create/Update-Payloads können `media`-Arrays tragen (und Legacy-`image` → Media-Conversion im Product Hub); Media Hub ist der dauerhafte Store dahinter.
+5. **Events für Downstream-Arbeit** — Create-/Update-/Delete-Media-Events existieren für Listener (Resize, CDN-Sync und Ähnliches) — mögliche Side Effects, kein garantiertes Image-Pipeline-Produkt.
+
+Nutzen Sie **[Produkt bearbeiten](/de/user-guide/products/edit-product)** für die tägliche Gallery-Arbeit an einer SKU. Nutzen Sie **Media**, wenn die Aufgabe hub-weite Discovery, Neuverknüpfung oder das Aufräumen von Assets über viele Mediables hinweg ist.
+
+## Wie Media angehängt und surfaced wird
+
+### Polymorphes Attach
+
+```
+Media.mediable_type + Media.mediable_id  →  Product | Category | (any HasMedia model)
+```
+
+Operatoren sollten in **„diese Datei gehört zu diesem Record“** denken, nicht „diese Datei sitzt in einem freistehenden DAM-Ordnerbaum“ (kein belegtes Folder-Taxonomy als Primärmodell).
+
+### Record-Shape (operatorrelevante Felder)
+
+| Feld | Bedeutung |
+| --- | --- |
+| **media_type** | `image` / `video` / `document` / `audio` |
+| **media_url** | Öffentliche/CDN-URL für die Anzeige, wenn verfügbar |
+| **file** | Storage-Referenz bei Upload über die Plattform |
+| **alt_text** | Accessibility- / SEO-Alternativtext |
+| **is_primary** | Markiert die Primary Media für dieses Mediable |
+| **sort_order** | Reihenfolge innerhalb des Mediable-Sets (auto bei Create; änderbar) |
+
+**Erlaubte Typen (Config):** `image`, `video`, `document`, `audio` — mit Extension- und Max-Size-Limits aus der Hub-Config (Default-Max-Größe in der Größenordnung **50MB**; als tenant-/config-abhängig behandeln, nicht als universelle User-Guide-Zusage).
+
+### Product- / Category-Pfade
+
+| Pfad | Was er tut |
+| --- | --- |
+| **Product Edit → General (Media Gallery)** | Day-to-day Attach / Reorder / Primary an diesem Product |
+| **Category** (`HasMedia`) | Category-Imagery über dasselbe Trait |
+| **API Includes** | `media`, `mainMedia` auf Product-Queries |
+| **Admin Media** (`/admin/media`) | Hub-Liste + CRUD + Get-for-Model / Set-Primary / Sort-Order-Helfer |
+
+**Legacy-Hinweis (Product Hub):** ein älteres einzelnes `image`-Feld kann in `media`-Records konvertiert werden — künftig explizite Media-Arrays bevorzugen.
+
+Runtime-Helfer, die Operatoren konzeptionell erwarten sollten: Primary-oder-erste für Main Media; Gallery nach Typ filtern; Primary setzen ersetzt die Primary-Semantik für dieses Mediable.
+
+## So nutzen Sie Media
+
+1. Bestätigen Sie, dass **Media** sichtbar ist (Hub installiert + `media-hub.media.view`).
+2. Hängen Sie Media bevorzugt **an das Product oder die Category**, die es besitzen soll — Gallery auf Edit Product für Single-SKU-Arbeit.
+3. Setzen Sie **eine Primary**-Image pro Product, die Buyer zuerst sehen sollen; halten Sie **sort_order** für Gallery-Carousels bewusst.
+4. Füllen Sie **alt_text** für Accessibility und Search-Snippets.
+5. Bevorzugen Sie dauerhafte **CDN- / stabile URLs**, wenn Themes `media_url` in Scale laden.
+6. Nach Import/Sync **media** an einem Sample-Product verifizieren (`include=media,mainMedia`), statt anzunehmen, dass Dateipräsenz gleich Storefront-Anzeige ist.
+7. Nutzen Sie die Media-Library, wenn Sie ein Asset finden müssen, ohne die SKU zu kennen, Attachment umzuhängen oder schlechte Zeilen zu löschen.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Media Hub installiert** | Sidebar + Media-APIs |
+| **Permissions** | `media-hub.media.view` / `.create` / `.update` / `.delete` |
+| **Product Hub** | Products (und Categories) sind die primären Mediables; Gallery-UX liegt auf Edit Product |
+| **Customer Hub PermissionRegistry** | Hostet `media-hub.*`-Keys, wenn Customer Hub vorhanden ist (gleiches Muster wie andere Hubs) |
+| **Auth + Admin-Access** | Admin-Writes |
+| **Storage- / CDN-Konfiguration** | Uploads und `media_url`-Auflösung hängen von Platform-Storage ab — nicht von Media Hub allein |
+| **Themes / Storefront** | Anzeige ist theme-getrieben; Media Hub speichert Attachments, garantiert aber kein bestimmtes PDP-Layout |
+
+**Keine Voraussetzungen:** Notifications, Event Hub, Import-/Export-File-Feeds oder Third-Party Social Scheduling.
+
+Product Edit braucht weiterhin Product-Update-Rechte, um die Gallery eines Products zu ändern; Media-Hub-Keys steuern die dedizierte Library-Oberfläche.
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Media in jeder Tenant-UI erwarten | Install + Permission gated | Hub-Install / Role-Keys prüfen; Demo ≠ alle Tenants |
+| Media als separaten verkaufbaren Katalog behandeln | Buyer resolven Products, nicht Media-Zeilen | Immer an Product / Category anhängen |
+| Mehrere „Primary“-Annahmen | Themes nehmen ein Main Image | Explizit `is_primary` setzen; `mainMedia` verifizieren |
+| Falscher `media_type` / Extension | Asset abgelehnt oder nicht gerendert | Config erlaubte Typen / Extensions einhalten |
+| PDP-Layout in Media Hub „reparieren“ | Layout ist Theme / Storefront | Theme-Konsum von `media` / `mainMedia` fixen |
+| Media löschen, das noch in Caches / CDNs referenziert wird | Broken Images bis Cache-Expiry | URL ersetzen oder CDN nach Delete purgen |
+| Media mit Notifications verwechseln | Unverwandte Hubs | Media besitzt Assets; Notifications besitzen Messages |
+| Category-Media ignorieren | Category-Tiles leer, während Products gut aussehen | Categories haben ebenfalls `HasMedia` |
+
+## Verwandt
+
+- [Produkt bearbeiten](/de/user-guide/products/edit-product) — General-Tab Media Gallery
+- [Produkte verwalten](/de/user-guide/products/manage-products) — Liste / Suche vor dem Öffnen der Gallery
+- [Categories](/de/user-guide/products/categories) — Category-Level Media
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Orders — Überblick](/de/user-guide/orders/overview)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
