@@ -1351,6 +1351,15 @@
                     "path": "de/user-guide/customers/segmentation"
                   }
                 ]
+              },
+              {
+                "group": "Orders",
+                "pages": [
+                  {
+                    "title": "Orders — Überblick",
+                    "path": "de/user-guide/orders/overview"
+                  }
+                ]
               }
             ]
           }
