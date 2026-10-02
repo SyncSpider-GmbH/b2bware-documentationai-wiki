@@ -1,20 +1,47 @@
 ---
 title: Integrations overview
-description: Connect external platforms to DataHub with Integration Hub — import, export, file feeds, and ERP embed.
+description: Connect external platforms to B2Bware with Integration Hub — import, export, file feeds, sync runs, and ERP embed.
 ---
 
 ## What is Integration Hub?
 
-**Integration Hub** connects your B2Bware / DataHub catalog to external systems (WooCommerce, Shopify, Walmart, FTP file feeds, and more). Operators configure credentials, field mappings, and schedules in the admin UI; background jobs move data in or out without writing custom sync scripts.
+**Integration Hub** connects your B2Bware catalog to external systems (WooCommerce, Shopify, Walmart, FTP file feeds, and more). Operators configure credentials, field mappings, and schedules in the admin UI; background jobs move data in or out without writing custom sync scripts.
 
 Open it from the left sidebar under **Integrations** (or your tenant's equivalent label).
+
+**Integrations are ongoing connections between B2Bware and an external system.** A connection defines where data comes from and goes to; mappings translate fields; filters limit records; sync runs show each execution; file feeds and relays support systems that exchange files or need a relay endpoint.
+
+## How this fits
+
+Integrations move selected **Products, Orders, and Customers** data across a configured boundary. The available entities and direction depend on the connector.
+
+The operating flow is:
+
+**connection → mapping and filters → sync run → result / triage**
+
+Use the surrounding hubs as business context before you create a connection:
+
+| Area | What it represents in an integration | Learn more |
+| --- | --- | --- |
+| **Products** | Catalog records and product identifiers such as SKU, price, stock, categories, and customer-specific values. | [How products work](/user-guide/products/how-products-work), [Manage products](/user-guide/products/manage-products) |
+| **Orders** | Transactions and their lifecycle; confirm which side owns status and fulfillment updates before syncing. | [Orders overview](/user-guide/orders/overview), [Order lifecycle](/user-guide/orders/lifecycle) |
+| **Customers** | Buyer/account and contact records; agree on the external key and ownership before enabling writes. | [Customers overview](/user-guide/customers/overview) |
+| **Import / Export** | One-off or file-based bulk jobs and **Download history**. It is not the history of connector syncs. | [Import / Export](/user-guide/import-export/overview) |
+| **Event Hub** | Outbound webhooks for subscribed events. It is not an integration connector or a sync-run screen. | [Event Hub overview](/user-guide/events/overview) |
+| **Automation Hub** | Multi-step event-triggered orchestration. It is not field mapping or connector transport. | [Automation Hub overview](/user-guide/automation/overview) |
+
+A successful sync run means the connector completed its work; it does **not** by itself prove that every field or business rule is correct. Validate a representative product, order, or customer in the destination.
+
+<Callout kind="tip" collapsed="false">
+**Choose the right tool:** Choose **Integrations** for a continuing connector and its mappings/runs; choose **Import / Export** for file jobs and download history; choose **Event Hub** for outbound webhooks; choose **Automation Hub** for multi-step reactions. **Import / Export → Download history is not connector sync history.**
+</Callout>
 
 ## What you can do
 
 | Capability | What it means |
 |---|---|
-| **Import** | Pull products, orders, customers, stock, etc. from the connector into DataHub (`items_{entity}` collections). |
-| **Export** | Push DataHub records to the external system. |
+| **Import** | Pull products, orders, customers, stock, etc. from the connector into B2Bware (`items_{entity}` collections). |
+| **Export** | Push B2Bware records to the external system. |
 | **File feed** | Import from CSV / XLSX / XML profiles (sample upload, AI-assisted profiling, file-run history). |
 | **Response Relay** | After a successful export, forward the connector's response JSON into another integration. |
 | **Embed** | Host the same Integration Hub UI inside your ERP via a snippet or JavaScript SDK. See [Embed Integration Hub](/help-center/guides/embed-integration-hub). |
@@ -34,8 +61,8 @@ Open it from the left sidebar under **Integrations** (or your tenant's equivalen
 
 Each **entity** on an integration has a direction:
 
-- **Import (inbound)** — source is the connector; target is a DataHub hub entity (e.g. ProductHub products).
-- **Export (outbound)** — source is DataHub; target is the connector's remote resource.
+- **Import (inbound)** — source is the connector; target is a B2Bware hub entity (e.g. ProductHub products).
+- **Export (outbound)** — source is B2Bware; target is the connector's remote resource.
 
 Bidirectional as a single entity direction is legacy; new setups pick import or export per entity.
 
@@ -43,6 +70,18 @@ Bidirectional as a single entity direction is legacy; new setups pick import or 
 
 - **Catalog connectors** talk to a remote API (or OAuth app) and discover schemas, attributes, and samples live.
 - **File feed** integrations use an import profile against uploaded or scheduled files; progress and history appear under **File Runs** on the detail page.
+
+## Common pitfalls
+
+| Pitfall | Correct mental model |
+| --- | --- |
+| Treating Import / Export Download history as integration history | Import / Export is file jobs and downloadable artifacts; Integrations has connector mappings and sync runs. |
+| Using Integrations for a one-time export just because the destination is external | Use the entity’s Import / Export action when a file is the intended result. |
+| Using Event Hub for a mapped, stateful data sync | Event Hub delivers outbound webhooks; Integrations handles connector state, mapping, filters, and runs. |
+| Using Automation Hub for field mapping or transport | Automation Hub orchestrates multi-step reactions; it does not replace an integration connector. |
+| Assuming a green run proves business correctness | Validate identifiers, required fields, status ownership, and a sample record in the destination hub. |
+| Assuming every connector supports every entity or direction | Describe support as connector-specific; do not generalize from one connector. |
+| Allowing two systems to own the same field without a rule | Define source of truth and conflict behaviour before enabling writes. |
 
 ## Next steps
 
