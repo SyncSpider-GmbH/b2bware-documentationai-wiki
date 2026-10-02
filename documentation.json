@@ -1531,6 +1531,16 @@
                     "path": "de/user-guide/events/overview"
                   }
                 ]
+              },
+              {
+                "group": "Store Setup",
+                "icon": "store",
+                "pages": [
+                  {
+                    "title": "Store Setup — Überblick",
+                    "path": "de/user-guide/store-setup/overview"
+                  }
+                ]
               }
             ]
           }
