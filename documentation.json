@@ -1337,6 +1337,10 @@
                   {
                     "title": "Companies",
                     "path": "de/user-guide/customers/companies"
+                  },
+                  {
+                    "title": "Contacts",
+                    "path": "de/user-guide/customers/contacts"
                   }
                 ]
               }
