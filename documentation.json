@@ -1561,6 +1561,16 @@
                     "path": "de/user-guide/import-export/overview"
                   }
                 ]
+              },
+              {
+                "group": "Settings",
+                "icon": "settings",
+                "pages": [
+                  {
+                    "title": "Einstellungen — Überblick",
+                    "path": "de/user-guide/settings/overview"
+                  }
+                ]
               }
             ]
           }
