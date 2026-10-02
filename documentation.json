@@ -1362,6 +1362,10 @@
                   {
                     "title": "Proposals",
                     "path": "de/user-guide/orders/proposals"
+                  },
+                  {
+                    "title": "Order-Lifecycle",
+                    "path": "de/user-guide/orders/lifecycle"
                   }
                 ]
               }
