@@ -1491,6 +1491,16 @@
                     "path": "de/user-guide/accounting/overview"
                   }
                 ]
+              },
+              {
+                "group": "Stock Movements",
+                "icon": "warehouse",
+                "pages": [
+                  {
+                    "title": "Stock Movements — Überblick",
+                    "path": "de/user-guide/stock-movements/overview"
+                  }
+                ]
               }
             ]
           }
