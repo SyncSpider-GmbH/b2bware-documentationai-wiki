@@ -1425,6 +1425,10 @@
                   {
                     "title": "Notifications — Überblick",
                     "path": "de/user-guide/notifications/overview"
+                  },
+                  {
+                    "title": "Delivery Logs",
+                    "path": "de/user-guide/notifications/delivery-logs"
                   }
                 ]
               }
