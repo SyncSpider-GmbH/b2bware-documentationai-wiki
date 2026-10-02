@@ -90,6 +90,32 @@
                 ]
               },
               {
+                "group": "Attributes",
+                "icon": "tags",
+                "pages": [
+                  {
+                    "title": "Attributes overview",
+                    "path": "user-guide/attributes/overview",
+                    "icon": "layout-grid"
+                  },
+                  {
+                    "title": "All Attributes",
+                    "path": "user-guide/attributes/all-attributes",
+                    "icon": "list"
+                  },
+                  {
+                    "title": "Attribute Groups",
+                    "path": "user-guide/attributes/attribute-groups",
+                    "icon": "folder"
+                  },
+                  {
+                    "title": "Attribute Collections",
+                    "path": "user-guide/attributes/attribute-collections",
+                    "icon": "layers"
+                  }
+                ]
+              },
+              {
                 "group": "Integrations",
                 "icon": "plug",
                 "pages": [
