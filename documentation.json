@@ -1481,6 +1481,16 @@
                     "path": "de/user-guide/procurement/overview"
                   }
                 ]
+              },
+              {
+                "group": "Accounting",
+                "icon": "landmark",
+                "pages": [
+                  {
+                    "title": "Accounting — Überblick",
+                    "path": "de/user-guide/accounting/overview"
+                  }
+                ]
               }
             ]
           }
