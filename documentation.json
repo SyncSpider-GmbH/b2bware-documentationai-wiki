@@ -1345,6 +1345,10 @@
                   {
                     "title": "Roles",
                     "path": "de/user-guide/customers/roles"
+                  },
+                  {
+                    "title": "Segmentation",
+                    "path": "de/user-guide/customers/segmentation"
                   }
                 ]
               }
