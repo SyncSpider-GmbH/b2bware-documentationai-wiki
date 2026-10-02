@@ -1501,6 +1501,16 @@
                     "path": "de/user-guide/stock-movements/overview"
                   }
                 ]
+              },
+              {
+                "group": "Storefront Builder",
+                "icon": "layout-template",
+                "pages": [
+                  {
+                    "title": "Storefront Builder — Überblick",
+                    "path": "de/user-guide/storefront-builder/overview"
+                  }
+                ]
               }
             ]
           }
