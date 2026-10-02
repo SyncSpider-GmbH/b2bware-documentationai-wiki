@@ -1397,6 +1397,10 @@
                   {
                     "title": "Cart Validation",
                     "path": "de/user-guide/rules/cart-validation"
+                  },
+                  {
+                    "title": "Shipping Rates",
+                    "path": "de/user-guide/rules/shipping-rates"
                   }
                 ]
               }
