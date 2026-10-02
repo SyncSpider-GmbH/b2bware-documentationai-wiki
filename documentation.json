@@ -1358,6 +1358,10 @@
                   {
                     "title": "Orders — Überblick",
                     "path": "de/user-guide/orders/overview"
+                  },
+                  {
+                    "title": "Proposals",
+                    "path": "de/user-guide/orders/proposals"
                   }
                 ]
               }

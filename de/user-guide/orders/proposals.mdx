@@ -1,0 +1,153 @@
+---
+title: Proposals
+description: B2B-Proposals (Quotes) im Order Hub — private vs öffentliche Freigabe, Voraussetzungen für Bestellbarkeit, Preisautorität aus Quote-Zeilen und Übergabe an Orders.
+---
+
+Ein **Proposal** ist ein **B2B-Quote**, das vor (oder statt) einer verbindlichen Sales Order vorbereitet wird: ein verhandeltes kommerzielles Angebot mit Line Items, Totals und optionalen Checkout-Voraussetzungen (Customer, Shipping-/Billing-Adressen und -Methoden).
+
+| Konzept | Rolle |
+| --- | --- |
+| **Proposal (Admin)** | Sidebar **Orders → Proposals**. Operator-seitiger Name. |
+| **Quote (Modell)** | Backend-Entity mit Quote-Line-Items (und optionalen Line Groups). Permission-Resource-Key bleibt `quotes`. |
+| **Order** | Dauerhafter Sales-Datensatz nach Checkout / Placement. Admin: **All Orders**. |
+| **Cart** | Transiente Shopping-Session für den Storefront-Checkout — und intern wiederverwendet, wenn ein **öffentliches** Proposal als Order platziert wird. |
+
+**Mentales Modell:** Proposal = *verhandeltes Angebot (Quote)*. Order = *verbindlicher kommerzieller Datensatz*. Cart = *Checkout-Fahrzeug*. Öffentliche Freigabe = *token-authentifizierter Buyer-Acceptance-Pfad*, kein login-pflichtiges Cart-Browsing.
+
+**Typen:**
+
+| Typ | Bedeutung |
+| --- | --- |
+| **private** | Standard intern / Sales-Quote. Nicht per Public Token auflösbar. |
+| **public** | Teilbar über einen unerratbaren Public Token. Anonymous Preview-/Order-Pfad löst nur `type=public` mit passendem Token auf. |
+
+<Callout kind="info" collapsed="false">
+Das Admin-Label lautet **Proposals**; Datenmodell und viele Permission-Keys sagen **quotes**. Dasselbe Produkt — behandeln Sie sie nicht als zwei Hubs.
+</Callout>
+
+**Was Proposals *nicht* enthalten:**
+
+- Ein produktisiertes mehrstufiges Quote-CRM (draft → sent → accepted → expired) mit langem Status-Vokabular wie bei Orders.
+- Automatische Mutation des Proposals, wenn ein Buyer aus einer öffentlichen Freigabe eine Order platziert — das Proposal selbst wird **nicht** umgeschrieben; eine neue Order entsteht.
+- Vom Buyer editierbare Stückpreise beim öffentlichen Place — **Item-Preise bleiben autoritativ aus den Proposal-Zeilen**.
+- Einen garantierten One-Click-„Private Proposal → Order“-Admin-Pfad, der für jeden Tenant als vollständig dokumentiert gilt.
+
+## Warum Teams Proposals nutzen
+
+1. **Quote vor Commitment** — Sales braucht ein bepreistes Angebot, das der Buyer prüfen kann, bevor eine feste Order entsteht.
+2. **Verhandelte Zeilenpreise** — Agents setzen Stückpreise auf Quote-Zeilen; öffentliches Placement vertraut diesen Beträgen (Basiswährung), sodass „was wir quotiert haben“ auf diesem Pfad berechnet wird.
+3. **Teilen ohne vorherigen Login** — Öffentliche Proposals nutzen einen Public Token als Autoritätsträger; die Order wird für den **bereits am Proposal zugewiesenen Customer** angelegt.
+4. **Agent-zentrierter Verkauf** — Default-**agent**-Role-Permissions fokussieren auf Proposals (Quotes) plus den Read-Zugriff, der zum Aufbau nötig ist.
+5. **Übergabe in Ops** — Nach Placement leben Fulfilment / Payment / Status auf **Orders**, nicht auf dem Quote-Dokument.
+
+Nutzen Sie **Proposals**, wenn der Motion offer → accept ist. Nutzen Sie **All Orders**, wenn der Verkauf bereits platziert ist (Storefront-Checkout, Integration oder öffentliches Proposal-Placement). Nutzen Sie **Pricelists / Live Prices / Providers** für Katalog-Listenpreise — Proposals sind ein **separater verhandelter Snapshot**, kein Pricelist-Deploy.
+
+## Wie Proposals funktionieren
+
+### Kommerzielles Payload
+
+| Bereich | Hinweise |
+| --- | --- |
+| **Identity** | Typ (`private` \| `public`), optionaler Public Token, Description, Media, Active-Flag |
+| **Buyer** | Customer — erforderlich für öffentliche Bestellbarkeit |
+| **Checkout-Voraussetzungen** | Shipping-Adresse, Billing-Adresse, Shipping-Methode, Billing-Methode |
+| **Money** | Surcharge, Discount, Subtotal, Shipping, Tax, Total |
+| **Lines** | Product, Quantity, **Price**, Meta; optionale Line Groups |
+
+### Öffentliche Freigabe → Order (kritischer Pfad)
+
+1. Caller löst das Quote per **Token** auf (`type=public` only — private Quotes leaken nie über Token-Lookup).
+2. **Bestellbar** nur, wenn Customer **und** alle Shipping-/Billing-**Methoden**- und **-Adress**-IDs am Proposal vorhanden sind.
+3. Buyer darf **Mengen** ändern oder Items für die resultierende Order **entfernen**; diese Edits gelten **nur für die Order**. Proposal-Zeilen werden nicht umgeschrieben.
+4. Stück-**preise** kommen aus Proposal-Items (Admin-gesetzt), gepinnt an die Store-**Basiswährung**, sodass eine Buyer-Währungspräferenz verhandelte Beträge nicht umetikettieren kann.
+5. Checkout nutzt die normale Cart → Checkout-Pipeline wieder (Tax, Shipping, Discounts, Payment) mit trusted Methods, damit admin-kuratierte Methods auch honoriert werden, wenn Storefront-Visibility sie verstecken würde.
+6. Die **Company** des Customers wird auf die Order übernommen, wenn vorhanden (B2B-Linkage).
+
+**Blocker für Placement:**
+
+| Fehlt | Effekt |
+| --- | --- |
+| Kein Customer | Nicht bestellbar |
+| Fehlende Shipping-/Billing-Methode oder -Adresse | Nicht bestellbar („missing required checkout information“) |
+| Angefordertes Product nicht am Proposal | Abgelehnt |
+| Menge unter 1 / leere Auswahl | Abgelehnt |
+
+### Preis-Provenienz (Proposals vs Katalog)
+
+| Pfad | Was den Stückpreis setzt |
+| --- | --- |
+| Kataloganzeige + normaler Cart | Live Product-Preise → optionaler Customer Price Provider (erster non-null) → optionaler Rules-Stack — siehe [Pricelists](/de/user-guide/products/pricelists) und [Orders — Überblick](/de/user-guide/orders/overview) |
+| **Öffentliches Proposal-Place** | **Proposal-Zeilenpreis** ist autoritativ; Katalog/Providers werden nicht erneut konsultiert, um diese Beträge zu ersetzen |
+
+Sagen Sie Operatoren nicht, dass ein Pricelist-Deploy „offene Proposals aktualisiert“. Proposal-Zeilen sind ihr eigener Snapshot, bis ein Agent sie bearbeitet.
+
+### Permissions
+
+- **Install:** Order Hub (Core). Sidebar mit View-Permission.
+- CRUD auf Proposals über Quote-/Proposal-Permissions; scoped **view-own** für Agents, wo gewährt.
+- Agent-Role-Types seeden ein proposal-zentriertes Admin-Permission-Set.
+
+## Typische Workflows
+
+### Privates Proposal bauen (intern / Sales)
+
+1. **Orders → Proposals** öffnen.
+2. Quote anlegen; den **Customer** zuweisen.
+3. Line Items hinzufügen (Products + verhandelte Stückpreise / Mengen).
+4. Optional früh Adressen und Shipping-/Billing-Methoden anhängen, wenn das Angebot später order-ready sein soll.
+5. **private** halten, solange intern verhandelt wird.
+
+### Teilbar und bestellbar machen
+
+1. Typ **public** setzen (Token wird vom Plattform-Share-Flow ausgestellt/verwaltet).
+2. Sicherstellen, dass **Customer**, **Shipping + Billing Addresses** und **Shipping + Billing Methods** alle gesetzt sind.
+3. Zeilenpreise und Währungsintent bestätigen (Basiswährung).
+4. Öffentlichen Link teilen; prüfen, dass die Order-Aktion nur erscheint, wenn die Bestellbarkeitsbedingungen gelten.
+
+### Nach dem Buyer-Placement
+
+1. Den neuen Datensatz unter **All Orders** finden (erwarten Sie nicht, dass die Proposal-Zeile verschwindet oder den Status ändert).
+2. Fulfilment / Payment / Status auf dem **Order**-Lifecycle fortsetzen.
+3. Das Proposal als historisches Angebotsdokument belassen, sofern Sales es nicht ausdrücklich für eine neue Runde überarbeitet.
+
+### Agent-Role
+
+Weisen Sie **agent**-type Roles zu, wenn die Hauptaufgabe des Operators Quoting ist. Warehouse-/Finance-Operatoren zentrieren stattdessen auf **All Orders** und Status-Aktionen.
+
+## Abhängigkeiten
+
+| Abhängigkeit | Warum sie zählt |
+| --- | --- |
+| **Order Hub** | Besitzt Quotes/Proposals, Public-Place-Service, Checkout-Reuse |
+| **Customers** | Proposal-Customer, Adressen; Company auf Order übernommen; Agent-Roles |
+| **Products** | Quote-Zeilen referenzieren Products |
+| **Settings → Shipping / Billing** | Method-IDs erforderlich für bestellbare öffentliche Proposals |
+| **Carriers** | Fulfilment/Tracking nach der Order — keine Proposal-Voraussetzung |
+| **Pricelists / live Price** | Katalog-Baseline; **nicht** das, was Public Place für den Stückpreis neu liest |
+| **Customer Price Providers** (Integrationen) | Trusted Katalog-/Cart-Preise; auf Public Place durch Proposal-Zeilen ersetzt |
+| **Rules** (optional) | Können Checkout-Pipeline-Aspekte weiterhin beeinflussen; behaupten Sie nicht, sie schreiben Proposal-Stückpreise auf Public Place um |
+| **Auth / Storefront** | Public-Token-Pfad vs registrierter Checkout |
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Admin-„Proposals“ und API-„quotes“ als verschiedene Produkte behandeln | Gleiche Resource; Docs/Support werden verwirrt | Ein Konzept: Proposal = Quote |
+| Privates Quote teilen und erwarten, dass ein öffentlicher Link funktioniert | Token-Lookup erfordert `type=public` | Als public markieren/teilen und Token-Pfad prüfen |
+| Öffentliche Freigabe ohne Customer + Methods + Addresses | Buyer kann nicht platzieren | Voraussetzungen vor dem Senden vervollständigen |
+| Erwarten, dass Buyer Shipping/Billing beim öffentlichen Place wählt | Anonymous-Pfad nimmt Methods/Addresses **vom Proposal** | Am Quote vorbefüllen |
+| Live-Katalog- / Provider-Preis beim öffentlichen Place erwarten | Proposal-Zeilenpreis gewinnt | Quote-Zeilen editieren, wenn das Angebot ändern muss |
+| Erwarten, dass der Proposal-Datensatz automatisch auf „ordered“ springt | Proposal wird beim Place nicht mutiert | Resultierende **Order** unter All Orders tracken |
+| „Falschen Preis am Share“ durch Pricelist-Redeploy beheben | Proposal-Zeilen unverändert | Proposal-Zeilenpreise editieren |
+| Agents nur auf All Orders trainieren | Quote-Motion unsichtbar | Proposals + Agent-Permissions |
+| Theme/Client erfindet berechnete Preise in der Proposal-UI | Bricht Trust | Server-autoritative Proposal-Beträge |
+
+## Related pages
+
+- [Orders — Überblick](/de/user-guide/orders/overview)
+- [Customers — Überblick](/de/user-guide/customers/overview)
+- [Companies](/de/user-guide/customers/companies)
+- [Roles](/de/user-guide/customers/roles)
+- [Pricelists](/de/user-guide/products/pricelists)
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
