@@ -1385,6 +1385,10 @@
                   {
                     "title": "Catalog Price Rules",
                     "path": "de/user-guide/rules/catalog-price-rules"
+                  },
+                  {
+                    "title": "Cart Price Rules",
+                    "path": "de/user-guide/rules/cart-price-rules"
                   }
                 ]
               }
