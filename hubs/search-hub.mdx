@@ -52,6 +52,7 @@ SearchHub indexes selected hubs into Typesense and serves search, facets, and an
 | Setting | Type | Description |
 |---------|------|-------------|
 | `fields` | list | Filters shown next to search results with a count per value: `categories`, `facet_values` (attribute values). Default both. |
+| `attributes` | list | Read-only. The attributes that become `facet_values`: every product attribute flagged "Used for filtering" in Attributes Hub, plus the extras chosen under Indexed hubs. |
 
 **hubs** — Indexed hubs
 
@@ -59,7 +60,7 @@ SearchHub indexes selected hubs into Typesense and serves search, facets, and an
 |---------|------|-------------|
 | `index_products` | boolean | Index Product Hub. |
 | `index_customers` | boolean | Index Customer Hub. |
-| `product_fields` | string | Attribute codes (names, not ids) copied into facets. |
+| `product_fields` | list of ids | Extra facet attributes, picked by name from Attributes Hub. Attributes flagged "Used for filtering" are always facets and are not stored here. Saving triggers a reindex. |
 | `customer_fields` | string | Customer fields included in the customer document. |
 
 </Expandable>
