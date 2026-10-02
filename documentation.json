@@ -1372,6 +1372,17 @@
                     "path": "de/user-guide/orders/related-settings"
                   }
                 ]
+              },
+              {
+                "group": "Rules",
+                "icon": "percent",
+                "pages": [
+                  {
+                    "title": "Rules — Überblick",
+                    "path": "de/user-guide/rules/overview",
+                    "icon": "layout-grid"
+                  }
+                ]
               }
             ]
           }
