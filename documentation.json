@@ -1236,6 +1236,10 @@
                     "title": "Erste Schritte mit B2Bware Admin",
                     "path": "de/user-guide/getting-started",
                     "icon": "home"
+                  },
+                  {
+                    "title": "Wie B2Bware zusammenhängt",
+                    "path": "de/user-guide/how-b2bware-fits-together"
                   }
                 ]
               },
