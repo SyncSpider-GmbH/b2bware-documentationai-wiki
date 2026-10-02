@@ -1,0 +1,59 @@
+---
+title: Import / Export — Überblick
+description: Kurze Karte des dateibasierten Import/Export in B2Bware — Download-Historie, Settings-Konfiguration, Abgrenzung zum Integrations-Sync.
+---
+
+**Import / Export** deckt den **dateibasierten Massen-Transfer** von Hub-Entitäten ab (Produkte, Kunden und weitere, soweit die jeweilige Oberfläche das erlaubt). Top-Level **Import / Export** zeigt die **Download-Historie**; **Settings → Import / Export** konfiguriert das Verhalten, wenn der Settings Hub vorhanden ist; viele Entitätslisten bieten **Import/Export je Entität**, die Jobs in dieselbe Transfer-Maschinerie schreiben.
+
+| Oberfläche | Rolle |
+| --- | --- |
+| **Import / Export → Download-Historie** | Abgeschlossene Export- (und verwandte) Job-Dateien finden und herunterladen |
+| **Settings → Import / Export** | Tenant- und Systemkonfiguration für das Import-Export-Verhalten |
+| **Menüs der Entitätslisten** (Products usw.) | Import-/Export-Jobs im Kontext starten |
+
+**Mentales Modell:** Import/Export = **Dateien und Job-Historie**. Integrations = **laufende Connectoren / Sync-Läufe / Mapping**. Event Hub = **ausgehende Webhooks**. Nicht vermischen.
+
+<Callout kind="info" collapsed="false">
+Top-Level Import / Export (Download-Historie) erscheint in der Admin-Sidebar ohne hub-spezifisches Gate. Settings → Import / Export erscheint, wenn der Settings Hub vorhanden ist. Import/Export auf Entitätsebene braucht weiterhin Berechtigungen auf dieser Entität.
+</Callout>
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Integrations** | Connectoren, Sync-Läufe, Mapping |
+| **[Event Hub](/de/user-guide/events/overview)** | Ausgehende Webhooks |
+| **Storefront Builder Documents** | Druck- und PDF-Vorlagen — kein Tabellenexport von Entitäten |
+
+## Warum und wie Sie Import / Export nutzen
+
+1. Import/Export auf der Entitätsseite bevorzugen, wenn nur ein Objekttyp aktualisiert wird (z. B. Produkte).
+2. Nach abgeschlossenem Export die **Download-Historie** für die Datei öffnen — nicht annehmen, dass der Browser den ersten Download immer behalten hat.
+3. **Settings → Import / Export** nutzen, wenn Operatoren Defaults, Limits oder Profilverhalten brauchen (soweit eingeblendet) — nicht für Connector-OAuth.
+4. Für fortlaufenden ERP- oder Shop-Sync **[Integrationen](/de/user-guide/integrations/overview)** statt einmaliger Dateien nutzen.
+5. Nach dem Import eine Beispielzeile prüfen (SKU, Preis, Bestand), statt allein dem Job-„Erfolg“ zu vertrauen.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Berechtigungen auf der Entität** | Hub-spezifische Import/Export-Schlüssel |
+| **Settings Hub** | Kind **Settings → Import / Export** |
+| **Queue / Storage** | Jobs und herunterladbare Artefakte |
+| **Korrekte Dateiform** | Profil- und Format-Erwartungen je Entität |
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Import/Export für Echtzeit-Sync nutzen | Falsches Werkzeug | Integrationen nutzen |
+| Downloads nur unter Settings suchen | Dateien liegen unter der Download-Historie | Top-Level-Download-Historie nutzen |
+| Mit Storefront Builder Documents verwechseln | PDFs sind kein Tabellenexport von Entitäten | Documents für Druckvorlagen nutzen |
+| Teilweise fehlgeschlagene Zeilen ignorieren | Fehlerhafte Daten bleiben unbemerkt | Job-Fehler lesen; nur Korrekturen erneut importieren |
+
+## Verwandtes
+
+- [Integrationen (Übersicht)](/de/user-guide/integrations/overview)
+- [Settings — Überblick](/user-guide/settings/overview) (EN)
+- [Produkte verwalten](/de/user-guide/products/manage-products)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

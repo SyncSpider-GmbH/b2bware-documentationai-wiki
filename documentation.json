@@ -1551,6 +1551,16 @@
                     "path": "de/user-guide/mobile-app/overview"
                   }
                 ]
+              },
+              {
+                "group": "Import / Export",
+                "icon": "arrow-up-down",
+                "pages": [
+                  {
+                    "title": "Import / Export — Überblick",
+                    "path": "de/user-guide/import-export/overview"
+                  }
+                ]
               }
             ]
           }
