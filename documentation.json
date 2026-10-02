@@ -1389,6 +1389,10 @@
                   {
                     "title": "Cart Price Rules",
                     "path": "de/user-guide/rules/cart-price-rules"
+                  },
+                  {
+                    "title": "Coupons",
+                    "path": "de/user-guide/rules/coupons"
                   }
                 ]
               }
