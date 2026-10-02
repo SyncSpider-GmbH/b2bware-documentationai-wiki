@@ -1,12 +1,92 @@
 ---
-title: Integrationen (Übersicht)
-description: Integration Hub im Admin — Kurzüberblick mit Verweis auf die englische Dokumentation.
+title: Integrationen – Übersicht
+description: Externe Plattformen mit dem Integration Hub an B2Bware anbinden — Import, Export, Datei-Feeds, Sync-Läufe und ERP-Einbettung.
 ---
 
-## Übersicht
+## Was ist der Integration Hub?
 
-Der **Integration Hub** verbindet externe Systeme (Connectoren, Mapping, Sync, File Feeds, Embed).
+**Integration Hub** verbindet Ihren B2Bware-Katalog mit externen Systemen (WooCommerce, Shopify, Walmart, FTP-Datei-Feeds und weitere). Betreiber konfigurieren Zugangsdaten, Feldzuordnungen und Zeitpläne in der Admin-Oberfläche; Hintergrundjobs verschieben Daten hinein oder hinaus, ohne eigene Sync-Skripte zu schreiben.
 
-<Callout kind="info">
-Die vollständige Anleitung liegt derzeit auf Englisch: [Integrations overview](/user-guide/integrations/overview). API: [IntegrationHub](/hubs/integration-hub).
+Öffnen Sie ihn in der linken Seitenleiste unter **Integrationen** (oder der entsprechenden Bezeichnung Ihres Mandanten).
+
+**Integrationen sind fortlaufende Verbindungen zwischen B2Bware und einem externen System.** Eine Verbindung legt fest, woher Daten kommen und wohin sie gehen; Zuordnungen übersetzen Felder; Filter begrenzen Datensätze; Sync-Läufe zeigen jede Ausführung; Datei-Feeds und Relays unterstützen Systeme, die Dateien austauschen oder einen Relay-Endpunkt benötigen.
+
+## Einordnung
+
+Integrationen bewegen ausgewählte Daten zu **Produkten, Bestellungen und Kunden** über eine konfigurierte Grenze. Welche Entitäten und welche Richtung verfügbar sind, hängt vom Connector ab.
+
+Der Betriebsablauf ist:
+
+**Verbindung → Zuordnung und Filter → Sync-Lauf → Ergebnis / Triage**
+
+Nutzen Sie die umgebenden Hubs als fachlichen Kontext, bevor Sie eine Verbindung anlegen:
+
+| Bereich | Was er in einer Integration bedeutet | Mehr erfahren |
+| --- | --- | --- |
+| **Produkte** | Katalogdatensätze und Produktkennungen wie SKU, Preis, Bestand, Kategorien und kundenspezifische Werte. | [So funktionieren Produkte](/de/user-guide/products/how-products-work), [Produkte verwalten](/de/user-guide/products/manage-products) |
+| **Bestellungen** | Transaktionen und ihr Lebenszyklus; klären Sie vor dem Synchronisieren, welche Seite Status und Fulfillment-Updates besitzt. | [Übersicht Bestellungen](/de/user-guide/orders/overview), [Lebenszyklus einer Bestellung](/de/user-guide/orders/lifecycle) |
+| **Kunden** | Käufer-/Konto- und Kontaktdatensätze; einigen Sie sich vor dem Aktivieren von Schreibvorgängen auf den externen Schlüssel und die Zuständigkeit. | [Übersicht Kunden](/de/user-guide/customers/overview) |
+| **Import / Export** | Einmalige oder dateibasierte Massenjobs und der **Download-Verlauf**. Das ist nicht der Verlauf von Connector-Syncs. | [Import / Export](/de/user-guide/import-export/overview) |
+| **Event Hub** | Ausgehende Webhooks für abonnierte Ereignisse. Kein Integrations-Connector und kein Bildschirm für Sync-Läufe. | [Übersicht Event Hub](/de/user-guide/events/overview) |
+| **Automation Hub** | Mehrstufige, ereignisausgelöste Orchestrierung. Keine Feldzuordnung und kein Connector-Transport. | [Übersicht Automation Hub](/de/user-guide/automation/overview) |
+
+Ein erfolgreicher Sync-Lauf bedeutet, dass der Connector seine Arbeit abgeschlossen hat; er beweist **nicht** von selbst, dass jedes Feld oder jede Geschäftsregel korrekt ist. Prüfen Sie ein repräsentatives Produkt, eine Bestellung oder einen Kunden im Zielsystem.
+
+<Callout kind="tip" collapsed="false">
+**Das richtige Werkzeug wählen:** Wählen Sie **Integrationen** für einen fortlaufenden Connector samt Zuordnungen und Läufen; wählen Sie **Import / Export** für Datei-Jobs und den Download-Verlauf; wählen Sie **Event Hub** für ausgehende Webhooks; wählen Sie **Automation Hub** für mehrstufige Reaktionen. **Import / Export → Download-Verlauf ist nicht der Verlauf von Connector-Syncs.**
 </Callout>
+
+## Was Sie tun können
+
+| Fähigkeit | Bedeutung |
+| --- | --- |
+| **Import** | Produkte, Bestellungen, Kunden, Bestand und Weiteres vom Connector nach B2Bware ziehen (`items_{entity}`-Sammlungen). |
+| **Export** | B2Bware-Datensätze an das externe System senden. |
+| **Datei-Feed** | Import aus CSV- / XLSX- / XML-Profilen (Beispiel-Upload, KI-gestützte Profilerstellung, Verlauf der Datei-Läufe). |
+| **Response Relay** | Nach einem erfolgreichen Export das Antwort-JSON des Connectors an eine andere Integration weiterleiten. |
+| **Einbetten** | Dieselbe Oberfläche des Integration Hub per Snippet oder JavaScript-SDK in Ihr ERP einbinden. Siehe [Integration Hub einbetten (EN)](/help-center/guides/embed-integration-hub). |
+
+## Bildschirme, die Sie nutzen
+
+| Bildschirm | Zweck |
+| --- | --- |
+| **Liste der Integrationen** | Alle Integrationen des Mandanten: Status, Health, letzter Sync, Anlegen / Duplizieren / Konfiguration importieren. |
+| **Assistent zum Anlegen** | Sechs Schritte von der Connector-Auswahl bis zur Aktivierung (Entwürfe lassen sich speichern und später fortsetzen). |
+| **Integrationsdetail** | Entitäten, Sync-Aktionen, Filter, Response Relay, Datei-Läufe, Verlauf der Sync-Läufe. |
+| **Bearbeiten** | Verbindung, Entscheidungen, Zuordnung und Zeitplan nach der Aktivierung erneut öffnen. |
+| **Detail eines Sync-Laufs** | Zähler, Protokolle je Datensatz, Diagnose, Relay-Statistiken. |
+| **Einstellungen** | Katalog-Begrenzer (erlaubte Connectoren / maximale Anzahl Integrationen) und Konfiguration der Einbettung. |
+
+## Import und Export
+
+Jede **Entität** einer Integration hat eine Richtung:
+
+- **Import (eingehend)** — Quelle ist der Connector; Ziel ist eine Hub-Entität in B2Bware (z. B. Produkte im ProductHub).
+- **Export (ausgehend)** — Quelle ist B2Bware; Ziel ist die Remote-Ressource des Connectors.
+
+Bidirektional als einzige Richtung einer Entität ist ein Altverhalten; neue Einrichtungen wählen Import oder Export je Entität.
+
+## Katalog-Connectoren und Datei-Feed
+
+- **Katalog-Connectoren** sprechen mit einer Remote-API (oder einer OAuth-App) und ermitteln Schemas, Attribute und Beispiele live.
+- **Datei-Feed**-Integrationen nutzen ein Importprofil für hochgeladene oder geplante Dateien; Fortschritt und Verlauf erscheinen unter **File Runs** auf der Detailseite.
+
+## Häufige Fallstricke
+
+| Fallstrick | Richtiges Denkmodell |
+| --- | --- |
+| Den Download-Verlauf von Import / Export als Integrationsverlauf behandeln | Import / Export sind Datei-Jobs und herunterladbare Artefakte; Integrationen haben Connector-Zuordnungen und Sync-Läufe. |
+| Integrationen für einen einmaligen Export nutzen, nur weil das Ziel extern ist | Nutzen Sie die Aktion Import / Export der Entität, wenn eine Datei das beabsichtigte Ergebnis ist. |
+| Den Event Hub für einen zugeordneten, zustandsbehafteten Datensync nutzen | Der Event Hub liefert ausgehende Webhooks; Integrationen übernehmen Connector-Zustand, Zuordnung, Filter und Läufe. |
+| Den Automation Hub für Feldzuordnung oder Transport nutzen | Der Automation Hub orchestriert mehrstufige Reaktionen; er ersetzt keinen Integrations-Connector. |
+| Einen grünen Lauf als fachliche Korrektheit werten | Prüfen Sie Kennungen, Pflichtfelder, die Zuständigkeit für den Status und einen Beispieldatensatz im Ziel-Hub. |
+| Annehmen, dass jeder Connector jede Entität oder jede Richtung unterstützt | Beschreiben Sie die Unterstützung als connector-spezifisch; verallgemeinern Sie nicht anhand eines Connectors. |
+| Zwei Systemen dasselbe Feld ohne Regel überlassen | Legen Sie die maßgebliche Quelle und das Konfliktverhalten fest, bevor Sie Schreibvorgänge aktivieren. |
+
+## Nächste Schritte
+
+- [Integration anlegen (EN)](/user-guide/integrations/create-integration) — Schritte 1–6 im Assistenten
+- [Zuordnung und Filter (EN)](/user-guide/integrations/mapping-and-filters)
+- [Sync-Läufe (EN)](/user-guide/integrations/sync-runs)
+- [Datei-Feed und Response Relay (EN)](/user-guide/integrations/file-feed-and-relay)
+- [In Ihr ERP einbetten (EN)](/help-center/guides/embed-integration-hub)
