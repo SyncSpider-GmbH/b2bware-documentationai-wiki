@@ -1,0 +1,102 @@
+---
+title: Coupons
+description: Coupons in B2Bware Rule Hub — codes that activate cart price rules, usage limits, expiration, and how redemptions are counted at checkout.
+---
+
+A **coupon** binds a **code** to a **cart price rule**. Entering the code (storefront / API) asks Rule Hub to validate the coupon and, if valid, apply that cart rule’s economics to the cart.
+
+| Concept | Role |
+| --- | --- |
+| **Coupon** | Code, type, limits, expiration, link to cart rule, optional primary flag |
+| **Cart price rule** | Defines *what* discount / free shipping / tier logic runs |
+| **Validation** | Checks code, expiration, usage caps, rule applicability |
+| **Redemption accounting** | Usage log + coupon times-used updated when the order path records usage |
+| **Admin** | **Rules → Coupons** when Rule Hub is installed |
+
+**Coupon types:** specific (manual code) and auto-generated (bulk generation).
+
+**Mental model:** *Rule = offer definition; coupon = keyed access to that offer.*
+
+<Callout kind="alert" collapsed="false">
+Rule Hub is optional. A coupon is **not** a standalone discount formula — without a sound [cart price rule](/user-guide/rules/cart-price-rules), the code has nothing useful to apply.
+</Callout>
+
+## Why teams use coupons
+
+1. **Campaign distribution** — Share codes without making the cart rule auto-apply to everyone.
+2. **Usage control** — Total and per-customer caps.
+3. **Expiration** — Time-box codes independently of broader rule scheduling (also respect rule dates/status).
+4. **Many codes, one offer** — Auto-generated packs for partners or single-use mailings.
+5. **Support triage** — Reject reasons surface concrete messages (for example per-customer max) instead of a generic failure.
+
+## How it works
+
+### Key fields
+
+| Field | Notes |
+| --- | --- |
+| **Rule** | Required link to a **cart** price rule |
+| **Code** | What the buyer enters |
+| **Coupon type** | Specific or auto-generated |
+| **Usage limit** | Total redemptions allowed (enforced vs times used) |
+| **Usage per customer** | Per-customer cap via prior usage-log count |
+| **Times used** | Counter incremented when usage is committed |
+| **Primary** | Primary coupon marker for a rule |
+| **Expiration date** | Code expiry |
+
+### Apply and limits
+
+1. Buyer applies code → coupon validation + cart rule engine apply.
+2. Invalid → errors returned (storefront should show the first concrete reason).
+3. Valid → cart discount / free-shipping outcome from the linked rule.
+4. On successful checkout usage logging: write a usage log (with customer when known) and increment coupon **times used** when the payment path commits usage.
+
+### Deferred counting (async external payment)
+
+When payment is confirmed **asynchronously**, platforms may write a usage log with **pending payment** and **delay** incrementing times used until payment succeeds. Per-customer counts **exclude** pending rows so abandoned payments do not lock buyers out.
+
+<Callout kind="info" collapsed="false">
+That design allows a narrow **double-redeem window** if two parallel checkouts both apply the same coupon while both are still pending, then both pay. Treat rare over-redemption in that pattern as a known trade-off, not a random bug.
+</Callout>
+
+### Guests
+
+Per-customer limit checks require an authenticated customer; guest checkouts skip that dimension — rely on total usage limit and operational policy.
+
+## How to use
+
+1. Create and activate the **cart price rule** (economics, conditions, priority).
+2. Create coupon(s) with the rule link, code or auto-generate batch, limits, expiration.
+3. Smoke-test: valid code, expired code, exhausted usage limit, second use when usage per customer is 1.
+4. Brief support on rejection messages and pending-payment behaviour for async pay.
+5. Monitor [Usage Logs](/user-guide/rules/usage-logs) and coupon times used during the campaign.
+6. To end a campaign early: expire codes and/or deactivate the cart rule (prefer explicit status over deleting history).
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Rule Hub** | Optional |
+| **Cart price rules** | Coupon without a sound rule is useless |
+| **Order Hub** | Apply at cart; log at checkout / payment settlement |
+| **Customer Hub** | Per-customer usage identity |
+| **Catalog rules / pricelists** | Prior price layers; coupons do not replace them |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Coupon pointing at inactive/mismatched rule | Code validates poorly or discount is zero | Keep rule active and conditions satisfiable |
+| Expecting per-customer limits to bind guests | Check skipped for guests | Use total usage limit or require login |
+| Deleting coupons to “reset” history | Loses audit trail | Expire / raise limits deliberately; use logs |
+| Assuming pending payment already consumed the allowance | Pending excluded from per-customer count | Explain async settlement to support |
+| Building unit-price PDP promos only as coupons | Coupons are cart-layer | Use [catalog rules](/user-guide/rules/catalog-price-rules) for unit display |
+| Confusing coupon Usage Logs with License Hub usage | Different hubs | Link [Rule Usage Logs](/user-guide/rules/usage-logs) only |
+
+## Related
+
+- [Rules overview](/user-guide/rules/overview)
+- [Cart Price Rules](/user-guide/rules/cart-price-rules)
+- [Usage Logs](/user-guide/rules/usage-logs)
+- [Order lifecycle](/user-guide/orders/lifecycle)
+- [Pricelists](/user-guide/products/pricelists)

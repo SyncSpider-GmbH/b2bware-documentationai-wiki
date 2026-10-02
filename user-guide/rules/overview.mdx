@@ -1,0 +1,115 @@
+---
+title: Rules overview
+description: Optional Rule Hub in B2Bware — how catalog, cart, coupon, validation, and shipping-rate rules stack on pricelists and price providers, with install caveat, dependencies, and pitfalls.
+---
+
+**Rules** in B2Bware Admin is the UI for optional **Rule Hub** — a condition-based engine for **catalog price adjustments**, **cart discounts and promotions**, **coupons**, **cart constraint validation**, **table-rate shipping prices**, and **usage audit logs**.
+
+| Concept | Role |
+| --- | --- |
+| **Rule Hub** | Optional installed package. When present and the operator can view it, Admin shows **Rules** with six children. |
+| **Catalog Price Rules** | Adjust product unit prices before / as they reach catalog display and cart lines (on top of provider or Product `finalPrice` base). |
+| **Cart Price Rules** | Cart-level discounts, free shipping, tiered, and buy-X-get-Y style actions evaluated against cart + conditions. |
+| **Coupons** | Code-based activation of a **cart price rule** (limits, expiration). |
+| **Cart Validation** | Soft/hard **constraint** rules (mutual exclusion, requires, min/max qty) — not discounts. |
+| **Shipping Rates** | Table-rate **price** rows linked to a shipping **method** (by zone/country/ZIP + weight/subtotal/qty/attribute). |
+| **Usage Logs** | Audit of rule applications at checkout (and related counters). |
+
+**Mental model:** Pricelists **stage and deploy** live Product `Price` rows. Customer price providers (when configured) can **supersede** that base for a buyer. Rule Hub **promotions and constraints** then stack **on top** (catalog) and at **checkout** (cart / coupons / shipping rates / validation).
+
+<Callout kind="alert" collapsed="false">
+Rule Hub is **optional** (`hasRuleHub`). If the tenant has not installed it, the **Rules** sidebar group is absent. Core commerce (Products, Orders, Customers) still runs — operators simply have no promotion/constraint engine UI. Demo Store presence does **not** mean every tenant has Rules.
+</Callout>
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Pricelists / live Price / finalPrice** | Product Hub catalog pricing |
+| **Settings → Shipping methods** | Order Hub checkout method masters (existence, visibility, base method price) |
+| **Tax Rules** | Tax Hub (optional) |
+| **License Rules** | License Hub (optional) |
+| **Segmentation (= customer groups)** | Customer Hub labels that prices and some rule conditions **target** — not the rule engine itself |
+
+## Why teams use Rules
+
+1. **Promotions without rewriting list prices** — Run %-off / fixed / free-shipping campaigns while pricelists and customer price providers keep the contract base.
+2. **Catalog vs cart timing** — Catalog rules change the **seen unit price**; cart rules change **totals / shipping / multi-buy** at checkout.
+3. **Coupon campaigns** — Share codes tied to cart rules with usage limits.
+4. **Commercial guardrails** — Cart validation stops illegal mixes or qty breaches before order.
+5. **Table-rate shipping** — Price shipping by geography and cart metrics beyond a flat method price.
+6. **Dispute triage** — Usage logs and order applied-rules metadata explain *which* rule fired.
+
+Use **[Pricelists](/user-guide/products/pricelists)** when the change should become the new **live Price**. Use **Rules** when the outcome is conditional, temporary, code-gated, or cart-shaped. Use **[Segmentation](/user-guide/customers/segmentation)** to define *who* group prices and group-targeted rules apply to.
+
+## How the pricing stack fits
+
+Commerce spine operators should keep in this order:
+
+1. **Live Product prices** (regular / special / tier / group / cost) — often filled via **pricelist deploy** or product edit.
+2. **`finalPrice`** resolves one effective Product Hub sell candidate (tier → group → special → regular; cost excluded).
+3. Optional **CustomerPriceProvider** (Order Hub registry): first non-null **supersedes** that Product Hub base for catalog display **and** cart line unit price (server-authoritative).
+4. Optional **Rule Hub catalog price rules** stack **on** that provider/base unit price.
+5. At cart/checkout: **cart price rules** + **coupons**, **shipping rate rules**, **cart validation**; applications can be logged.
+
+**Pricelists do not bypass Rules.** Deploy writes live Price; Rules still apply afterward when installed and active.
+
+<Callout kind="info" collapsed="false">
+Themes must not invent charged prices. Trust server-authoritative price views that already include provider and catalog-rule overlays where configured.
+</Callout>
+
+## How to use the hub
+
+1. Confirm Rule Hub is installed (**Rules** visible) and the role has `rule-hub.*` view/create/update as needed.
+2. Decide **layer**: catalog (unit price) vs cart (totals/shipping/promo) vs validation (block) vs shipping rates (method price table).
+3. Target buyers with conditions and/or **customer group** fields — align group IDs with [Segmentation](/user-guide/customers/segmentation).
+4. Set **status**, **priority**, date windows, and **stop further rules** deliberately when multiple rules can match.
+5. For coupons: create the **cart price rule** first, then attach coupon codes.
+6. After go-live, verify with a representative buyer cart; triage surprises via [Usage Logs](/user-guide/rules/usage-logs) and order applied-rules metadata.
+7. Keep Settings **Shipping methods** defined before relying on Shipping Rate rules that link a shipping method.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Rule Hub installed** | Sidebar + APIs; optional in hub registry |
+| **Product Hub** | Catalog rules adjust product prices; conditions often use product fields |
+| **Order Hub** | Cart/checkout apply cart rules, shipping rates, validation; usage logged on order; price providers sit under Rules in the stack |
+| **Customer Hub** | Customer/group targeting; permission registry hosts `rule-hub.*` keys |
+| **Segmentation (customer groups)** | Group prices *and* many rule targets share the same group IDs |
+| **Pricelists / live Price** | Supply the base Rules stack on (after deploy / provider) |
+| **Settings → Shipping** | Shipping rate rules link to shipping **methods** |
+| **Attributes Hub** (optional) | Custom attributes in conditions / per-unit-attribute actions |
+| **Auth + admin access** | Admin writes; shop read paths for rules used in pricing |
+
+**Permissions (typical):** CRUD on catalog price rules, cart price rules, cart validation rules, coupons, and shipping rate rules; **view-only** on rule usage logs.
+
+**Not prerequisites:** Tax Hub, License Hub, Media, Loyalty — adjacent optional hubs with their own “rules” labels.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Expecting Rules on every tenant | Optional install | Confirm `hasRuleHub`; don’t assume Demo = all tenants |
+| Blaming pricelists for a coupon discount | Different layer | Trace stack: live/provider → catalog rules → cart/coupon |
+| Editing a pricelist to “turn off” a promotion | Deploy ≠ disable Rules | Deactivate or re-prioritise the rule |
+| Confusing Shipping Rates with Shipping methods | Methods = checkout options; rates = price table | Create method in Settings, then rate rules under Rules |
+| Confusing Rules with Tax/License rules | Different hubs | Keep naming precise in links |
+| Ignoring priority / stop further rules | Unexpected stacking or first-match only | Design priority bands; test with two active rules |
+| Themes inventing charged prices | Breaks trust vs server stack | Server-authoritative price views only |
+| Empty customer group targeting | Rule never matches intended cohort | Align with Segmentation assignments |
+
+## Related
+
+- [Catalog Price Rules](/user-guide/rules/catalog-price-rules)
+- [Cart Price Rules](/user-guide/rules/cart-price-rules)
+- [Coupons](/user-guide/rules/coupons)
+- [Cart Validation](/user-guide/rules/cart-validation)
+- [Shipping Rates](/user-guide/rules/shipping-rates)
+- [Usage Logs](/user-guide/rules/usage-logs)
+- [Pricelists](/user-guide/products/pricelists)
+- [How Products work](/user-guide/products/how-products-work)
+- [Order lifecycle](/user-guide/orders/lifecycle)
+- [Order-related settings](/user-guide/orders/related-settings)
+- [Segmentation](/user-guide/customers/segmentation)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

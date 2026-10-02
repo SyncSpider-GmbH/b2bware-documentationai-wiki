@@ -1,0 +1,66 @@
+---
+title: Usage Logs
+description: Short guide to Rule Hub usage logs — how to audit which catalog, cart, coupon, or shipping-rate rule applied on an order.
+---
+
+**Rule Usage Logs** are append-style audit rows created when Rule Hub applications are recorded for an order (and related coupon accounting).
+
+| Field (operator-relevant) | Meaning |
+| --- | --- |
+| **Rule / rule type** | Which rule; type among cart price / catalog price / shipping rate |
+| **Coupon / coupon code** | Present when a coupon participated |
+| **Customer / order / product** | Who / which order / product (catalog context) |
+| **Original price / discount amount** | Amounts associated with the application |
+| **Free shipping** | Whether free shipping was granted |
+| **Applied at** | Timestamp |
+| **Pending payment** | Usage not fully settled until async payment succeeds (when used) |
+
+**Admin:** **Rules → Usage Logs** when Rule Hub is installed. Query helpers exist by rule, customer, and order.
+
+**Mental model:** *Logs explain what fired — they are not a control panel to disable promotions, and they are not full order history.*
+
+<Callout kind="alert" collapsed="false">
+Rule Hub is optional (`rule-hub.rule-usage-logs.view` is view-only). Do not confuse these with License Hub “Usage Logs”, Loyalty ledgers, or Notification delivery logs.
+</Callout>
+
+## Why teams use Usage Logs
+
+1. **“Why was this discounted?”** — Match order ↔ rule ↔ coupon.
+2. **Campaign caps** — See redemptions feeding coupon / rule counters.
+3. **Support** — Distinguish catalog overlay vs cart coupon vs shipping rate match.
+4. **Async payment nuance** — Understand pending vs settled usage when per-customer coupon limits are disputed (see [Coupons](/user-guide/rules/coupons)).
+
+## How to use
+
+1. Start from the **order** (or customer) that looks wrong.
+2. Open Usage Logs filtered by order/customer/rule (or read order applied-rules metadata where present).
+3. Confirm **rule type** before editing the wrong Admin child (catalog vs cart vs shipping).
+4. For coupon limit disputes, check **pending payment** and whether payment actually settled.
+5. Fix forward on the rule/coupon configuration; do not expect to “edit away” historical log rows as a business correction tool.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Rule Hub** installed | Otherwise no Rules → Usage Logs |
+| **Order Hub** | Checkout writes logs |
+| **Permission** | View-only rule usage logs |
+| **Coupons / cart / catalog / shipping rules** | Sources of applications |
+
+## Common mistakes
+
+| Mistake | Better practice |
+| --- | --- |
+| Opening License Hub Usage Logs by mistake | Stay under **Rules → Usage Logs** |
+| Treating logs as live “disable promo” control | Deactivate the rule/coupon; logs are audit |
+| Ignoring pending payment in coupon disputes | Read [Coupons](/user-guide/rules/coupons) deferred-counting note |
+| Expecting logs without Rule Hub / without checkout path | Install + place orders that apply rules |
+
+## Related
+
+- [Rules overview](/user-guide/rules/overview)
+- [Coupons](/user-guide/rules/coupons)
+- [Cart Price Rules](/user-guide/rules/cart-price-rules)
+- [Catalog Price Rules](/user-guide/rules/catalog-price-rules)
+- [Shipping Rates](/user-guide/rules/shipping-rates)
+- [Order lifecycle](/user-guide/orders/lifecycle)

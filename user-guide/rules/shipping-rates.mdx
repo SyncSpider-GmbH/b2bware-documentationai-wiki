@@ -1,0 +1,98 @@
+---
+title: Shipping Rates
+description: Table-rate shipping rules in B2Bware Rule Hub — how rate rows link to shipping methods, match geography and cart metrics, and differ from Settings shipping methods and free-shipping promotions.
+---
+
+**Shipping rate rules** are Rule Hub **table-rate price rows** linked to an Order Hub **shipping method**. They are **not** the Settings → Shipping method master list, not Carriers (tracking), and not cart-rule **free shipping** actions (those can zero shipping as a promotion).
+
+| Concept | Hub / place | Owns |
+| --- | --- | --- |
+| **Shipping method** | Order Hub → **Settings → Shipping** | Method master: enabled, visibility, optional base price, checkout selection identity |
+| **Shipping rate rule** | Rule Hub → **Rules → Shipping Rates** | Table-rate **price** when country/zone/ZIP + cart metrics match; links a shipping method |
+| **Carrier** | Settings → Carriers | Tracking URL templates — not checkout price tables |
+| **Cart rule free shipping** | Rules → Cart Price Rules | Promotional waive/discount of shipping — not a rate table |
+
+**Admin:** **Rules → Shipping Rates** when Rule Hub is installed.
+
+**Mental model:** *Method = “Standard parcel” as a checkout option; rate rules = “how much that option costs for this destination and cart shape.”*
+
+<Callout kind="alert" collapsed="false">
+Rule Hub is optional. Create and enable the shipping **method** under Settings before relying on rate rows. See [Order-related settings](/user-guide/orders/related-settings).
+</Callout>
+
+## Why teams use shipping rates
+
+1. **Geography-based pricing** — Country, zone, ZIP ranges.
+2. **Metric-based bands** — Weight, subtotal, quantity, or custom attribute thresholds (min/max value).
+3. **Per-method tables** — Different methods can have different rate matrices.
+4. **Priority** among overlapping rows.
+5. **Audit** — Matched rate can be stored/logged with the order like other Rule Hub applications.
+
+Use a **flat method price** on the shipping method when one price is enough. Use **rate rules** when price varies by destination or cart metrics. Use **cart free-shipping** when the story is a promotion, not a tariff.
+
+## How it works
+
+### Key fields
+
+| Field | Notes |
+| --- | --- |
+| **Name** | Operator label |
+| **Status** | Active / inactive |
+| **Shipping method** | Link to Order Hub shipping method |
+| **Country / zone** | Geographic selectors |
+| **ZIP from / to** | ZIP range |
+| **Condition type** | Weight, subtotal, quantity, or custom attribute |
+| **Condition attribute** | Attribute code when type is custom attribute |
+| **Min / max value** | Band for the condition metric |
+| **Price** | Shipping price when matched |
+| **Priority** | Which matching row wins when several qualify |
+| **Uses count** | Usage counter |
+
+### Engine
+
+- Calculate by address (country, ZIP, cart metrics) or by zone.
+- Returns matched price + rule metadata.
+- Checkout integrates matched shipping rate into applied-rules and [Usage Logs](/user-guide/rules/usage-logs).
+
+### Custom attributes
+
+When using custom attribute conditions, Attributes Hub (or product attribute data) must actually provide values — empty attributes → no sensible band match.
+
+## How to use
+
+1. Create/enable the **shipping method** under Settings (visibility, enabled).
+2. Confirm Rule Hub + permission to manage shipping rate rules.
+3. Add rate rows: method link, geo, condition type/bands, price, priority.
+4. Test addresses inside/outside ZIP ranges and carts below/above thresholds.
+5. Keep cart **free shipping** promotions documented separately so support knows tariff vs promo.
+6. Align company/customer method allow-lists so the method is visible to the buyer who should see the rates.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Rule Hub** | Optional; rates UI absent otherwise |
+| **Order Hub** | Shipping methods + checkout calculation path |
+| **Settings → Shipping** | Method masters must exist |
+| **Attributes Hub** (optional) | Custom attribute condition type |
+| **Cart price rules** | May grant free shipping on top of / instead of paying the rate |
+| **Customers / Companies** | Method visibility overlays |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Looking for rate tables under Settings → Shipping | Rates live under Rules | Settings = methods; Rules = rate rows |
+| Rate rules without a shipping method link / missing method | No coherent checkout option | Create method first |
+| Overlapping bands without priority | Wrong price wins | Partition bands; set priority |
+| Confusing Carriers with rates | Tracking ≠ price | Separate concerns |
+| Expecting rate rules to create the method list | Methods are Order Hub settings | Link [Order-related settings](/user-guide/orders/related-settings) |
+| Ignoring free-shipping cart rules | Buyer pays 0 despite tariff | Triage promotions vs rates |
+
+## Related
+
+- [Rules overview](/user-guide/rules/overview)
+- [Cart Price Rules](/user-guide/rules/cart-price-rules)
+- [Order-related settings](/user-guide/orders/related-settings)
+- [Order lifecycle](/user-guide/orders/lifecycle)
+- [Usage Logs](/user-guide/rules/usage-logs)

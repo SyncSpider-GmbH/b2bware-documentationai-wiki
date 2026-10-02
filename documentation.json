@@ -170,6 +170,41 @@
                 ]
               },
               {
+                "group": "Rules",
+                "icon": "percent",
+                "pages": [
+                  {
+                    "title": "Rules overview",
+                    "path": "user-guide/rules/overview",
+                    "icon": "layout-grid"
+                  },
+                  {
+                    "title": "Catalog Price Rules",
+                    "path": "user-guide/rules/catalog-price-rules"
+                  },
+                  {
+                    "title": "Cart Price Rules",
+                    "path": "user-guide/rules/cart-price-rules"
+                  },
+                  {
+                    "title": "Coupons",
+                    "path": "user-guide/rules/coupons"
+                  },
+                  {
+                    "title": "Cart Validation",
+                    "path": "user-guide/rules/cart-validation"
+                  },
+                  {
+                    "title": "Shipping Rates",
+                    "path": "user-guide/rules/shipping-rates"
+                  },
+                  {
+                    "title": "Usage Logs",
+                    "path": "user-guide/rules/usage-logs"
+                  }
+                ]
+              },
+              {
                 "group": "Customers",
                 "icon": "users",
                 "pages": [
