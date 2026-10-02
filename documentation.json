@@ -1401,6 +1401,10 @@
                   {
                     "title": "Shipping Rates",
                     "path": "de/user-guide/rules/shipping-rates"
+                  },
+                  {
+                    "title": "Usage Logs",
+                    "path": "de/user-guide/rules/usage-logs"
                   }
                 ]
               }
