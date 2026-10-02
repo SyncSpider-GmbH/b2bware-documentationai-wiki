@@ -1322,6 +1322,10 @@
                     "title": "Integrationen Übersicht",
                     "path": "de/user-guide/integrations/overview",
                     "icon": "list"
+                  },
+                  {
+                    "title": "Integration anlegen",
+                    "path": "de/user-guide/integrations/create-integration"
                   }
                 ]
               },
