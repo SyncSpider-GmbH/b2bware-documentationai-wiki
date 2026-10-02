@@ -1,0 +1,85 @@
+---
+title: Sync-Läufe
+description: Vollständige oder inkrementelle Syncs ausführen, Payloads prüfen, Entitäten sperren und Sync-Protokolle sowie Diagnosen lesen.
+---
+
+## Was ein Lauf aussagt
+
+Ein **Sync-Lauf** ist der Ausführungsdatensatz einer Integration. Nutzen Sie ihn, um Connector, Richtung, Zeitpunkt, Umfang, Zähler und Fehler zu erkennen; prüfen Sie danach einen repräsentativen Datensatz im zuständigen Hub (Produkte, Bestellungen oder Kunden).
+
+Ein Lauf ist **nicht** dasselbe wie:
+
+- ein Download-Job unter [Import / Export](/de/user-guide/import-export/overview),
+- ein Zustellversuch im [Event Hub](/de/user-guide/events/overview) oder
+- ein Flow-Lauf im [Automation Hub](/de/user-guide/automation/overview).
+
+Verfügbare Lauf-Felder, Wiederholungssteuerungen und die Unterstützung von Entitäten unterscheiden sich je Connector — behandeln Sie die folgenden Bildschirme als den üblichen Bedienweg, nicht als universelle Feldliste.
+
+<Callout kind="info" collapsed="false">
+Ein abgeschlossener (grüner) Lauf bedeutet, dass der Connector seine Arbeit beendet hat. Er beweist nicht von selbst die fachliche Korrektheit — prüfen Sie Kennungen, Pflichtfelder, die Zuständigkeit für den Status und einen Beispieldatensatz im Ziel-Hub.
+</Callout>
+
+## Einen Sync starten
+
+Aus dem **Integrationsdetail** (oder von Entitätskarten):
+
+| Aktion | Wirkung |
+| --- | --- |
+| **Integration synchronisieren** | Führt alle aktivierten Entitäten dieser Integration aus. |
+| **Entität synchronisieren** | Führt nur eine Entität aus. |
+| **Test-Sync** | Kleiner Lauf im Stil eines Trockenlaufs, um die Zuordnung ohne vollständigen Katalogabruf zu prüfen (connector-abhängig). |
+| **Abbrechen** | Stoppt einen laufenden Sync-Lauf, solange der Job das Abbrechen noch annimmt. |
+| **Erneut ausführen** | Startet, wo unterstützt, erneut aus dem Kontext eines früheren Laufs. |
+
+### Vollständig oder inkrementell
+
+| Art | Verhalten |
+| --- | --- |
+| **Vollständig** | Verarbeitet den Entitätsumfang erneut (der Connector kann weiterhin paginieren; Richtlinien aus den Entscheidungen gelten). |
+| **Inkrementell** | Bevorzugt Datensätze, die sich seit dem letzten erfolgreichen Watermark geändert haben, wenn der Connector das unterstützt. |
+
+Zeitplan-Voreinstellungen (Manuell, alle 15 Minuten, stündlich, alle 6 Stunden, täglich) stellen Arbeit nur in die Warteschlange; Worker in der Warteschlange `integration-sync` müssen laufen, damit Jobs abgeschlossen werden.
+
+## Fortschritt und Zähler
+
+Das Detail eines Sync-Laufs zeigt:
+
+- **Verarbeitet / gesamt** in Quell-Eltern-Einheiten (z. B. Styles oder variable Produkte).
+- Optionale **Kind**-Zähler, wenn eine Quelle in viele Hub-Zeilen aufgeht (Variationen).
+- Statusfilter in der Laufliste (laufend, abgeschlossen, fehlgeschlagen, abgebrochen).
+
+## Payload-Inspektor
+
+**Prüfen** an einer Entität öffnet eine schreibgeschützte Vorschau der zugeordneten Payloads (und der Quellbeispiele). Nutzen Sie sie, um Transformationen zu untersuchen, ohne ins Remote-System oder den Hub zu schreiben, bis Sie bereit sind.
+
+## Sperre
+
+**Sperren** an einer Entität blockiert widersprüchliche Syncs für diese Entität, während Sie untersuchen oder bearbeiten. Entsperren Sie danach, damit geplante Läufe fortgesetzt werden können.
+
+## Protokolle und Diagnose
+
+| Oberfläche | Was Sie sehen |
+| --- | --- |
+| **Liste der Sync-Läufe** | Verlauf für die Integration oder über Integrationen hinweg. |
+| **Detail eines Sync-Laufs** | Phase, Zeiten, KPIs, Diagnoseleiste, Ergebnisse auf Datensatzebene. |
+| **Protokolle** | Prüfpfad je Datensatz für die Integration bzw. den Lauf. |
+| **Health / Erreichbarkeit** | Verbindung und Health der letzten Läufe auf hoher Ebene, in Liste und Detail. |
+
+Fehlgeschlagene Zeilen zeigen Fehlermeldungen im Protokoll; korrigieren Sie Zuordnung, Zugangsdaten oder Filter und führen Sie den Lauf erneut aus.
+
+## Triage nach Symptom
+
+| Symptom | Wohin als Nächstes |
+| --- | --- |
+| **Produktabweichung** | Prüfen Sie Produktkennung, Zuordnung, Filter und das Zielprodukt — [So funktionieren Produkte](/de/user-guide/products/how-products-work), [Produkte verwalten](/de/user-guide/products/manage-products). |
+| **Bestellabweichung** | Prüfen Sie die Zuständigkeit für die Bestellung, die Statuszuordnung und den [Lebenszyklus einer Bestellung](/de/user-guide/orders/lifecycle). |
+| **Kundenabweichung** | Prüfen Sie den Abgleich von Konto / Kontakt und den externen Schlüssel — [Übersicht Kunden](/de/user-guide/customers/overview). |
+| **Datei-Job oder heruntergeladenes Artefakt** | Gehen Sie zu [Import / Export](/de/user-guide/import-export/overview), nicht zu den Sync-Läufen. |
+| **Problem bei der Webhook-Zustellung** | Gehen Sie zur [Übersicht Event Hub](/de/user-guide/events/overview). |
+| **Problem bei einer mehrstufigen Reaktion** | Gehen Sie zur [Übersicht Automation Hub](/de/user-guide/automation/overview). |
+
+## Nächste Schritte
+
+- [Datei-Feed und Response Relay (EN)](/user-guide/integrations/file-feed-and-relay)
+- [Zuordnung und Filter](/de/user-guide/integrations/mapping-and-filters)
+- [Übersicht Integrationen](/de/user-guide/integrations/overview)

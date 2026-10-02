@@ -1330,6 +1330,10 @@
                   {
                     "title": "Zuordnung und Filter",
                     "path": "de/user-guide/integrations/mapping-and-filters"
+                  },
+                  {
+                    "title": "Sync-Läufe",
+                    "path": "de/user-guide/integrations/sync-runs"
                   }
                 ]
               },
