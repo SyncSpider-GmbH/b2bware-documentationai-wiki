@@ -232,6 +232,12 @@ To resolve a URL slug path (e.g. `/laptops/15-inch`) to a category id:
 GET /api/v1/apps/product-hub/categories/by-path/find?path=laptops/15-inch
 ```
 
+## Variant children and category counts
+
+A storefront listing hides variant children. Send `filter[exclude_child_products]=1` together with `filter[status]`. The server treats a product as a catalog root when it is not linked as a child of a configurable product. Category badges on the rendered storefront count the same public roots as the grid for that category, including products filed in its subcategories, so the number next to a category matches the total on that category's page.
+
+After a deploy that introduces the stored child and parent counts, run `apps:product-hub:backfill-variant-counts` and `apps:product-hub:ensure-catalog-indexes` for the installation. Until the backfill finishes, a product with no stored count is treated as a catalog root.
+
 ## Caching
 
 ProductHub responses are cache-tagged per installation. Two storefront-friendly behaviors:
