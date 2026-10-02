@@ -1,0 +1,154 @@
+---
+title: Companies
+description: B2B organisation masters in Customer Hub — how Companies relate to customers, contacts, and segmentation; membership, addresses, optional checkout and loyalty tabs; and how company ids feed pricing owners and vendor links.
+---
+
+A **Company** is the **B2B organisation master**: the account container that many shop **customers** can belong to, with shared commercial fields (name, VAT, addresses, optional group, default role, checkout-method overrides).
+
+A Company is **not** a login, **not** a Contact directory row by itself, and **not** a customer group (Segmentation).
+
+| Concept | Role |
+| --- | --- |
+| **Company** | Organisation master (`name`, `company_number`, status, contact fields, address block, `vat_number` / `registration_number`, optional `company_group_id`, `default_role_id`, checkout-method allow/block lists). Admin: **Customers → Companies**. |
+| **Customer** | Login / buying principal with `company_id` pointing here. Places orders; holds `role_id` and `customer_group_id`. Admin: **All Customers**. |
+| **Contact** | Canonical directory party (`kind` person \| organization). Companies project identity onto an **organization** contact via `contact_id` (one-way projection). Affinity UI may also list people “contact-for” the org — that is **not** membership. |
+| **Segmentation (customer groups)** | Groups of type **`company`** may be linked via `company_group_id`. Groups of type **`customer`** belong on the **customer** record, not here. |
+| **Product Hub Vendor** | Optional marketplace supplier master whose **`owner_id`** is this company (1 company → at most 1 Vendor). Different feature. |
+| **Procurement Supplier** | Separate purchasing facet (often also contact-linked). Not the Company record. |
+
+**Mental model:** Company = *the legal / commercial B2B account*. Customers = *people who sign in under that account*. Contacts = *directory projection + “contact-for” people*. Segmentation = *pricing / targeting buckets* (company-typed or customer-typed).
+
+Saving a company is **live**. There is **no** draft → deploy lifecycle.
+
+<Callout kind="info" collapsed="false">
+Deleting a company soft-deletes its company-typed addresses and notes, then **clears `company_id` on member customers**. Customers and their orders remain — members are detached, not wiped.
+</Callout>
+
+**What Companies do *not* include:**
+
+- Nested company trees / holding-company permission inheritance beyond evidenced affiliation + `company_id`.
+- Automatic deletion of member customers when the company is deleted.
+- Enforced storefront “manage company users” ACL (storefront keys exist but are **not** enforced yet — see [Roles](/user-guide/customers/roles)).
+
+## Why teams use Companies
+
+1. **One commercial identity for many buyers** — Shared name, VAT, addresses, and notes for an account with several logins.
+2. **Default role for members** — `default_role_id` steers which role new/linked members should inherit in company-driven flows (also used when Product Hub Vendors bind a company to the seeded **vendor** role).
+3. **Company-level commercial overrides** — Checkout method allow/block lists (when Order Hub is installed); optional category permissions; optional Loyalty tab.
+4. **Group pricing at company-group grain** — Link a **company-type** Segmentation group when targeting is by organisation segment rather than by person.
+5. **Integration / vendor / SKU owners** — Company id is a first-class owner for Customer SKUs and Vendor `owner_id`.
+
+Use **Companies** when the tenant sells B2B to organisations. Use **All Customers** for the login itself. Use **Contacts** for directory / “contact-for” people who may never log in. Use **Segmentation** for price/permission groups. Party model and registration settings live on [Customers overview](/user-guide/customers/overview).
+
+## How masters, members, and tabs work
+
+### Company fields
+
+| Field | Notes |
+| --- | --- |
+| **name** | Required on create |
+| **company_number** | Unique when set; settings can auto-generate (`COMP-` prefix default) |
+| **status** | `active` \| `inactive` |
+| **email** / **phone** / **website** / **logo** | Contact / branding |
+| **address_line_*** / **city** / **zip** / **state** / **country** | Master address block (plus typed company shipping/billing address collections) |
+| **vat_number** / **registration_number** | Commercial ids (registration_number unique when set) |
+| **company_group_id** | Must reference a Customer Group with **`type = company`** (else validation error) |
+| **default_role_id** | Optional default role for company-driven membership |
+| **billing_/shipping_methods_allowed\|blocked** + defaults | Checkout-method overrides (Order Hub surfaces) |
+| **attributes** | Optional Attributes Hub values when collections target companies |
+
+Ordinary CRUD + soft delete. List supports filter/sort/search (Admin search focuses on **name**).
+
+### Member customers
+
+- Membership is **`Customers.company_id`**.
+- Company detail tab **Customers** lists / manages that link.
+- Settings can require a company on registration, allow/deny company creation at signup, cap max customers per company (`0` = unlimited), and auto-generate company codes — see [Customers overview](/user-guide/customers/overview).
+
+### Detail tabs (install-gated where noted)
+
+| Tab | When |
+| --- | --- |
+| **Details** | Always — master fields |
+| **Customers** | Member logins |
+| **Contacts** | Directory / affiliation surface for the org |
+| **Shipping Address** / **Billing Address** | Company-typed address collections |
+| **Notes** | Internal notes |
+| **Checkout Methods** | When **Order Hub** installed |
+| **Category Permissions** | When **customer category permission module** installed |
+| **Loyalty** | When **Loyalty Hub** installed |
+
+### Contact projection
+
+Saving/linking a company projects identity onto a Contacts **organization** row and stamps `contact_id`. The company facet stays authoritative for domain fields; the directory is a one-way projection — do not edit VAT/name on the contact as the source of truth. See [Contacts](/user-guide/customers/contacts).
+
+## Typical workflows
+
+### Create a B2B account shell
+
+1. Under **Customers → Companies**, create company: **name** (+ number if not auto), status, address/VAT as required by tenant settings.
+2. Optionally set **company group** (type company) and **default role**.
+3. Save — live. Spot-check list.
+
+### Attach buyers
+
+1. Create or open **All Customers** records.
+2. Set **company** (`company_id`) and an appropriate **role**.
+3. Confirm on company **Customers** tab.
+4. If registration requires company / admin approval, align Customer Hub **settings** first ([Customers overview](/user-guide/customers/overview)).
+
+### Shared addresses and checkout overrides
+
+1. Maintain company shipping/billing addresses on the company tabs.
+2. When Order Hub is present, set checkout-method allow/block lists if this account must diverge from defaults.
+3. Verify as a member customer at checkout (Orders docs for checkout behaviour).
+
+### Prep for Vendors / Customer SKUs
+
+1. Company must exist before Product Hub Vendor `owner_id` or Customer SKU `owner_type=company`.
+2. Cross-link those Product Hub guides — do not re-document them here.
+
+## Dependencies
+
+| Dependency | Why it matters |
+| --- | --- |
+| **Customer Hub** (core) | Owns Companies; sidebar under Customers |
+| **All Customers** | Member logins (`company_id`); registration status / verification |
+| **Roles** | `default_role_id`; member `role_id`; vendor default role side effects |
+| **Segmentation** | `company_group_id` → groups `type=company` |
+| **Contacts** | Organization projection + people affiliations |
+| **Auth Hub** | Shop login for member customers |
+| **Order Hub** (usual) | Checkout Methods tab; orders still hang off customers |
+| **Product Hub** | Group prices keyed by groups; optional Vendor ownership; Customer SKUs |
+| **Attributes Hub** (optional) | Custom attributes on companies |
+| **Loyalty / category-permission modules** (optional) | Extra tabs |
+| **Customer Hub settings** | require_company, codes, max members, address validation |
+
+Pricelist UI itself, Rules, Tax, and Media hubs are adjacent — not prerequisites.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Treat Company as the login | Buyers cannot authenticate as the company row | Create/link **Customers** with `company_id` |
+| Assign a **customer-type** group to `company_group_id` | API rejects / invalid group | Use Segmentation groups with **type = company** |
+| Expect delete company to wipe buyers | Members only detach | Re-home or deactivate customers explicitly |
+| Confuse Company with Contact “organization” | Related but different masters | Edit commercial fields on **Companies**; use Contacts for directory / affiliations |
+| Confuse Company with Segmentation | Groups target pricing/permissions | Link group via `company_group_id`; edit group definition under **Segmentation** |
+| Expect Loyalty / Category Permissions / Checkout Methods always | Tabs are install-gated | Document as optional; Demo may show some, not all tenants |
+| Use Company as Procurement Supplier | Wrong master for POs / vendor bills | Procurement Supplier (contact facet) vs Company vs Product Hub Vendor |
+| Grant storefront “manage users” and expect enforcement | Keys registered `enforced: false` | Manage membership in Admin until storefront ACL is real |
+| Change company group and expect prices without Product Hub group prices | Group id alone does nothing | Maintain **group** prices / pricelist deploy on Products |
+
+## Related
+
+- [Customers overview](/user-guide/customers/overview)
+- [Contacts](/user-guide/customers/contacts)
+- [Roles](/user-guide/customers/roles)
+- [Segmentation](/user-guide/customers/segmentation)
+- [How Products work](/user-guide/products/how-products-work)
+- [Pricelists](/user-guide/products/pricelists)
+- [Customer SKUs](/user-guide/products/customer-skus)
+- [Vendors](/user-guide/products/vendors)
+- [Orders overview](/user-guide/orders/overview)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

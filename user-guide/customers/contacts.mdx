@@ -1,0 +1,150 @@
+---
+title: Contacts
+description: Customer Hub’s commercial party directory — person vs organization contacts, how customer/company/supplier facets link in, and why affiliations are “contact-for” statements — not logins or permissions.
+---
+
+A **Contact** is a **directory row** for a commercial party — a **person** or an **organization**. Facets (customer login, company master, procurement supplier) may **point at** that row with `contact_id`. The contact itself does not log in.
+
+| Concept | Role |
+| --- | --- |
+| **Contact** | Directory: `kind` (`person` \| `organization`), `display_name`, names, email, phone, VAT/registration (org), `status`. Admin: **Customers → Contacts**. |
+| **Customer** | Authenticatable buyer/operator. May carry `contact_id` (person facet). Projection copies identity onto the contact one-way. |
+| **Company** | Organisation master. May carry `contact_id` (organization facet). |
+| **ContactAffiliation** | Additive **person → organization** “contact-for” link (`person_contact_id`, `org_contact_id`, `relation_type`, `status`). **No** auth, **no** membership, **no** recursive resolution. |
+| **Employment / membership** | Remains on **`Customers.company_id`** — not on affiliations. |
+| **Supplier facet** | Procurement (when installed) can also point at the same contact — one party, several facets. |
+
+**Mental model:** Contacts = *who exists in the commercial directory*. Customers/Companies/Suppliers = *what that party can do in each hub*. Affiliations = *“this person is the contact for that org”* without making them an employee login.
+
+Saving a contact is **live**. There is **no** deploy lifecycle.
+
+<Callout kind="info" collapsed="false">
+Contacts are **not** authentication principals. A Contact need not be a customer. Login accounts remain under All Customers — this page covers the **directory** and how it relates to those logins.
+</Callout>
+
+**What Contacts do *not* include:**
+
+- Login, password, roles, or `admin.access` on the contact row.
+- Authorization inherited from affiliations.
+- A competing two-way sync that overwrites customer/company fields from the directory (projection is **one-way facet → contact**).
+- A marketing automation or ticket CRM product.
+
+## Why teams use Contacts
+
+1. **Single party identity across facets** — A person who buys (customer) and also appears as a supplier contact collapses to one directory row with multiple facet ids.
+2. **Directory without forced login** — Capture a holding contact person who never registers for the shop.
+3. **Holding-group “contact-for”** — Person employed at company A (`Customers.company_id`) can still be listed as contact-for companies B/C via affiliations.
+4. **Operator conversion paths** — Admin can promote a person contact toward a **customer** (login) or, when Procurement is installed, toward a **supplier** facet — without teaching that Contact *is* those records.
+5. **Cleaner CRM-style search** — Find parties by display name / kind / status before opening the commercial facet.
+
+Use **Contacts** for directory and relationship statements. Use **All Customers** when someone must authenticate. Use **Companies** for the B2B account master. Use **Roles** only on customers.
+
+## How directory, facets, and affiliations work
+
+### Contact fields
+
+| Field | Notes |
+| --- | --- |
+| **kind** | Required on create: `person` \| `organization` (older UI query `kind=company` maps to organization) |
+| **display_name** | Especially important for organizations; persons can derive from first/last |
+| **first_name** / **last_name** / **salutation** | Person-oriented |
+| **email** / **phone** | Optional |
+| **vat_number** / **registration_number** | Org-oriented commercial ids |
+| **status** | `active` \| `inactive` |
+
+Admin list: search on display name; filters for kind/status; trash support. Soft delete available. Ordinary CRUD — no deploy lifecycle.
+
+### Resolve payload (read-only)
+
+Resolve returns `facets` (customer / company / supplier ids) plus related persons (for orgs) or organizations (for persons). **Never mutates** facets — operators use it to see what the directory row already links to.
+
+### Facet projection (one-way)
+
+| Facet | Projection |
+| --- | --- |
+| Customer | Projects to kind **person**; stamps `Customers.contact_id` |
+| Company | Projects to kind **organization**; stamps `Companies.contact_id` |
+| Backfill | Safe re-run; dedupes by strong keys (email for persons; VAT/email for orgs) |
+
+Facet domain fields remain authoritative. Do not fix customer email only on the contact and expect the login email to change.
+
+### Affiliations (contact-for)
+
+| Rule | Meaning |
+| --- | --- |
+| Link shape | Person contact ↔ org contact |
+| Auth | **None** — never grants roles, company membership, or Admin access |
+| Membership | Still `Customers.company_id` |
+| Recursion | One step only |
+
+Admin person detail tab **Companies and access** / org tab **People** are the FE homes for these relationships.
+
+### Detail tabs
+
+| Kind | Tabs |
+| --- | --- |
+| **Person** | General; **Companies and access** |
+| **Organization** | General; **People** |
+
+Optional convert actions (gated by install + permissions): convert contact → customer; convert → Procurement supplier. Treat these as *create/link a facet*, not as “the contact becomes a different entity type.”
+
+## Typical workflows
+
+### Add a directory person (no login yet)
+
+1. **Customers → Contacts →** create **person**.
+2. Capture name/email/phone/status.
+3. Later: convert to customer when they must shop or operate Admin.
+
+### Link “contact-for” without making them an employee
+
+1. Ensure person + organization contacts exist (org may already be projected from a Company).
+2. Create affiliation person → org.
+3. Keep the person’s **customer.company_id** on their real employer if they also buy.
+
+### Promote to buyer
+
+1. From contact (or All Customers), create customer facet linked to this contact.
+2. Assign **company**, **role**, **customer group** on the **customer** — not on the contact.
+3. Confirm resolve shows the customer facet id.
+
+### Supplier handoff (optional)
+
+1. Only when Procurement is installed and permitted.
+2. Convert/link supplier facet to the same contact.
+3. Keep purchasing docs in Procurement guides — not here.
+
+## Dependencies
+
+| Dependency | Why it matters |
+| --- | --- |
+| **Customer Hub** (core) | Owns Contact + ContactAffiliation |
+| **Companies / All Customers** | Facets that project onto contacts; membership separate |
+| **Roles** | Apply only after a **customer** facet exists |
+| **Auth Hub** | Login lives on customer, not contact |
+| **Attributes Hub** (optional) | Contact attributable target |
+| **Procurement Hub** (optional) | Supplier facet / convert-to-supplier |
+| **Order / Product Hubs** | Indirect — buyers still need customer records |
+
+Contacts appear with Customer Hub + view permission. The Demo Store lists Contacts under Customers.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Expect Contact to log in | No password/role on contact | Create or convert to **Customer** |
+| Treat affiliation as employment | No auth / no `company_id` | Set membership on the customer; use affiliation for “contact-for” only |
+| Edit only the directory and expect facet fields to follow | Projection is one-way **to** contact | Change customer/company masters for commercial truth |
+| Duplicate parties per facet | Breaks “one contact, many facets” | Prefer resolve/backfill semantics; reuse contact when converting |
+| Document Contacts as shop-facing CRM | API is Admin-only | Keep guidance in Admin User Guide |
+| Equate organization Contact with Company master | Company holds addresses, group, default role, checkout overrides | Maintain **Companies** for B2B account ops; contact is directory projection |
+| Invent affiliation-based catalog permissions | Category permissions hang off customer/company/group | Use Segmentation / permission modules |
+
+## Related
+
+- [Customers overview](/user-guide/customers/overview)
+- [Companies](/user-guide/customers/companies)
+- [Roles](/user-guide/customers/roles)
+- [Segmentation](/user-guide/customers/segmentation)
+- [Orders overview](/user-guide/orders/overview)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

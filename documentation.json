@@ -165,6 +165,26 @@
                     "title": "Customers overview",
                     "path": "user-guide/customers/overview",
                     "icon": "list"
+                  },
+                  {
+                    "title": "Companies",
+                    "path": "user-guide/customers/companies",
+                    "icon": "building"
+                  },
+                  {
+                    "title": "Contacts",
+                    "path": "user-guide/customers/contacts",
+                    "icon": "contact"
+                  },
+                  {
+                    "title": "Roles",
+                    "path": "user-guide/customers/roles",
+                    "icon": "shield"
+                  },
+                  {
+                    "title": "Segmentation",
+                    "path": "user-guide/customers/segmentation",
+                    "icon": "layers"
                   }
                 ]
               },
