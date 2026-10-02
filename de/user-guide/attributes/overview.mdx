@@ -1,0 +1,151 @@
+---
+title: Attributes — Überblick
+description: Was der Attributes-Hub in B2Bware besitzt — Definitionen vs. Werte, Gruppentypen über Products / Orders / Customers, Checkout-Attribute, Collections und der Unterschied zur Kategorie-Zugehörigkeit.
+---
+
+**Attributes** in B2Bware Admin ist der Top-Level-Hub für **benutzerdefinierte Felderdefinitionen** und dafür, wie diese Felder an Commerce-Objekte gebunden werden. Es ist nicht der Produktkatalog, nicht Categories und nicht Pricing.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Attribute (Definition)** | Benanntes Feld: `name`, automatisch `attribute_code`, `type`, optionales `group_id`, Flags (PDP / Warenkorb / Checkout / Suche / Sortierung / Filter / unique…), optionale vordefinierte **Werte**. Admin: **Attributes → All Attributes**. |
+| **Attribute group** | Benannter Bucket mit einem **Typ** (`product`, `category`, `order`, `customer`, `company` sowie Typen, die andere installierte Hubs registrieren). Der Typ entscheidet, *welche Art von Datensatz* die Attribute betreffen und welche Flags zulässig sind. Admin: **Attribute Groups**. |
+| **Attribute value (Option)** | Vordefinierte Option für optionsbasierte Typen (`select`, `multiselect`, `radio`, `swatch`, …). |
+| **Attributable value** | Polymorphe Verknüpfung: „dieser **Datensatz** trägt diesen Attributwert.“ Wird geschrieben, wenn Sie Attribute an einem Produkt, einer Kategorie, einer Order (Checkout), einem Kunden usw. speichern. |
+| **Attribute collection** | Benanntes, wiederverwendbares **Bündel** von Attributen mit einem gemeinsamen `group_type` und Storefront-Oberflächen-Flags (PDP-Überschrift, Warenkorb, Checkout-Block, Kategorie-Seite, My Account…). Admin: **Attribute Collections**. |
+| **Attributable target** | Ein Modell, das Attributwerte tragen kann (Product, Category, Orders, Customers, Companies, …) und ggf. angibt, welcher Collection-`group_type` gilt. |
+
+**Mentales Modell:**
+
+1. **Definieren** Sie das Feld einmal im Attributes-Hub (Gruppe → Attribut → Optionen falls nötig).
+2. **Werte zuweisen** auf der Attributes-Oberfläche des besitzenden Datensatzes (Produktdetail, Kategorie-Attributes-Tab, Checkout, Kundenprofil, …).
+3. Optional Attribute in einer **Collection** **bündeln**, damit Storefront-Themes sie unter einer Überschrift auf der richtigen Oberfläche rendern.
+
+**Definitionen vs. Live-Werte**
+
+| Schicht | Was Operatoren bearbeiten | Wann es Käufer betrifft |
+| --- | --- | --- |
+| Definition (Attribut / Gruppe / Collection) | Attributes-Hub-Screens | Sofort für die *Struktur* (welche Felder existieren, welche Storefront-Flags an sind) — **kein** Pricelist-artiges Deploy |
+| Wert an einem Datensatz | Product- / Category- / Order- / Customer-UIs (oder APIs) | Wenn dieser Datensatz angezeigt oder ausgecheckt wird — ebenfalls **live** beim Speichern |
+
+<Callout kind="info" collapsed="false">
+Kategorien können **category-typisierte** Attribute tragen; das steuert **nicht**, welche **Produkt**-Attributdefinitionen im Produktformular erscheinen. Es gibt keinen Magento-artigen Attribute-Set-Umschalter über Kategorie-Zugehörigkeit. Siehe [Categories](/de/user-guide/products/categories).
+</Callout>
+
+**Was der Attributes-Hub *nicht* ist:**
+
+- Ein Magento-artiges **Attribute Set**, das über Kategorie-Zugehörigkeit auf Produkte erzwungen wird.
+- Ein Ersatz für Kern-Produktfelder (Name, SKU, Preise, Bestand) oder für Preislisten.
+- Eine Rules-/Promotions-Engine (Rule-Hub ist separat).
+- Garantierte Präsenz jedes Gruppentyps — Typen werden von **installierten Hubs beigetragen**.
+
+## Warum Teams Attributes nutzen
+
+1. **Produktspezifikationen und Filter** — Marke, Material, Zertifizierungen, technische Felder für PDP, Layered Navigation, Suche und Admin-Grids.
+2. **Configurable-Variationsachsen** — Select-artige Attribute, die konfigurierbare Parents/Children steuern (Product-Hub-Variationsflows).
+3. **Checkout- / Order-Erfassung** — Order-Gruppen-Attribute mit `use_in_checkout` (z. B. PO-Nummer, Lieferhinweis), die beim Checkout erfasst und an der Order gespeichert werden.
+4. **Kategorie-Präsentation** — Category-typisierte Attribute und Collections mit Flag für die Kategorie-Seite (Banner-/Filter-Chrome — keine Produkt-SKU-Specs).
+5. **Kunden- / Firmen-Anreicherung** — Profilfelder für B2B-Kontodaten jenseits der Kern-CRM-Felder.
+6. **Gruppierte Storefront-UX** — Collections, damit Themes verwandte Felder unter einer Überschrift zeigen statt einer flachen Liste.
+7. **Automation** — Weich gekoppelte Set-Attribute-Aktionen gegen Product, Category, Order, Customer und andere attributable Targets, wenn der Automation-Hub im Scope ist.
+
+Nutzen Sie den Attributes-Hub, wenn das Feld **tenant-definierte Custom-Daten** ist. Nutzen Sie Product-Hub-Native-Felder für verkaufbare Identität, Bestand und Preis. Nutzen Sie Categories dafür, *wo* der Katalog abgelegt ist — nicht als Fake-Attribute-Set-Umschalter.
+
+## Wie Gruppentypen, Datensätze und Oberflächen zusammenspielen
+
+### Hub-Installation und Sidebar
+
+| Element | Verhalten |
+| --- | --- |
+| **Hub** | Attributes-Hub (standardmäßiger commerce-naher Hub im FE-Katalog — muss trotzdem auf dem Tenant installiert sein) |
+| **Nav** | Sichtbar, wenn Attributes installiert ist und die Rolle das Modul sehen darf |
+| **Kinder** | **All Attributes**; **Attribute Groups**; **Attribute Collections** |
+| **Demo** | Attributes ist im Demo Store vorhanden, der für diese Docs genutzt wird |
+
+Kataloge können ohne reiche Custom-Attribute funktionieren, aber die meisten B2B-Tenants installieren Attributes für Specs und Checkout-Felder.
+
+### Gruppentypen (hub-beitragen)
+
+Der Attributes-Hub startet mit einer leeren Typenliste; andere Hubs **mergen** Typen beim Boot:
+
+| Beitragender Hub | Typen (typisch) |
+| --- | --- |
+| **Product Hub** | `product`, `category` |
+| **Order Hub** | `order`, `order_line` |
+| **Customer Hub** | `customer`, `company`, `contact` |
+| Weitere Optionals (Beispiele) | Invoice, License, Rule, … wenn diese Hubs installiert sind |
+
+Die Live-Typenliste ist das, was installierte Hubs registriert haben — die Admin-Gruppen-Typenliste spiegelt diesen Merge. Template-Seed-Tags können hinterherhinken; **vertrauen Sie der Live-Liste**.
+
+### Definition → Zuweisung
+
+1. Legen Sie eine **Attribute Group** mit dem korrekten **Typ** an.
+2. Legen Sie **Attributes** in dieser Gruppe an; setzen Sie Typ + Flags, die zur Gruppe passen (ungültige Flags werden abgelehnt — z. B. `use_in_checkout` nur für `order`).
+3. Für Optionstypen pflegen Sie **Attribute Values**.
+4. Optional Attribute zu einer **Attribute Collection** desselben `group_type` hinzufügen und Oberflächen-Flags aktivieren.
+5. **Werte an Datensätzen** eingeben: Products-Attributes-Tab / Payload; Category-Attributes-Tab; Checkout-Attribute; Customer-/Company-Attribute-UIs; Automation Set-Attribute.
+
+Das Speichern von Definitionen und Werten ist **live**. Es gibt **kein** Pricelist-artiges Deploy für Attributdefinitionen.
+
+### Checkout-Vertrag (Order-Gruppe)
+
+Nur Attribute, bei denen **Gruppentyp `order` UND `use_in_checkout` true** ist, erscheinen im Checkout-Kontext und werden beim Place-Order akzeptiert. Pflicht-Checkout-Attribute fehlen im Payload → Validierungsfehler. Werte bleiben als attributable values an der **Order**. Siehe [Orders overview](/user-guide/orders/overview) (EN).
+
+### Categories ↔ Products (genauer Scope)
+
+| Existiert | Existiert **nicht** |
+| --- | --- |
+| Category ist attributable (`group_type` / Collection-Typ `category`) | Eine Kategorie zu wählen ändert **nicht**, welche **Produkt**-Attributdefinitionen im Produktformular verfügbar sind |
+| Category Metadata für Kategorie-Seiten-Felddefs | Automatische Attribute-Set-Vererbung aus Kategorie-Zugehörigkeit |
+| Collections können Kategorie-Seiten-Flags für **category**-`group_type` setzen | Categories als Magento-artige Attribute Sets |
+
+Cross-Link: [Categories](/de/user-guide/products/categories); [Wie Produkte funktionieren](/de/user-guide/products/how-products-work).
+
+### Berechtigungen
+
+Attributes-Hub-Berechtigungen decken Attributes, Attribute Values, Attribute Groups, attributable values und Attribute Collections ab (Ansehen / Anlegen / Aktualisieren / Löschen). Die Sidebar braucht Modul-Ansicht; feingranulares CRUD steuert die Registry-Screens.
+
+## Typische Workflows
+
+1. **Katalog-Specs** — `product`-Gruppe → Attribute (select für Filter/Variationen; text für Freitext) → an Produkten zuweisen → optionale Collection mit PDP-/Warenkorb-Oberflächen-Flags.
+2. **Checkout-Extras** — `order`-Gruppe → Attribute mit `use_in_checkout` (+ `required` wenn Pflicht) → optionale Collection mit Checkout-/Bestellübersichts-Flags → auf Demo-Checkout prüfen.
+3. **Kategorie-Chrome** — `category`-Gruppe → Attribute / Metadata an der Kategorie → Collection mit Kategorie-Seiten-Flag, wenn Bündelung nötig.
+4. **Kontenfelder** — `customer`- / `company`-Gruppen → Attribute → Collection mit My-Account-Flag, wenn die Storefront sie zeigen soll.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Product Hub** | Product- + Category-attributable Models; Variationsattribute; Produkt-Attribut-Flags (PDP, Warenkorb, Suche, Variant-Filter) |
+| **Order Hub** | Order- (+ order_line-)Typen; verfügbare Checkout-Attribute / Persistenz an der Order |
+| **Customer Hub** | Customer- / Company- / Contact-Typen; My-Account-Collection-Flag |
+| **Notification Hub** | Notification-Flag exponiert Attribute als Template-Variablen |
+| **Automation / Event Hub** (optional) | Set-Attribute-Aktionen + attributable Targets |
+| **Media / Storefront / Themes** | Rendering von Collections und PDP-/Warenkorb-/Checkout-Oberflächen |
+| **Auth + Roles** | Attributes-Hub-Ansicht (und CRUD) für Admin-Zugriff |
+
+Der Attributes-Hub ersetzt **nicht** Product-Pricing, Stock locations oder Rule-Hub-Promotions.
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Produktspecs in eine `category`-Gruppe legen (oder umgekehrt) | Falsches attributable Target / falsche Storefront-Flags | Gruppentyp an den Datensatz anpassen, auf den Sie schreiben |
+| `use_in_checkout` an einem Produktattribut erwarten | Flag abgelehnt / ignoriert außerhalb von `order`-Gruppen | Für Checkout-Felder eine **order**-Gruppe anlegen |
+| Annehmen, Kategorie-Zugehörigkeit schalte Produkt-Attribute-Sets frei | So funktioniert B2Bware nicht | Produktattribute im Attributes-Hub designen; Kategorie-Attribute nur für Branch-Präsentation |
+| Ein „System“-Attribut löschen (EAN, Brand/Manufacturer, Dimensionen, hub-geliefert) | Löschen blockiert | Als geschützt behandeln; geseedete Systemattribute stehen lassen |
+| Sortier- / Admin-Filter-Flags beiläufig einschalten | Hintergrund-Backfill auf verwandte Dokumente | Nur einschalten, wenn Ops die Spalte brauchen; asynchrone Arbeit erwarten |
+| Attribute Collections mit Attribute Groups verwechseln | Groups = Typisierung / Besitz; Collections = Storefront-Bündelung | Zuerst Groups; Collections für Präsentation |
+| Pricelist-artiges Deploy für Attributdefinitionen erwarten | Speichern ist **live** | Flags prüfen, bevor Storefront-Oberflächen umgeschaltet werden |
+| Attributes als immer installiert dokumentieren | Tenant kann den Hub ausblenden, wenn nicht installiert | Prüfen, ob Attributes auf dem Tenant installiert ist |
+
+## Related
+
+- [Alle Attribute](/de/user-guide/attributes/all-attributes)
+- [Attribute Groups](/user-guide/attributes/attribute-groups) (EN)
+- [Attribute Collections](/user-guide/attributes/attribute-collections) (EN)
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Categories](/de/user-guide/products/categories)
+- [Produkt bearbeiten](/de/user-guide/products/edit-product)
+- [Orders overview](/user-guide/orders/overview) (EN)
+- [Customers overview](/user-guide/customers/overview) (EN)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

@@ -1294,6 +1294,19 @@
                 ]
               },
               {
+                "group": "Attributes",
+                "pages": [
+                  {
+                    "title": "Attributes — Überblick",
+                    "path": "de/user-guide/attributes/overview"
+                  },
+                  {
+                    "title": "Alle Attribute",
+                    "path": "de/user-guide/attributes/all-attributes"
+                  }
+                ]
+              },
+              {
                 "group": "Integrationen",
                 "icon": "plug",
                 "pages": [
