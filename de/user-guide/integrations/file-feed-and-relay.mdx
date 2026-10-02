@@ -1,0 +1,58 @@
+---
+title: Datei-Feed und Response Relay
+description: Verlauf der Datei-Läufe für Datei-Feed-Integrationen, Response Relay nach dem Export und Einbettung des Integration Hub in ein ERP.
+---
+
+## Transport und Verwaltung
+
+Trennen Sie das Transportmuster von der Verwaltung von Massendateien:
+
+- Ein **Datei-Feed** ist ein Integrationsmuster für Systeme, die strukturierte Dateien nach einem Zeitplan oder über einen konfigurierten Speicherort austauschen.
+- **Response Relay** ist der konfigurierte Relay-Pfad, um eine Antwort zurückzugeben oder weiterzuleiten, wenn diese Integration das erfordert.
+- Beides sind weiterhin **Integrationsflüsse**: Legen Sie die erwartete Datei, die Richtung, den Takt, den Bestätigungs- bzw. Fehlerpfad und die Zuständigkeit für die entstehenden Datensätze fest (Produkte, Bestellungen oder Kunden, soweit der Connector das unterstützt).
+- Sie sind **nicht** der übergeordnete Bildschirm **Download-Verlauf** unter Import / Export. Der Download-Verlauf erfasst Artefakte von Massenjobs; er wird nicht zum Prüfpfad für jeden Feed- oder Relay-Austausch.
+
+<Callout kind="alert" collapsed="false">
+Verwenden Sie **Import / Export → Download-Verlauf** nicht als Verlauf für Connector-Datei-Feeds oder Response Relay. Nutzen Sie **Integrationsdetail → File Runs** (und das Detail eines Sync-Laufs für Relay-Zähler) für den Transportverlauf der Integration. Nutzen Sie [Import / Export](/de/user-guide/import-export/overview) nur, wenn der Job eine Massendateiübertragung außerhalb eines Connectors ist.
+</Callout>
+
+Datensätze, die ein Feed transportiert, landen weiterhin in den Entitäts-Hubs — siehe [So funktionieren Produkte](/de/user-guide/products/how-products-work), [Übersicht Bestellungen](/de/user-guide/orders/overview) und [Übersicht Kunden](/de/user-guide/customers/overview) für die fachliche Seite dieser Datensätze.
+
+## Datei-Feed
+
+Datei-Feed-Integrationen importieren aus Profilen (CSV, XLSX, XML und verwandte Formate) anstelle von (oder zusätzlich zu) Live-API-Katalog-Connectoren.
+
+### Datei-Läufe
+
+Unter **Integrationsdetail → File Runs** sehen Sie jede verarbeitete Datei: Status, Zeitpunkte und Ergebnis. Nutzen Sie diesen Tab, um zu bestätigen, dass geplante oder manuelle Datei-Importe abgeschlossen wurden, und um einen bestimmten Lauf im Detail zu öffnen.
+
+### Profile und Beispiele
+
+Während der Einrichtung laden Betreiber Beispiele hoch, gleichen Profile ab oder kompilieren sie und nutzen optional eine KI-gestützte Profilerstellung. Das Anlegen von Attributen aus dem Profil kann den AttributesHub vorausfüllen, sofern das erlaubt ist. Im Tagesgeschäft überwachen Betreiber vor allem **File Runs** und lösen den Sync erneut aus, nachdem neue Dateien angekommen sind.
+
+## Response Relay
+
+Response Relay leitet eine **Export-Antwort des Connectors** (nicht den rohen Hub-Datensatz) nach einem erfolgreichen ausgehenden Sync an eine andere Integration weiter.
+
+### So funktioniert es
+
+1. **Erfassen** — Jeder erfolgreiche Export speichert das Connector-JSON in B2Bware (Schlüssel: Quell-Entität und Hub-ID).
+2. **Routen** — Unter **Integrationsdetail → Response Relay** definieren Sie Quell-Entität → Ziel-Integrationsentität, Feldzuordnung, optionale Filter und eine optionale Abgleichskonfiguration (wie eine bestehende Remote-ID gefunden wird).
+3. **Weiterleiten** — Nach Abschluss des Export-Laufs ordnet ein Hintergrundjob die erfasste Antwort zu, löst wenn möglich eine Remote-ID auf, überträgt sie an den Ziel-Connector und kann Sprünge verketten (mit Obergrenze).
+4. **Beobachtbarkeit** — Das Detail eines Sync-Laufs zeigt Relay-Zähler (`forwarded` / `skipped` / `failed`) unter Post-Hooks / Relay.
+
+Nutzen Sie **Beispiel** und **Vorschau** in der Relay-Oberfläche, um die Zuordnung zu prüfen, bevor Sie eine Route aktivieren.
+
+## In Ihr ERP einbetten
+
+Um den Integration Hub in Ihrer eigenen Admin-Oberfläche auszuführen (iframe und Loader-Skript), folgen Sie dem eigenen Client-Leitfaden:
+
+- [Integration Hub einbetten (EN)](/help-center/guides/embed-integration-hub) — HTML-Snippet gegenüber JavaScript-SDK, Partner-JWT, erlaubte Origins, Sicherheitsmodell
+
+Administratoren des Mandanten konfigurieren die Einbettung unter **Integrationen → Einstellungen** (oder Konfiguration → Integrationen).
+
+## Nächste Schritte
+
+- [Übersicht Integrationen](/de/user-guide/integrations/overview)
+- [Sync-Läufe](/de/user-guide/integrations/sync-runs)
+- [Import / Export](/de/user-guide/import-export/overview)

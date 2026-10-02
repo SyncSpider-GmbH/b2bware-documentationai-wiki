@@ -1334,6 +1334,10 @@
                   {
                     "title": "Sync-Läufe",
                     "path": "de/user-guide/integrations/sync-runs"
+                  },
+                  {
+                    "title": "Datei-Feed und Response Relay",
+                    "path": "de/user-guide/integrations/file-feed-and-relay"
                   }
                 ]
               },
