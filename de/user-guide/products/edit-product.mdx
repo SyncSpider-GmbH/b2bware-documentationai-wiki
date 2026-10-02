@@ -1,61 +1,210 @@
 ---
 title: Produkt bearbeiten
-description: Tabs General, Price und Stock eines Produkts in B2Bware Admin aktualisieren.
+description: Wie Edit Product funktioniert — welche Tabs für Varianten, Live-Preise (Tier/Group), Bestand und Kategorien zählen, wie sich das vom Pricelist-Deploy unterscheidet und häufige Stock-/Preis-Fallen.
 ---
 
-Öffnen Sie ein Produkt aus **All Products** und nutzen Sie die Tabs, um Identität, Preise und Bestand zu pflegen.
+**Edit Product** ist der **Detail**-Arbeitsbereich für einen Katalogartikel: Identität, Variationen, Attribute, **Live**-Preise (einschließlich Tier/Group), Bestand pro Lager, Medien, SEO/Shipping, Merchandising-Links und optionale Modul-Tabs.
 
-## General
+Öffnen Sie ihn aus **[All Products](/de/user-guide/products/manage-products)** (oder nach **Add New Product**). Landungs-Tab ist üblicherweise **General**.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Edit Product** | Operationsfläche pro Produkt (tabbed). Speichern ist **live**. |
+| **All Products** | Liste / Bulk / Import — siehe [Produkte verwalten](/de/user-guide/products/manage-products). |
+| **Live Price** | Regular / Special / Tier / Group / Cost an diesem Produkt. Price bearbeiten (oder API-Upsert) aktualisiert Live-Zeilen **sofort**. |
+| **Pricelist** | Staging-Container; Käufer ändern sich erst nach **Deploy** auf Live-Price. |
+| **Stock-Zeile** | Menge + Policies für **Produkt × Lager**. Der Commerce-Default-Pfad nutzt das **Default**-Warehouse. |
+| **Stock Locations** | Lager-Stammdaten für den Stock-Tab-Selector. |
+
+**Mentales Modell:** Edit Product = *diese SKU (oder diesen configurable Parent) verkaufbar und korrekt machen*. Nutzen Sie Pricelists, wenn viele SKUs eine reviewed Preisänderungsmenge brauchen. Nutzen Sie Stock Locations nur, um *wo* zu definieren; *wie viel* setzen Sie hier.
+
+Für Product-Hub-Spine und den vollen Preisschichten-Essay siehe [Wie Produkte funktionieren](/de/user-guide/products/how-products-work) — behandeln Sie diese Seite nicht als diesen Systemleitfaden.
+
+<Callout kind="info" collapsed="false">
+Speichern auf dem Tab **Price** aktualisiert Live-Katalogpreise für **dieses Produkt jetzt**. Eine **Pricelist** zu bearbeiten ändert Käufer **nicht**, bis **Deploy**. Stock-Speichern ist ebenfalls live — es gibt kein Pricelist-ähnliches Deploy für Bestand.
+</Callout>
+
+## Warum die Tabs existieren
+
+Commerce-kritische Tabs zuerst; der Rest unterstützt Discovery, Logistik oder optionale Module.
+
+| Tab | Warum er zählt |
+| --- | --- |
+| **General** | Identität: Name, SKU, Typ, Status, Kategorien, Steuerklasse (wenn Tax installiert), Beschreibungen, **Medien-Galerie**. Kategorie-Zuweisung liegt hier. |
+| **Variants** | Configurable Parents: Variationsachsen + Child-Produkte. **Verborgen**, wenn das geöffnete Produkt bereits ein Child ist. |
+| **Attributes** | Produkt-typisierte Attribut-**Werte** (Specs / Filter). Variationsattribute untermauern auch Configurables. |
+| **Price** | **Live** regular, sales/special (Daten), cost; Einstieg in **Tier**- und **Group**-Preis-UIs. Das ist *keine* Pricelist. |
+| **Stock** | Stock-Zeilen pro Lager. Oft verborgen bei **configurable** Parents — Bestand meist auf **simple / variation** Children. |
+| **SEO** | Katalog-Discovery-Metadaten / Previews. |
+| **Shipping** | Physische Versandmaße/Gewicht-ähnliche Produktdaten. |
+| **Cross Sell / Upsell** | Merchandising-Links zu anderen Produkten. |
+| **Licensing** | **Nur wenn** License-Hub installiert. |
+| **DTOne** | **Nur wenn** DTOne-Hub installiert (nicht beim Anlegen eines neuen Produkts). |
+| **Permissions** | **Nur wenn** Customer-Product-Permission-Modul installiert. |
+| **Customer SKUs** | **Nur wenn** Customer-SKU-Modul installiert (Käufer-Artikelnummern). |
+
+Tiefenprioritäten: **Variants, Price (+ Tier/Group), Stock, General (Kategorien + Medien), Attributes**. SEO / Shipping / Cross-Sell / Upsell leicht halten. Optionale Tabs ehrlich gaten — sie erscheinen nicht immer.
+
+## Wie Commerce-Tabs funktionieren
+
+### General — Identität, Kategorien, Medien
 
 <Image
   src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404825814-w0bijm3rty-detail-general.png?fm=auto&auto=compress%2Cformat"
-  alt="Edit Product — Tab General"
+  alt="Edit Product — Tab General (EN-Screenshot — DE-Screenshot folgt)"
 />
 
-Typische Felder unter General sind Name, SKU, Beschreibung, Kategorien und Medien.
+- **Produkttyp** früh setzen (simple / configurable / virtual / downloadable). Der Typ steuert Variants-/Stock-Erwartungen.
+- **SKU** ist der stabile Upsert-Key für Imports/Integrationen.
+- **Categories**: Multi-Select-Zuweisung am Produkt. Die Baumstruktur wird unter **[Categories](/de/user-guide/products/categories)** gepflegt — erfinden Sie keine Attribute-Set-Gating nach Kategorie.
+- **Media**: Galerie auf General. Primärbild steuert Listen-/Storefront-Defaults.
+- General kann ein Summary-Price- / Stock-Feld zeigen — maßgebliche Multi-Typ-Preise und Mengen pro Lager liegen weiterhin auf den Tabs **Price** / **Stock**.
+- **Tax class**: sinnvoll, wenn Tax-Hub installiert; optional.
 
-<Steps>
-  <Step title="Produkt öffnen">
-    Wählen Sie in **All Products** die Produktzeile aus.
-  </Step>
-  <Step title="General bearbeiten">
-    Aktualisieren Sie Name, Beschreibung und weitere Identitätsfelder.
-  </Step>
-  <Step title="Fotos hinzufügen oder neu ordnen">
-    Laden Sie Bilder hoch und setzen Sie das Primärfoto, wenn Ihr Tenant das unterstützt.
-  </Step>
-  <Step title="Speichern">
-    Speichern Sie, bevor Sie den Tab wechseln, falls Ihre UI ein explizites Speichern verlangt.
-  </Step>
-</Steps>
+### Variants — configurable Parents
 
-<Callout kind="info" title="Fotos neu ordnen">
-  Ziehen Sie Miniaturansichten, wenn die UI es erlaubt, sodass das erste Bild das ist, das Käufer zuerst sehen.
-</Callout>
+- Für **configurable** Parents nutzen: Variations-**Attribute** wählen, **Child**-Produkte anlegen/zuweisen (jedes Child ist eigene verkaufbare SKU mit eigenen Preisen/Bestand).
+- Children tragen typischerweise physischen Bestand und Verkaufspreise; Parent ist die Chooser-UI.
+- Ein **Child** zu öffnen blendet den Variants-Tab aus (kein Nesting).
+- Nutzen Sie Variants nicht, um „Optionen“ auf einem Simple-Produkt ohne Configurable-Modell zu faken — Attributes oder echte Configurables verwenden.
 
-## Price
+### Attributes — Werte vs. Definitionen
+
+- Dieser Tab editiert **Werte am Produkt** für Attribute, die im Attributes Hub definiert sind (Produkt-Group-Type).
+- Variationsachsen für Configurables sind attributbasiert — Attribute vor dem Bau von Variants definieren.
+- Kategorie-typisierte Attribute gehören auf **[Categories](/de/user-guide/products/categories)**, nicht hier.
+
+### Price — Live-Typen, Tier, Group
 
 <Image
   src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404829280-g3qw7ceri8r-detail-price.png?fm=auto&auto=compress%2Cformat"
-  alt="Edit Product — Tab Price"
+  alt="Edit Product — Tab Price (EN-Screenshot — DE-Screenshot folgt)"
 />
 
-Nutzen Sie den Tab Price für den Basispreis und alle listen- oder vertragsbezogenen Felder, die Ihr Tenant anzeigt.
+Der Admin-Tab **Price** editiert **Live**-Preisdatensätze für dieses Produkt.
 
-<Callout kind="warning" title="Hinweis Variants Prices">
-  Manche Tenants zeigen eine Bezeichnung wie **Vatiants Prices** (Schreibweise wie in der UI). Nutzen Sie diesen Bereich für Variantenpreise, wenn Produkte Varianten haben.
-</Callout>
+| UI / Typ | Bedeutung |
+| --- | --- |
+| **Price** | **regular** — Basis- / Fallback-Verkaufspreis |
+| **Sales Price** + Start/Ende | **special** — Aktionsfenster |
+| **Cost Price** | **cost** — Marge/Reporting; **nicht** in der Käufer-finalPrice-Cascade |
+| **See Tier Prices** | **tier** — Mengenstaffeln (`min_quantity`); ggf. gruppen-gescoped |
+| **See Group Prices** | **group** — Betrag für eine **Kundengruppe** (Segmentation) |
 
-## Stock
+**finalPrice (Basis-Cascade — nur Summary):** tier (Menge qualifiziert) → group → special (im Datumsfenster) → regular. **Cost gewinnt nie.** Customer-Price-Provider (Order Hub / Integrationen) können diese Basis **überschreiben**; Rules können danach stacken. Voller Essay: [Wie Produkte funktionieren](/de/user-guide/products/how-products-work) und [Pricelists](/de/user-guide/products/pricelists).
+
+**Live vs. Pricelist (nicht verhandelbar):**
+
+- Speichern auf dem Price-Tab aktualisiert Live-Katalogpreise für **dieses Produkt jetzt**.
+- Eine **Pricelist** zu bearbeiten ändert Käufer **nicht**, bis **Deploy**.
+- Nach einem Pricelist-Deploy Price (oder finalPrice-Include) erneut öffnen und prüfen — Last Writer pro Preistyp gewinnt.
+
+Nutzen Sie den **Price-Tab** für Einzel-SKU-Fixes und für Baselines, gegen die Prozent-Pricelists resolven. Nutzen Sie **[Pricelists](/de/user-guide/products/pricelists)** für Multi-SKU- / geplante / reviewed Kampagnen.
+
+Halten Sie cost/regular/special kohärent pro Währung, in der der Tenant verkauft.
+
+### Stock — Lager, Default, manage_stock
 
 <Image
   src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404832291-noqwqvkbe5-detail-stock.png?fm=auto&auto=compress%2Cformat"
-  alt="Edit Product — Tab Stock"
+  alt="Edit Product — Tab Stock (EN-Screenshot — DE-Screenshot folgt)"
 />
 
-Weisen Sie Mengen je Stock Location zu. Legen Sie zuerst unter **Stock Locations** Standorte an, wenn die Liste leer ist.
+| Regel | Operator-Bedeutung |
+| --- | --- |
+| **Zuerst Stock Locations** | Lager-Stammdaten unter Products → Stock Locations; Selector braucht sie. |
+| **Eine Zeile pro Produkt × Lager** | Menge, Availability-Flag, Backorders (`no_backorders` / `allow_qty_below_0` / `allow_pre_orders`), optionale Cart-Min/Max, Upcoming Qty. |
+| **Default-Warehouse** | Storefront-Verfügbarkeit und Order-Hub-Bestandsanpassung (wenn aktiviert) nutzen die **Default**-Warehouse-Stock-Relation. Nicht-Default-Zeilen sind Ops/Sichtbarkeit, sofern kein Flow sie explizit ansteuert. |
+| **Keine Default-Zeile** | Availability behandelt Bestand als **unmanaged → orderable**. Leicht überzuverkaufen, wenn Operatoren Bestand „vergessen“. |
+| **`manage_stock`** | Produkt-Flag erwartet **true** für physisch bestandgeführte Ware. Unterschiedlich von „hat eine Stock-Zeile“. Virtual/Downloadable überspringen oft physischen Bestand. |
+| **Configurable Parents** | Stock-Tab oft **nicht** am Parent gezeigt; Mengen auf **Variation**-Children pflegen. |
+| **Kein Deploy** | Stock-Speichern ist live (anders als Pricelists). |
 
-## Nächste Schritte
+Volle Warehouse-Auflösung: [Stock locations](/de/user-guide/products/stock-locations).
 
-- [Stock locations](/de/user-guide/products/stock-locations)
+### Leichte und optionale Tabs
+
+- **SEO** — Titel/Beschreibungen/Previews für Storefront-Discovery.
+- **Shipping** — versandrelevante Produktfelder für physische Ware.
+- **Cross Sell / Upsell** — verwandte Produktlinks für Merchandising.
+- **Optional modul-gesteuerte Tabs** (Licensing, DTOne, Permissions, Customer SKUs) — nur vorhanden, wenn ihre Module installiert sind; tiefe How-tos gehören auf die Modul-Seiten (siehe [Customer SKUs](/de/user-guide/products/customer-skus)).
+
+## Typische Workflows
+
+### Einfache physische SKU (verkaufsbereit)
+
+1. General: Typ **simple**, Name, SKU, Status aktiv, Kategorien, Primärbild.
+2. Price: **regular** setzen; optional Special-Fenster; Cost bei Margen-Tracking.
+3. Stock: **Default**-Warehouse wählen; Menge; Backorder-Policy; `manage_stock` passend sicherstellen.
+4. Attributes: erforderliche Specs für Filter/PDP füllen.
+5. Als Käufer in der richtigen Kundengruppe prüfen (Group-Price / finalPrice) und bestätigen, dass Add-to-Cart Bestand respektiert.
+
+### Configurable mit Variationen
+
+1. Sicherstellen, dass Variationsattribute existieren (Attributes Hub).
+2. General: Typ **configurable**.
+3. Variants: Achsen wählen; Children mit eindeutigen SKUs anlegen/zuweisen.
+4. Auf **jedem Child**: Price + Stock (Default-Warehouse).
+5. Parent: Medien/SEO/Kategorien für die Chooser-Seite.
+
+### B2B Group- / Tier-Pricing auf einer SKU
+
+1. Kundengruppen in Segmentation bestätigen.
+2. Price → **See Group Prices** / **See Tier Prices**; Beträge und Min-Qty / Group-IDs setzen.
+3. finalPrice für diese Gruppe und eine Menge, die eine Staffel treffen sollte, stichprobenartig prüfen.
+4. Wenn dieselbe Struktur für hunderte SKUs gilt → eine **Pricelist** bauen und deployen statt Einzel-Edits.
+
+### Nach einem Pricelist-Deploy
+
+1. Beispielprodukt → Price öffnen; gestagte Typen bestätigen.
+2. Typen, die Sie **nicht** gestagt haben, unverändert lassen / prüfen.
+3. Warenkorb-Check für Zielgruppe — Provider/Rules können den belasteten Preis weiterhin ändern.
+
+### Berechtigungen
+
+Brauchen `products` update (oder update-own). Price/Stock implizieren auch `prices` / `stock` Rechte wie gewährt. Optionale Tabs brauchen ihr Modul + Berechtigungen.
+
+## Abhängigkeiten
+
+| Abhängigkeit | Warum sie zählt |
+| --- | --- |
+| **Product Hub** | Produktdetail, Price, Stock, Variants. Kern-Hub im [Commerce-Rückgrat](/de/user-guide/how-b2bware-fits-together). |
+| **Produkte verwalten (Liste)** | Einstieg, Anlegen, Bulk, Import. Siehe [Produkte verwalten](/de/user-guide/products/manage-products). |
+| **Wie Produkte funktionieren** | Spine, Schichten, Nicht-behaupten. Siehe [Wie Produkte funktionieren](/de/user-guide/products/how-products-work). |
+| **Attributes Hub** | Attributdefinitionen; Variationsachsen. |
+| **Categories** | Baum-Stammdaten; Zuweisung auf General. Siehe [Categories](/de/user-guide/products/categories). |
+| **Stock locations** | Lager-Stammdaten für Stock-Tab. Siehe [Stock locations](/de/user-guide/products/stock-locations). |
+| **Pricelists** | Gestagte Multi-SKU-Live-Price-Writes via Deploy. Siehe [Pricelists](/de/user-guide/products/pricelists). |
+| **Customer Hub / Segmentation** | Group-Preise; Identität für finalPrice. |
+| **Order Hub + Storefront** | Belasteter Preis + Verfügbarkeit konsumieren Live-Daten. |
+| **Media** | Galerie-Muster auf General. |
+| **Vendors** | Lieferantenidentität / optionales Vendor-Operator-Scoping. Siehe [Vendors](/de/user-guide/products/vendors). |
+| **Tax / License / DTOne / Customer SKU / product-permission-Module** | Optionale Tabs nur bei Installation. |
+| **Rule Hub** (optional) | Kann Outcomes nach Basis-/Provider-Preis ändern. |
+| **Integrations** | Können Live-Price/Stock/Produkt upserten — Last Writer Wins vs. Admin-Edits. |
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Price-Tab mit Pricelist verwechseln | Ops denken „gespeicherte Liste = live“ oder umgekehrt | Live-Edit = sofort; Pricelist = Deploy nötig — siehe [Pricelists](/de/user-guide/products/pricelists) |
+| Special/Group/Tier setzen, aber nie regular | Cascade/Fallback für manche Käufer kaputt | Immer kohärentes **regular** halten |
+| Group-Zeilen mit falscher/fehlender Kundengruppe | Group gewinnt nie finalPrice | Mit Segmentation-Gruppen abstimmen, die Käufer wirklich haben |
+| Bestand nur auf Nicht-Default-Warehouse | Cart/Order-Pfade ignorieren ihn standardmäßig | Verkaufbare Online-Menge auf **Default**-Warehouse legen |
+| Keine Stock-Zeile + physisches Produkt | Unmanaged ⇒ immer orderable | Default-Warehouse-Zeile anlegen; `manage_stock` setzen |
+| Erwarten, dass Parent-Stock den Verkauf treibt | Children halten verkaufbaren Bestand | Variationen bestücken |
+| Cost editieren und Käuferpreisänderung erwarten | Cost ist aus finalPrice ausgeschlossen | Regular/Special/Tier/Group ändern (oder Pricelist deployen) |
+| Themes hardcoden angezeigte Preise | Bricht server-autoritative Belastung | Server-Auflösung vertrauen |
+| Licensing/DTOne/Customer SKUs als Kern dokumentieren | Weich gekoppelte Optionals | Mit Installation gaten; Geschwisterseiten verlinken |
+
+## Verwandte Seiten
+
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Produkte verwalten](/de/user-guide/products/manage-products)
 - [Pricelists](/de/user-guide/products/pricelists)
+- [Stock locations](/de/user-guide/products/stock-locations)
+- [Categories](/de/user-guide/products/categories)
+- [Vendors](/de/user-guide/products/vendors)
+- [Customer SKUs](/de/user-guide/products/customer-skus)
+- [Products — Überblick](/de/user-guide/products/overview)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
