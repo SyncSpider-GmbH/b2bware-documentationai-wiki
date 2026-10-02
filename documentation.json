@@ -1451,6 +1451,16 @@
                     "path": "de/user-guide/invoices/overview"
                   }
                 ]
+              },
+              {
+                "group": "Loyalty",
+                "icon": "gift",
+                "pages": [
+                  {
+                    "title": "Loyalty — Überblick",
+                    "path": "de/user-guide/loyalty/overview"
+                  }
+                ]
               }
             ]
           }
