@@ -1431,6 +1431,16 @@
                     "path": "de/user-guide/notifications/delivery-logs"
                   }
                 ]
+              },
+              {
+                "group": "Tax",
+                "icon": "percent",
+                "pages": [
+                  {
+                    "title": "Tax — Überblick",
+                    "path": "de/user-guide/tax/overview"
+                  }
+                ]
               }
             ]
           }
