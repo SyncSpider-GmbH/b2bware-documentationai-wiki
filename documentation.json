@@ -1521,6 +1521,16 @@
                     "path": "de/user-guide/automation/overview"
                   }
                 ]
+              },
+              {
+                "group": "Events",
+                "icon": "webhook",
+                "pages": [
+                  {
+                    "title": "Event Hub — Überblick",
+                    "path": "de/user-guide/events/overview"
+                  }
+                ]
               }
             ]
           }

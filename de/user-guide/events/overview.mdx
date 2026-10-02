@@ -1,0 +1,74 @@
+---
+title: Event Hub — Überblick
+description: Kurze Karte der ausgehenden Event-Hub-Webhook-Subscriptions und Delivery Logs in B2Bware — Abgrenzung zu Notifications, Automation und Integrations-Sync.
+---
+
+**Events** in B2Bware Admin ist die UI für das optionale **Event Hub** — kuratierte Framework-Events installierter Hubs (Orders, Products, Customers, …) abonnieren und per **POST** an externe HTTPS-Endpunkte senden, mit Retries, Signierung, optionalen Bedingungen und Zustell-Audit.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Event Hub** | Optional installiertes Package. Wenn vorhanden, zeigt Admin **Event Hub** mit Subscriptions und Delivery Logs. |
+| **Subscription** | Welche Event-Slugs, Ziel-URL, Methode, Secret, Filter, Pause/Resume |
+| **Delivery log** | Ergebnis je Webhook-Zustellversuch für die Triage |
+| **Verfügbare Events** | Dropdown gefiltert auf Hubs, die **auf diesem Tenant installiert** sind |
+
+**Mentales Modell:** Event Hub = **Maschine-zu-Maschine ausgehende Webhooks**. Notifications = **Menschen**. Automation = **mehrstufige Orchestrierung**, die *auch* Webhooks als Aktion auslösen kann. Integrations-Sync-Läufe sind **Connector-Import/Export** — kein Event Hub.
+
+<Callout kind="alert" collapsed="false">
+Event Hub ist **optional** (`event-hub`). Ohne das Package fehlt die Gruppe. Präsenz im Demo Store bedeutet **nicht**, dass jeder Tenant Event Hub hat.
+</Callout>
+
+**Demo-Children:** Subscriptions; Delivery Logs.
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Notifications Delivery Logs** | Zustellversuche menschlicher Nachrichten |
+| **Automation Runs** | Ausführung mehrstufiger Flows |
+| **Integrations-Sync-Jobs** | Connector-Import/Export-Läufe |
+
+## Warum Teams Event Hub nutzen
+
+1. Order-, Product- und Customer-Änderungen an ERP, iPaaS oder eigene Middleware pushen.
+2. Mit Bedingungen filtern, damit störende Events den Tenant nie verlassen.
+3. Zustellung (oder Fehler) in **Event Hub → Delivery Logs** nachweisen.
+4. Fehlerhafte Endpunkte pausieren, bevor sie Retries verbrauchen; nach dem Fix fortsetzen.
+5. Eine Subscription testen, ohne gegen Auto-Pause zu zählen (wenn die Test-Aktion genutzt wird).
+
+## So nutzen Sie Event Hub
+
+1. Prüfen, dass Event Hub installiert und sichtbar ist.
+2. Eine **Subscription** für ein Event anlegen, das für **installierte** Hubs existiert.
+3. URL, Signing-Secret sowie Retry und Backoff innerhalb der Platform-Caps konfigurieren.
+4. Bedingungen nur hinzufügen, wenn das Ziel nur eine Teilmenge sehen soll.
+5. Einen **Test** senden, falls verfügbar; danach ein echtes Event auslösen.
+6. In **Delivery Logs** triagieren — nicht in Notifications Delivery Logs.
+7. Bei Auto-Pause: Endpunkt reparieren, fortsetzen, die nächste Zustellung bestätigen.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Event Hub installiert** | Sidebar und APIs |
+| **Beitragende Hubs installiert** | Event erscheint im Dropdown |
+| **Webhooks-Worker** | Zustellungen verlassen die Queue |
+| **Settings (Hub-Defaults)** | Globale Retry- und Timeout-Defaults; Hard Caps gelten weiterhin |
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- |
+| In Notifications Delivery Logs suchen | Falsche Oberfläche | Event-Hub-Delivery-Logs nutzen |
+| Events nicht installierter Hubs erwarten | Event fehlt in der Auswahl | Zuerst den Quell-Hub installieren |
+| Mit Automation Runs verwechseln | Webhook-Transport ≠ Flow-Orchestrierung | Automation für mehrstufige Flows |
+| Mit Integrations-Sync verwechseln | Anderes Produkt | Integrationen für Connectoren |
+| Pause nach aufeinanderfolgenden Fehlern ignorieren | Endpunkt schlägt weiter fehl | Empfänger reparieren, dann fortsetzen |
+
+## Verwandtes
+
+- [Automation Hub — Überblick](/de/user-guide/automation/overview)
+- [Notifications — Überblick](/de/user-guide/notifications/overview) — Delivery Logs für menschliche Kanäle
+- [Integrationen (Übersicht)](/de/user-guide/integrations/overview)
+- [Order-Lifecycle](/de/user-guide/orders/lifecycle)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
