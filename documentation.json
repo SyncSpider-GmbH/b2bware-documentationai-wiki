@@ -32,6 +32,10 @@
                     "title": "Getting started with B2Bware Admin",
                     "path": "user-guide/getting-started",
                     "icon": "home"
+                  },
+                  {
+                    "title": "How B2Bware fits together",
+                    "path": "user-guide/how-b2bware-fits-together"
                   }
                 ]
               },
@@ -43,6 +47,10 @@
                     "title": "Products overview",
                     "path": "user-guide/products/overview",
                     "icon": "layout-grid"
+                  },
+                  {
+                    "title": "How Products work",
+                    "path": "user-guide/products/how-products-work"
                   },
                   {
                     "title": "Manage products",
