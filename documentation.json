@@ -1381,6 +1381,10 @@
                     "title": "Rules — Überblick",
                     "path": "de/user-guide/rules/overview",
                     "icon": "layout-grid"
+                  },
+                  {
+                    "title": "Catalog Price Rules",
+                    "path": "de/user-guide/rules/catalog-price-rules"
                   }
                 ]
               }
