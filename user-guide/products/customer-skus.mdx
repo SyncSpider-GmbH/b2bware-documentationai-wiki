@@ -1,31 +1,179 @@
 ---
 title: Customer SKUs
-description: Map customer-specific product codes to catalog SKUs.
+description: Buyer part-number mappings in B2Bware — how Customer SKUs differ from product SKUs, how customer/company/group ownership resolves, how storefront search and display work, and how order lines snapshot the reference — including the optional customer-sku module install caveat.
 ---
 
-Use Customer SKUs when a buyer orders with their own item numbers.
+A **Customer SKU** is a mapping that says: *for this buyer identity, this catalog product is known by **their** part number*.
 
-<Image
-  src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404822643-drnqbbwfu6j-customer-skus.png?fm=auto&auto=compress%2Cformat"
-  alt="Customer SKUs"
-/>
+It does **not** replace the product’s own catalog SKU. It does **not** change sell price, stock, or vendor supply price.
 
-## Open the module
+| Concept | Role |
+| --- | --- |
+| **Product SKU** | Seller’s catalog / stock-keeping code on the product. Always the seller identity. |
+| **Customer SKU (value)** | Buyer’s internal part number / reference (for example `ACME-778`). |
+| **Customer SKU row** | One mapping: product + polymorphic **owner** + value. Admin: **Products → Customer SKUs**. |
+| **Owner** | Who the mapping belongs to: a **customer**, a **company**, or a **customer group** (Segmentation). |
+| **Resolved “your SKU”** | For a logged-in shop customer, the module builds an identity set (own id + company + group) and picks **one** value per product (most specific wins). Guests get nothing. |
+| **Order-line snapshot** | At order placement, the resolved value is copied onto the line so history keeps the reference even if the mapping later changes. |
+| **Vendors / supply price** | Different feature — who supplies the SKU. See [Vendors](/user-guide/products/vendors). |
+| **Live Price / Pricelist** | What buyers pay. Customer SKUs do **not** stage or deploy prices. |
 
-<Steps>
-  <Step title="Expand Products">
-    In the left sidebar, expand **Products**.
-  </Step>
-  <Step title="Open Customer SKUs">
-    Select **Customer SKUs**.
-  </Step>
-</Steps>
+**Mental model:** Customer SKUs = *buyer alphabet for your catalog*. Same product can be one seller SKU to you, `ACME-778` to one customer, and `GLX-01` to a whole company.
 
-<Callout kind="info" title="When to use Customer SKUs">
-  Add a mapping when the buyer PO uses a different code than your internal SKU.
+### Module ownership (critical)
+
+| Layer | Owner |
+| --- | --- |
+| Admin list under Products | Product Hub Admin UI |
+| Product detail **Customer SKUs** tab | Same Admin UI — tab shown only when the **customer-sku module** is installed |
+| Entity, API, search, storefront slots, order snapshot, settings | The optional **customer-sku module** |
+
+Saving a mapping is **live**. There is **no** pricelist-style deploy.
+
+<Callout kind="info" collapsed="false">
+Seeing **Customer SKUs** in the Products sidebar does **not** prove the module is installed. The Products nav can list the child whenever Product Hub is visible. Treat a missing product-detail tab, empty/error API, or inert storefront as “module not installed” until install is confirmed — not as “no mappings yet.”
 </Callout>
 
-## Next steps
+## Why teams use Customer SKUs
 
+1. **Buyers think in their part numbers** — Search and browse show *their* code next to the seller SKU.
+2. **Company- or segment-wide codes** — Map once at **company** or **customer group** when every buyer under that account shares the same internal code. Override per **customer** when one buyer needs a different reference.
+3. **Order history that still makes sense** — Snapshot freezes the reference on the line at placement; later re-mapping does not rewrite past orders.
+4. **Integration-friendly upserts** — Idempotent upsert / bulk-upsert on owner × product so sync jobs can push mappings without duplicate rows.
+5. **Controlled storefront behaviour** — Module settings toggle which surfaces show the reference and whether storefront search may match only the caller’s SKUs or any customer SKU.
+
+Use **Customer SKUs** when B2B buyers (or their purchasing systems) identify goods by *their* codes. Do **not** use it as a second warehouse SKU for your own stock identity. Do **not** use it for sell pricing ([Pricelists](/user-guide/products/pricelists)) or supplier identity ([Vendors](/user-guide/products/vendors)).
+
+## How ownership, resolution, search, and snapshot work
+
+### Fields
+
+| Field | Required | Meaning |
+| --- | --- | --- |
+| **Product** | yes | Catalog product this reference resolves to |
+| **Owner type** | yes | Customer, company, or customer group |
+| **Owner** | yes | That customer / company / group |
+| **Value** | yes | Buyer part number string |
+
+Mappings are ordinary create / update / delete (plus upsert). **No** draft → deploy lifecycle. Delete removes the mapping only — products and owners remain.
+
+### Uniqueness
+
+| Rule | Effect |
+| --- | --- |
+| **Value unique per owner** | The same owner cannot reuse the same value on two different products. |
+| **Upsert key (owner type, owner, product)** | Pushing the same triple again **updates** the value instead of adding a second row. |
+
+Prefer **upsert / bulk-upsert** for sync. Avoid inventing a second row for the same owner × product in Admin create.
+
+### Identity set and precedence (critical)
+
+For a logged-in shop customer, the resolver uses:
+
+- the customer’s own id  
+- their company (when set)  
+- their customer group (when set)
+
+When more than one matching row exists for the same product, **intended precedence** is **customer → company → customer group** (most specific wins). Guests have an empty identity set → no display, no scoped search hits, no snapshot.
+
+Put shared codes on company or group; put exceptions on the customer.
+
+### Search
+
+| Context | Behaviour |
+| --- | --- |
+| **Admin product search** | Customer SKU matches are **always global** (any owner’s value can find the product). |
+| **Storefront search** | Controlled by **storefront search scope**: **customer** (default) = only the caller’s identity set; **global** = any customer SKU. |
+
+Default **customer** scope prevents cross-customer leakage (one buyer must not discover another buyer’s private codes via search).
+
+### Storefront display
+
+When the module is installed, it can show the resolved reference on product detail, product cards, cart lines, and order overview / history lines (each surface has a display toggle, default on). Order overview reads the **snapshot**, not a live re-resolve.
+
+If a toggle is off, the buyer has no mapping, or the module is not installed → nothing renders.
+
+**Catalog export:** When the module is installed, account catalog export can include a buyer reference column. There is no separate display toggle for export; the column is empty for guests / unmapped products.
+
+### Order-line snapshot
+
+When an order line is created:
+
+1. Resolve the order customer → value map for that identity.
+2. If the line’s product has a resolved value, write that reference onto the line.
+3. Snapshot failures must **never** break checkout.
+
+Changing or deleting a Customer SKU later does not rewrite past orders.
+
+### Settings
+
+Search scope and display toggles live in the module’s hub settings (not on the Products → Customer SKUs list itself). Operators need the module’s settings permissions to change them.
+
+## Typical workflows
+
+### Install / enable (prerequisite)
+
+1. Ensure the **customer-sku module** is installed for the tenant.
+2. Confirm roles have mapping (and settings) permissions for the module — Product Hub view alone is not enough.
+3. Spot-check: product detail shows the **Customer SKUs** tab; the Admin list returns data (not an empty API failure).
+
+### Map a buyer part number
+
+1. Open **Products → Customer SKUs** (or the product’s **Customer SKUs** tab when installed).
+2. Choose **product**, **owner type**, **owner**, and **value**.
+3. Save — live immediately.
+4. Verify as that logged-in buyer: reference shows (if display toggles on); search finds the product under the configured scope.
+
+### Prefer company / group vs customer
+
+1. **Shared account codes** → company (or customer group for a Segmentation segment).
+2. **Exceptions** → customer-level override.
+3. After changes, re-check a representative logged-in buyer whose identity includes the expected company / group.
+
+### Integrations
+
+1. Ensure owner ids and product ids exist first (Customers + Products).
+2. Push via upsert / bulk-upsert with owner type, owner id, product id, and value.
+3. Treat uniqueness conflicts as data to fix, not as “retry forever.”
+
+### Permissions
+
+Operators need the module’s Customer SKUs create/update/delete for mappings and settings keys for toggles. Product Hub view alone does **not** grant these keys.
+
+## Dependencies
+
+| Dependency | Why it matters |
+| --- | --- |
+| **Customer-sku module (optional)** | Owns entity, API, search, storefront slots, snapshot, settings. **Required** for real behaviour. |
+| **Product Hub** | Products to map; Admin hosts list + product tab under Products. See [How Products work](/user-guide/products/how-products-work). |
+| **Customers** | Owner identities (customer / company / customer group). See [Customers overview](/user-guide/customers/overview). |
+| **Orders** | Line-created events drive snapshot. See [Orders overview](/user-guide/orders/overview). |
+| **Attributes** | Stores snapshotted customer SKU on order lines. |
+| **Storefront** | Extension slots + catalog export merge. Themes must keep storefront slot hooks. |
+| **Integrations** (optional) | Typical writers of bulk-upsert — not required for manual Admin mapping. |
+
+Pricelists, Stock Locations, Categories, Vendors, Tax, Rules, and Procurement are adjacent — not prerequisites. Customer SKUs do not deploy prices or move stock.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Treat sidebar presence as “module works” | Nav can list the child without the module | Confirm install; product detail tab is the honest install-gated surface |
+| Confuse Customer SKU with Product SKU | Wrong field edited; warehouse/ERP identity drifts | Keep seller code on the product; map buyer codes here |
+| Expect save to change prices / stock / vendor | Unrelated layers | Use Pricelists / Stock / Vendors for those jobs |
+| Map only at group, forget customer overrides | One buyer keeps seeing a wrong override | Check precedence: customer beats company beats group |
+| Turn storefront search to **global** casually | Buyers can hit other customers’ private codes | Keep default **customer** scope unless shared discovery is intentional |
+| Expect guests to see “their” SKU | Empty identity → empty map | Require login for personalized references |
+| Edit a mapping and expect old orders to change | Snapshot is historical | Remap for future orders; past lines keep the snapshot |
+| Reuse the same value for two products under one owner | Uniqueness rejected | One part number → one product per owner |
+| Document without install caveat | Docs imply a core Product Hub entity | Always state optional module + inert behaviour when absent |
+
+## Related
+
+- [How Products work](/user-guide/products/how-products-work)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)
 - [Products overview](/user-guide/products/overview)
-- [Manage products](/user-guide/products/manage-products)
+- [Vendors](/user-guide/products/vendors)
+- [Pricelists](/user-guide/products/pricelists)
+- [Customers overview](/user-guide/customers/overview)
+- [Orders overview](/user-guide/orders/overview)
