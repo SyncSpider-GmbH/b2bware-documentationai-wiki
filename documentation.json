@@ -1253,6 +1253,10 @@
                     "icon": "layout-grid"
                   },
                   {
+                    "title": "Wie Produkte funktionieren",
+                    "path": "de/user-guide/products/how-products-work"
+                  },
+                  {
                     "title": "Products verwalten",
                     "path": "de/user-guide/products/manage-products",
                     "icon": "package"
