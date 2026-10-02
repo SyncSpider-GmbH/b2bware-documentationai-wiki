@@ -1,0 +1,91 @@
+---
+title: Store Setup
+description: How Store Setup configures the B2Bware shop tenant — tabs, Themes gating, and why Social means profile links not a social publishing product.
+---
+
+**Store Setup** is the Admin surface for **tenant shop configuration** that the storefront and related apps read — identity, appearance, feature flags, lightweight integration keys, legal content pointers, **social profile links**, and (when Storefront Hub is installed) **Themes**.
+
+| Tab | Owns (operator intent) |
+| --- | --- |
+| **General** | Core shop identity / SEO-oriented defaults the storefront reads |
+| **Appearance** | Visual branding inputs for the shop shell |
+| **Features** | Feature toggles / shop behaviour flags (incl. SEO-related copy fields as exposed) |
+| **Integrations** | Storefront-facing integration settings stored on tenant config (analytics etc.) — **not** the top-level Integrations hub |
+| **Legal** | Legal page / policy configuration the shop exposes |
+| **Social** | **Profile URL links only** for footer/SEO/sameAs-style use |
+| **Themes** | Theme selection/management — **only if Storefront Hub installed** |
+
+**Mental model:** Store Setup configures **this shop’s tenant**. Storefront Builder authors **page/document content**. Top-level **Integrations** runs **data sync connectors**. **Settings** holds platform/system and Order Hub commerce methods.
+
+<Callout kind="info" collapsed="false">
+Store Setup appears when the **storefront combo** is true (Product + Order + Customer + Auth + Settings hubs). Demo Store presence does **not** mean every tenant shows Store Setup.
+</Callout>
+
+### Social links ≠ social publishing product
+
+| | **Store Setup → Social** | **Social publishing product** |
+| --- | --- | --- |
+| **What it is** | Form fields for public profile **URLs** on the tenant | Separate product for social publishing / calendar / inbox |
+| **Production Admin** | **Yes** (with storefront combo) | **No** — not on Production / Demo sidebar |
+| **User Guide** | Document as **storefront social links** | **Park** — do not document as a feature |
+
+Never write “configure a social publishing hub under Store Setup”. Say **social profile links** or **storefront social links**.
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Storefront Builder** | Page / document content authoring |
+| **Integrations hub** | Connector sync runs / mapping |
+| **Settings** | Platform/system + Order commerce methods |
+| **Content Hub** | Not a current Admin product — park it |
+
+## Why teams use Store Setup
+
+1. Set the shop’s public identity and appearance once for themes and SEO.
+2. Toggle storefront features without code deploys.
+3. Point legal/policy URLs or content the theme expects.
+4. Publish social profile URLs into footer / structured data — not to schedule posts.
+5. Select themes when Storefront Hub is present.
+6. Keep storefront analytics / brand-style settings near the shop (Integrations **tab**), separate from connector sync.
+
+## How to use Store Setup
+
+1. Confirm **Store Setup** is visible (full storefront combo installed).
+2. Complete **General** + **Appearance** before judging theme quality.
+3. Use **Features** for behaviour flags; verify on the live shop after save.
+4. Use Store Setup **Integrations** only for tenant storefront integration fields — use top-level **Integrations** for sync jobs.
+5. Fill **Legal** so checkout/footer compliance links resolve.
+6. On **Social**, paste profile URLs only; leave blank rather than inventing handles.
+7. If **Themes** is missing, Storefront Hub is not installed — do not assume a bug.
+8. Author rich pages in **[Storefront Builder](/user-guide/storefront-builder/overview)**; do not expect Store Setup to be a CMS.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Storefront combo** | Sidebar item gate (Product + Order + Customer + Auth + Settings) |
+| **Settings Hub** | Hosts store-setup pages package |
+| **Storefront Hub** (optional) | Themes tab + theme runtime / SEO helpers consuming social links |
+| **Storefront Builder** (optional) | Page/document authoring — complementary |
+| **Media** (common) | Logos/appearance assets when pickers use media |
+| **Mobile App** | Same storefront gate; wraps shop URL |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Calling Social tab a social publishing hub | Documents a non-Production product | Say **social profile links** |
+| Looking for post scheduling here | Feature does not exist on Production | Park social publishing products |
+| Confusing Store Setup Integrations with Integrations hub | Different jobs | Sync vs tenant shop keys |
+| Expecting Store Setup without core hubs | Item hidden | Install Product/Order/Customer/Auth/Settings |
+| Editing Builder content in Store Setup | Wrong surface | Builder for pages/docs; Setup for tenant |
+| Missing Themes tab panic | Gated on Storefront Hub | Check Storefront Hub install |
+
+## Related
+
+- [Storefront Builder overview](/user-guide/storefront-builder/overview)
+- [Mobile App](/user-guide/mobile-app/overview)
+- [Settings overview](/user-guide/settings/overview)
+- [Integrations overview](/user-guide/integrations/overview)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

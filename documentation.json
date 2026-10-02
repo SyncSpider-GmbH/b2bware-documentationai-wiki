@@ -330,6 +330,76 @@
                     "path": "user-guide/stock-movements/overview"
                   }
                 ]
+              },
+              {
+                "group": "Storefront Builder",
+                "icon": "layout-template",
+                "pages": [
+                  {
+                    "title": "Storefront Builder overview",
+                    "path": "user-guide/storefront-builder/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Automation",
+                "icon": "zap",
+                "pages": [
+                  {
+                    "title": "Automation Hub overview",
+                    "path": "user-guide/automation/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Events",
+                "icon": "webhook",
+                "pages": [
+                  {
+                    "title": "Event Hub overview",
+                    "path": "user-guide/events/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Store Setup",
+                "icon": "store",
+                "pages": [
+                  {
+                    "title": "Store Setup",
+                    "path": "user-guide/store-setup/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Mobile App",
+                "icon": "smartphone",
+                "pages": [
+                  {
+                    "title": "Mobile App",
+                    "path": "user-guide/mobile-app/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Import / Export",
+                "icon": "arrow-up-down",
+                "pages": [
+                  {
+                    "title": "Import / Export",
+                    "path": "user-guide/import-export/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Settings",
+                "icon": "settings",
+                "pages": [
+                  {
+                    "title": "Settings overview",
+                    "path": "user-guide/settings/overview"
+                  }
+                ]
               }
             ]
           },

@@ -1,0 +1,60 @@
+---
+title: Mobile App
+description: Short overview of B2Bware white-label mobile shells — branding, target URL, builds, and storefront gating.
+---
+
+**Mobile App** is the Admin page to define branding for a **webview shell** around the shop URL and to **request platform builds** (Android / iOS as offered). Artifacts and build status history help operators download or retry.
+
+| Concept | Role |
+| --- | --- |
+| **App name / app id** | Store listing identity (`com.example.shop` style id) |
+| **Target URL** | Web storefront URL the shell loads |
+| **Icon / splash** | Branding assets (media pickers) |
+| **Build** | Queued white-label compile on platform workers |
+| **Artifacts** | Downloadable outputs when a build completes |
+
+**Mental model:** Mobile App **packages the existing storefront** for app stores — it does not replace Product/Order hubs with a separate mobile backend.
+
+<Callout kind="info" collapsed="false">
+Mobile App is visible when the **storefront combo** is true (same gate as Store Setup). Build success depends on platform mobile toolchain / queue workers — Admin alone does **not** complete App Store submission.
+</Callout>
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Native commerce rewrite** | Mobile App is a branded webview shell |
+| **Store Setup** | Tenant shop config the shell wraps |
+| **Unrelated telecom / top-up modules** | Separate optional products |
+
+## Why / how to use
+
+1. Confirm **[Store Setup](/user-guide/store-setup/overview)** + shop URL are correct before building.
+2. Open **Mobile App**; set name, reverse-domain app id, target URL, icon/splash.
+3. Configure signing only when your process requires tenant keystores (as exposed).
+4. Start a build; wait for terminal status; download artifacts when completed.
+5. Treat failed builds as toolchain/queue/config issues — fix inputs and retry; Admin is not Xcode.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Storefront combo** | Sidebar visibility |
+| **Working storefront URL** | Shell has nothing useful to load otherwise |
+| **Media** (typical) | Icon/splash pickers |
+| **Platform mobile build workers** | Queued Capacitor-style compile |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Expecting native offline ERP features | It is a branded webview shell | Keep expectations on web storefront capability |
+| Building before Store Setup is ready | Shell loads a broken shop | Fix shop URL/branding first |
+| Promising store review from this page | Submission stays outside Admin | Use store consoles after artifacts are ready |
+| Confusing with unrelated optional modules | Wrong support path | Keep Mobile App scoped to white-label shells |
+
+## Related
+
+- [Store Setup](/user-guide/store-setup/overview)
+- [Storefront Builder overview](/user-guide/storefront-builder/overview)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)
