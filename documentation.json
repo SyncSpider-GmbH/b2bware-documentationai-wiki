@@ -1417,6 +1417,16 @@
                     "path": "de/user-guide/media/overview"
                   }
                 ]
+              },
+              {
+                "group": "Notifications",
+                "icon": "bell",
+                "pages": [
+                  {
+                    "title": "Notifications — Überblick",
+                    "path": "de/user-guide/notifications/overview"
+                  }
+                ]
               }
             ]
           }
