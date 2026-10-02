@@ -1393,6 +1393,10 @@
                   {
                     "title": "Coupons",
                     "path": "de/user-guide/rules/coupons"
+                  },
+                  {
+                    "title": "Cart Validation",
+                    "path": "de/user-guide/rules/cart-validation"
                   }
                 ]
               }
