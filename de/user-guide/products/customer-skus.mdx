@@ -1,31 +1,184 @@
 ---
 title: Customer SKUs
-description: Kundenspezifische Produktcodes auf Katalog-SKUs abbilden.
+description: Käufer-Artikelnummer-Zuordnungen in B2Bware — wie sich Customer SKUs von Produkt-SKUs unterscheiden, wie Customer-/Company-/Group-Ownership auflöst, wie Storefront-Suche und Anzeige funktionieren und wie Order-Zeilen die Referenz snapshotten — inklusive optionalem Customer-SKU-Modul-Install-Caveat.
 ---
 
-Nutzen Sie Customer SKUs, wenn ein Käufer mit eigenen Artikelnummern bestellt.
+Eine **Customer SKU** ist eine Zuordnung, die sagt: *für diese Käuferidentität ist dieses Katalogprodukt unter **ihrer** Artikelnummer bekannt*.
+
+Sie ersetzt **nicht** die eigene Katalog-SKU des Produkts. Sie ändert **nicht** Verkaufspreis, Bestand oder Vendor Supply Price.
 
 <Image
   src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404822643-drnqbbwfu6j-customer-skus.png?fm=auto&auto=compress%2Cformat"
-  alt="Customer SKUs"
+  alt="Customer SKUs (EN-Screenshot — DE-Screenshot folgt)"
 />
 
-## Modul öffnen
+| Konzept | Rolle |
+| --- | --- |
+| **Product SKU** | Verkäufer-Katalog- / Stock-Keeping-Code am Produkt. Immer die Verkäuferidentität. |
+| **Customer SKU (Value)** | Interne Artikelnummer / Referenz des Käufers (zum Beispiel `ACME-778`). |
+| **Customer-SKU-Zeile** | Eine Zuordnung: Produkt + polymorpher **Owner** + Value. Admin: **Products → Customer SKUs**. |
+| **Owner** | Wem die Zuordnung gehört: ein **Customer**, eine **Company** oder eine **Customer Group** (Segmentation). |
+| **Aufgelöste „Ihre SKU“** | Für einen eingeloggten Shop-Kunden baut das Modul eine Identitätsmenge (eigene ID + Company + Group) und wählt **einen** Value pro Produkt (spezifischste gewinnt). Gäste bekommen nichts. |
+| **Order-Line-Snapshot** | Beim Order-Placement wird der aufgelöste Value auf die Zeile kopiert, damit die Historie die Referenz behält, auch wenn die Zuordnung später ändert. |
+| **Vendors / Supply Price** | Anderes Feature — wer die SKU liefert. Siehe [Vendors](/de/user-guide/products/vendors). |
+| **Live Price / Pricelist** | Was Käufer zahlen. Customer SKUs stagen oder deployen **keine** Preise. |
 
-<Steps>
-  <Step title="Products aufklappen">
-    Klappen Sie in der linken Sidebar **Products** auf.
-  </Step>
-  <Step title="Customer SKUs öffnen">
-    Wählen Sie **Customer SKUs**.
-  </Step>
-</Steps>
+**Mentales Modell:** Customer SKUs = *Käufer-Alphabet für Ihren Katalog*. Dasselbe Produkt kann für Sie eine Verkäufer-SKU sein, `ACME-778` für einen Kunden und `GLX-01` für eine ganze Company.
 
-<Callout kind="info" title="Wann Customer SKUs nutzen">
-  Legen Sie eine Zuordnung an, wenn die Bestellung des Käufers einen anderen Code als Ihre interne SKU verwendet.
+### Modul-Ownership (kritisch)
+
+| Schicht | Owner |
+| --- | --- |
+| Admin-Liste unter Products | Product-Hub-Admin-UI |
+| Produkt-Detail-Tab **Customer SKUs** | Dieselbe Admin-UI — Tab nur sichtbar, wenn das **Customer-SKU-Modul** installiert ist |
+| Entity, API, Suche, Storefront-Slots, Order-Snapshot, Settings | Das optionale **Customer-SKU-Modul** |
+
+Das Speichern einer Zuordnung ist **live**. Es gibt **kein** Pricelist-ähnliches Deploy.
+
+<Callout kind="info" collapsed="false">
+**Customer SKUs** in der Products-Sidebar zu sehen, beweist **nicht**, dass das Modul installiert ist. Die Products-Nav kann das Child listen, sobald Product Hub sichtbar ist. Behandeln Sie einen fehlenden Produkt-Detail-Tab, leere/fehlerhafte API oder inerte Storefront als „Modul nicht installiert“, bis die Installation bestätigt ist — nicht als „noch keine Zuordnungen“.
 </Callout>
 
-## Nächste Schritte
+## Warum Teams Customer SKUs nutzen
 
+1. **Käufer denken in ihren Artikelnummern** — Suche und Browse zeigen *ihren* Code neben der Verkäufer-SKU.
+2. **Company- oder segmentweite Codes** — Einmal auf **Company** oder **Customer Group** mappen, wenn jeder Käufer unter diesem Account denselben internen Code teilt. Pro **Customer** überschreiben, wenn ein Käufer eine andere Referenz braucht.
+3. **Order-Historie, die noch Sinn ergibt** — Snapshot friert die Referenz auf der Zeile beim Placement ein; späteres Remapping schreibt vergangene Orders nicht um.
+4. **Integrationsfreundliche Upserts** — Idempotentes Upsert / Bulk-Upsert auf Owner × Produkt, damit Sync-Jobs Zuordnungen ohne Duplikatzeilen pushen können.
+5. **Kontrolliertes Storefront-Verhalten** — Modul-Settings steuern, welche Surfaces die Referenz zeigen und ob Storefront-Suche nur die SKUs des Callers oder jede Customer SKU matchen darf.
+
+Nutzen Sie **Customer SKUs**, wenn B2B-Käufer (oder ihre Einkaufssysteme) Waren unter *ihren* Codes identifizieren. Nutzen Sie es **nicht** als zweite Warehouse-SKU für Ihre eigene Bestandsidentität. Nutzen Sie es **nicht** für Verkaufspreise ([Pricelists](/de/user-guide/products/pricelists)) oder Lieferantenidentität ([Vendors](/de/user-guide/products/vendors)).
+
+## Wie Ownership, Auflösung, Suche und Snapshot funktionieren
+
+### Felder
+
+| Feld | Required | Bedeutung |
+| --- | --- |
+| **Product** | ja | Katalogprodukt, auf das diese Referenz auflöst |
+| **Owner type** | ja | Customer, Company oder Customer Group |
+| **Owner** | ja | Dieser Customer / diese Company / diese Group |
+| **Value** | ja | Käufer-Artikelnummer als String |
+
+Zuordnungen sind gewöhnliche Create / Update / Delete (plus Upsert). **Kein** Draft → Deploy-Lifecycle. Delete entfernt nur die Zuordnung — Produkte und Owner bleiben.
+
+### Eindeutigkeit
+
+| Regel | Effekt |
+| --- | --- |
+| **Value unique pro Owner** | Derselbe Owner kann denselben Value nicht auf zwei verschiedenen Produkten wiederverwenden. |
+| **Upsert-Key (Owner type, Owner, Product)** | Dasselbe Triple erneut zu pushen **aktualisiert** den Value, statt eine zweite Zeile anzulegen. |
+
+Für Sync **Upsert / Bulk-Upsert** bevorzugen. Keine zweite Zeile für denselben Owner × Produkt im Admin-Create erfinden.
+
+### Identitätsmenge und Precedence (kritisch)
+
+Für einen eingeloggten Shop-Kunden nutzt der Resolver:
+
+- die eigene Customer-ID  
+- ihre Company (wenn gesetzt)  
+- ihre Customer Group (wenn gesetzt)
+
+Wenn mehr als eine passende Zeile für dasselbe Produkt existiert, ist die **beabsichtigte Precedence** **Customer → Company → Customer Group** (spezifischste gewinnt). Gäste haben eine leere Identitätsmenge → keine Anzeige, keine scoped Suchtreffer, kein Snapshot.
+
+Geteilte Codes auf Company oder Group legen; Ausnahmen auf den Customer.
+
+### Suche
+
+| Kontext | Verhalten |
+| --- | --- |
+| **Admin-Produktsuche** | Customer-SKU-Matches sind **immer global** (der Value jedes Owners kann das Produkt finden). |
+| **Storefront-Suche** | Gesteuert durch **Storefront search scope**: **customer** (Default) = nur die Identitätsmenge des Callers; **global** = jede Customer SKU. |
+
+Default-**customer**-Scope verhindert Cross-Customer-Leakage (ein Käufer darf die privaten Codes eines anderen Käufers nicht über Suche entdecken).
+
+### Storefront-Anzeige
+
+Wenn das Modul installiert ist, kann es die aufgelöste Referenz auf Produkt-Detail, Produktkarten, Cart-Zeilen und Order-Overview- / Historie-Zeilen zeigen (jede Surface hat einen Display-Toggle, Default an). Order Overview liest den **Snapshot**, nicht eine Live-Neuauflösung.
+
+Wenn ein Toggle aus ist, der Käufer keine Zuordnung hat oder das Modul nicht installiert ist → nichts rendert.
+
+**Catalog export:** Wenn das Modul installiert ist, kann der Account-Catalog-Export eine Käufer-Referenzspalte enthalten. Es gibt keinen separaten Display-Toggle für Export; die Spalte ist für Gäste / unmapped Produkte leer.
+
+### Order-Line-Snapshot
+
+Wenn eine Order-Zeile angelegt wird:
+
+1. Order-Customer → Value-Map für diese Identität auflösen.
+2. Wenn das Produkt der Zeile einen aufgelösten Value hat, diese Referenz auf die Zeile schreiben.
+3. Snapshot-Failures dürfen Checkout **nie** abbrechen.
+
+Späteres Ändern oder Löschen einer Customer SKU schreibt vergangene Orders nicht um.
+
+### Settings
+
+Search Scope und Display-Toggles leben in den Hub-Settings des Moduls (nicht auf der Products → Customer-SKUs-Liste selbst). Operatoren brauchen die Settings-Permissions des Moduls, um sie zu ändern.
+
+## Typische Workflows
+
+### Installieren / aktivieren (Voraussetzung)
+
+1. Sicherstellen, dass das **Customer-SKU-Modul** für den Tenant installiert ist.
+2. Bestätigen, dass Rollen Mapping- (und Settings-)Permissions für das Modul haben — Product-Hub-View allein reicht nicht.
+3. Stichprobe: Produkt-Detail zeigt den Tab **Customer SKUs**; die Admin-Liste liefert Daten (kein leerer API-Failure).
+
+### Eine Käufer-Artikelnummer mappen
+
+1. **Products → Customer SKUs** öffnen (oder den Produkt-Tab **Customer SKUs**, wenn installiert).
+2. **Product**, **Owner type**, **Owner** und **Value** wählen.
+3. Speichern — sofort live.
+4. Als dieser eingeloggte Käufer prüfen: Referenz zeigt (wenn Display-Toggles an); Suche findet das Produkt unter dem konfigurierten Scope.
+
+### Company / Group vs Customer bevorzugen
+
+1. **Geteilte Account-Codes** → Company (oder Customer Group für ein Segmentation-Segment).
+2. **Ausnahmen** → Customer-Level-Override.
+3. Nach Änderungen einen repräsentativen eingeloggten Käufer nachprüfen, dessen Identität die erwartete Company / Group einschließt.
+
+### Integrationen
+
+1. Sicherstellen, dass Owner-IDs und Produkt-IDs zuerst existieren (Customers + Products).
+2. Über Upsert / Bulk-Upsert mit Owner type, Owner-ID, Produkt-ID und Value pushen.
+3. Uniqueness-Konflikte als zu fixende Daten behandeln, nicht als „endlos retry“.
+
+### Berechtigungen
+
+Operatoren brauchen die Customer-SKUs-Create/Update/Delete des Moduls für Zuordnungen und Settings-Keys für Toggles. Product-Hub-View allein vergibt diese Keys **nicht**.
+
+## Abhängigkeiten
+
+| Abhängigkeit | Warum sie zählt |
+| --- | --- |
+| **Customer-SKU-Modul (optional)** | Besitzt Entity, API, Suche, Storefront-Slots, Snapshot, Settings. **Erforderlich** für echtes Verhalten. |
+| **Product Hub** | Produkte zum Mappen; Admin hostet Liste + Produkt-Tab unter Products. Siehe [Wie Produkte funktionieren](/de/user-guide/products/how-products-work). |
+| **Customers** | Owner-Identitäten (Customer / Company / Customer Group). Siehe [Customers — Überblick](/de/user-guide/customers/overview). |
+| **Orders** | Line-created-Events treiben den Snapshot. Siehe [Orders — Überblick](/de/user-guide/orders/overview). |
+| **Attributes** | Speichert die gesnapshotete Customer SKU auf Order-Zeilen. |
+| **Storefront** | Extension-Slots + Catalog-Export-Merge. Themes müssen Storefront-Slot-Hooks behalten. |
+| **Integrations** (optional) | Typische Schreiber von Bulk-Upsert — nicht erforderlich für manuelles Admin-Mapping. |
+
+Pricelists, Stock Locations, Categories, Vendors, Tax, Rules und Procurement sind benachbart — keine Voraussetzungen. Customer SKUs deployen keine Preise und bewegen keinen Bestand.
+
+## Häufige Fehler
+
+| Fehler | Warum er schadet | Bessere Praxis |
+| --- | --- | --- |
+| Sidebar-Präsenz als „Modul funktioniert“ behandeln | Nav kann das Child ohne Modul listen | Installation bestätigen; Produkt-Detail-Tab ist die ehrliche install-gated Surface |
+| Customer SKU mit Product SKU verwechseln | Falsches Feld editiert; Warehouse-/ERP-Identität driftet | Verkäufer-Code am Produkt belassen; Käufer-Codes hier mappen |
+| Erwarten, dass Save Preise / Bestand / Vendor ändert | Unverwandte Schichten | Für diese Jobs Pricelists / Stock / Vendors nutzen |
+| Nur auf Group mappen, Customer-Overrides vergessen | Ein Käufer sieht weiter einen falschen Override | Precedence prüfen: Customer schlägt Company schlägt Group |
+| Storefront-Suche beiläufig auf **global** stellen | Käufer können private Codes anderer Kunden treffen | Default-**customer**-Scope behalten, es sei denn shared Discovery ist Absicht |
+| Erwarten, dass Gäste „ihre“ SKU sehen | Leere Identität → leere Map | Login für personalisierte Referenzen verlangen |
+| Eine Zuordnung editieren und erwarten, dass alte Orders ändern | Snapshot ist historisch | Für künftige Orders remappen; vergangene Zeilen behalten den Snapshot |
+| Denselben Value für zwei Produkte unter einem Owner wiederverwenden | Uniqueness abgelehnt | Eine Artikelnummer → ein Produkt pro Owner |
+| Ohne Install-Caveat dokumentieren | Docs implizieren eine Core-Product-Hub-Entität | Immer optionales Modul + inertes Verhalten bei Abwesenheit nennen |
+
+## Verwandte Seiten
+
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
 - [Products — Überblick](/de/user-guide/products/overview)
-- [Produkte verwalten](/de/user-guide/products/manage-products)
+- [Vendors](/de/user-guide/products/vendors)
+- [Pricelists](/de/user-guide/products/pricelists)
+- [Customers — Überblick](/de/user-guide/customers/overview)
+- [Orders — Überblick](/de/user-guide/orders/overview)
