@@ -280,6 +280,56 @@
                     "path": "user-guide/notifications/delivery-logs"
                   }
                 ]
+              },
+              {
+                "group": "Tax",
+                "icon": "percent",
+                "pages": [
+                  {
+                    "title": "Tax overview",
+                    "path": "user-guide/tax/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Licenses",
+                "icon": "key",
+                "pages": [
+                  {
+                    "title": "Licenses overview",
+                    "path": "user-guide/licenses/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Procurement",
+                "icon": "truck",
+                "pages": [
+                  {
+                    "title": "Procurement overview",
+                    "path": "user-guide/procurement/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Accounting",
+                "icon": "landmark",
+                "pages": [
+                  {
+                    "title": "Accounting overview",
+                    "path": "user-guide/accounting/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Stock Movements",
+                "icon": "warehouse",
+                "pages": [
+                  {
+                    "title": "Stock Movements overview",
+                    "path": "user-guide/stock-movements/overview"
+                  }
+                ]
               }
             ]
           },

@@ -1,0 +1,102 @@
+---
+title: Accounting overview
+description: Optional Accounting Hub in B2Bware — departments, bank accounts, transactions, and reconciliation; how bank-side ops relate to invoices and procurement without replacing them.
+---
+
+**Accounting** in B2Bware Admin is the UI for optional **Accounting Hub** — operational **treasury / bank / reconciliation** tooling with **department** scoping and an **overview & reports** surface.
+
+| Concept | Role |
+| --- | --- |
+| **Accounting Hub** | Optional installed package. When present and the operator can view it, Admin shows **Accounting** with bank and reconciliation children. |
+| **Overview and Reports** | Hub landing / reporting widgets and report endpoints. |
+| **Departments** | Organisational scopes for filtering/reporting. |
+| **Bank Accounts** | Accounts you monitor (connections / masters). |
+| **Transactions** | Bank lines (imported or recorded). |
+| **Reconciliation** | Matching / clearing processes against open items. |
+| **Settings** | Hub configuration (present on production FE; confirm on each tenant UI). |
+
+**Mental model:** Invoice Hub and Procurement own **business documents** (AR/AP). Accounting Hub owns **bank-side reality** and the work of **reconciling** money movement to those documents — plus departmental reporting lenses.
+
+<Callout kind="alert" collapsed="false">
+Accounting Hub is **optional** (`hasAccountingHub`). If the tenant has not installed it, the **Accounting** sidebar group is absent. Demo Store presence does **not** mean every tenant has Accounting.
+</Callout>
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Invoice Hub** | Sales invoices, credit notes, dunning |
+| **Procurement Vendor Bills** | Supplier payables documents |
+| **Tax Hub** | Rate engine |
+| **Loyalty wallets** | Points/credit programs — not bank cash |
+| **Settings → Billing** | Order Hub checkout billing method masters |
+
+## Why teams use Accounting
+
+1. **See bank activity in Admin** — Imported or managed transactions beside commerce hubs.
+2. **Reconcile** — Match bank lines to expected document flows.
+3. **Department reporting** — Slice financial ops views by department scope.
+4. **Separate cash from documents** — Invoices can be “paid” in AR while bank clearing is still open — Accounting is where cash clearing is worked.
+5. **Finance ops without leaving B2Bware** — Lightweight treasury surface for teams that are not on a full external GL day-to-day.
+
+Use **[Invoices](/user-guide/invoices/overview)** to manage customer balances. Use **Accounting** to manage bank accounts and reconciliation. Use **[Procurement](/user-guide/procurement/overview)** for supplier bills.
+
+## How the pieces fit
+
+```
+Bank provider / import → Bank Accounts + Transactions
+                              ↓
+                     Reconciliation work
+                              ↓
+            Informed by Invoices / Vendor Bills / Orders (adjacent docs)
+```
+
+1. Configure **Settings** and **Bank Accounts** (provider gateway may be real or null/no-op depending on tenant setup — do not promise a specific bank brand).
+2. **Transactions** appear via import/events.
+3. **Reconciliation** links/clears as operators work matches.
+4. **Departments** constrain or label reporting scope.
+5. **Overview and Reports** summarise — they do not replace Invoice registers.
+
+Honesty: bank **provider** implementations can be swapped (including null provider). Treat the capability as *bank account + transaction + reconciliation module*, not “connected to every bank worldwide.”
+
+## How to use the hub
+
+1. Confirm **Accounting** is visible (`hasAccountingHub`) and the role can manage finance ops.
+2. Create **Departments** if you need scoped reporting.
+3. Register **Bank Accounts** before expecting transaction imports.
+4. Import / refresh **Transactions**; triage duplicates via hub practices (do not invent delete-all).
+5. Run **Reconciliation** against open invoices/bills per your finance SOP.
+6. Keep AR payment posting in **Invoice Hub** coherent with bank clearing here — two steps, not one magic button unless your tenant automation says otherwise.
+7. Use reports for snapshots; deep statutory books may still live in an external GL.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Accounting Hub installed** | Sidebar + APIs |
+| **Auth + admin access** | Admin finance ops |
+| **Invoice Hub (optional but common)** | AR documents to reconcile against |
+| **Procurement (optional)** | Vendor bills adjacency |
+| **Customer / Order Hubs** | Commercial context |
+| **Bank provider configuration** | Import path quality — tenant-specific |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Expecting Accounting on every tenant | Optional install | Install caveat; Demo ≠ all tenants |
+| Looking for sales invoice CRUD here | Wrong hub | Invoices |
+| Assuming reconciliation marks Invoice paid automatically | May be separate steps | Confirm tenant automation |
+| Ignoring departments then wondering about filters | Scope mismatch | Set departments deliberately |
+| Promising a specific open-banking brand | Provider-gated | Describe accounts/transactions/reconcile |
+| Confusing Loyalty credit with bank credit | Different ledgers | Keep terminology precise |
+
+## Related
+
+- [Invoices overview](/user-guide/invoices/overview) — AR documents / payments
+- [Procurement overview](/user-guide/procurement/overview) — vendor bills
+- [Tax overview](/user-guide/tax/overview) — rates, not cash
+- [Order lifecycle](/user-guide/orders/lifecycle) — commercial upstream
+- [Companies](/user-guide/customers/companies) — bill-to parties
+- [Order-related settings](/user-guide/orders/related-settings) — Billing methods ≠ Accounting banks
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)
