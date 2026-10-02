@@ -1333,6 +1333,10 @@
                     "title": "Customers — Überblick",
                     "path": "de/user-guide/customers/overview",
                     "icon": "list"
+                  },
+                  {
+                    "title": "Companies",
+                    "path": "de/user-guide/customers/companies"
                   }
                 ]
               }
