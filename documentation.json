@@ -154,6 +154,18 @@
                     "title": "Orders overview",
                     "path": "user-guide/orders/overview",
                     "icon": "list"
+                  },
+                  {
+                    "title": "Proposals",
+                    "path": "user-guide/orders/proposals"
+                  },
+                  {
+                    "title": "Order lifecycle",
+                    "path": "user-guide/orders/lifecycle"
+                  },
+                  {
+                    "title": "Order-related settings",
+                    "path": "user-guide/orders/related-settings"
                   }
                 ]
               },
