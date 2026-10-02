@@ -1,0 +1,100 @@
+---
+title: Procurement — Überblick
+description: Optionaler Procurement Hub in B2Bware — Purchase Orders, Goods Receipts und Vendor Bills; wie Buy-Side-Dokumente sich von Product Vendors, Sales Invoices und Stock unterscheiden, mit Abhängigkeiten und Fallstricken.
+---
+
+**Procurement** in B2Bware Admin ist die UI für den optionalen **Procurement Hub** — eingehende Einkaufs-Dokumente: **Purchase Orders (POs)**, **Goods Receipts (GR)** und **Vendor Bills** (Supplier-Payables), mit einem Procurement-**Supplier**-Gegenparteien-Modell.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Procurement Hub** | Optional installiertes Package. Wenn vorhanden und der Operator es sehen darf, zeigt Admin **Procurement** mit drei Children. |
+| **Purchase Order** | Kaufabsicht beim Supplier (Lines → Products/Qty). |
+| **Goods Receipt** | Nachweis der eingegangenen Ware im Einkaufsprozess. |
+| **Vendor Bill** | Supplier-Rechnung / Payable-Dokument (AP) — **nicht** der Sales Invoice Hub. |
+| **Supplier** (Procurement) | Einkaufs-Gegenpartei (Contact, Terms, Currency, …) — **≠ Product Hub Vendor**. |
+
+**Mentales Modell:** Procurement ist *Buy-Side*. Sales Orders / Invoices sind *Sell-Side*. Product Hub Vendors verknüpfen, *wer ein Catalog-SKU liefert* (Marketplace/Catalog-Ownership); Procurement Suppliers sind, *gegen wen Sie POs und AP-Bills ausstellen*.
+
+<Callout kind="alert" collapsed="false">
+Procurement Hub ist **optional** (`hasProcurementHub`). Wenn der Tenant ihn nicht installiert hat, fehlt die Sidebar-Gruppe **Procurement**. Demo-Store-Präsenz bedeutet **nicht**, dass jeder Tenant Procurement hat.
+</Callout>
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Products → Vendors** | Catalog-Supplier-Master + VendorProduct Supply Price — siehe [Vendors](/de/user-guide/products/vendors) |
+| **Invoices (Invoice Hub)** | Customer-AR Sales-Dokumente |
+| **Stock Locations** | Warehouse-Master + Live-Stock-Qty-Zeilen |
+| **Stock Movements** | Optionales append-only Qty-Ledger (kann auf GR hören) |
+
+## Warum Teams Procurement nutzen
+
+1. **Einkauf formalisieren** — POs statt nur informeller E-Mail-Käufe.
+2. **Wareneingang im Inventarprozess** — GRs dokumentieren, was angekommen ist; optional füttern sie Stock Movements.
+3. **Payables tracken** — Vendor Bills getrennt von Customer Invoices.
+4. **Buy- vs. Sell-Ledger trennen** — Order Hub nicht mit Supplier-Dokumenten überladen.
+5. **Operatives Handoff** — Purchasing ↔ Warehouse ↔ AP mit klaren Dokumenttypen.
+
+## Dokumentenfluss
+
+```
+Supplier → Purchase Order → Goods Receipt → (optional) Stock Movement (receipt)
+                         ↘ Vendor Bill (AP)
+```
+
+1. **Supplier**-Gegenparteien pflegen (Procurement-Modell).
+2. **Purchase Orders** mit Product-Lines / Quantities anlegen.
+3. **Goods Receipts** buchen, wenn Ware ankommt.
+4. Wenn **Stock Movements** installiert ist, kann die GR-Erstellung **receipt**-Movements anhängen (soft-coupled Listener — Stock Movements bleibt ohne Procurement installierbar und umgekehrt).
+5. **Vendor Bills** für Supplier-Belastungen erfassen.
+6. Live Product Hub **Stock**-Qty liegt weiterhin auf Product × Warehouse-Zeilen — gehen Sie **nicht** davon aus, dass GR allein `product.stock` aktualisiert, es sei denn ein konfigurierter Write-Through / Ops-Prozess tut das.
+
+**Demo-Children**
+
+| Child | Intent |
+| --- | --- |
+| Purchase Orders | Kaufabsicht |
+| Goods Receipts | Wareneingang |
+| Vendor Bills | AP-Bills |
+
+## So nutzen Sie den Hub
+
+1. Bestätigen Sie, dass **Procurement** sichtbar ist (`hasProcurementHub`) und die Rolle Einkaufs-Dokumente verwalten darf.
+2. Legen Sie Procurement-**Suppliers** an (nehmen Sie nicht an, dass Products → Vendors dieselben Records sind — siehe [Vendors](/de/user-guide/products/vendors)).
+3. Stellen Sie sicher, dass **Products** und **[Stock Locations](/de/user-guide/products/stock-locations)** für Lines existieren, die Sie empfangen werden.
+4. PO anlegen → GR empfangen → Vendor billen in der Reihenfolge, die Ihre Finance-Policy verlangt (Bill vor/nach Receipt variiert je Tenant — Policy dokumentieren, kein einziger erzwungener Chrome-Pfad).
+5. Wenn Sie Stock Movements nutzen, prüfen Sie, dass ein GR die erwarteten **receipt**-Ledger-Zeilen erzeugt; reconcilen Sie trotzdem die **Default-Warehouse**-Live-Qty für den Storefront. (Stock Movements — Überblick: DE-Seite folgt.)
+6. Halten Sie Sales-**[Invoices](/de/user-guide/invoices/overview)** und **Vendor Bills** für Support in getrennten mentalen Buckets.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Procurement Hub installiert** | Sidebar + APIs |
+| **Product Hub** | PO/GR-Lines referenzieren Products; Warehouses für Landing-Qty |
+| **Customer Hub / Contacts** | Supplier-Gegenparteien-Linkage-Muster |
+| **Stock Movements (optional)** | Ledger aus GR-Events |
+| **Auth + Admin Access** | Admin Writes |
+| **Accounting / Invoices (optional)** | Angrenzende Finance — keine automatischen Spiegel |
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Product Vendors als PO-Supplier nutzen | Falsche Entity | Procurement Supplier |
+| Erwarten, dass GR allein Storefront-Stock fixt | Live Stock / Default-Warehouse-Regeln | Stock Locations + optionalen Movements-Write-Through prüfen |
+| Vendor Bills mit Invoices verwechseln | AP vs. AR | Richtigen Hub wählen |
+| Annehmen, Stock Movements sei immer da | Demo kann Stock Movements ausblenden | Optionales Modul |
+| Procurement als Sales Returns behandeln | Falscher Flow | Sales Credits → Invoice Hub / Orders |
+
+## Verwandt
+
+- [Vendors](/de/user-guide/products/vendors) — Catalog Supplier ≠ Procurement Supplier
+- [Stock locations](/de/user-guide/products/stock-locations) — wo Live-Qty sitzt
+- Stock Movements — Überblick (DE-Seite folgt) — optionales Ledger aus GR
+- [Produkte verwalten](/de/user-guide/products/manage-products)
+- [Invoices — Überblick](/de/user-guide/invoices/overview) — AR-Kontrast
+- Accounting — Überblick (DE-Seite folgt) — Bank / AP-Nachbarschaft
+- [Orders — Überblick](/de/user-guide/orders/overview) — Sell-Side-Kontrast
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

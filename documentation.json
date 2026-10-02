@@ -1471,6 +1471,16 @@
                     "path": "de/user-guide/licenses/overview"
                   }
                 ]
+              },
+              {
+                "group": "Procurement",
+                "icon": "truck",
+                "pages": [
+                  {
+                    "title": "Procurement — Überblick",
+                    "path": "de/user-guide/procurement/overview"
+                  }
+                ]
               }
             ]
           }
