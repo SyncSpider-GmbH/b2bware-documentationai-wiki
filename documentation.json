@@ -1366,6 +1366,10 @@
                   {
                     "title": "Order-Lifecycle",
                     "path": "de/user-guide/orders/lifecycle"
+                  },
+                  {
+                    "title": "Order-bezogene Settings",
+                    "path": "de/user-guide/orders/related-settings"
                   }
                 ]
               }

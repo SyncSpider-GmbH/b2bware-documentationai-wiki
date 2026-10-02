@@ -1,0 +1,95 @@
+---
+title: Order-bezogene Settings
+description: Kurze Orientierung zu Order-Hub-Settings unter Shipping, Carriers und Billing — wofür sie sind, wie sie Checkout und Proposals beeinflussen und wo Sie nicht suchen sollten.
+---
+
+Wenn der **Order Hub** installiert ist, erhält Admin **Settings** drei Commerce-Kinder, von denen **Checkout und Fulfilment** abhängen:
+
+| Settings-Kind | Besitzt |
+| --- | --- |
+| **Shipping** | Shipping-**Methods**, die beim Checkout angeboten werden (Name, Preis, enabled, Visibility) |
+| **Carriers** | Carrier-Stammdaten für Tracking-URL-Templates (Name, Code, enabled) |
+| **Billing** | Billing- / Payment-**Methods** (enabled, Visibility, New-Order-Status, Provider-Config) |
+
+Die **Orders-Sidebar** selbst bleibt **All Orders** + **Proposals**. Diese drei leben unter **Settings**, sind aber **Order-Hub-Ressourcen**.
+
+**Mentales Modell:** Shipping- / Billing-Methods = *Checkout-Optionen, die Buyer (oder Agents) an Carts und Quotes hängen*. Carriers = *Tracking-Templates nach dem Ship*. Rules **Shipping Rates** (optional) = *ein anderes Rules-Feature* — nicht diese Seite.
+
+<Callout kind="info" collapsed="false">
+Diese Seite ist eine **Pointer-Map**. Sie ist kein vollständiger Settings-Hub-Rewrite, kein Payment-Provider-Setup-Guide und keine Rules Shipping Rates.
+</Callout>
+
+**Außerhalb des Scope hier:**
+
+- Vollständiger Settings Hub (General, Translations, Configuration, Import/Export, System, …)
+- Rule Hub **Shipping Rates**
+- Tiefes Payment-Provider-Onboarding für eine bestimmte Marke
+- Order-Hub-Stock-Management- / State-Machine-Toggles — siehe [Order-Lifecycle](/de/user-guide/orders/lifecycle)
+- Company-/Customer-Checkout-Method Allow/Block-UI-Detail — siehe [Customers — Überblick](/de/user-guide/customers/overview) und [Companies](/de/user-guide/customers/companies)
+
+## Warum diese Settings für Orders wichtig sind
+
+1. **Checkout kann nicht abschließen**, ohne wählbare Shipping- + Billing-Method-IDs (API und Storefront).
+2. **Öffentliche Proposals** müssen Method- (und Adress-)IDs bereits tragen, um bestellbar zu sein — Methods müssen hier zuerst existieren.
+3. Der **New-Order-Status der Billing Method** beeinflusst den **Initial Status** der Order nach dem Placement.
+4. **Visibility** steuert, wer welche Methods sieht (public vs restricted; Guest vs registriert; Company-/Customer-Overrides).
+5. **Carriers** unterstützen die Zusammensetzung der **Tracking-URL** nach dem Ship (Tracking-Number-Platzhalter im Template) — Fulfilment-Kommunikation, nicht die Checkout-Auswahl selbst.
+
+## Wie Sie jeden Pointer nutzen
+
+### Shipping Methods
+
+- Legen Sie Methods an, die Buyer (oder Agents auf Proposals) an Carts / Quotes hängen können.
+- Wichtige Knöpfe: enabled, visible in checkout, Default Visibility (`public` \| `restricted`), Preis, optionale Config.
+- Restricted Methods stützen sich auf Allow-List-Kontext (Company- / Customer-Checkout-Method-Settings) — Guests sehen nur **public**.
+- Deaktivierte oder unsichtbare Methods verschwinden aus normalen Checkout-Listen (öffentliches Proposal-Placement kann admin-gewählte Method-IDs über Trusted Methods weiterhin honorieren).
+
+### Billing Methods
+
+- Dasselbe Visibility- / Enabled-Muster wie bei Shipping.
+- Setzen Sie den **New-Order-Status** bewusst — er setzt, wo die Order im Lifecycle-Vokabular startet.
+- Provider-spezifische Config gehört zur gewählten Payment-Integration; behandeln Sie keine Marke als Pflicht.
+
+### Carriers
+
+- Pflegen Sie Carrier-**Code** / **-Name** und optionales Tracking-URL-Template.
+- Aktivieren Sie nur Carriers, die Sie tatsächlich für Tracking-Links auf verschickten Orders nutzen.
+- Carriers sind **kein** Ersatz für Shipping-**Methods** beim Checkout.
+
+### Abgleich mit Customers
+
+Companies (und verwandte Customer-Checkout-Method-Felder) können Methods **erlauben/blockieren**. Eine Method, die global „an“ ist, kann für ein bestimmtes Konto trotzdem verborgen bleiben — prüfen Sie Settings und den Company-/Customer-Datensatz.
+
+## Abhängigkeiten
+
+| Abhängigkeit | Warum |
+| --- | --- |
+| **Order Hub** installiert | Liefert diese Settings-Kinder |
+| **Settings Hub** | Hostet die Pages in der Admin-Shell |
+| **Orders / Proposals / Checkout** | Konsumieren Method-IDs |
+| **Customers / Companies** | Optionale Allow/Block-Overlays auf Visibility |
+| **Order-Lifecycle** | Initial Status + spätere Transitionen; Stock-/State-Machine-Settings leben bei Order-Hub-Settings und sind auf der Lifecycle-Seite dokumentiert |
+| **Rules** (optional) | Shipping-**Rate-Rules** sind separat |
+
+**Permissions:** Operatoren brauchen Order-Hub-Rechte auf Shipping Methods / Billing Methods / Carriers (sowie Settings View/Update, soweit gewährt).
+
+## Häufige Fehler
+
+| Fehler | Warum es weh tut | Bessere Praxis |
+| --- | --- | --- |
+| Shipping unter der Orders-Sidebar suchen | Kinder liegen unter **Settings** | Settings → Shipping / Carriers / Billing |
+| Carriers mit Shipping Methods verwechseln | Andere Jobs (Tracking vs Checkout-Option) | Methods für Checkout; Carriers für Tracking-Templates |
+| Shipping Methods mit Rules Shipping Rates verwechseln | Rate-Rules sind Rule Hub | Getrennt halten; nicht zusammenführen |
+| Alle Methods restricted + Guest-Checkout | Guests sehen nichts Öffentliches | Mindestens eine public Method behalten, wenn Guests shoppen |
+| Proposal teilen, ohne Methods angelegt zu haben | Proposal nicht bestellbar | Methods anlegen, dann IDs am Quote hängen |
+| New-Order-Status ignorieren | Ops verwirrt über Startstatus | Billing Methods an Lifecycle-Erwartungen ausrichten |
+| Hier ein vollständiges Payment-Provider-Runbook schreiben | Scope Creep | Kurzer Pointer + rauslinken, wenn Payment-Docs existieren |
+
+## Verwandt
+
+- [Orders — Überblick](/de/user-guide/orders/overview)
+- [Proposals](/de/user-guide/orders/proposals)
+- [Order-Lifecycle](/de/user-guide/orders/lifecycle)
+- [Customers — Überblick](/de/user-guide/customers/overview)
+- [Companies](/de/user-guide/customers/companies)
+- [Wie B2Bware zusammenspielt](/de/user-guide/how-b2bware-fits-together)
