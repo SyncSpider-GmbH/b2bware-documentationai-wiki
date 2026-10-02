@@ -1326,6 +1326,10 @@
                   {
                     "title": "Integration anlegen",
                     "path": "de/user-guide/integrations/create-integration"
+                  },
+                  {
+                    "title": "Zuordnung und Filter",
+                    "path": "de/user-guide/integrations/mapping-and-filters"
                   }
                 ]
               },
