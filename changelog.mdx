@@ -3,6 +3,17 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-02" description="CAPTCHA for public AuthHub endpoints" tags={["feature", "security"]}>
+
+## CAPTCHA on registration, login and storefront forms
+
+- **New AuthHub settings group `captcha`** — Admin: **Settings → Configuration → AuthHub**. Switch it on, pick the provider (Cloudflare Turnstile), paste your own site and secret key, and choose which forms to protect: `login`, `register`, `forgot-password`, `reset-password`, `verify-email`, `resend-verification`, `cms-form`. Off by default, and a missing key keeps it inert.
+- **`fail_open`** decides what happens when our server cannot reach the provider: off (default) rejects the submission, on accepts it anyway. A visitor whose browser cannot load the widget is always rejected either way.
+- **API clients** send the challenge as `captcha_token` in the body or the `X-Captcha-Token` header; a protected endpoint answers `422` with a `captcha` error without one. `GET /api/v1/apps/auth-hub/captcha-config` returns the provider and site key (never the secret) for clients that render the widget themselves.
+- **Storefront themes need no change** — the widget and its script are rendered by the platform on every protected form. Place it yourself with the new `@storefrontCaptcha`, and read `$store['captcha']` if you want your own copy around it. See [Forms](/advanced/storefront-themes/forms) and [AuthHub](/hubs/auth-hub).
+
+</Update>
+
 <Update label="2026-09-22" description="Default catalog sorting attribute" tags={["feature", "storefront"]}>
 
 ## Storefront — default sorting attribute

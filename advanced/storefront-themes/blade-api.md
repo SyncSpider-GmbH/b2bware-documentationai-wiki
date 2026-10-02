@@ -40,6 +40,7 @@ In addition to standard Blade control flow above, the platform registers these t
 | `@storefrontSection('cart-summary')`     | —                             | Render an AJAX-refreshable section in place (see §9.7)                                |
 | `@storefrontSlot('product.detail.meta', ['context' => …])` | — | Render a named slot: optional-module contributions **and** owner-authored CMS content. Optional config object declares slot context for the Theme Editor (see §9.16). Renders nothing when empty. |
 | `@storefrontScripts`                     | —                             | Emit the storefront JS runtime once near `</body>` — enables cart AJAX (see §9.7)     |
+| `@storefrontCaptcha`                     | —                             | Place the tenant's CAPTCHA widget at this exact spot inside a `@storefrontForm`. Optional — a protected form that omits it gets the widget injected just before `</form>` (see `forms.md`) |
 | `@storefrontAuthToken`                   | —                             | Short-lived (1h) `x-auth-token` for the logged-in customer (empty for guests) — inits a first-party widget's `api_key` (see §9.14). ⚠️ The only sanctioned credential exposure. |
 | `@storefrontSeo`                         | —                             | Emit the SEO head — robots, canonical, hreflang, Open Graph, Twitter Card & JSON-LD (see §9.10) |
 | `@storefrontAnalytics`                   | —                             | Emit the consent-gated analytics loader — GTM / GA4 / Clarity — in `<head>` (see §9.13) |

@@ -13,6 +13,10 @@ AuthHub issues and manages user sessions. It is the entry point for storefront c
 Most endpoints sit behind `auth:api`. The two public flows — `reset-password` and `verify-email` — use the installation key in the URL instead of a bearer token, because the user is not logged in yet.
 </Callout>
 
+<Callout kind="info">
+When CAPTCHA is enabled (see **Settings**), the protected endpoints expect a challenge token alongside the usual payload. Send it as `captcha_token` in the body or as the `X-Captcha-Token` header; a request without a valid token is answered with `422` and a `captcha` validation error. The storefront renders and submits the widget by itself.
+</Callout>
+
 ## Endpoints
 
 <Tabs>
@@ -45,6 +49,43 @@ Used by sales agents to act on behalf of a specific customer (cart, checkout, or
 | GET  | `/impersonate/customers` | `auth:api` | List customers the agent is allowed to impersonate. |
 | POST | `/impersonate/{customerId}` | `auth:api` | Start impersonating the given customer. |
 | POST | `/impersonate/leave` | `auth:api` | Stop impersonating and return to the agent's own session. |
+
+  </Tab>
+  <Tab title="CAPTCHA" icon="shield">
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/captcha-config` | public | Provider, site key and the list of protected forms, for a client that renders the widget itself. Reports `enabled: false` while the feature is off. Never returns the secret key. |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List all settings groups |
+| GET | `/settings` | Get all AuthHub settings |
+| POST | `/settings` | Update AuthHub settings |
+| POST | `/settings/reset` | Reset all to defaults |
+| GET | `/settings/{group}` | Get settings for a group |
+| POST | `/settings/{group}` | Update group settings |
+| POST | `/settings/{group}/reset` | Reset a group to defaults |
+
+### CAPTCHA (`captcha`)
+
+Protects the public endpoints against bot traffic. Admin: **Settings → Configuration → AuthHub**.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enabled` | boolean | `false` | Master switch. While off nothing changes for customers: no widget renders and no verification runs. |
+| `provider` | string | `turnstile` | Challenge provider. Cloudflare Turnstile is currently the only option. |
+| `site_key` | string | — | The provider's public key. Rendered in the storefront widget, so it is not a secret. |
+| `secret_key` | string | — | The provider's private key, used only for server-side verification. Stored encrypted and shown masked. |
+| `protected_forms` | string[] | `["register"]` | Which forms carry the challenge: `login`, `register`, `forgot-password`, `reset-password`, `verify-email`, `resend-verification`, `cms-form`. |
+| `fail_open` | boolean | `false` | What to do when our server cannot reach the provider: off rejects the submission, on accepts it anyway. A visitor whose browser cannot load the widget is always rejected, whichever way this is set. |
+
+<Callout kind="info">
+Both keys come from your own provider account. Leaving either empty keeps the feature inert even with the switch on, and the storefront renders the widget without any theme change — see [Forms](/advanced/storefront-themes/forms).
+</Callout>
 
   </Tab>
   <Tab title="Account deletion" icon="user-xmark">
