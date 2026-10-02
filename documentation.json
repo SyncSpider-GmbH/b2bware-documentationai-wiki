@@ -1303,6 +1303,14 @@
                   {
                     "title": "Alle Attribute",
                     "path": "de/user-guide/attributes/all-attributes"
+                  },
+                  {
+                    "title": "Attribute Groups",
+                    "path": "de/user-guide/attributes/attribute-groups"
+                  },
+                  {
+                    "title": "Attribute Collections",
+                    "path": "de/user-guide/attributes/attribute-collections"
                   }
                 ]
               },

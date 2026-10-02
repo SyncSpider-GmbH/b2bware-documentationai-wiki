@@ -1,0 +1,122 @@
+---
+title: Attribute Collections
+description: Wie B2Bware Attribute Collections Attribute für Storefront-Oberflächen bündeln (PDP, Warenkorb, Checkout, Kategorie-Seite, My Account) — inklusive group_type-Locks und Flag-Regeln.
+---
+
+Eine **Attribute Collection** ist ein **benanntes, wiederverwendbares Set von Attributen**, die einen gemeinsamen **`group_type`** teilen, mit Flags, die Storefront (und verwandte APIs) anweisen, **wo dieses Set als Block gerendert werden soll**.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Attribute Collection** | Admin: **Attributes → Attribute Collections**. Identität: `name`, optionale `description`, auto `code`, erforderlicher `group_type`, `is_active`, Oberflächen-Flags, `collapsed_by_default`, `position`. |
+| **Mitglieder** | Pivot-Zeilen, die Attribute in die Collection binden (ordnbar). Der erste Attach **sperrt** effektiv `group_type` auf passende Attribute. |
+| **Attribute Group** | Typisiert die **Definition**; Collections ersetzen keine Groups — Mitglieder gehören weiterhin zu Gruppen desselben Typs. |
+| **Attribute** | Die Felderdefinition; Collections referenzieren bestehende Attribute. |
+| **Werte an Datensätzen** | Werden weiterhin an Product / Category / Order / Customer eingegeben — Collections steuern nur die **gebündelte Anzeige**. |
+
+**Mentales Modell:** Groups entscheiden *die Art*. Attributes entscheiden *die Felder*. Collections entscheiden *„zeige diese Felder zusammen unter einer Überschrift auf dieser Oberfläche.“*
+
+Das Speichern einer Collection ist **live** (kein Deploy). Das Umschalten von PDP- / Warenkorb- / Checkout-Oberflächen-Flags oder `is_active` kann das Storefront-Rendering sofort ändern, sobald Themes Collections konsumieren.
+
+## Warum Teams Collections nutzen
+
+1. **PDP-Abschnitte** — z. B. „Technische Daten“ vs. „Logistik“ statt einer langen Attributliste (`group_type=product`, Detailseiten-Flag).
+2. **Klarheit in der Warenkorbzeile** — eine kuratierte Teilmenge unter dem Line Item zeigen (Warenkorb-Flag, product).
+3. **Checkout-Feldblöcke** — Custom-Order-Felder in einen betitelten Block gruppieren (`group_type=order`, Checkout-Flag).
+4. **Bestellbestätigung / Historie** — Order-Summary-Flag (order).
+5. **My-Account-Profilabschnitte** — Customer-Account-Flag für `customer` oder `company`.
+6. **Kategorie-Seiten-Chrome** — Kategorie-Seiten-Flag für `category` (Banner / Filter-Sidebar).
+7. **Accordion-UX** — `collapsed_by_default` + `position` über mehrere sichtbare Collections auf einer Oberfläche.
+
+Nutzen Sie Collections, wenn **Präsentation** zählt. Überspringen Sie sie, wenn ein einzelnes Attribut mit eigenen Flags reicht (viele Tenants starten mit Flags am Attribut und führen Collections ein, wenn der Katalog wächst).
+
+## Wie group_type, Mitglieder und Oberflächen-Flags funktionieren
+
+### group_type
+
+- Beim Anlegen erforderlich; muss einer der registrierten Attribute-Group-Typen des Tenants sein.
+- **Gesperrt, sobald die Collection Mitglieder hat** — `group_type` zu ändern, während Mitglieder existieren, wird abgelehnt.
+- Solange leer, darf der Typ wechseln; gated Flags, die nicht mehr zum neuen Typ passen, werden geleert.
+
+### Mitglieder (Attach-Regeln)
+
+- Der **Gruppentyp** des Attributs muss dem `group_type` der Collection entsprechen.
+- Dasselbe Attribut kann nicht zweimal angehängt werden.
+- Das Löschen einer Collection löscht ihre **Mitglieds**-Pivots (nicht die Attribute selbst).
+- Das Löschen eines Attributs entfernt seine Collection-Mitgliedschaften.
+
+### Oberflächen-Flags (gruppen-gesteuert)
+
+Flags dürfen nur `true` sein, wenn `group_type` auf der Whitelist steht (Validierung lehnt sonst ab):
+
+| Flag | Erlaubter `group_type` | Vorgesehene Oberfläche |
+| --- | --- | --- |
+| `show_on_detail_page` | `product` | Produktdetailseite — Mitglieder unter einer Überschrift |
+| `show_in_cart` | `product` | Warenkorbzeile — Mitglieder unter dem Produkt |
+| `show_in_checkout` | `order` | Checkout-Formular — gruppierter Custom-Fields-Block |
+| `show_in_order_summary` | `order` | Bestellbestätigung / My-Orders-Historie |
+| `show_in_customer_account` | `customer`, `company` | Storefront My-Account-Profilabschnitt |
+| `show_on_category_page` | `category` | Kategorie-Banner / Filter-Sidebar |
+
+**Gruppen-agnostisch:** `is_active`, `position`, `collapsed_by_default`.
+
+Inaktive (`is_active=false`) Collections sind soft-deaktiviert — Storefront und API-Consumer **ignorieren** sie.
+
+### Verhältnis zu attribut-level Flags
+
+Collections und Attribut-Flags **ergänzen** einander:
+
+- Checkout erfordert weiterhin Attribut-`use_in_checkout` + Order-Gruppe, damit das Feld am Checkout **verfügbar / schreibbar** ist. Das Checkout-Flag einer Collection organisiert das **Rendering** solcher Felder.
+- Produkt-PDP- / Warenkorb-Flags am Attribut vs. Collection-Detailseiten- / Warenkorb-Flags — Themes können eines oder beide honorieren; halten Sie sie für die Felder, die Sie zeigen wollen, **konsistent**, und prüfen Sie das Tenant-Theme.
+- Collections allein machen ein Non-Checkout-Attribut **nicht** im Checkout sichtbar.
+
+### Resource-scoped Includes
+
+Attributable Models deklarieren, welcher Collection-`group_type` gilt (`product`, `category`, `order`, …), damit APIs die relevanten aktiven Collections für diese Resource einschließen können. Themes, die nach Collections gruppieren, hängen davon ab.
+
+### Categories-Ehrlichkeit
+
+Eine Kategorie-Collection mit Kategorie-Seiten-Flag betrifft die **Präsentation der Kategorie-Seite**. Sie wählt **nicht** aus, welche Produkt-Attributdefinitionen erscheinen, wenn Sie ein Produkt in dieser Kategorie bearbeiten. Siehe [Categories](/de/user-guide/products/categories).
+
+## Typische Workflows
+
+1. **PDP „Technische Daten“** — Sicherstellen, dass product-typisierte Attribute existieren → Collection `group_type=product` → Mitglieder anhängen → Detailseiten-Flag (+ optional `collapsed_by_default`) → `is_active`.
+2. **Checkout-Block „Bestellreferenzen“** — Order-typisierte Attribute mit `use_in_checkout` → Collection `group_type=order` → Checkout-Flag (+ Order-Summary-Flag, wenn die Bestätigung sie wiederholen soll).
+3. **Kategorie-Sidebar-Bündel** — Category-typisierte Attribute → Collection `group_type=category` → Kategorie-Seiten-Flag.
+4. **Konto „Firmen-Extras“** — Company-typisierte Attribute → Collection `group_type=company` → Customer-Account-Flag.
+
+Ordnen Sie Collections mit `position`, wenn mehrere Blöcke eine Oberfläche teilen.
+
+## Abhängigkeiten
+
+| Related | Warum |
+| --- | --- |
+| **Alle Attribute / Groups** | Mitglieder und Typ-Alignment. Siehe [Alle Attribute](/de/user-guide/attributes/all-attributes) und [Attribute Groups](/de/user-guide/attributes/attribute-groups). |
+| **Product Hub** | PDP- / Warenkorb-Oberflächen; product- & category-attributable Includes. Siehe [Wie Produkte funktionieren](/de/user-guide/products/how-products-work). |
+| **Order Hub** | Checkout / Bestellübersicht; attribut-level `use_in_checkout`. Siehe [Orders overview](/user-guide/orders/overview) (EN). |
+| **Customer Hub** | My-Account-Collections für customer / company. Siehe [Customers overview](/user-guide/customers/overview) (EN). |
+| **Storefront / Themes** | Tatsächliches Rendering der Collection-Blöcke |
+| **Permissions** | Attributes-Hub-Berechtigungen für Attribute Collections |
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Product- und Order-Attribute in einer Collection mischen | Attach abgelehnt / Typ-Lock | Eine Collection pro `group_type` |
+| Kategorie-Seiten-Flag an einer Product-Collection setzen | Validierung lehnt ab | `group_type=category` nutzen |
+| Erwarten, dass die Collection Werte anlegt oder füllt | Nur Bündelung | Attribute definieren + Werte an Datensätzen zuweisen |
+| `is_active` aus lassen und sich wundern, warum Storefront leer ist | Inaktive werden ignoriert | Nach Review aktivieren |
+| Auf Collection-Checkout-Flag ohne `use_in_checkout` an Attributen setzen | Felder fehlen in der Checkout-API | Zuerst attribut-level Checkout-Flag einschalten |
+| Collection löschen und denken, Attribute sind weg | Nur Mitgliedschaften entfernt | Attribute bleiben unter Alle Attribute |
+| `group_type` nach hinzugefügten Mitgliedern ändern | Gesperrt | Zuerst Mitglieder leeren oder neue Collection anlegen |
+| Annehmen, jedes Theme implementiert jedes Flag | Theme-abhängig | Demo- / Storefront-Theme-Verhalten prüfen |
+| Collections als Magento-Attribute-Sets nutzen | Falsches Werkzeug | Siehe Groups + [Categories](/de/user-guide/products/categories)-Ehrlichkeit |
+
+## Related
+
+- [Attributes — Überblick](/de/user-guide/attributes/overview)
+- [Alle Attribute](/de/user-guide/attributes/all-attributes)
+- [Attribute Groups](/de/user-guide/attributes/attribute-groups)
+- [Categories](/de/user-guide/products/categories)
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Orders overview](/user-guide/orders/overview) (EN)
+- [Customers overview](/user-guide/customers/overview) (EN)
