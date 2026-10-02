@@ -1,0 +1,60 @@
+---
+title: Mobile App — Überblick
+description: Kurzer Überblick über White-Label-Mobile-Hüllen in B2Bware — Branding, Ziel-URL, Builds und Storefront-Freischaltung.
+---
+
+**Mobile App** ist die Admin-Seite, um das Branding einer **Webview-Hülle** um die Shop-URL festzulegen und **Plattform-Builds anzufordern** (Android / iOS, soweit angeboten). Artefakte und die Build-Status-Historie helfen Operatoren beim Download oder beim erneuten Versuch.
+
+| Konzept | Rolle |
+| --- | --- |
+| **App-Name / App-ID** | Identität im Store-Listing (ID im Stil `com.example.shop`) |
+| **Ziel-URL** | Web-Storefront-URL, die die Hülle lädt |
+| **Icon / Splash** | Branding-Assets (Media-Picker) |
+| **Build** | In die Queue gestellte White-Label-Kompilierung auf Plattform-Workern |
+| **Artefakte** | Herunterladbare Ergebnisse, wenn ein Build abgeschlossen ist |
+
+**Mentales Modell:** Mobile App **verpackt die bestehende Storefront** für App Stores — sie ersetzt Product- und Order-Hubs nicht durch ein separates Mobile-Backend.
+
+<Callout kind="info" collapsed="false">
+Mobile App ist sichtbar, wenn die **Storefront-Kombination** erfüllt ist (dasselbe Gate wie Store Setup). Ob ein Build gelingt, hängt von der Mobile-Toolchain und den Queue-Workern der Plattform ab — Admin allein schließt **keine** App-Store-Einreichung ab.
+</Callout>
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Natives Commerce-Rewrite** | Mobile App ist eine gebrandete Webview-Hülle |
+| **Store Setup** | Tenant-Shop-Konfiguration, die die Hülle umschließt |
+| **Unverwandte Telekommunikations- und Top-up-Module** | Separate optionale Produkte |
+
+## So nutzen Sie Mobile App
+
+1. **[Store Setup](/de/user-guide/store-setup/overview)** und die Shop-URL prüfen, bevor gebaut wird.
+2. **Mobile App** öffnen; Name, App-ID im Reverse-Domain-Format, Ziel-URL, Icon und Splash setzen.
+3. Signierung nur konfigurieren, wenn der Prozess Tenant-Keystores verlangt (soweit eingeblendet).
+4. Einen Build starten; auf den Endstatus warten; Artefakte herunterladen, wenn der Build abgeschlossen ist.
+5. Fehlgeschlagene Builds als Toolchain-, Queue- oder Konfigurationsprobleme behandeln — Eingaben korrigieren und erneut versuchen; Admin ist nicht Xcode.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Storefront-Kombination** | Sichtbarkeit in der Sidebar |
+| **Funktionierende Storefront-URL** | Sonst hat die Hülle nichts Sinnvolles zu laden |
+| **Media** (üblich) | Icon- und Splash-Picker |
+| **Plattform-Build-Worker für Mobile** | In die Queue gestellte Kompilierung im Capacitor-Stil |
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Native Offline-ERP-Funktionen erwarten | Es ist eine gebrandete Webview-Hülle | Erwartungen an die Fähigkeiten der Web-Storefront halten |
+| Bauen, bevor Store Setup bereit ist | Die Hülle lädt einen defekten Shop | Zuerst Shop-URL und Branding korrigieren |
+| Store-Review von dieser Seite versprechen | Die Einreichung bleibt außerhalb von Admin | Store-Konsolen nutzen, sobald Artefakte bereit sind |
+| Mit unverwandten optionalen Modulen verwechseln | Falscher Support-Pfad | Mobile App auf White-Label-Hüllen begrenzen |
+
+## Verwandtes
+
+- [Store Setup — Überblick](/de/user-guide/store-setup/overview)
+- [Storefront Builder — Überblick](/de/user-guide/storefront-builder/overview)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

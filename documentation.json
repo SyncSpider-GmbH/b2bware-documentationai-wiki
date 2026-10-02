@@ -1541,6 +1541,16 @@
                     "path": "de/user-guide/store-setup/overview"
                   }
                 ]
+              },
+              {
+                "group": "Mobile App",
+                "icon": "smartphone",
+                "pages": [
+                  {
+                    "title": "Mobile App — Überblick",
+                    "path": "de/user-guide/mobile-app/overview"
+                  }
+                ]
               }
             ]
           }
