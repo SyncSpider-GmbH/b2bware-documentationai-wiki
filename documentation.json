@@ -1324,6 +1324,17 @@
                     "icon": "list"
                   }
                 ]
+              },
+              {
+                "group": "Customers",
+                "icon": "users",
+                "pages": [
+                  {
+                    "title": "Customers — Überblick",
+                    "path": "de/user-guide/customers/overview",
+                    "icon": "list"
+                  }
+                ]
               }
             ]
           }
