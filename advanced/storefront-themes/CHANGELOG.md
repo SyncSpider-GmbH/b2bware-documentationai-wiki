@@ -7,6 +7,20 @@
 This file tracks changes to the **theme authoring contract** (directives, form types, `$store`
 keys, canonical surface, tokens). It is not the platform-wide release log. Dates are UTC.
 
+## 2026-10-01 — CAPTCHA on storefront forms
+
+- **New directive `@storefrontCaptcha`** — place the tenant's CAPTCHA widget at an exact spot
+  inside a `@storefrontForm`. Entirely optional: a protected form that omits it gets the widget
+  injected just before `</form>`, and using the directive suppresses that injection so the
+  widget never renders twice. See `blade-api.md` and `forms.md`.
+- **New `$store['captcha']`** — client-safe configuration (`enabled`, `provider`, `site_key`,
+  `token_input`, `protected_forms`) for themes that want to render their own copy around the
+  widget. The secret key stays server-side.
+- **The provider script loads through `@storefrontScripts`.** A layout without it cannot submit
+  a protected form.
+- Tenants choose which of `login`, `register`, `forgot-password`, `reset-password`,
+  `verify-email`, `resend-verification` and `cms-form` to protect; verification is server-side,
+  and the failure message renders inside the widget wrapper. No theme change is required.
 ## 2026-09-22 — Default catalog sort
 
 - **`$sort` on All Products and category listings** may be `<attribute_code>` or `-<attribute_code>` when the store has a default sorting attribute and the URL has no `sort`. Direction follows the store setting (ascending unless set to descending). An explicit `sort` query, including `relevance`, is unchanged. No new `$store` key.

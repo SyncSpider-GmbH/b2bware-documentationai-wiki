@@ -97,6 +97,17 @@ Unknown types render an inert `<form action="#" data-storefront-form-error="unkn
 - **No JavaScript required:** every form is a plain HTML POST. The cart forms (`cart-add`, `cart-bulk-add`, `cart-update`, `cart-line-delivery-date`, `cart-remove`, `cart-clear`, `cart-coupon-apply`, `cart-coupon-remove`) are **additionally auto-enhanced to AJAX** when the runtime is present (§9.7) — but that is a progressive enhancement; the plain POST is always the fallback, so themes must work without JS.
 - **Loading feedback is automatic:** submitting any storefront form shows a busy spinner on the button that was clicked and — for full-page submits — a top progress bar, and blocks that button from double-submitting until the response/navigation completes. Keep submit controls as real `<button type="submit">` / `<input type="submit">` **inside** the form (a `<div>` / `<a>` can't be found or spun) and always give them an accessible label. Opt a single form out with `data-storefront-loading="off"`. See §9.9.
 
+### CAPTCHA is handled for you
+
+A tenant can put any of `login`, `register`, `forgot-password`, `reset-password`, `verify-email`, `resend-verification` and `cms-form` behind a CAPTCHA challenge (configured in the Auth Hub settings, with the tenant's own provider keys). **You write nothing for this**: the platform injects the widget just before `</form>` on a protected form, loads the provider script with `@storefrontScripts`, verifies the token server-side, and renders the failure message inside the widget wrapper.
+
+Two things are worth knowing:
+
+- Place the widget yourself with `@storefrontCaptcha` when the bottom of the form is the wrong spot. Using it once inside a form suppresses the automatic injection, so the widget never renders twice.
+- Keep `@storefrontScripts` in your layout. Without it the provider script never loads and a protected form cannot be submitted.
+
+Read the configuration — never the keys — from `$store['captcha']` (§9.6) when you want to render your own copy around it, e.g. a privacy note. It carries `enabled`, `provider`, `site_key`, `token_input` and `protected_forms`; the secret key is server-side only and is never exposed to a theme.
+
 ### Forgot-password & email-verification quirks
 
 - `forgot-password` **always** flashes the same generic "if the email exists…" message regardless of whether the address is on file (account-enumeration defence).

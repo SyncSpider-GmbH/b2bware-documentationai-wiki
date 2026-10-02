@@ -39,6 +39,11 @@ tags:
     description: >-
       These endpoints are called from email links — `{installationKey}` is part
       of the path, no auth headers are required.
+  - name: CAPTCHA (public)
+    description: >-
+      Client-facing CAPTCHA configuration. Unauthenticated: a headless
+      storefront needs the provider and site key before a visitor can submit a
+      protected form.
   - name: Customer auth (x-installation-key)
     description: >-
       Storefront customer endpoints. All require `x-installation-key`. `/me`,
@@ -64,6 +69,11 @@ tags:
       Admin visibility and cancellation of a customer's account deletion
       request. Requires the auth-hub.account-deletion.view /
       auth-hub.account-deletion.manage permissions.
+  - name: 'Admin: Settings (admin auth)'
+    description: >-
+      Per-tenant AuthHub settings, rendered by the admin Configuration screen.
+      Requires an admin bearer plus `auth-hub.settings.view` /
+      `auth-hub.settings.update`.
 paths:
   /api/v1/apps/auth-hub/{installationKey}/reset-password:
     post:
@@ -148,6 +158,45 @@ paths:
           schema:
             type: string
           required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/captcha-config:
+    get:
+      tags:
+        - CAPTCHA (public)
+      summary: Get CAPTCHA config
+      description: >-
+        Returns `{ "data": { enabled, provider, site_key, script_url,
+        token_input, protected_forms } }`.
+
+
+        - `enabled` is `false` until the tenant switches CAPTCHA on and supplies
+        both keys; every other field is then `null`/empty.
+
+        - `protected_forms` lists the forms that carry the challenge (`login`,
+        `register`, `forgot-password`, `reset-password`, `verify-email`,
+        `resend-verification`, `cms-form`).
+
+        - The secret key is never part of this payload.
+
+
+        Send the resulting challenge token to a protected endpoint as
+        `captcha_token` in the body or as the `X-Captcha-Token` header; without
+        it the endpoint answers 422 with a `captcha` validation error.
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
       responses:
         '200':
           description: Successful response
@@ -880,6 +929,269 @@ paths:
             type: string
           example: application/json
         - name: customerId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/settings/groups/list:
+    get:
+      tags:
+        - 'Admin: Settings (admin auth)'
+      summary: List settings groups
+      description: >-
+        Lists the settings groups this hub exposes. AuthHub currently ships one:
+        `captcha`.
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/settings:
+    get:
+      tags:
+        - 'Admin: Settings (admin auth)'
+      summary: Get all settings
+      description: >-
+        Returns `schema`, `values` and `defaults` for every group, in
+        FormGenerator shape.
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - 'Admin: Settings (admin auth)'
+      summary: Update all settings
+      description: Updates every group in one call. Payload is keyed by group.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                captcha:
+                  enabled: true
+                  provider: turnstile
+                  site_key: 0x4AAAAAAA...
+                  secret_key: 0x4AAAAAAA...
+                  protected_forms:
+                    - register
+                    - login
+                  fail_open: false
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/settings/reset:
+    post:
+      tags:
+        - 'Admin: Settings (admin auth)'
+      summary: Reset all settings
+      description: >-
+        Restores every group to its defaults. CAPTCHA returns to off, and the
+        stored keys are cleared.
+      requestBody:
+        content: {}
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/settings/{group}:
+    get:
+      tags:
+        - 'Admin: Settings (admin auth)'
+      summary: Get a settings group
+      description: Returns `schema` and `values` for one group, e.g. `captcha`.
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - 'Admin: Settings (admin auth)'
+      summary: Update a settings group
+      description: >-
+        Updates one group. For `captcha`, validation only runs while `enabled`
+        is true: both keys are then required and the selected forms must be
+        known keys (`login`, `register`, `forgot-password`, `reset-password`,
+        `verify-email`, `resend-verification`, `cms-form`), otherwise the call
+        answers 422.
+
+
+        `fail_open` decides what happens when the server cannot reach the
+        provider — `false` (default) rejects the submission, `true` accepts it
+        anyway.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                enabled: true
+                provider: turnstile
+                site_key: 0x4AAAAAAA...
+                secret_key: 0x4AAAAAAA...
+                protected_forms:
+                  - register
+                  - login
+                fail_open: false
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/settings/{group}/reset:
+    post:
+      tags:
+        - 'Admin: Settings (admin auth)'
+      summary: Reset a settings group
+      description: >-
+        Restores one group to its defaults. Resetting `captcha` turns it off and
+        clears the stored keys.
+      requestBody:
+        content: {}
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: group
           in: path
           schema:
             type: string

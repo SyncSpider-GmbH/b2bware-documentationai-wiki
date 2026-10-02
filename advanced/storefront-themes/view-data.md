@@ -95,6 +95,7 @@ Like Shopify's `shop` object, `$store` carries both store **identity** and store
 | `branch_display_mode`      | string | `children`  | Default layout for parent categories with children: `children` (subcategory grid), `products` (descendant-aware listing), or `both`. Per-category override may change the resolved `$branchDisplayMode` on a category page. |
 | `indexable`                | bool   | `true`      | Search engines may index the storefront; drives `<meta name="robots">` automatically. |
 | `display_prices_with_tax`  | string | `excluding_tax` | How catalog/cart prices are shown: `excluding_tax` (net, B2B), `including_tax` (gross, B2C) or `both`. Follows the tenant's TaxHub setting. |
+| `captcha`                  | array  | `['enabled' => false]` | Client-safe CAPTCHA configuration: `enabled`, `provider`, `site_key`, `token_input`, `protected_forms`. The widget renders itself on protected forms (see `forms.md`), so read this only for extra copy around it. The secret key is never exposed. |
 
 ### Feature-by-feature compliance guide
 
