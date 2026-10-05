@@ -3,6 +3,24 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-02" description="SearchHub cluster and embed key" tags={["fix"]}>
+
+## SearchHub
+
+- **Cluster settings** — a store admin cannot read or save the cluster group. Index status omits the cluster host and error unless the caller is a platform super admin.
+- **Embed key** — a `customer_group` query does not change visibility. A signed-in storefront customer gets their own group, and the key does not return other groups' prices.
+
+</Update>
+
+<Update label="2026-09-30" description="SearchHub Typesense add-on" tags={["feature"]}>
+
+## SearchHub
+
+- **Typesense add-on** — per-store collections, scoped search keys, and Mongo fallback when the add-on is off or Typesense is down. Listings stay on Mongo (option B).
+- **Settings** — ranking, typo tolerance, synonyms, curation, facets, languages, and which hubs are indexed. See [SearchHub](/hubs/search-hub).
+
+</Update>
+
 <Update label="2026-09-22" description="Default catalog sorting attribute" tags={["feature", "storefront"]}>
 
 ## Storefront — default sorting attribute
