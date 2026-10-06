@@ -3,6 +3,19 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-06" description="Media library filters and collections" tags={["feature"]}>
+
+## Media library filters and collections
+
+- `GET /media-hub/media` filters by `type`, exact `mime_types[]`, and upload date (`created_from` / `created_to`), and sorts by `created_at` in either direction.
+- New `GET /media-hub/media/collections` lists collections with their file counts.
+- `PUT /media-hub/media` moves files to another collection with `media.*.collection`. Files keep their id and URL.
+- Files uploaded by a hub are stored in that hub's collection instead of `uncategorized`.
+
+See [MediaHub](/hubs/media-hub#media-library).
+
+</Update>
+
 <Update label="2026-10-02" description="OrderHub bulk delete" tags={["feature"]}>
 
 ## OrderHub bulk delete
