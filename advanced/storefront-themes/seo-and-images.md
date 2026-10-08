@@ -52,13 +52,59 @@ The tenant's **"Allow search engines to index your pages"** setting is exposed a
 
 ## 9.11 Product images — `@storefrontImage`
 
-Catalog and customer media (product photos, gallery images, cart thumbnails) are served from the tenant's Bunny CDN. Wrap **every** product-image `src` with `@storefrontImage(...)` so the CDN delivers a right-sized variant instead of the full-resolution original:
+**Hard rule.** Every catalog / customer media `src` (products, categories, gallery, cart, order history, custom `@fetch` tiles that show `media_url`) **must** go through `@storefrontImage(...)`. Never put a raw `media_url` in an `<img src>`. A full-resolution original on a category grid routinely costs megabytes per tile; the directive asks the image edge for a display-sized variant instead.
 
 ```blade
 <img src="@storefrontImage($url, 400, 400, 85)" alt="{{ $product->name }}" loading="lazy">
 ```
 
-Arguments: `@storefrontImage($url, $width?, $height?, $quality?, $aspectRatio?)`. Width, height and quality are optional integers; aspect ratio is an optional `"16:9"`-style string. Omitted (null) arguments are skipped.
+Arguments: `@storefrontImage($url, $width?, $height?, $quality?, $aspectRatio?)`. Width, height and quality are optional integers; aspect ratio is an optional `"16:9"`-style string. Omitted (`null`) arguments are skipped.
+
+### Which hosts get resized
+
+The platform appends sizing query params only when the URL host is one of:
+
+| Host | Why |
+| --- | --- |
+| `*.b-cdn.net` | Tenant Bunny pull zone on the media row |
+| Configured global Bunny pull-zone host | Shared DataHub CDN |
+| SpiderDesk / user-service host (`USER_SERVICE_BASE_URL`) | Desk `/media/...` URLs — same `width` / `height` / `quality` API |
+
+Anything else (theme `@themeAsset`, store placeholder, unknown external host, empty string) is returned **unchanged** — so the directive is always safe to wrap. Existing query strings (signed tokens, etc.) are preserved.
+
+On Bunny, sizing only takes effect when **Bunny Optimizer + Dynamic Image API** are enabled on the pull zone; when they are off the CDN ignores the params and serves the original. Desk media always honours `width` / `height` / `quality`.
+
+### What `@storefrontImage` emits (platform subset)
+
+The directive maps to Bunny Optimizer / desk query params:
+
+| Argument | Query param | Effect |
+| --- | --- | --- |
+| `$width` | `width` | Resize to this width (px), keep aspect ratio |
+| `$height` | `height` | Resize to this height (px), keep aspect ratio |
+| `$quality` | `quality` | Compression `0`–`100` (typical storefront: `80`–`85`) |
+| `$aspectRatio` | `aspect_ratio` | Crop to `W:H` (e.g. `1:1`, `16:9`) **before** resize |
+
+When **both** `width` and `height` are set **without** `aspect_ratio`, Bunny keeps aspect ratio and picks the constraint that yields the smaller image (fit-inside). Prefer **width-only** (pass `null` for height) when the layout must not crop into the subject — category cards often do this.
+
+### Bunny Dynamic Images API — what else is possible
+
+Bunny Optimizer's [Dynamic Images](https://bunny.net/docs/optimizer/dynamic-images/overview) API supports far more than the directive exposes. Themes should still go through `@storefrontImage` for everyday sizing; do **not** hand-append Bunny params to random hosts. Useful reference (Optimizer must be on):
+
+| Area | Params (examples) | Notes |
+| --- | --- | --- |
+| Resize | `width`, `height` | No upscale by default; optional `upscaling=resampling` |
+| Crop | `aspect_ratio=1:1`, `crop=800,600`, `crop_gravity=north`, `focus_crop`, `face_crop` | Crops run **before** resize |
+| Quality / format | `quality=85`, `format=webp` / `avif` / `jpeg` / `png` | Prefer zone-level auto-WebP when available |
+| Filters | `sharpen=true`, `blur=…` | Use sparingly on catalog |
+| Color / light | `brightness`, `contrast`, `saturation`, `gamma`, `hue`, `tint`, `sepia` | Brand look-ups only |
+| Geometry | `flip`, `flop`, `rotate` | 90° steps for rotate |
+
+**Transformation order on Bunny:** crop → resize → flip/rotate → filters → color → format/quality.
+
+`@storefrontImage` intentionally covers the storefront subset (`width`, `height`, `quality`, `aspect_ratio`). Advanced transforms are a platform/CDN concern — open a product request if a theme needs a first-class directive for `format`, `crop`, or Image Classes.
+
+### Resolving product / category images
 
 Resolve a product's main image with `resolved_main_media` — the single, ready-to-use image the platform resolves for every product. Cascade (same order as the ProductHub API `main_media` field):
 
@@ -67,7 +113,7 @@ Resolve a product's main image with `resolved_main_media` — the single, ready-
 3. else a child-variant primary (configurable parents with **no** own images)
 4. else the first linked category image
 
-Bunny stores the URL under `media_url`:
+The CDN / desk URL lives under `media_url`:
 
 ```blade
 @storefrontImage(
@@ -77,24 +123,23 @@ Bunny stores the URL under `media_url`:
 )
 ```
 
-> Never read `mainMedia.media_url` directly — `mainMedia` is a has-many relation (a *collection* of primary images), so a dotted `mainMedia.media_url` resolves to `null`. Always use `resolved_main_media` (with `main_media` as the serialized-payload fallback).
+> Never read `mainMedia.media_url` directly — `mainMedia` is a has-many relation (a *collection* of primary images), so a dotted `mainMedia.media_url` resolves to `null`. Always use `resolved_main_media` (with `main_media` as the serialized fallback).
 
 On the **product detail** page prefer the controller's `$galleryImages` payload (see *Configurable products*) for the gallery — primary/own-first, then `sort_order`, mode-aware for variants. Pass it to `components/product-gallery` and render the thumbnail rail whenever `count($images) > 1`. Listing cards keep using `resolved_main_media` so the card thumbnail matches the detail main image.
 
 **Gallery rail layout (no custom CSS).** The rail must stay exactly as tall as the main image, however many thumbnails there are. A plain flex sibling can't: its own content height feeds the flex line, so a long rail stretches the row. `components/product-gallery` instead takes the rail out of flow on tablet+ — the figure gets `tablet:relative tablet:pl-24` (only when a rail is rendered) and the rail gets `tablet:absolute tablet:top-0 tablet:bottom-0 tablet:left-0 tablet:w-20`, so the figure's height comes from the main image's `aspect-square` box alone and the rail spans it edge to edge. Inside the rail, the two `h-8` arrows and the `flex-1 min-h-0 overflow-auto` scroll track share that height, so the arrows always sit inside the image's bounds. The arrows are styled as real buttons rather than bare glyphs (`rounded-lg border border-border-subtle bg-neutral-white text-neutral-800`, hover to primary — a border, never a shadow) and take `tablet:w-full` so each one spans the thumbnail column edge to edge; on the phone strip they stay 32px squares. The white fill and `neutral-800` glyph are deliberate literals-via-token so the pair keeps its contrast in dark mode, where the rail sits on a near-black page. The rail is a horizontal strip below the main image on phones (`flex-col-reverse` figure, default `flex-row` rail), where the same two arrow buttons sit **left and right** of the strip: each button ships both glyphs and shows the one matching the current axis (`tablet:hidden` chevron-left/right, `hidden tablet:block` chevron-up/down), and the inline module measures `scrollWidth`/`scrollLeft` below 768px and `scrollHeight`/`scrollTop` above it. Arrow **presence** follows overflow only: once revealed, both arrows stay in the layout and are merely `disabled` + `opacity-40` at the ends. Hiding one at an end (the pattern the header category row uses) would hand its 36px back to the track mid-gesture, and that resize reads as a snap while trackpad-scrolling — the native scroll has to stay fluid, only the arrow clicks animate (`behavior: 'smooth'`).
 
-Recommended sizes per surface (square crops, quality 85):
+Recommended sizes per surface (quality 85; square crops unless noted):
 
-| Surface                         | Width × Height |
-| ------------------------------- | -------------- |
-| Catalog grid card               | 400 × 400      |
-| Catalog list-row thumbnail      | 200 × 200      |
-| Product gallery — main image    | 800 × 800      |
-| Product gallery — thumbnail     | 150 × 150      |
-| Cart / checkout line thumbnail  | 160 × 160      |
-| Order-history line thumbnail    | 80 × 80        |
-
-**Safe to use everywhere.** When the URL is **not** a Bunny CDN URL (a theme `@themeAsset`, the configured placeholder, an external host) or is empty, the helper returns it **unchanged** — so you never need to guard the call. The sizing params only take effect when the **Bunny Optimizer is enabled on the pull zone** (a per-tenant Bunny setting); when it is off the CDN ignores the params and serves the original, so the directive is always harmless. Any existing query string (e.g. a signed token) is preserved.
+| Surface                         | Width × Height | Notes |
+| ------------------------------- | -------------- | ----- |
+| Catalog grid card               | 400 × 400      | Or width-only `400, null` to avoid crop |
+| Category / katalog tile         | 320 × null     | Width-only — no square crop |
+| Catalog list-row thumbnail      | 200 × 200      | |
+| Product gallery — main image    | 800 × 800      | |
+| Product gallery — thumbnail     | 150 × 150      | |
+| Cart / checkout line thumbnail  | 160 × 160      | |
+| Order-history line thumbnail    | 80 × 80        | |
 
 Keep the placeholder fallback exactly as before — only the real image `src` is wrapped:
 

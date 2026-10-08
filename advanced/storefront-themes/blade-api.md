@@ -33,13 +33,14 @@ In addition to standard Blade control flow above, the platform registers these t
 | `@routeUrl('store.home', [...], $locale?)` | `routeUrl(...)`             | Build a locale-aware route URL; defaults to the active locale, pass `$locale` to target another |
 | `@themeAsset('img/logo.png')`            | —                             | Asset URL relative to the active theme's `assets/` folder                              |
 | `@storefrontAsset('storefront.css')`     | —                             | Asset URL for a published platform asset (cache-busted)                                   |
-| `@storefrontImage('url', w?, h?, q?)`    | —                             | Bunny-optimised image URL — sizing params on-CDN, pass-through off-CDN (see §9.11)      |
+| `@storefrontImage('url', w?, h?, q?, aspect?)` | —                      | Optimised image URL — Bunny / desk sizing params on-CDN, pass-through off-CDN (see §9.11; **required** for every `media_url`) |
 | `@formatCurrency($amount, $currency?)`   | `formatCurrency(...)`         | Locale + currency aware money formatting (see §9.4)                                  |
 | `@formatNumber($value, $maxFraction?)`   | `formatNumber(...)`           | Locale-aware decimal formatting (see §9.4)                                           |
 | `@formatDate($value, $format?)`          | `formatDate(...)`             | Locale-aware date / time formatting (see §9.3)                                       |
 | `@storefrontSection('cart-summary')`     | —                             | Render an AJAX-refreshable section in place (see §9.7)                                |
 | `@storefrontSlot('product.detail.meta', ['context' => …])` | — | Render a named slot: optional-module contributions **and** owner-authored CMS content. Optional config object declares slot context for the Theme Editor (see §9.16). Renders nothing when empty. |
 | `@storefrontScripts`                     | —                             | Emit the storefront JS runtime once near `</body>` — enables cart AJAX (see §9.7)     |
+| `@storefrontCaptcha`                     | —                             | Place the tenant's CAPTCHA widget at this exact spot inside a `@storefrontForm`. Optional — a protected form that omits it gets the widget injected just before `</form>` (see `forms.md`) |
 | `@storefrontAuthToken`                   | —                             | Short-lived (1h) `x-auth-token` for the logged-in customer (empty for guests) — inits a first-party widget's `api_key` (see §9.14). ⚠️ The only sanctioned credential exposure. |
 | `@storefrontSeo`                         | —                             | Emit the SEO head — robots, canonical, hreflang, Open Graph, Twitter Card & JSON-LD (see §9.10) |
 | `@storefrontAnalytics`                   | —                             | Emit the consent-gated analytics loader — GTM / GA4 / Clarity — in `<head>` (see §9.13) |
@@ -61,6 +62,8 @@ In addition to standard Blade control flow above, the platform registers these t
 | `canonicalUrl()`                             | Canonical URL of the current page in the active locale                                 |
 | `orderStatusLabel($status)`                  | Localised, human-readable label for an order status (e.g. `completed` → "Completed"). Use on order lists/detail (see §10). |
 | `orderStatusTone($status)`                   | Semantic tone token for an order status (`success`/`info`/`warning`/`error`/…) — pair with `orderStatusLabel()` to colour a status badge. |
+| `storefront_countries()`                     | The platform's canonical country list, sorted by name, for building a country `<select>` in address forms. Each row is `['name','iso2','iso3']`. |
+| `storefront_country_name($value)`            | Resolve a stored/submitted country value (name, ISO2 or ISO3) to its canonical name — use to preselect the matching `<option>`. |
 | Native PHP operators: `??`, `?:`, `==`, `&&`, ternaries                                                                                   |
 
 ### Computing derived values without `@php`
