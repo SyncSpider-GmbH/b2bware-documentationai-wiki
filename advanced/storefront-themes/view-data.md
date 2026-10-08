@@ -45,6 +45,8 @@ Most of these flags also carry a **server-side safety net** (a 404, a rejected f
 | `$hideChrome` | bool | `true` on standalone pages (e.g. the public proposal share page). Wrap header/footer/breadcrumbs in `@unless($hideChrome ?? false)` (see §2, §10). |
 | `$cart`, `$cartItems`, `$cartCount`, `$cartTotals` | mixed | Cart summary snapshot injected on every page for the mini-cart / header count; the full cart page/sections receive the richer `$cartLines` + `$cartPricing`. |
 
+**Cart-line favorites.** Every `$cartLines` row includes `is_favorite` (bool): whether its product belongs to the signed-in customer's active favorites list (falling back to the first list when no active list matches). It is always `false` for guests or when `$store['favorites_enabled']` is false; disabled favorites do not resolve customer favorites. Render `$line['is_favorite']` directly instead of searching `$favoriteIds` in Blade. Keep favorite controls behind `$isAuthenticated && ($store['favorites_enabled'] ?? true)`.
+
 **Tenant appearance CSS variables.** The platform also injects branding CSS the theme must not fight: `$tenantBrandCss` / `$tenantFontsHtml` (b2bware Appearance settings) and `$brandingCss` (per-customer category ramp). The default `shop.blade.php` prints them in a fixed **head cascade** — see §10 (Styling) for the exact order (`base.css` → tenant brand/fonts → theme `storefront.css` → branding). Do not reorder it.
 
 The two gates are derived as (read them, don't recompute them):

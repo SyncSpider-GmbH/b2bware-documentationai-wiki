@@ -3,6 +3,22 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-02" description="OrderHub bulk delete" tags={["feature"]}>
+
+## OrderHub bulk delete
+
+Orders can now be deleted in a single all-or-nothing request. A batch that includes a missing, locked, or unauthorized order is rejected without deleting any selected orders.
+
+</Update>
+
+<Update label="2026-10-02" description="Cart-line favorite state" tags={["improvement", "storefront"]}>
+
+## Cart-line favorite state
+
+Cart lines expose `$line['is_favorite']` for the customer's active favorites list, replacing repeated Blade lookups. The value is `false` for guests and when favorites are disabled; disabled favorites skip the lookup. See [View data](/advanced/storefront-themes/view-data).
+
+</Update>
+
 <Update label="2026-10-01" description="SubscriptionHub webhooks, MCP tools and API reference" tags={["feature"]}>
 
 ## SubscriptionHub: webhooks, AI assistant tools and API reference

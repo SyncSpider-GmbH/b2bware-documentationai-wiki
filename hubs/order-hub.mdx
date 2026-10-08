@@ -36,6 +36,7 @@ For the complete list of endpoints, filters, includes, and validation rules (e.g
 | GET | `/orders/{id}` | Get order details |
 | PUT | `/orders/{id}` | Update an order |
 | DELETE | `/orders/{id}` | Delete an order |
+| DELETE | `/orders/bulk/delete` | Delete selected orders as an all-or-nothing batch |
 | GET | `/orders/statuses/list` | List all available order statuses |
 | GET | `/orders/statuses/options` | Get order statuses as select options |
 | POST | `/orders/statuses` | Create a custom order status |
@@ -195,6 +196,21 @@ All dashboard endpoints accept a `period` query parameter — one of `7`, `30`, 
 
   </Tab>
 </Tabs>
+
+## Bulk delete orders
+
+`DELETE /api/v1/apps/order-hub/orders/bulk/delete` accepts a non-empty `ids` array of order IDs. Duplicate IDs are treated as one selection. The request requires an authenticated operator who can delete orders.
+
+```bash
+curl -X DELETE \
+  'https://api.datahub.syncspider.com/api/v1/apps/order-hub/orders/bulk/delete' \
+  -H 'Authorization: Bearer {token}' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{"ids":[101,102]}'
+```
+
+A successful request returns `200` with `deleted_count` and `deleted_ids`. If any requested order is missing, locked, or not authorized, the entire batch is left unchanged and the API returns `422` with the affected IDs in `missing`, `locked`, or `forbidden` respectively. Historical orders belonging to deleted customers cannot be deleted once their status is completed, canceled, or refunded. Invalid or empty `ids` payloads also return `422`.
 
 ## Filters
 
