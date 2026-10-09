@@ -438,17 +438,18 @@ NotificationHub channel settings are edited in the admin under **NotificationHub
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `enabled` | boolean | `false` | Enable the email channel. |
-| `driver` | select (`smtp` / `sendmail` / `mailgun` / `ses` / `postmark` / `log`) | — | Mail transport driver. |
+| `driver` | select (`managed` / `smtp` / `sendmail` / `mailgun` / `ses` / `postmark` / `log`) | — | Mail transport driver. Prefer **Managed Email** when available on your installation. |
 | `host` | text | — | SMTP host (SMTP driver; root-level for backward compatibility). |
 | `port` | number | — | SMTP port (e.g. `587`). |
 | `encryption` | select (`none` / `tls` / `ssl`) | — | SMTP encryption. |
 | `username` | text | — | SMTP username / account identifier. |
 | `password` | password | — | SMTP password. Store the tenant secret; do not commit real values. |
+| `managed_settings` | object | — | Managed Email options when `driver=managed`: <ul><li>`track_opens` — Track opens (default off)</li><li>`track_clicks` — Track clicks (default off)</li></ul> Delivered through the B2Bware messaging platform — no API keys to enter. Contact support to register your sending domain. |
 | `mailgun_settings` | object | — | Mailgun credentials when `driver=mailgun`: <ul><li>`domain` — Mailgun sending domain</li><li>`secret` — API key (password)</li><li>`endpoint` — `api.mailgun.net` (US) or `api.eu.mailgun.net` (EU)</li></ul> |
 | `ses_settings` | object | — | Amazon SES credentials when `driver=ses`: <ul><li>`key` — AWS Access Key ID</li><li>`secret` — AWS Secret Access Key (password)</li><li>`region` — AWS region (e.g. `us-east-1`, `eu-central-1`)</li></ul> |
 | `postmark_settings` | object | — | Postmark credentials when `driver=postmark`: <ul><li>`token` — Server API token (password)</li><li>`message_stream` — Message stream (default `outbound`)</li></ul> |
 | `sendmail_settings` | object | — | Sendmail path when `driver=sendmail`: <ul><li>`path` — Binary path (e.g. `/usr/sbin/sendmail -bs -i`)</li></ul> |
-| `from_settings` | object | — | From / Reply-To (all drivers): <ul><li>`from_address` — Sender address (required when enabled)</li><li>`from_name` — Sender display name</li><li>`reply_to_address` — Reply-To address</li><li>`reply_to_name` — Reply-To display name</li></ul> |
+| `from_settings` | object | — | From / Reply-To (all drivers): <ul><li>`from_address` — Sender address (required when enabled; for Managed Email must be on your verified sending subdomain)</li><li>`from_name` — Sender display name</li><li>`reply_to_address` — Reply-To address</li><li>`reply_to_name` — Reply-To display name</li></ul> |
 | `test_mode` | boolean | `false` | Route sends to the test address instead of real recipients. |
 | `test_email` | text | — | Destination when test mode is on. |
 
@@ -461,11 +462,11 @@ NotificationHub channel settings are edited in the admin under **NotificationHub
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `enabled` | boolean | `false` | Enable the SMS channel. |
-| `provider` | select (`twilio` / `nexmo` / `messagebird` / `plivo` / `infobip` / `linkmobility`) | — | SMS provider. |
-| `from_number` | text | — | Sender phone number / alphanumeric ID (max 11 chars for alphanumeric). |
+| `provider` | select (`managed` / `twilio` / `nexmo` / `plivo` / `infobip` / `linkmobility`) | — | SMS provider. Prefer **Managed SMS** when available on your installation. |
+| `from_number` | text | — | Fallback sender phone / alphanumeric ID when Managed SMS `sender_id` is empty (max 11 chars for alphanumeric). |
+| `managed_settings` | object | — | Managed SMS options when `provider=managed`: <ul><li>`sender_id` — Sender ID approved for your account (e.g. brand name)</li><li>`category` — `transactional` (default) / `marketing` / `authentication` / `service`</li><li>`smart_encoding` — Optimize encoding (default on)</li></ul> Delivered through the B2Bware messaging platform — no API keys to enter. Contact support to register your sender name and destination countries. |
 | `twilio_settings` | object | — | Twilio credentials: <ul><li>`account_sid` — Account SID</li><li>`auth_token` — Auth token (password)</li><li>`messaging_service_sid` — Optional Messaging Service SID</li></ul> |
 | `nexmo_settings` | object | — | Nexmo/Vonage credentials: <ul><li>`api_key` — API key</li><li>`api_secret` — API secret (password)</li></ul> |
-| `messagebird_settings` | object | — | MessageBird credentials: <ul><li>`access_key` — Access key (password)</li></ul> |
 | `plivo_settings` | object | — | Plivo credentials: <ul><li>`auth_id` — Auth ID</li><li>`auth_token` — Auth token (password)</li></ul> |
 | `infobip_settings` | object | — | Infobip credentials: <ul><li>`base_url` — API base URL</li><li>`api_key` — API key (password)</li></ul> |
 | `linkmobility_settings` | object | — | LinkMobility MyLINK credentials: <ul><li>`client_id` — OAuth2 client ID</li><li>`client_secret` — OAuth2 client secret (password)</li><li>`base_url` — Optional API base URL (default `https://api.linkmobility.com`)</li><li>`token_url` — Optional token URL (default MyLINK SSO)</li></ul> |
@@ -546,6 +547,25 @@ Database storage is always on; these keys control retention and in-app behaviour
 | `group_time_window_minutes` | number | `60` | Grouping window in minutes (1–1440). |
 
 </Expandable>
+
+## Managed Messaging
+
+**Managed SMS** and **Managed Email** deliver through the B2Bware messaging platform. Tenants do not enter provider API keys — choose Managed SMS / Managed Email in NotificationHub settings and configure only tenant-specific sender details.
+
+### What SyncSpider needs from you
+
+| Item | Channel | Notes |
+|------|---------|-------|
+| Sender name / Sender ID | SMS | Alphanumeric or numeric ID approved for your destination countries (e.g. brand name). |
+| Sending subdomain + DNS | Email | From address must sit on a subdomain SyncSpider has verified for your account (SPF / DKIM as instructed by support). |
+| Destination countries | SMS | Countries where you will send; registration is handled by SyncSpider. |
+
+Contact support to register a sender name or sending domain. After setup, use **Test Connection** on the SMS / email settings groups to verify the installation can reach the platform.
+
+### Settings quick reference
+
+- SMS: `provider = managed`, `managed_settings.sender_id` (or fallback `from_number`), optional `category` / `smart_encoding`.
+- Email: `driver = managed`, `from_settings.from_address` on your verified subdomain, optional open/click tracking in `managed_settings`.
 
 ## Related
 
