@@ -3,6 +3,15 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-09" description="SubscriptionHub payment confirmation and status counts" tags={["improvement"]}>
+
+## SubscriptionHub: payment confirmation and status counts
+
+- **Bank confirmation on automatic renewals** — when the bank asks the customer to confirm an automatic card charge (`authentication_required`), the renewal no longer stops with `payment_failed`. The order stays open and the customer is emailed a payment link, as in `pay_now_email` mode. The history entry `renewed` records `charge_fallback`.
+- **Status counts** — new `GET /subscriptions/statuses/counts` returns the number of subscriptions per status under the same filters as the list. A `status` filter is ignored. See [SubscriptionHub](/hubs/subscription-hub).
+
+</Update>
+
 <Update label="2026-10-02" description="OrderHub bulk delete" tags={["feature"]}>
 
 ## OrderHub bulk delete
@@ -47,7 +56,7 @@ Cart lines expose `$line['is_favorite']` for the customer's active favorites lis
 
 - **Product page** — products with an enabled subscription setup show their delivery intervals and prices under the SKU. Signed-in customers open a **Subscribe** dialog, pick an interval, quantity, addresses, shipping and payment method, and place the first order directly; guests get a sign-in link. The customer's regular cart is never touched.
 - **Theme contract** — new `@storefrontForm('subscription-checkout')` form type (see [Forms](/advanced/storefront-themes/forms)). The markup is a module contribution to the `product.detail.meta` slot; themes may restyle it with `modules/subscription-hub/product-subscription.blade.php`.
-- **My subscriptions** — new account page `/account/subscriptions` (sidebar entry once the customer has a subscription) listing the customer's subscriptions with a **Cancel subscription** action that ends the subscription after the period already paid for, and **Pay now** for an unpaid renewal. New `@storefrontForm('subscription-cancel')` form type; restyle via `modules/subscription-hub/account-subscriptions.blade.php`.
+- **My subscriptions** — new account page `/account/subscriptions` (sidebar entry once the customer has a subscription) listing the customer's subscriptions with a **Cancel subscription** action that ends the subscription after the period already paid for, **Resume subscription** to undo that cancel while the period lasts, and **Pay now** for an unpaid renewal or a first order left unpaid. New `@storefrontForm('subscription-cancel')`, `@storefrontForm('subscription-resume')` and `@storefrontForm('subscription-pay')` form types; restyle via `modules/subscription-hub/account-subscriptions.blade.php`.
 
 </Update>
 

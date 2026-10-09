@@ -631,6 +631,17 @@ paths:
           description: Successful response
           content:
             application/json: {}
+  /api/v1/apps/subscription-hub/subscriptions/statuses/counts:
+    get:
+      tags:
+        - Subscriptions
+      summary: Status Counts
+      description: Number of subscriptions per status. Accepts the same filters as the index except `status`.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
   /api/v1/apps/subscription-hub/subscriptions/trash:
     get:
       tags:
