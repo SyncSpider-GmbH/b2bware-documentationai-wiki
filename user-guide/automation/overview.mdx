@@ -1,0 +1,121 @@
+---
+title: Automation Hub overview
+description: How Automation Hub runs event-triggered multi-step flows in B2Bware — flows vs runs, relation to Event Hub and Notifications, dependencies, and pitfalls.
+---
+
+**Automation** in B2Bware Admin is the UI for optional **Automation Hub** — workflow **orchestration** that runs customer-authored flows (trigger → conditions → delays/actions) on the **same event registry** Event Hub and Notification Hub consume.
+
+| Concept | Role |
+| --- | --- |
+| **Automation Hub** | Optional installed package. When present and the operator can view it, Admin shows **Automation** with Flows, Runs, Activity log, and Settings. |
+| **Flow** | Definition: trigger slug, conditions, ordered steps, cancel-on-events |
+| **Run** | One execution for a concrete event; idempotent per flow + event; tracks step index, next run, retries, last error |
+| **Activity log** | Admin-side audit of flow create/update/enable/disable/delete and manual cancel/retry |
+| **Execution logs** (backend) | Per-step audit (delay enter/exit, action invoke) — retention configurable; may surface via run detail |
+| **Settings** | Hub configuration under Settings apps / Automation Hub settings |
+
+**Mental model (three hubs, three jobs):**
+
+| Hub | Job |
+| --- | --- |
+| **Event Hub** | **Transport** — subscribe and deliver events as **outbound webhooks** |
+| **Notifications** | **Delivery to people** — templates, preferences, channels, delivery attempts |
+| **Automation Hub** | **Orchestration** — multi-step flows that wait, branch, and call hub actions |
+
+<Callout kind="alert" collapsed="false">
+Automation Hub is **optional** (`automation-hub`). Without it, the group is absent. Action catalogs are **contributed by other installed hubs** — a flow cannot call an action whose owning hub is not present. Demo Store presence does **not** mean every tenant has Automation.
+</Callout>
+
+**Demo children → intent**
+
+| Child | Intent |
+| --- | --- |
+| Flows | Author / enable / disable definitions |
+| Runs | Inspect per-event execution state |
+| Activity log | Admin change audit |
+| Settings | Hub configuration |
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Event Hub** | Outbound webhook transport + delivery logs |
+| **Notifications** | Human multi-channel messages |
+| **Rule Hub** | Price / cart promotions and validation — not delayed orchestration |
+| **Marketing / social journey products** | Not Production Admin products — park them |
+
+## Why teams use Automation
+
+1. **Multi-step after an event** — e.g. wait, then notify, then update status — without custom scripts.
+2. **Cancel-on-event** — Stop a run when a later event arrives (e.g. order cancelled before a delayed step).
+3. **Triage** — Runs + activity log answer “did this flow fire / where did it stop?”
+4. **Cross-hub glue** — Order, Notification, Attribute, and other hubs expose actions/triggers without editing Automation Hub core.
+5. **Operator control** — Enable/disable flows; retry/cancel runs when supported — without redeploying code.
+
+Use **[Event Hub](/user-guide/events/overview)** when the only need is a signed webhook to an external URL. Use **[Notifications](/user-guide/notifications/overview)** when the only need is a templated human message. Use **[Rules](/user-guide/rules/overview)** for catalog/cart price and validation logic — not for delayed multi-step orchestration.
+
+## How a flow runs
+
+```
+Hub event (registry slug)
+  → matching enabled Flow(s)
+  → conditions pass?
+  → create/advance Flow Run (idempotent on flow + event)
+  → for each step:
+       delay → schedule next_run_at
+       action → call contributing hub handler
+  → retries on transient failure; failure threshold may emit failing signal
+  → Activity log records admin changes; execution logs record step outcomes
+```
+
+**Operator truths:**
+
+- Runs are **idempotent** for the same flow + event — re-delivery should not invent duplicate runs.
+- Step count is capped (platform hard cap; treat as config, not a fixed User Guide promise).
+- Horizon workers on the **automation** queue must run or delays/actions stall.
+- Available triggers/actions in the UI depend on **which hubs are installed** and what they contribute.
+
+## How to use Automation
+
+1. Confirm **Automation** is visible and permissions allow flow management.
+2. In **Settings**, confirm hub defaults (queues / retention / failure notify as exposed) before authoring production flows.
+3. Create a **Flow** with a real trigger slug from an installed hub (e.g. order lifecycle events when Order Hub is present).
+4. Keep steps few and purposeful; prefer Notifications / Event Hub for single-purpose sends when a full flow is unnecessary.
+5. Enable the flow only after a dry mental run: cancel-on-events, recipient/action side effects, and failure behaviour.
+6. Trigger a real or test event; open **Runs** for step progress / errors; use **Activity log** for “who changed the flow”.
+7. If nothing runs: event not emitted, flow disabled, condition failed, or workers down — not “Automation is broken” by default.
+8. Coordinate with **[Order lifecycle](/user-guide/orders/lifecycle)** and **Notifications** so status changes and emails are not double-implemented in conflicting places.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Automation Hub installed** | Sidebar + APIs |
+| **Event registry / Event Hub pattern** | Triggers come from the unified registry other hubs publish into |
+| **Contributing hubs** | Actions/triggers (Order, Notification, Attributes, …) only when installed |
+| **Notification Hub** (common) | “Send notification” style actions |
+| **Queue / automation worker** | Advance delayed runs |
+| **Permissions** | automation-hub flow / run / activity / settings keys as granted |
+| **Settings Hub** | Hosts Automation Hub settings page |
+
+**Not prerequisites:** Storefront Builder, Media, Tax, or social/marketing products.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Using Automation instead of a Notification Type | Overkill; harder triage | Prefer Notifications for single-message events |
+| Using Automation instead of Event Hub webhook | Wrong tool for “POST JSON to ERP” | Event Hub subscriptions |
+| Expecting actions from uninstalled hubs | Action missing in picker / run fails | Install contributing hub first |
+| Ignoring cancel-on-events | Delayed steps fire after cancel | Configure cancel events for commerce flows |
+| Debugging Notification Delivery Logs for a flow action | Wrong surface | Runs + Automation activity; Notifications only if the action sent a notification |
+| Assuming workers are always up | Runs stuck in delay | Check automation queue health with platform ops |
+| Duplicate logic in Rules + Automation | Price rules ≠ orchestration | Split pricing (Rules) from workflows (Automation) |
+
+## Related
+
+- [Event Hub overview](/user-guide/events/overview) — outbound webhooks
+- [Notifications overview](/user-guide/notifications/overview) — human channels
+- [Order lifecycle](/user-guide/orders/lifecycle) — status events that often trigger flows
+- [Rules overview](/user-guide/rules/overview) — pricing/validation, not orchestration
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

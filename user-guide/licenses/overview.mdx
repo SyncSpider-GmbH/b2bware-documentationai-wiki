@@ -1,0 +1,97 @@
+---
+title: Licenses overview
+description: Optional License Hub in B2Bware — license keys, pools, rules, configurations, and usage logs; how digital entitlements relate to products and orders, with dependencies and pitfalls.
+---
+
+**Licenses** in B2Bware Admin is the UI for optional **License Hub** — inventory and lifecycle of **license keys**, grouped in **pools**, governed by **license rules** / **configurations**, with **usage logs** for activation and validation events.
+
+| Concept | Role |
+| --- | --- |
+| **License Hub** | Optional installed package. When present and the operator can view it, Admin shows **Licenses** with five children. |
+| **License key** | Individual entitlement credential with status (e.g. available / sold / used / revoked / expired — dynamic from entity options). |
+| **License pool** | Product-scoped stock of keys with auto-assign helpers and available-count. |
+| **License rule** | Per-product licensing constraints (limits, expiration, reassignment policy). |
+| **Configurations** | Hub/product licensing configuration surface. |
+| **Usage logs** | Activation, deactivation, validation, status-check style audit rows. |
+
+**Mental model:** Products sell *what*; License Hub stores *which key was reserved/assigned/activated* for that digital entitlement. Pools are the warehouse of keys; rules constrain how keys may be used; usage logs prove what happened.
+
+<Callout kind="alert" collapsed="false">
+License Hub is **optional** (`hasLicenseHub`). If the tenant has not installed it, the **Licenses** sidebar group is absent — and soft license cards on order/product UIs are also absent. Demo Store presence does **not** mean every tenant has Licenses.
+</Callout>
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Rule Hub** | Price/cart promotions |
+| **Tax Rules** | VAT engine |
+| **Stock Locations / Stock Movements** | Physical / qty inventory |
+| **Customer Roles** | Admin/shop permissions — not license keys |
+
+## Why teams use Licenses
+
+1. **Sell digital entitlements** — Track keys separately from physical stock qty.
+2. **Pool-based assignment** — Keep a reservoir per product; auto-assign on fulfilment paths when configured.
+3. **Lifecycle control** — Activate / deactivate / revoke / validate without rewriting the order.
+4. **Bulk ops** — CSV import/export of keys with filters.
+5. **Support triage** — Usage logs answer “was this key activated / revoked?”
+6. **Policy per product** — License rules encode limits and expiry expectations.
+
+Use **[Stock Locations](/user-guide/products/stock-locations)** for physical on-hand qty. Use **Licenses** for key inventory and entitlement state.
+
+## How keys relate to catalog and orders
+
+1. **Define License Rules / Configurations** for products that need entitlement behaviour.
+2. **Create or import keys** into **pools** tied to products.
+3. On sale / fulfilment flows (tenant-specific automation or operators), keys move status (e.g. available → sold/used) and may assign to customers/orders.
+4. **Activate / validate / revoke** endpoints support post-sale lifecycle.
+5. **Usage logs** append actions for audit.
+6. Order Hub / Product Hub may show **soft-coupled** license panels when the hub is installed — absent when not.
+
+Statuses and log actions are **dynamic options** from entity configuration — treat them as tenant-configurable lists, not a frozen global enum.
+
+**Demo children → intent:** License Keys, License Pools, License Rules, Configurations, Usage Logs.
+
+## How to use the hub
+
+1. Confirm **Licenses** is visible (`hasLicenseHub`) and the role can manage keys/pools.
+2. Configure **rules/configurations** for entitlement products before promising auto-delivery.
+3. Load **pools** (manual create or CSV import); verify **available-count** before campaigns.
+4. Prefer pool **assign** over ad-hoc key copy-paste in email.
+5. Use **Usage Logs** when a buyer claims a key “doesn’t work”.
+6. Keep physical **stock** and **license pool depth** aligned operationally if both apply to the same SKU — they are separate systems.
+7. Revoke deliberately; revoked/expired keys should not be re-promised without a new assignment policy.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **License Hub installed** | Sidebar + APIs |
+| **Product Hub** | Pools/rules keyed to products |
+| **Order Hub** | Commercial assignment context; soft order cards |
+| **Customer Hub** | Assignees / customer context |
+| **Auth + admin access** | Admin writes; import/export |
+| **Notification Hub (optional)** | Pool warning notifications may exist in some tenants — not guaranteed |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Expecting Licenses on every tenant | Optional install | Install caveat; Demo ≠ all tenants |
+| Confusing License Rules with Rule Hub | Wrong promotions screen | Name hubs precisely |
+| Empty pool at sale time | Buyer gets order without key | Monitor available-count |
+| Treating key list as warehouse qty | Dual systems | Sync ops process if both used |
+| Hard-coding status strings in SOPs | Dynamic options | Read statuses from UI / list APIs |
+| Assuming order soft card always present | Install-gated | Check License Hub |
+
+## Related
+
+- [Edit a product](/user-guide/products/edit-product) — entitlement SKUs
+- [Manage products](/user-guide/products/manage-products)
+- [Order lifecycle](/user-guide/orders/lifecycle) — fulfilment / soft cards
+- [Stock Locations](/user-guide/products/stock-locations) — physical qty ≠ keys
+- [Stock Movements overview](/user-guide/stock-movements/overview) — qty ledger ≠ keys
+- [Rules overview](/user-guide/rules/overview) — do not conflate
+- [Customers overview](/user-guide/customers/overview) — assignees
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

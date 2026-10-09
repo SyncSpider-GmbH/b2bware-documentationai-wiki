@@ -3,6 +3,21 @@ title: File feed and Response Relay
 description: File-run history for file-feed integrations, Response Relay after export, and embedding Integration Hub in an ERP.
 ---
 
+## Transport vs administration
+
+Keep the transport pattern separate from bulk-file administration:
+
+- A **file feed** is an integration pattern for systems that exchange structured files on a schedule or through a configured location.
+- **Response Relay** is the configured relay path for returning or forwarding a response when that integration requires it.
+- Both are still **integration flows**: explain the expected file, direction, cadence, acknowledgement / error path, and ownership of the resulting records (Products, Orders, or Customers as the connector supports).
+- They are **not** the top-level Import / Export **Download history** screen. Download history records bulk job artifacts; it does not become the audit trail for every feed or relay exchange.
+
+<Callout kind="alert" collapsed="false">
+Do not use **Import / Export → Download history** as the history for connector file feeds or Response Relay. Use **Integration detail → File Runs** (and Sync Run Detail for relay counters) for integration transport history. Use [Import / Export](/user-guide/import-export/overview) only when the job is a bulk file transfer outside a connector.
+</Callout>
+
+Records carried by a feed still land in the entity hubs — see [How products work](/user-guide/products/how-products-work), [Orders overview](/user-guide/orders/overview), and [Customers overview](/user-guide/customers/overview) for the business side of those records.
+
 ## File feed
 
 File-feed integrations import from profiles (CSV, XLSX, XML, and related formats) instead of (or alongside) live API catalog connectors.
@@ -21,7 +36,7 @@ Response Relay forwards a **connector export response** (not the raw Hub record)
 
 ### How it works
 
-1. **Capture** — Every successful export stores the connector JSON in DataHub (keyed by source entity and Hub id).
+1. **Capture** — Every successful export stores the connector JSON in B2Bware (keyed by source entity and Hub id).
 2. **Routes** — On **Integration detail → Response Relay**, define source entity → target integration entity, field mapping, optional filters, and optional match config (how to find an existing remote id).
 3. **Forward** — After the export run completes, a background job maps the captured response, resolves a remote id when possible, pushes to the target connector, and may chain hops (capped).
 4. **Observability** — Sync Run Detail shows relay counters (`forwarded` / `skipped` / `failed`) under post-hooks / relay.
@@ -40,3 +55,4 @@ Tenant admins configure embed under **Integrations → Settings** (or Configurat
 
 - [Integrations overview](/user-guide/integrations/overview)
 - [Sync runs](/user-guide/integrations/sync-runs)
+- [Import / Export](/user-guide/import-export/overview)

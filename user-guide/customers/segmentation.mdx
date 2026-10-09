@@ -1,0 +1,160 @@
+---
+title: Segmentation
+description: Customer Groups in B2Bware Admin (UI: Segmentation) — customer vs company group types, how assignment drives group prices and checkout overrides, and how this differs from roles and analytics.
+---
+
+**Segmentation** lists and edits **Customer Groups** — named buckets used for commercial targeting. It is the Admin UI name for Customer Groups, **not** a separate analytics product.
+
+| Concept | Role |
+| --- | --- |
+| **Customer Group** (UI: Segmentation) | `name`, `description`, **`type`**, optional `default`, checkout-method allow/block lists + defaults. Admin: **Customers → Segmentation**. |
+| **Type `customer`** | Assignable on **`Customers.customer_group_id`** only. Drives person-level group price / permission / SKU identity. |
+| **Type `company`** | Assignable on **`Companies.company_group_id`** only. Organisation-level grouping — **not** interchangeable with customer-type groups. |
+| **Buyer identity for price** | Shop finalPrice uses the logged-in customer’s **`customer_group_id`** (and related price rows). Company group is a separate assignment axis for company masters. |
+| **Analytics / CDP “segments”** | **Out of scope** — do not equate. |
+
+**Mental model:** Segmentation = *price and policy labels you attach to people (and separately to companies)*. Creating a group does nothing until you **assign** it and maintain **group prices** (and any optional permission / SKU rows).
+
+Saving a group is **live**. There is **no** draft/deploy for the group entity itself.
+
+<Callout kind="info" collapsed="false">
+**Segmentation = customer groups.** The power is boring on purpose — a typed group id that Products, Orders, and optional modules already understand. Teach the **type / assignment / price** triangle, not analytics narratives.
+</Callout>
+
+**What Segmentation does *not* include:**
+
+- Behavioural or RFM auto-segmentation.
+- Marketing campaign audience builders.
+- A deploy lifecycle for the group master itself.
+- Automatic creation of Product Hub group price rows when a group is created.
+
+## Why teams use Segmentation
+
+1. **Group prices** — Product Hub live Price type `group` and pricelist items with `price_type=group` key off `customer_group_id`.
+2. **Shared buyer treatment** — One group for “retail”, “wholesale”, “VIP” instead of per-customer price rows.
+3. **Checkout-method overrides** — Allow/block billing or shipping methods per group when Order Hub is installed.
+4. **Optional catalog permissions** — Category permission module can key off group (install-gated).
+5. **Customer SKU ownership at group grain** — Map buyer part numbers once per group when the module is installed (customer → company → group precedence on resolve).
+6. **Registration default** — Settings `default_group_code` assigns new customers to a known group when groups are enabled.
+
+Use **Segmentation** when commercial rules vary by cohort. Use **Companies** for account masters. Use **Roles** for Admin/storefront permission keys (different system). Use **Pricelists / product Price** to actually set amounts.
+
+## How groups, assignment, and pricing hooks work
+
+### Group fields
+
+| Field | Notes |
+| --- | --- |
+| **name** | Required |
+| **description** | Optional |
+| **type** | Required; FE exposes **`customer`** and **`company`** |
+| **default** | Model flag (seed/settings interact with default group code) |
+| **billing_/shipping_methods_*** + defaults | Checkout-method overrides |
+
+Create/update via Customer Groups API; Admin route branding is Segmentation.
+
+### Assignment rules (critical)
+
+| Assignment | Valid group type | Invalid → |
+| --- | --- | --- |
+| `Customers.customer_group_id` | **`customer`** | Error: invalid / not of type customer |
+| `Companies.company_group_id` | **`company`** | Error: invalid / not of type company |
+
+Do not reuse one group row for both axes.
+
+### Detail tabs (install-gated where noted)
+
+| Tab | When |
+| --- | --- |
+| **Details** | Name, type, description, method overrides |
+| **Customers** | Members with this group (customer-type usage) |
+| **Checkout Methods** | When **Order Hub** installed |
+| **Category Permissions** | When **category permission module** installed |
+
+### Pricing hook (cross-hub)
+
+1. Create/select a **customer-type** group.
+2. Assign buyers (`customer_group_id`).
+3. Maintain **group** prices on products and/or deploy pricelist items that reference that `customer_group_id`.
+4. Buyer sees **finalPrice** that can prefer the group price for their group (then special/regular per Product Hub rules).
+5. Changing a customer’s group changes which group price applies **next** — it does not rewrite historical order lines.
+
+Customer SKUs (optional): owner_type `customer_group` + owner_id = group id; resolve precedence customer → company → group. See [Customer SKUs](/user-guide/products/customer-skus) and [Pricelists](/user-guide/products/pricelists) — do not duplicate the full finalPrice algorithm here.
+
+### Settings
+
+| Setting | Default (doc) | Effect |
+| --- | --- | --- |
+| `enable_customer_groups` | true | Allow categorizing into groups |
+| `default_group_code` | `general` | Group code assigned to new customers when applicable |
+
+Events such as group-changed notifications exist for integration side effects — not an Admin “campaign” feature.
+
+## Typical workflows
+
+### Introduce a wholesale cohort
+
+1. **Segmentation** → create group, **type = customer**, name e.g. Wholesale.
+2. Assign target customers’ **customer_group_id**.
+3. On Products, add **group** prices (and/or pricelist lines) for that group id.
+4. Verify storefront as a wholesale login (finalPrice).
+5. Optionally set checkout-method overrides on the group.
+
+### Organisation-level company group
+
+1. Create group **type = company**.
+2. Set companies’ **company_group_id**.
+3. Use for company-targeted policies / reporting labels as evidenced — **do not** expect this alone to select person group prices (those use the customer’s group).
+
+### Align registration defaults
+
+1. Ensure default group exists / code matches `default_group_code`.
+2. Keep `enable_customer_groups` on if cohorts are required.
+3. Spot-check newly registered customers’ group.
+
+### Customer SKUs at group grain (module installed)
+
+1. Create mappings with owner type **customer group**.
+2. Prefer group/company shared codes; override per customer when needed (see [Customer SKUs](/user-guide/products/customer-skus)).
+
+## Dependencies
+
+| Dependency | Why it matters |
+| --- | --- |
+| **Customer Hub** (core) | Owns Customer Groups; Segmentation UI |
+| **All Customers** | `customer_group_id` assignment |
+| **Companies** | `company_group_id` for company-type groups |
+| **Product Hub** | Group prices, finalPrice, pricelist deploy `customer_group_id` |
+| **Order Hub** | Checkout Methods tab; checkout still needs customer identity |
+| **Customer SKUs module** (optional) | `owner_type=customer_group` |
+| **Category permission module** (optional) | Permissions tab |
+| **Rules Hub** (optional) | Promotions may stack **on top** of provider/base/group price — do not conflate with groups |
+| **Customer Hub settings** | enable + default group code |
+| **Roles** | Orthogonal access control |
+
+Segmentation appears with Customer Hub. The Demo Store shows it under Customers.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Think Segmentation is analytics | Wrong product expectation | Call them **customer groups** in prose; UI label Segmentation |
+| Assign company-type group to a customer | Validation failure / no price match | Match type to assignment field |
+| Create groups but never set group prices | Buyers still see regular/special only | Maintain Product **group** prices or pricelist deploy |
+| Expect group change to rewrite old orders | Orders snapshot commerce at placement | Accept historical prices; fix going forward |
+| Confuse roles with groups | Roles = permission keys; groups = commercial cohort | Roles for Admin menu; Segmentation for price/policy |
+| Confuse company group with customer group | Different fields and types | Company masters → company-type; buyers → customer-type |
+| Assume category permission / checkout tabs always | Install-gated | Mark optional |
+| Disable groups in settings while prices still reference ids | Orphans / confusion | Keep settings, assignments, and price rows aligned |
+
+## Related
+
+- [Customers overview](/user-guide/customers/overview)
+- [Companies](/user-guide/customers/companies)
+- [Contacts](/user-guide/customers/contacts)
+- [Roles](/user-guide/customers/roles)
+- [How Products work](/user-guide/products/how-products-work)
+- [Pricelists](/user-guide/products/pricelists)
+- [Customer SKUs](/user-guide/products/customer-skus)
+- [Orders overview](/user-guide/orders/overview)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

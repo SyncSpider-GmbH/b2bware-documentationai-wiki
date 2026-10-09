@@ -1085,31 +1085,6 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/library-sections/{id}/thumbnail/upload:
-    post:
-      tags:
-        - Library Sections
-      summary: Upload Thumbnail
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
   /api/v1/apps/storefront-builder-hub/pages:
     get:
       tags:

@@ -68,7 +68,7 @@ Read-only audit trail. Each row is one HTTP attempt — request headers/body, re
   </Tab>
   <Tab title="Settings" icon="cog">
 
-Hub-level defaults (max retries, default timeout, backoff curve). Edited via FormGenerator schemas. See [Hub Settings](/concepts/hub-settings).
+Hub-level defaults (max retries, default timeout, backoff curve). Edited via FormGenerator schemas. See [Hub Settings](/core-concepts/hub-settings).
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -82,6 +82,45 @@ Hub-level defaults (max retries, default timeout, backoff curve). Edited via For
 
   </Tab>
 </Tabs>
+
+## Settings Groups
+
+EventHub settings are edited in the admin under **EventHub → Settings** (also available via the `/settings` endpoints in the Settings tab). Groups: `webhook_delivery`, `failure_handling`, `logs`. Defaults apply to every subscription unless overridden on the subscription. Hard caps always apply: timeout **30s**, max tries **5**. See also [Hub Settings](/core-concepts/hub-settings).
+
+<Expandable title="webhook_delivery — Settings Reference" default-open="true">
+
+**webhook_delivery** — Webhook Delivery
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `webhook_timeout_seconds` | number | `10` | Seconds to wait for the target endpoint. Hard-capped at 30. |
+| `webhook_max_tries` | number | `3` | Maximum delivery attempts including the first. Hard-capped at 5. |
+| `webhook_retry_backoff_type` | select (`exponential` / `linear`) | `exponential` | How retry delays scale between attempts. |
+| `webhook_initial_backoff_seconds` | number | `10` | Seconds before the first retry. |
+| `webhook_signing_algorithm` | select (`sha256` / `sha512`) | `sha256` | HMAC algorithm for outgoing webhook bodies. |
+
+</Expandable>
+
+<Expandable title="failure_handling — Settings Reference" default-open="false">
+
+**failure_handling** — Failure Handling
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `webhook_auto_pause_enabled` | boolean | `true` | Auto-pause subscriptions after N consecutive final failures. |
+| `webhook_failure_threshold` | number | `3` | Consecutive final failures before auto-pause (1–50). |
+
+</Expandable>
+
+<Expandable title="logs — Settings Reference" default-open="false">
+
+**logs** — Delivery Logs
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `delivery_log_retention_days` | number | `30` | Delivery log entries older than this are pruned (1–365). |
+
+</Expandable>
 
 ## Related
 

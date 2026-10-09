@@ -1,0 +1,140 @@
+---
+title: All Attributes
+description: Attribute definitions in B2Bware — types, codes, group-gated storefront and checkout flags, option values, system attributes, and how definitions differ from values on products and orders.
+---
+
+An **Attribute** is a **reusable field definition**: label, machine code, data type, optional group, behaviour flags, and (for option types) a catalogue of allowed **Attribute Values**.
+
+| Concept | Role |
+| --- | --- |
+| **Attribute** | Definition row on the Attributes table. Admin: **Attributes → All Attributes**. |
+| **`attribute_code`** | Machine key. On create, derived from `name` via snake_case. Used in APIs, sort/filter query params, notification variables. |
+| **Attribute Value** | Option row for select / radio / swatch / multiselect-style types (labels / translations). |
+| **Attributable Value** | Join of a chosen value (or persisted free-form value) onto a concrete Product / Order / Category / Customer / …. **Not** edited on the All Attributes list — edited on the target record. |
+| **Group** | Optional `group_id` → Attribute Group; the group’s **type** gates several flags. |
+
+**Mental model:** All Attributes = *the dictionary*. Product / Category / Order / Customer Attributes tabs (and checkout) = *filling in the blanks for one record*.
+
+Saving an attribute definition is **live** (no deploy). Changing a flag can immediately change storefront / admin behaviour and may queue **backfills** (sorting / admin filtering).
+
+## Why teams use All Attributes
+
+1. **One definition, many products (or orders / customers)** — Avoid per-SKU free-text chaos; standardize Brand, Color, PO Number, and similar fields.
+2. **Storefront behaviour switches** — PDP visibility, cart line display, search inclusion, layered / variant filters, checkout exposure — without code changes.
+3. **Variation axes** — Option attributes used by configurable products / “Use as variant” integration flows.
+4. **Ops grids** — Admin filtering / sorting flags expose dynamic columns (with backfill cost).
+5. **Uniqueness** — `unique_value` for SKU-like custom identifiers (value-bearing types only).
+6. **Notifications** — Notification flag for email / template variables when Notifications Hub consumes them.
+
+Create attributes **before** bulk product import or checkout go-live for those fields. Prefer select / radio for filterable facets; text for free-form notes.
+
+## How definitions work
+
+### Attribute types
+
+Admin type catalogue:
+
+`select`, `radio`, `multiselect`, `swatch`, `datetime`, `date`, `boolean`, `numeric`, `text`, `textarea`
+
+| Kind | Typical use |
+| --- | --- |
+| **Option-based** (`select`, `radio`, `multiselect`, `swatch`) | Facets, variations, controlled vocabularies; maintain **Attribute Values** |
+| **Free-form** (`text`, `textarea`, `numeric`, `date`, `datetime`, `boolean`) | Notes, measurements, yes/no, dates |
+
+### Core definition fields
+
+| Field | Meaning |
+| --- | --- |
+| **name** | Operator / storefront label (translatable) |
+| **attribute_code** | Auto from name on create; stable API key |
+| **type** | Input / option behaviour |
+| **group_id** | Parent Attribute Group (drives type context + flag legality) |
+| **required** | Validation when the surface enforces it (notably checkout for order + `use_in_checkout`) |
+| **default** | Default value payload — **not** “system protected” |
+| **position** | Ordering hint among attributes |
+| **display_options** / **meta_data** | JSON config bags for UI / extensions |
+
+### Group-gated flags
+
+These may be set **true** only when the parent group’s type is allowed:
+
+| Flag | Allowed group type(s) | Operator meaning |
+| --- | --- | --- |
+| `visible_on_the_product_page` | `product` | Show on PDP |
+| `show_in_cart` | `product` | Show under cart / order-summary line |
+| `use_in_search` | `product` | Include in product keyword search (searchable types only: text, textarea, select, multiselect, radio) |
+| `use_for_storefront_variant_filtering` | `product` | Filter control above variation **table** when used as variation axis |
+| `use_in_checkout` | `order` | Expose on storefront checkout |
+
+**Group-agnostic flags** (still subject to type rules where noted): sorting, admin filtering, notifications, storefront filtering helpers, `required`, `position`, `unique_value` (value-bearing types only: text, textarea, select, multiselect, radio).
+
+Operator notes:
+
+- **Sorting / admin filtering** — toggling triggers background **backfill** denormalizing values onto related documents.
+- **unique_value** — each value assignable to only one record system-wide (SKU-like).
+- **use_in_checkout** — ignored / rejected outside order groups.
+
+### Option values
+
+For option types, maintain the value catalogue (labels + translations). Product / order assignment typically passes attribute id + value (label or id), with optional auto-create on some write paths (product create / checkout) — useful for integrations, risky for uncontrolled vocabularies if left on in daily ops.
+
+### System (protected) attributes
+
+Hubs can register **system attributes** that must not be deleted (defaults include EAN, Brand/Manufacturer, Weight, Length, Width, Height, plus contributions from other hubs). Admin exposes a system flag so delete can be hidden. **Do not** treat the `default` column as “protected.”
+
+### Assignment (where values are entered)
+
+| Target | How values get onto the record |
+| --- | --- |
+| **Product** | Product create/update attributes payload; Attributes tab; variation / attach variation-attribute flows |
+| **Category** | Category Attributes tab / attributable APIs — **category-typed** groups |
+| **Order** | Checkout attributes when `use_in_checkout`; admin / automation thereafter |
+| **Customer / Company / Contact** | Respective hub attribute UIs / APIs when those group types exist |
+| **Automation** | Set-attribute actions against registered attributable targets |
+
+All Attributes does **not** assign values to thousands of products in one click — that is product bulk / import / automation territory.
+
+## Typical workflows
+
+1. **New product facet** — Group type `product` → attribute type `select` → add values → set filtering / PDP visibility as needed → assign on products → optional collection for PDP heading.
+2. **Configurable color / size** — Option attributes in a product group → attach as variation attributes on the configurable parent (Product Hub flows / integrations “Use as variant”).
+3. **Checkout PO number** — Group type `order` → text attribute → `use_in_checkout` (+ `required` if mandatory) → test Demo checkout.
+4. **SKU-like custom id** — Value-bearing type + `unique_value` → enforce single assignment.
+
+## Dependencies
+
+| Related | Why |
+| --- | --- |
+| **Attribute Groups** | Type context + flag gating. See [Attribute Groups](/user-guide/attributes/attribute-groups). |
+| **Attribute Collections** | Bundle definitions for storefront headings (members must match group type). See [Attribute Collections](/user-guide/attributes/attribute-collections). |
+| **Product Hub** | Specs, variations, PDP / cart / search flags. See [How Products work](/user-guide/products/how-products-work). |
+| **Order Hub** | Checkout attributes. See [Orders overview](/user-guide/orders/overview). |
+| **Customer Hub** | Account attributes. See [Customers overview](/user-guide/customers/overview). |
+| **Notifications / Automation** | Template vars / set-attribute |
+| **Integrations** | Mapping “Use as variant”; bulk attribute upsert patterns |
+
+Permissions: Attributes Hub attribute and attribute-value CRUD (plus attributable values where exposed).
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Create attributes with no / wrong group | Flags illegal; wrong hub surfaces | Create the typed **group** first |
+| Enable `use_in_checkout` on product attributes | Validation failure | Use an **order** group |
+| Enable search / sort / filter on every attribute | Noise + backfill load | Enable only for fields ops / buyers actually use |
+| `unique_value` on the wrong type | Rejected | Only value-bearing text / select family |
+| Delete system attributes | Hard stop | Leave seeded dimensions / brand / EAN alone |
+| Rename name expecting code to rewrite | Code set on create path; treat code as sticky for integrations | Plan codes via intentional naming at create |
+| Rely on auto-create option values in daily ops | Option catalogue drifts | Prefer curated Attribute Values |
+| Confuse All Attributes with the product list Attributes column | Definitions vs per-product values | Teach both screens in training |
+| Assume Magento attribute sets from categories | Not how B2Bware works | See [Categories](/user-guide/products/categories) + [Attributes overview](/user-guide/attributes/overview) |
+
+## Related
+
+- [Attributes overview](/user-guide/attributes/overview)
+- [Attribute Groups](/user-guide/attributes/attribute-groups)
+- [Attribute Collections](/user-guide/attributes/attribute-collections)
+- [How Products work](/user-guide/products/how-products-work)
+- [Edit a product](/user-guide/products/edit-product)
+- [Categories](/user-guide/products/categories)
+- [Orders overview](/user-guide/orders/overview)

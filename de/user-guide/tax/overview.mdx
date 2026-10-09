@@ -1,0 +1,109 @@
+---
+title: Tax — Überblick
+description: Optionaler Tax Hub in B2Bware — Tax Classes, Jurisdictions, Rates und Priority Rules; wie Rates für Cart- und Order-Zeilen aufgelöst werden, mit Install-Caveat, Abhängigkeiten und Fallstricken.
+---
+
+**Tax** in B2Bware Admin ist die UI für den optionalen **Tax Hub** — eine **regelbasierte Tax Engine**, die Rates für Cart- und Order-Line-Items aus **Tax Classes**, **Jurisdictions**, **Class×Jurisdiction-Rates** und **prioritätsgeordneten Tax Rules** mit Conditions auflöst.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Tax Hub** | Optional installiertes Package. Wenn vorhanden und der Operator es sehen darf, zeigt Admin **Tax** mit fünf Children. |
+| **Tax Class** | Product-seitige Steuerkategorie (z. B. standard / reduced / zero) — Products tragen typischerweise `tax_class_id`. |
+| **Jurisdiction** | Geografische Steuerzone (Country ISO2, zusammengesetzte State-Codes oder `GLOBAL`). |
+| **Tax Rate** (`TaxClassJurisdiction`) | Rate für ein **Class + Jurisdiction**-Paar. |
+| **Tax Rule** | Prioritätsgeordnetes Match, das auf eine Rate zeigt; die erste passende aktive Rule gewinnt. |
+| **Tax Rule Condition** | Constraints (E-Mail, Domain, Country, Region, Customer Group, VAT Number) mit `all` / `any` Match. |
+| **Tax Settings** | Hub-Defaults (z. B. Default Country für die Tax-Auflösung). |
+| **Calculate** | Preview-API für Cart-/Order-Tax vor oder neben Commerce-Flows. |
+
+**Mentales Modell:** Product Tax Class = *welche Art von Steuer*; Customer Location / VAT / Group = *welche Jurisdiction und welche Rule*; TaxClassJurisdiction = *die numerische Rate*; Tax Rules = *Ausnahmen und B2B-Overrides* (einschließlich 0%-Exemption-Style-Matches).
+
+<Callout kind="alert" collapsed="false">
+Tax Hub ist **optional** (`hasTaxHub`). Wenn der Tenant ihn nicht installiert hat, fehlt die Sidebar-Gruppe **Tax**. Core Products, Orders und Customers laufen weiter — Operatoren haben einfach keine Tax-Engine-UI. Demo-Store-Präsenz bedeutet **nicht**, dass jeder Tenant Tax hat.
+</Callout>
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Rule Hub** (Catalog / Cart Price Rules) | Promotions, Coupons, Shipping Rates — nicht VAT |
+| **License Rules** | License-Hub-Entitlement-Rules |
+| **Pricelists / finalPrice / Price Providers** | Pre-Tax-Sell-Price-Stack |
+| **Invoice Hub** | Sales Documents und Balances (kann Tax *anzeigen*; Tax Hub *berechnet* Rates) |
+
+## Warum Teams Tax nutzen
+
+1. **Korrekte B2B-VAT / Sales Tax am Checkout** — Die Rate hängt von Product Class *und* Buyer-Geografie / VAT-Status ab, nicht von einem einzigen globalen Prozentsatz.
+2. **Multi-Country-Kataloge** — Gleiche Tax Class, unterschiedliche Jurisdiction-Rates (z. B. AT 20 % vs. DE 19 % Standard).
+3. **B2B-Exemptions / Reverse-Charge-Style-Overrides** — Priority Rules mit VAT-Number- oder Group-Conditions (0%-Exemption-Rules können so konfiguriert werden, dass sie über Classes hinweg greifen).
+4. **Vorhersehbare Fallbacks** — Wenn keine Rule matcht, löst die Jurisdiction-Kette (specific → state → country → GLOBAL → Config-Default) weiterhin eine Rate für Products mit Tax Class auf.
+5. **Support-Triage** — „Falsche Tax auf der Order“ wird zu: Class am Product → Customer Country/VAT → matching Rule → Rate-Zeile — kein Rätselprozentsatz.
+
+Nutzen Sie **Tax Hub** für *welche Rate greift*. Nutzen Sie **[Pricelists](/de/user-guide/products/pricelists)** / **[Rules](/de/user-guide/rules/overview)** für *welchen Netto-Stückpreis vor Tax*. Nutzen Sie **Invoices** für *Billing Documents*, die Beträge nach dem Commerce darstellen.
+
+## Wie die Berechnung auflöst
+
+Commerce-Operatoren sollten diese Reihenfolge im Kopf behalten:
+
+1. **Customer Context auflösen** — Billing Address → Shipping Address → Tax-Settings-Default-Country → null; VAT über Billing → Company `vat_number`; E-Mail / Customer Group vom Customer.
+2. **Pro Line Item** — Aktive Tax Rules nach **Priority aufsteigend** laden (niedrigere Zahl = höhere Priority); **beim ersten Match stoppen**.
+3. **Tax-Class-Gate** — Wenn die Zeile `tax_class_id` hat, muss die Class der Rule matchen — **außer** die Rule ist eine Exemption (0 %-Rate), die auf alle Classes greifen kann.
+4. **Conditions** — `match_type` `all` (AND) oder `any` (OR); leere Conditions = Blanket-Match.
+5. **Fallback (keine Rule)** — TaxClassJurisdiction für die Product-Class über die Jurisdiction-Kette nachschlagen: specific id → state → country → GLOBAL → Env-/Config-Default-Rate (oft 0 %). Ohne Product Tax Class wird der Config-Default direkt verwendet.
+6. **Price Stack darunter** — Live Product Prices → `finalPrice` → optionaler Customer Price Provider → optionale Rule-Hub-Catalog-/Cart-Adjustments; Tax Hub besteuert danach die Commercial Line Amounts.
+
+**Demo-Children → Intent**
+
+| Child | Intent |
+| --- | --- |
+| Tax Classes | Classes definieren, die Products referenzieren |
+| Jurisdictions | Zonen definieren, an die Rates hängen |
+| Tax Rates | Class × Jurisdiction Prozentsätze |
+| Tax Rules | Priority Overrides + Conditions |
+| Tax Settings | Defaults (z. B. Default Country) |
+
+## So nutzen Sie den Hub
+
+1. Bestätigen Sie, dass **Tax** sichtbar ist (`hasTaxHub` + tax-hub View) und die Rolle Tax-Entities konfigurieren darf.
+2. Erstellen Sie **Tax Classes**, die zum Verkaufsmodell der Products passen (standard / reduced / exempt).
+3. Erstellen Sie **Jurisdictions**, in die Sie tatsächlich shippen oder billen (plus `GLOBAL`, wenn als Catch-all genutzt).
+4. Tragen Sie **Tax Rates** für jedes benötigte Class × Jurisdiction-Paar ein.
+5. Weisen Sie **`tax_class_id` an Products** zu (Edit Product / Catalog Ops) — ohne das ist das Fallback-Verhalten schwächer.
+6. Fügen Sie **Tax Rules** nur für Ausnahmen hinzu (VAT vorhanden, spezifische Groups, Country Overrides); halten Sie Priority-Bänder bewusst.
+7. Setzen Sie in **Tax Settings** den Default Country für unaufgelöste Addresses.
+8. Verifizieren Sie mit einem repräsentativen Buyer-Cart (korrekte Company-VAT + Addresses), bevor Sie dem Go-Live vertrauen.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Tax Hub installiert** | Sidebar + APIs (`hasTaxHub`) |
+| **Product Hub** | Products tragen `tax_class_id`; der Catalog ist die Classify-Oberfläche |
+| **Customer Hub** | Addresses, Companies (`vat_number`), Customer Groups in Conditions |
+| **Order Hub** | Cart-/Order-Lines sind das, was am Checkout / Preview besteuert wird |
+| **Auth + Admin-Access** | Admin-Konfiguration |
+| **Pricelists / Rules (optionaler Stack)** | Liefern die Netto-Beträge, die Tax Hub besteuert — sie konfigurieren keine VAT |
+
+**Keine Voraussetzungen:** Invoice Hub, Loyalty, License Hub, Procurement, Accounting — benachbarte Finance-Hubs mit eigenen Surfaces.
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Tax auf jedem Tenant erwarten | Optional Install | `hasTaxHub` prüfen; Demo ≠ alle Tenants |
+| Products ohne `tax_class_id` lassen | Schwache / nur-Default-Auflösung | Classes an verkaufbaren SKUs zuweisen |
+| Tax Rules mit Rule Hub verwechseln | Falscher Screen / falsches Ergebnis | Tax = VAT-Engine; Rules = Promotions |
+| Mehrere Blanket High-Priority Rules | First-Match-Überraschungen | Priority planen; zwei aktive Rules testen |
+| Billing- vs. Shipping-Address-Reihenfolge ignorieren | Falsches Country | Waterfall kennen: Billing → Shipping → Default |
+| Eine Pricelist „fixen“, um VAT zu „fixen“ | Falsche Schicht | Class / Rate / Rule korrigieren |
+| Behaupten, geseedete EU-Rates existieren überall | Tenant-Daten variieren | Rates für Live-Jurisdictions konfigurieren |
+
+## Verwandt
+
+- [Produkt bearbeiten](/de/user-guide/products/edit-product) — Tax Class zuweisen
+- [Pricelists](/de/user-guide/products/pricelists) — Nettopreis vor Tax
+- [Rules — Überblick](/de/user-guide/rules/overview) — Promotions ≠ Tax Rules
+- [Order Lifecycle](/de/user-guide/orders/lifecycle) — Checkout-Beträge
+- [Companies](/de/user-guide/customers/companies) — VAT / Addresses
+- [Segmentation](/de/user-guide/customers/segmentation) — Group Conditions
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

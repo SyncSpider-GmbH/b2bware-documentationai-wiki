@@ -1,0 +1,159 @@
+---
+title: ProcurementHub
+description: Purchase-side workflow — suppliers, purchase orders with line items, goods receipts with stock-in, and vendor bills with 3-way matching and payment.
+---
+
+## Overview
+
+ProcurementHub covers the buy side of the platform: **Suppliers**, **Purchase Orders** (PO), **Goods Receipts** (GR), and **Vendor Bills** (VB). Together they form the classic procure-to-pay flow:
+
+```
+Supplier → Purchase Order → Goods Receipt(s) → Vendor Bill → (match) → paid
+```
+
+**Base URL:** `api/v1/apps/procurement-hub/`
+
+<Callout kind="info">
+All endpoints require bearer authentication. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Suppliers" icon="truck">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/suppliers` | List suppliers |
+| POST | `/suppliers` | Create a supplier |
+| POST | `/suppliers/from-contact` | Create a supplier from an existing CustomerHub contact |
+| GET | `/suppliers/{id}` | Get supplier details |
+| PUT | `/suppliers/{id}` | Update a supplier |
+| DELETE | `/suppliers/{id}` | Delete a supplier |
+| GET | `/suppliers/statuses/list` | List valid supplier statuses |
+
+A supplier can be linked to a CustomerHub contact via `contact_id`; documents referencing the supplier store a `counterparty_snapshot` so they stay readable even if the contact changes later.
+
+  </Tab>
+  <Tab title="Purchase Orders" icon="clipboard">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/purchase-orders` | List purchase orders |
+| POST | `/purchase-orders` | Create a PO (with optional `line_items`) |
+| GET | `/purchase-orders/{id}` | Get PO details (`?include=lineItems,supplier`) |
+| PUT | `/purchase-orders/{id}` | Update a PO (replaces `line_items` when provided) |
+| DELETE | `/purchase-orders/{id}` | Delete a PO |
+| POST | `/purchase-orders/{id}/approve` | Move `draft` → `approved` |
+| POST | `/purchase-orders/{id}/send` | Move `approved` → `sent` |
+| POST | `/purchase-orders/{id}/receive` | Manually mark the PO received |
+| GET | `/purchase-orders/{id}/available-actions` | Actions valid for the current status |
+| GET | `/purchase-orders/statuses/list` | List valid PO statuses |
+
+**Statuses:** `draft` → `approved` → `sent` → `partially_received` → `received` (plus `cancelled`).
+
+**Line items** are passed as an array on create/update; `subtotal`, `tax` and `total` are recomputed from the lines:
+
+```json
+{
+  "supplier_id": 1,
+  "currency": "EUR",
+  "line_items": [
+    { "product_id": 12, "sku": "BOLT-M8", "description": "M8 bolts box", "quantity": 10, "unit_price": 5, "tax_rate": 20 }
+  ]
+}
+```
+
+Receiving normally happens through goods receipts (below), which update each line's `received_quantity` and move the PO to `partially_received` / `received` automatically.
+
+  </Tab>
+  <Tab title="Goods Receipts" icon="package">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/goods-receipts` | List goods receipts |
+| POST | `/goods-receipts` | Create a receipt (posting applies quantities to the PO) |
+| GET | `/goods-receipts/{id}` | Get receipt details (`?include=purchaseOrder,supplier`) |
+| PUT | `/goods-receipts/{id}` | Update a receipt (posting a draft applies it once) |
+| DELETE | `/goods-receipts/{id}` | Delete a receipt |
+| GET | `/goods-receipts/statuses/list` | List valid receipt statuses |
+
+**Statuses:** `draft`, `posted`, `cancelled`.
+
+Receipt `items` reference PO lines by **line id** (`purchase_order_line_id`), **SKU**, or **product_id** — whichever is easiest for the caller:
+
+```json
+{
+  "purchase_order_id": 5,
+  "supplier_id": 1,
+  "warehouse_id": 1,
+  "status": "posted",
+  "items": [
+    { "purchase_order_line_id": 9, "quantity": 6 },
+    { "sku": "NUT-M8", "quantity": 4 }
+  ]
+}
+```
+
+When a receipt is **posted** (created as posted, or a draft updated to posted):
+
+1. Each item is matched to a PO line and the line's `received_quantity` is increased. A receipt is applied **at most once** (`applied_at` guard) — re-saving never double-counts.
+2. Matched items are enriched with the resolved `purchase_order_line_id`, `sku`, `description`, and `product_id` so the document is self-describing.
+3. The PO status is refreshed to `partially_received` or `received`.
+4. A `GoodsReceiptCreatedEvent` is fired. When the StockMovements module is installed, it records an idempotent **stock-in** movement per item (`reason: receipt`) using the item's `product_id` and the receipt's `warehouse_id`.
+
+`warehouse_id` identifies the receiving warehouse (ProductHub warehouse); `warehouse_reference` is a free-text reference for an external WMS document.
+
+  </Tab>
+  <Tab title="Vendor Bills" icon="receipt">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/vendor-bills` | List vendor bills |
+| POST | `/vendor-bills` | Create a bill |
+| POST | `/vendor-bills/capture` | Capture a bill (e.g. from a PDF/extraction payload) |
+| GET | `/vendor-bills/{id}` | Get bill details (`?include=purchaseOrder.lineItems,supplier`) |
+| PUT | `/vendor-bills/{id}` | Update a bill |
+| DELETE | `/vendor-bills/{id}` | Delete a bill |
+| POST | `/vendor-bills/{id}/match` | 3-way match the bill against a PO |
+| POST | `/vendor-bills/{id}/pay` | Mark the bill paid (optional `reference`) |
+| GET | `/vendor-bills/{id}/available-actions` | Actions valid for the current status |
+| GET | `/vendor-bills/statuses/list` | List valid bill statuses |
+
+**Statuses:** `draft` → `captured` → `matched` → `paid` (plus `cancelled`).
+
+**3-way match** (`POST /vendor-bills/{id}/match` with `{"purchase_order_id": 5}`) verifies:
+
+- **Currency** — bill and PO currencies must match.
+- **Amount** — bill total within the configured tolerance of the PO total (`PROCUREMENT_HUB_MATCH_TOLERANCE`, default `0.01`).
+- **Goods received** — the PO must be `partially_received` or `received`.
+
+The outcome is stored on the bill as `match_report`. A failed check returns `422`; pass `"force": true` to override (the report records the forced state). A bill captured without its own `line_items` inherits a snapshot of the PO's lines on match (`provenance: purchase_order`).
+
+<Callout kind="info">
+Vendor bills can also be paid automatically by AccountingHub bank reconciliation: an imported debit bank transaction whose amount and reference match the bill marks it `paid`.
+</Callout>
+
+  </Tab>
+</Tabs>
+
+## Typical Flow
+
+```bash
+# 1. Create supplier and PO with lines
+POST /suppliers                { "name": "ACME GmbH" }
+POST /purchase-orders          { "supplier_id": 1, "currency": "EUR", "line_items": [ ... ] }
+POST /purchase-orders/1/approve
+POST /purchase-orders/1/send
+
+# 2. Receive goods (partial deliveries supported)
+POST /goods-receipts           { "purchase_order_id": 1, "warehouse_id": 1, "status": "posted", "items": [ ... ] }
+
+# 3. Capture and match the supplier invoice
+POST /vendor-bills/capture     { "supplier_id": 1, "invoice_number": "ACME-2026-001", "total": 110, "currency": "EUR" }
+POST /vendor-bills/1/match     { "purchase_order_id": 1 }
+
+# 4. Pay (manually, or automatically via bank reconciliation)
+POST /vendor-bills/1/pay       { "reference": "SEPA-123" }
+```

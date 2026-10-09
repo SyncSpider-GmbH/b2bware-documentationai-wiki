@@ -1,0 +1,75 @@
+---
+title: Integration anlegen
+description: Den Assistenten im Integration Hub durchlaufen — Connector, Authentifizierung, Entscheidungen, Zuordnung, Vorschau und Aktivierung.
+---
+
+## Bevor Sie beginnen
+
+- Wissen Sie, welchen **Connector** Sie benötigen (Shop-URL, API-Schlüssel oder OAuth-App-Zugangsdaten des Anbieters).
+- Entscheiden Sie für jede Entität, die Sie synchronisieren, zwischen **Import** und **Export**.
+- Bei ERP-Iframe-Installationen verwenden Sie [Integration Hub einbetten (EN)](/help-center/guides/embed-integration-hub) anstelle des vollständigen Admin-Assistenten oder zusätzlich dazu.
+
+### Checkliste vor dem Anlegen
+
+Treffen Sie diese Entscheidungen, bevor Sie den Assistenten öffnen:
+
+1. **Legen Sie die maßgebliche Quelle** für jede Entität fest: Produktkatalog, Bestellstatus, Kunden-/Kontodaten oder das externe System.
+2. **Bestätigen Sie die externe Kennung** und die B2Bware-Kennung, über die abgeglichen wird (zum Beispiel die SKU oder ein vereinbarter Kunden- oder Bestellschlüssel).
+3. **Legen Sie Richtung und Zuständigkeit für Schreibvorgänge fest**, bevor Sie eine bidirektionale Verbindung aktivieren; sonst können zwei Systeme einander überschreiben.
+4. **Prüfen Sie Berechtigungen, Zugangsdaten sowie die Entitäten und Operationen, die der Connector unterstützt.**
+5. **Beginnen Sie mit einem engen Umfang oder einem Testsatz**, sofern der Connector das unterstützt.
+
+Behandeln Sie [So funktionieren Produkte](/de/user-guide/products/how-products-work), [Übersicht Bestellungen](/de/user-guide/orders/overview) und [Übersicht Kunden](/de/user-guide/customers/overview) als **Konzeptseiten** für die Datensätze, die Sie synchronisieren — nicht als alternative Einrichtungspfade. Für eine einmalige Dateiübertragung verwenden Sie stattdessen [Import / Export](/de/user-guide/import-export/overview): Ein dateibasierter Massenjob ist ein anderes Betriebsmodell als ein fortlaufender Connector.
+
+<Callout kind="info" collapsed="false">
+Wählen Sie **Integrationen** für einen fortlaufenden Connector samt Zuordnungen und Läufen. Wählen Sie **Import / Export**, wenn das beabsichtigte Ergebnis eine herunterladbare Datei oder ein Artefakt im Download-Verlauf ist — keine Live-Sync-Verbindung.
+</Callout>
+
+Unter **Integrationen → Anlegen** hat der Assistent sechs Schritte. Sie können einen **Entwurf speichern** und später zurückkehren; **Zurück zu Integrationen** führt zur Liste zurück, ohne einen gespeicherten Entwurf zu verwerfen.
+
+## Schritte im Assistenten
+
+<Steps>
+  <Step title="Connector" icon="plug">
+    Wählen Sie einen Connector aus der Galerie (Kategoriefilter gelten). Die **Einstellungen** des Mandanten können Connectoren ausblenden oder eine Höchstzahl an Integrationen vorgeben — ist das Anlegen gesperrt, muss ein Administrator die Kataloggrenzen anheben.
+  </Step>
+  <Step title="Authentifizierung" icon="lock">
+    Geben Sie die Zugangsdaten aus dem Authentifizierungsschema des Connectors ein, oder nutzen Sie **Verbinden** bei OAuth2-Connectoren (Autorisierung im Fenster des Anbieters; Tokens werden verschlüsselt an der Integration gespeichert). Nutzen Sie **Verbindung testen**, bevor Sie fortfahren.
+  </Step>
+  <Step title="Entscheidungen" icon="sliders">
+    Legen Sie für jede Entität, die der Connector unterstützt, die Richtung fest (Import / Export), aktivieren oder deaktivieren Sie die Entität und beantworten Sie die **Entscheidungs**fragen des Blueprints (Sync-Richtlinien, Medien, Varianten und connector-spezifische Standardwerte).
+  </Step>
+  <Step title="Feldzuordnung" icon="git-branch">
+    Ordnen Sie Quellfelder B2Bware zu (beim Export umgekehrt). Nutzen Sie Kernfelder, Attribute und dynamische Felder, wenden Sie Transformationen an und markieren Sie Variantenachsen mit **Als Variante verwenden**. Siehe [Zuordnung und Filter](/de/user-guide/integrations/mapping-and-filters).
+  </Step>
+  <Step title="Vorschau" icon="eye">
+    Prüfen Sie eine beispielhaft zugeordnete Nutzlast, bevor Sie live schalten. Beheben Sie Lücken in der Zuordnung oder in den Entscheidungen, wenn die Vorschau nicht stimmt.
+  </Step>
+  <Step title="Benennen und aktivieren" icon="check-circle">
+    Benennen Sie die Integration, wählen Sie einen **Zeitplan** (Manuell, alle 15 Minuten, stündlich, alle 6 Stunden oder täglich) und aktivieren Sie sie. Manuell bedeutet: Es wird nur synchronisiert, wenn ein Betreiber oder die API den Lauf auslöst.
+  </Step>
+</Steps>
+
+## Einfache und erweiterte Oberfläche
+
+Wenn der Integration Hub in einer **Einbettung** läuft, kann der Mandant Folgendes anbieten:
+
+| Modus | Typische Nutzung |
+| --- | --- |
+| **Einfach** | Zugangsdaten, Entscheidungen, Aktivieren, Synchronisieren — blendet die detaillierte Feldzuordnung und die Vorschau aus. |
+| **Erweitert** | Vollständiger Assistent mit sechs Schritten. |
+| **Beides** | Standardmäßig einfach, mit einem Umschalter zum vollständigen Assistenten. |
+
+In der vollständigen Admin-Oberfläche von B2Bware erhalten Sie immer den vollständigen Assistenten.
+
+## Nach der Aktivierung
+
+- Öffnen Sie das **Integrationsdetail**, um Synchronisierungen auszuführen, Entitäten zu bearbeiten, Filter zu konfigurieren oder Response Relay einzurichten.
+- Nutzen Sie **Bearbeiten**, um Verbindung, Zuordnung oder Zeitplan zu ändern.
+- **Duplizieren**, **Konfiguration exportieren** und **Konfiguration importieren** kopieren Einrichtungen zwischen Mandanten oder Umgebungen (Berechtigungen erforderlich).
+
+## Nächste Schritte
+
+- [Zuordnung und Filter](/de/user-guide/integrations/mapping-and-filters)
+- [Sync-Läufe](/de/user-guide/integrations/sync-runs)
+- [Übersicht Integrationen](/de/user-guide/integrations/overview)

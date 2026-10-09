@@ -1,0 +1,451 @@
+openapi: 3.0.0
+info:
+  title: A1TopUpModule API
+  description: >-
+    License-driven prepaid top-up API. All endpoints live under
+    /api/v1/apps/a1-top-up and require auth:api + shop.deny middleware.
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Settings
+  - name: Rules
+  - name: Logs
+paths:
+  /api/v1/apps/a1-top-up-module/settings:
+    get:
+      tags:
+        - Settings
+      summary: Get Full Settings Tree
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Update Full Settings Tree
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                connection:
+                  base_url: https://api.a1.example.com/recharge/voucher
+                  auth_username: a1user
+                  auth_password: s3cr3t
+                trigger:
+                  default_trigger_status: activated
+                  post_success_status: used
+                default_mapping:
+                  msisdn_source: order_meta
+                  msisdn_path: meta_data.mobile_number
+                  msisdn_attribute_id: null
+                  amount_source: order_line_price
+                  amount_value: null
+                  amount_attribute_id: null
+                  amount_license_key_field: null
+                  voucher_pin_source: license_key
+                  voucher_pin_license_key_field: license_key
+                  voucher_pin_attribute_id: null
+                retry:
+                  auto_retry_enabled: true
+                  max_attempts: 3
+                  retry_backoff_seconds: 60
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/a1-top-up-module/settings/groups:
+    get:
+      tags:
+        - Settings
+      summary: List Settings Groups
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/a1-top-up-module/settings/connection:
+    get:
+      tags:
+        - Settings
+      summary: Get Settings Group
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Update Settings Group
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                base_url: https://api.a1.example.com/recharge/voucher
+                auth_username: a1user
+                auth_password: s3cr3t
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/a1-top-up-module/settings/connection/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset Settings Group
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/a1-top-up-module/rules:
+    get:
+      tags:
+        - Rules
+      summary: List Rules
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: product
+        - name: pagination[page]
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: pagination[perPage]
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Rules
+      summary: Create Rule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                product_id: 42
+                trigger_status: activated
+                post_success_status: used
+                msisdn_source: order_meta
+                msisdn_path: meta_data.mobile_number
+                msisdn_attribute_id: null
+                amount_source: fixed
+                amount_value: 9.99
+                amount_attribute_id: null
+                amount_license_key_field: null
+                voucher_pin_source: license_key
+                voucher_pin_license_key_field: license_key
+                voucher_pin_attribute_id: null
+                enabled: true
+                priority: 10
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/a1-top-up-module/rules/{rule_id}:
+    get:
+      tags:
+        - Rules
+      summary: Show Rule
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: rule_id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Rules
+      summary: Update Rule
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                enabled: false
+                priority: 20
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: rule_id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Rules
+      summary: Delete Rule
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: rule_id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/a1-top-up-module/logs:
+    get:
+      tags:
+        - Logs
+      summary: List Logs
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: pagination[page]
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: pagination[perPage]
+          in: query
+          schema:
+            type: integer
+          example: '25'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/a1-top-up-module/logs/{log_id}:
+    get:
+      tags:
+        - Logs
+      summary: Show Log
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: log_id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    patch:
+      tags:
+        - Logs
+      summary: Update Log (admin)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                status: failed
+                error_message: manually flagged
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: log_id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Logs
+      summary: Delete Log
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: log_id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/a1-top-up-module/logs/{log_id}/retry:
+    post:
+      tags:
+        - Logs
+      summary: Retry Log
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: log_id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

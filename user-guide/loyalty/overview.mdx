@@ -1,0 +1,102 @@
+---
+title: Loyalty overview
+description: Optional Loyalty Hub in B2Bware — programs, wallets, ledger, and checkout earn/redeem; how loyalty sits beside pricelists and Rule Hub, with dependencies and pitfalls.
+---
+
+**Loyalty** in B2Bware Admin is the UI for optional **Loyalty Hub** — programs that **earn** and **redeem** value (points and/or credit) into **wallets**, with an append-style **ledger**, optional **POS receipt** submissions, **rewards**, and scheduled **payout runs**.
+
+| Concept | Role |
+| --- | --- |
+| **Loyalty Hub** | Optional installed package. When present and the operator can view it, Admin shows **Loyalty** with program, wallet, and ops children. |
+| **Program** | Base earn / redeem / payout configuration; B2B (`company`) or B2C (`customer`) account mode. |
+| **Program action** | Time-bound boost (e.g. double points window). |
+| **Wallet** | Balance container for a company or customer (pending / available / reserved). |
+| **Ledger** | Audit trail of balance movements. |
+| **Receipt submissions** | POS upload → admin approve/reject earn path. |
+| **Rewards** | Reward catalogue / fulfilment surface (overview only here). |
+| **Payout runs** | Batch release of pending credit (scheduled). |
+| **Settings** | Hub-level loyalty configuration. |
+
+**Mental model:** Loyalty sits **beside** the price stack. Pricelists / providers / Rule Hub decide *list and promo prices*. Loyalty decides *whether the buyer earns or spends program value* on eligible activity — including checkout redemption hooks in Order Hub.
+
+<Callout kind="alert" collapsed="false">
+Loyalty Hub is **optional** (`hasLoyaltyHub`). If the tenant has not installed it, the **Loyalty** sidebar group is absent (and no company loyalty tab). Demo Store presence does **not** mean every tenant has Loyalty.
+</Callout>
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Rule Hub coupons** | Promo codes / cart discounts (may coexist; different engine) |
+| **Segmentation / customer groups** | Who is targeted — often inputs to eligibility, not the wallet itself |
+| **Invoice payments** | AR cash application |
+| **Company notes / tags** | CRM chrome — not ledger balances |
+
+## Why teams use Loyalty
+
+1. **Retain B2B accounts** — Company-mode wallets so points/credit accrue to the buying organisation.
+2. **Earn on orders** — Credit activity when orders are created / change status (event-driven).
+3. **Redeem at checkout** — Spend points or credit during Order Hub checkout (server-authoritative parameters).
+4. **POS / offline earn** — Receipt submission workflow when storefront order events are not the only source.
+5. **Controlled release** — Pending balances → payout runs / expiry jobs rather than instant unrestricted credit.
+6. **Audit** — Ledger answers “why did this wallet change?”
+
+Prefer **[Rules](/user-guide/rules/overview)** for short catalog/cart promotions. Prefer **Loyalty** for ongoing earn/burn programs tied to wallets.
+
+## How it fits the commerce spine
+
+1. **Configure a Program** (mode: company vs customer) and eligibility.
+2. **Wallets** exist per qualifying company/customer.
+3. **Earn** — Order events and/or approved receipt submissions (and program actions as multipliers).
+4. **Ledger** records movements; balances expose pending / available / reserved.
+5. **Redeem** — Checkout may accept loyalty redemption fields (points, credit, fixed-point line payment when product attributes mark redeemability).
+6. **Payout / expiry jobs** — Scheduled maintenance of pending and expiring balances.
+7. **Price stack remains separate** — Live prices → `finalPrice` → providers → Rule Hub; loyalty redemption adjusts payable amounts at checkout rather than rewriting pricelist rows.
+
+**Product attribute flags (when Attributes Hub is present):** e.g. earn eligibility / redeemable / fixed redeem points — treat as optional catalog hooks, not mandatory for every SKU.
+
+**Demo children → overview intent only:** Programs, Program actions, Wallets, Ledger, Receipt submissions, Rewards, Payout runs, Settings.
+
+## How to use the hub
+
+1. Confirm **Loyalty** is visible (`hasLoyaltyHub`) and the role can manage programs/wallets.
+2. Create the **Program** with the correct account mode (company vs customer) before expecting wallets.
+3. Align **Companies / Customers** membership with that mode; use [Segmentation](/user-guide/customers/segmentation) / groups only as eligibility inputs.
+4. Decide earn sources: order events and/or receipt approvals.
+5. Train checkout/support on redemption parameters — themes must not invent balances client-side.
+6. Use **Ledger** + **Payout runs** for dispute triage; do not edit “memory” outside ledgered flows.
+7. Keep Rule Hub coupons documented separately so support does not confuse a coupon with a wallet redeem.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Loyalty Hub installed** | Sidebar + APIs |
+| **Customer Hub** | Companies/customers as wallet owners; optional company tab |
+| **Order Hub** | Earn events + checkout redemption |
+| **Product Hub** | Catalog context; optional attribute flags via Attributes Hub |
+| **Rule Hub (soft)** | Shared condition evaluation patterns for eligibility |
+| **Notification Hub (optional)** | Expiry / program notices |
+| **Auth + admin access** | Admin configuration |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Expecting Loyalty everywhere | Optional install | Install caveat; Demo ≠ all tenants |
+| Confusing coupons with wallet redeem | Wrong engine | Coupons = Rule Hub; wallets = Loyalty |
+| Wrong program mode (company vs customer) | Earn posts to nowhere useful | Match B2B vs B2C design |
+| Editing pricelists to “pay with points” | Wrong layer | Use redemption + product redeem flags |
+| Ignoring pending vs available | Buyers cannot redeem pending | Explain payout / release jobs |
+| Assuming Demo reward depth = all tenants | Config differs | Overview first; expand later |
+
+## Related
+
+- [Companies](/user-guide/customers/companies) — B2B wallet owners
+- [Segmentation](/user-guide/customers/segmentation) — eligibility groups
+- [Order lifecycle](/user-guide/orders/lifecycle) — earn / checkout redeem
+- [Rules overview](/user-guide/rules/overview) — coupons vs loyalty
+- [Pricelists](/user-guide/products/pricelists) — price stack under loyalty
+- [Attributes overview](/user-guide/attributes/overview) — optional product flags
+- [Invoices overview](/user-guide/invoices/overview) — AR ≠ wallets
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

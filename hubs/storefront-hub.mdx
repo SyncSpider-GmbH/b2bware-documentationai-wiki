@@ -1,0 +1,164 @@
+---
+title: StorefrontHub
+description: Blade storefront themes, custom domains, App Settings, and tenant_config flags for guest access, checkout, SEO, and analytics.
+---
+
+## Overview
+
+StorefrontHub renders the customer storefront. Admin APIs manage themes, theme versions/uploads, custom domains, proposal preview URLs, and App Settings. Runtime behaviour is also driven by the active theme pointer (`storefronthub.active_theme_id`) and the installation-scoped `tenant_config` row exposed to themes as `$store` / `storeFlags()`.
+
+**Base URL:** `api/v1/apps/storefront-hub/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication and admin access (plus `storefronthub.installation`). See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas, see the [StorefrontHub API Reference](/api-reference/storefront-hub).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Themes" icon="palette">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/info` | Storefront hub info |
+| GET | `/theme-translation-keys` | Static `@t()` keys from default + active theme |
+| GET | `/themes` | List themes |
+| POST | `/themes` | Upload a theme (rate-limited) |
+| GET | `/themes/{theme}` | Get theme details |
+| GET | `/themes/{theme}/download` | Download a theme archive |
+| DELETE | `/themes/{theme}` | Delete a theme |
+| POST | `/themes/reset-default` | Reset to the platform default theme |
+| GET | `/themes/download-default` | Download the bundled default theme |
+
+**Theme uploads**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/theme-uploads` | List theme uploads |
+| GET | `/theme-uploads/{upload}` | Get upload details |
+
+**Theme versions**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/theme-versions` | List theme versions |
+| GET | `/theme-versions/{version}` | Get version details |
+| GET | `/theme-versions/{version}/diff` | Diff a version |
+| POST | `/theme-versions/{version}/activate` | Activate a version |
+| POST | `/theme-versions/{version}/rollback` | Roll back to a version |
+| POST | `/theme-versions/{version}/preview` | Create a preview for a version |
+
+  </Tab>
+  <Tab title="Custom domains" icon="globe">
+
+One domain per store. Ingress serves only verified (`active`) domains.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/custom-domains` | Get the custom domain |
+| POST | `/custom-domains` | Set / create the custom domain |
+| POST | `/custom-domains/verify` | Verify DNS A record |
+| DELETE | `/custom-domains` | Remove the custom domain |
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/proposals/{quote}/preview-url` | Customer-facing preview URL for a proposal/quote |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List App Settings groups |
+| GET | `/settings` | Get App Settings |
+| POST | `/settings` | Update App Settings |
+| POST | `/settings/reset` | Reset App Settings |
+| GET | `/settings/{group}` | Get one group |
+| POST | `/settings/{group}` | Update one group |
+| POST | `/settings/{group}/reset` | Reset one group |
+
+The `/settings` routes cover FormGenerator App Settings (e.g. which storefront to open). The keys below are the **runtime** theme pointer and `tenant_config` flags exposed to themes as `$store` / `storeFlags()`.
+
+See also [Hub Settings](/core-concepts/hub-settings).
+
+  </Tab>
+</Tabs>
+
+## Settings
+
+<Expandable title="active_theme — Theme pointer" default-open="true">
+
+**`storefronthub.active_theme_id`** — Active theme
+
+Stored as GeneralConfig `value.theme_id`. When unset, the platform default theme is used.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `theme_id` | number \| null | `null` | Active Theme id for the current installation. |
+
+</Expandable>
+
+<Expandable title="tenant_config — Store flags" default-open="true">
+
+**`tenant_config`** — Capability flags (`storeFlags()`)
+
+Public names match the theme `$store` bag. Underlying storage keys are noted where they differ.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `home_page` | text | `/products` | Landing path for `/` (empty or `/` → `/products`). Stored as `home_page`. |
+| `allow_guest` | boolean | `true` | Guests may browse. Inverse of `require_login_to_use_storefront` (default `false`). |
+| `allow_guest_checkout` | boolean | `false` | Guests may complete checkout without an account. |
+| `restrict_registration` | boolean | `false` | Self-service registration disabled. Stored as `register.restricted`. |
+| `company_required` | boolean | `false` | Registration must collect a company block. Stored as `register.company.required`. |
+| `coupons_enabled` | boolean | `true` | Coupon entry on cart/checkout. Stored as `checkout.enable_coupons`. |
+| `require_login_for_prices` | boolean | `false` | Hide prices from anonymous visitors. |
+| `delivery_date_enabled` | boolean | `true` | Preferred delivery date per cart line. Stored as `checkout.allow_custom_delivery_date`. |
+| `zero_price_as_quote` | boolean | `false` | Show “Request quote” for zero prices. Stored as `treat_zero_prices_as_request_quote`. |
+| `favorites_enabled` | boolean | `true` | Wishlist / favorites. Stored as `favorites.enabled`. |
+| `reorder_enabled` | boolean | `true` | Re-order from account order history. Stored as `reorder.enabled`. |
+| `order_documents_enabled` | boolean | `false` | Print order documents from order details. Stored as `allow_order_documents`. |
+| `catalog_export_enabled` | boolean | `false` | Catalog export + public product feed. Stored as `catalog_export.enabled`. |
+| `quick_order_enabled` | boolean | `false` | Quick Order & CSV upload. Stored as `quick_order.enabled`. |
+| `mcp_enabled` | boolean | `false` | Buyers may connect an AI assistant over MCP. Stored as `mcp.enabled`. |
+| `variation_display_mode` | select (`table` / `dropdown`) | `table` | How configurable variants are presented. Stored as `product.variation_display_mode`. |
+| Default sorting attribute | number \| null | `null` | Optional product attribute id stored as `product.default_sort_attribute_id`. Applied on All Products and category listings when the URL has no `sort`. Direction is `product.default_sort_direction` (`asc` default, or `desc`). Only attributes flagged `use_for_sorting` are selectable, and a saved id that is no longer sortable is ignored. An explicit `sort` (including `relevance`) wins. Themes see the result as `$sort` (`<attribute_code>` or `-<attribute_code>`), not a new `$store` key. |
+| `branch_display_mode` | select (`children` / `products` / `both`) | `children` | Parent category pages with children. Stored as `categories.branch_display_mode`. |
+| `indexable` | boolean | `true` | Search engines may index. False when `seo.robots` is `noindex`. |
+
+</Expandable>
+
+<Expandable title="tenant_config — Analytics" default-open="false">
+
+**`analytics.*`** — Google Analytics / Tag Manager
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `analytics.enabled` | boolean | `false` | Opt-in master switch for Google tags. |
+| `analytics.method` | select (`gtm` / `ga4`) \| null | `null` | Chosen delivery method; the other tag is not loaded. |
+| `analytics.gtm_container_id` | text | `""` | GTM container id (e.g. `GTM-XXXXXXX`). |
+| `analytics.ga4_measurement_id` | text | `""` | GA4 measurement id (e.g. `G-XXXXXXXXXX`). |
+| `analytics.item_brand_attribute` | text | `""` | Product attribute code exposed as GA4 `item_brand`. |
+
+</Expandable>
+
+<Expandable title="tenant_config — Contact & branding" default-open="false">
+
+**Contact & store identity** (admin store-setup / Appearance)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `name` | text | `null` | Store display name. |
+| `contact.email` | text | `null` | Contact email in header / footer. |
+| `contact.phone` | text | `null` | Contact phone in header / footer. |
+| `theme.light.logo*` | URL | `null` | Light logo (+ wordmark preferred) public URL. |
+| `theme.dark.logo*` | URL | `null` | Dark logo; falls back to light when unset. |
+| `theme.light.favicon` | URL | `null` | Favicon public URL. |
+| `theme.*.colors` / `storefront_palette` / `fonts` | object | `{}` | Brand colours, Storefront palette, and fonts from Appearance. |
+
+</Expandable>

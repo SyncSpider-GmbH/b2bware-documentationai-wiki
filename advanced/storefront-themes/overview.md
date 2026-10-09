@@ -52,13 +52,14 @@ here.
 | [View data](view-data.md) | Globals, `$store`, feature flags, pricing, variants |
 | [AJAX & runtime](ajax-and-runtime.md) | Sections, events, `window.Storefront` |
 | [Catalog](catalog.md) | Facets, sorting, filters, pagination |
-| [SEO & images](seo-and-images.md) | `@storefrontSeo`, `@storefrontImage` |
+| [SEO & images](seo-and-images.md) | `@storefrontSeo`, `@storefrontImage` (hard rule for every `media_url`; Bunny Dynamic Images API) |
 | [Server data & auth](fetch-and-auth.md) | `@fetch`, `@storefrontAuthToken`, API reference |
 | [Analytics & slots](analytics-and-slots.md) | Consent analytics, `@storefrontSlot` |
 | [Page recipes](page-recipes.md) | Per-page view-data contracts |
 | [Styling](styling.md) | Tailwind-first, the head cascade |
 | [Design tokens](tokens.md) | Full token reference, dark mode |
 | [Author checklist](checklist.md) | Override strategy, pre-upload checklist |
+| [Site to theme (visual parity)](/resources/site-to-theme/overview) | Measure-first rebuild of any live site section into Blade |
 
 ## Keeping an old download current
 

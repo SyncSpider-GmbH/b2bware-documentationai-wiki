@@ -1,0 +1,77 @@
+---
+title: Wie Produkte funktionieren
+description: Warum der Products-Hub existiert — Katalog, Preissystem, Pricelist-Deploy, Abhängigkeiten, Installation und Berechtigungen — keine Klick-Tour.
+---
+
+**Products** verantwortet den verkaufbaren Katalog in B2Bware Admin: Produkte (einschließlich konfigurierbarer Varianten), Kategorien, Multi-Warehouse-Bestand, Preise mehrerer Typen und deploybare Preislisten, Lieferanten sowie zugehörige Medien/Übersetzungen.
+
+Nutzen Sie diese Seite, um das System zu verstehen. Die Alltags-Oberflächen behandeln die bestehenden Products-How-tos am Seitenende.
+
+## Was Products besitzt (Sidebar)
+
+Wenn Products installiert ist und Sie es sehen dürfen, enthält die Sidebar typischerweise:
+
+| Bereich | Wofür er da ist |
+| --- | --- |
+| **All Products** | Produkte anlegen und pflegen — Typen, Varianten, Attribute, Bestands-/Preis-Tabs, SEO, Cross-Sell/Upsell und mehr |
+| **Categories** | Hierarchische Katalogstruktur |
+| **Stock locations** | Lager und Bestand pro Produkt/Standort |
+| **Pricelists** | **Vorbereitete** Preismengen — Live-Katalogpreise ändern sich erst beim **Deploy** |
+| **Vendors** | Lieferanten-/Vendor-Datensätze und Produktverknüpfungen |
+| **Customer SKUs** | Käuferspezifische Artikelnummern — nur voll aktiv, wenn das optionale Customer-SKU-Modul installiert ist |
+
+Products ist ein **Kern**-Hub (Teil des Commerce-Rückgrats mit Orders, Customers, Auth und Settings). Siehe [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together).
+
+## Abhängigkeiten
+
+| Verwandter Hub / Modul | Warum es zählt |
+| --- | --- |
+| **Attributes** | Dynamische Produktattribute und Variationsattribute für Configurables |
+| **Customers** | Gruppenpreise (Kundengruppen / Segmentation); Produkt-Berechtigungs-Tabs, wenn diese Module installiert sind |
+| **Orders** | Warenkorb und Checkout nutzen Produkte und aufgelöste Preise |
+| **Rules** (optional) | Katalog-/Warenkorb-Promotions setzen auf Basis-/Provider-Preise auf |
+| **Media** | Produkt- und Kategorie-Medien |
+| **Tax** (optional) | Steuerklasse an Produkten, wenn Tax installiert ist |
+| **Customer-SKU-Modul** (optional) | Käufer-SKUs und Bestellpositions-Snapshots — nicht als immer-on Kern behandeln |
+| **Integrations / Import-Export** | Katalog-Sync und Bulk-Upsert — separate UI vom Products-Hub |
+
+## Installation und Berechtigungen
+
+- **Installation:** Der Products-Hub muss für den Tenant installiert sein.
+- **Sidebar:** Sichtbar, wenn installiert **und** Ihre Rolle Products-Hub-Module ansehen darf.
+- **Feingranulare Admin-Berechtigungen** decken Produkte, Kategorien, Lager/Bestand, Preise, Preislisten (einschließlich **Deploy**), Lieferanten, Medien, Übersetzungen, Attribute und verwandte Aktionen ab (Import/Export, Bulk-Update, Own-Record-Ansichten wo konfiguriert).
+
+<Callout kind="alert" collapsed="false">
+Shop-seitige Katalog-Berechtigungsbezeichnungen (zum Beispiel „Preise anzeigen“ / „Bestand anzeigen“) können im Berechtigungsmodell existieren, sind aber **heute nicht in allen Shop-Journeys vollständig durchgesetzt**. Die Käufer-Sichtbarkeit steuern oft **Tenant-Einstellungen** (etwa Login für Preise erforderlich). Dokumentieren Sie diese Shop-Keys noch nicht als garantierte ACL.
+</Callout>
+
+## Wie Preise gedacht sind
+
+Operatoren sollten drei Schichten unterscheiden:
+
+1. **Live-Produktpreise** — regular, special (mit Daten), tier (Menge), group (Kundengruppe) und cost.
+2. **Final-Price-Cascade (Basis)** — typischerweise tier → group → special → regular, es sei denn, ein serverseitiger **Customer-Price-Provider** (aus Integrationen) liefert zuerst einen vertrauenswürdigen Stückpreis.
+3. **Pricelists** — viele Preiszeilen offline vorbereiten, dann auf Live-Price-Datensätze **deployen**. Nur die Pricelist zu bearbeiten ändert nicht, was Käufer zahlen — erst der Deploy.
+
+Rules (falls installiert) können Ergebnisse weiterhin auf dieser Basis anpassen. Themes und Clients dürfen berechnete Preise nie selbst erfinden — die Auflösung ist **server-autoritativ**.
+
+## Produkttypen (unterstütztes Modell)
+
+Dokumentierte Produkttypen umfassen **simple**, **configurable** (Variationen), **virtual** und **downloadable**. Erfinden Sie im Benutzerhandbuch keine weiteren Typen ohne Produktfreigabe.
+
+## Weiterführende Seiten
+
+- [Products — Überblick](/de/user-guide/products/overview)
+- [Produkte verwalten](/de/user-guide/products/manage-products)
+- [Produkt bearbeiten](/de/user-guide/products/edit-product)
+- [Categories](/de/user-guide/products/categories)
+- [Pricelists](/de/user-guide/products/pricelists)
+- [Stock locations](/de/user-guide/products/stock-locations)
+- [Orders overview](/user-guide/orders/overview) (EN) — wie Preise zu Belastungen werden
+- [Customers overview](/user-guide/customers/overview) (EN) — Gruppen und Zugriff
+
+## Nicht behaupten
+
+- Customer SKUs funktionieren immer, auch ohne installiertes Customer-SKU-Modul.
+- Optionale Detail-Tabs (zum Beispiel Licensing- oder Top-up-UIs) seien Pflichtfunktionen des Products-Hubs — sie erscheinen, wenn diese optionalen Apps im Scope sind.
+- Shop-Katalog-Berechtigungs-Keys seien für jede Storefront-Journey vollständig durchgesetzt.

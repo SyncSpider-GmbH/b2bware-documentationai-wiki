@@ -1,0 +1,33 @@
+---
+title: Transactions module
+description: Financial transactions — list, create, reverse, and allocate payments against documents.
+---
+
+## Overview
+
+The Transactions module records financial transactions, supports reversal, and allocates amounts against documents (e.g. invoices).
+
+**Base URL:** `api/v1/apps/transactions-module/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication and admin access. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas, see the [Transactions module API Reference](/api-reference/transactions-module).
+</Callout>
+
+## Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/transactions` | List transactions |
+| GET | `/transactions/{transaction}` | Get transaction details |
+| POST | `/transactions` | Create a transaction |
+| POST | `/transactions/{transaction}/reverse` | Reverse a transaction |
+| POST | `/transactions/{transaction}/allocations` | Allocate a transaction |
+
+## App Settings
+
+This module has no FormGenerator App Settings routes. See [Hub Settings](/core-concepts/hub-settings) for hubs that do.

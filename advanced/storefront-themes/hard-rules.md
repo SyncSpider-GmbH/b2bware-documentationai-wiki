@@ -70,7 +70,7 @@ Each blade file must either match one of the canonical paths below **or** be a c
 ### Partials (`partials/`)
 - `header.blade.php`
 - `footer.blade.php`
-- `nav.blade.php`
+- `nav.blade.php` &mdash; header category navigation. `list` links to the categories index; `mega_menu` opens `$megaMenuCategories`. Branch on `$store['category_ui_type']` (see view-data.md)
 - `mini-cart.blade.php`
 - `locale-switcher.blade.php`
 - `breadcrumbs.blade.php`
@@ -79,7 +79,7 @@ Each blade file must either match one of the canonical paths below **or** be a c
 - `cart-summary.blade.php` &mdash; cart totals (AJAX section, §9.7)
 - `cart-rewards.blade.php` &mdash; reward progress bars (AJAX section, §9.7)
 - `checkout-summary.blade.php` &mdash; checkout coupon + totals (AJAX section, §9.7)
-- `account-nav.blade.php` &mdash; account sidebar navigation; pass `active` (dashboard, profile, orders, addresses, favorites) to highlight the active item
+- `account-nav.blade.php` &mdash; account sidebar navigation; pass `active` (dashboard, profile, orders, addresses, favorites) to highlight the active item. Carries the `account.nav` slot above the sign-out separator, where optional modules add their own entries
 - `account-address-form.blade.php` &mdash; address field group (name, street, city, country, phone); included inside both the account address modals and the inline checkout address forms; pass `address` (existing object or null) and `prefix` (shipping or billing)
 - `account-addresses-page.blade.php` &mdash; full addresses page layout (address cards, add/edit modals); used by both `account/shipping-addresses` and `account/billing-addresses`; pass the form names and address collections documented at the top of the partial
 - `checkout-address-option.blade.php` &mdash; selectable address card in the checkout billing/delivery pickers; pass `address`, `field` (`billing_address_id` | `shipping_address_id`), `selectedId` and `required`
@@ -359,5 +359,19 @@ These facade static accessors are rejected:
 Auth::  DB::  Schema::  Cache::  Storage::  Hash::
 Route::  Mail::  Queue::  Event::  Log::
 ```
+
+---
+
+## 9. Images — always `@storefrontImage` (authoring hard rule)
+
+This is not an upload-scanner reject, but it **is** a hard authoring rule. Themes that
+ship raw `media_url` values in `<img src>` fail review and ship multi‑megabyte originals
+to every visitor.
+
+- Wrap **every** catalog / customer media URL with `@storefrontImage($url, $width?, $height?, $quality?, $aspectRatio?)` — products, categories, gallery, cart, orders, and custom `@fetch` tiles that render `media_url`.
+- Do **not** put a bare `media_url` (Bunny `*.b-cdn.net` **or** SpiderDesk `/media/...`) in `src`.
+- Placeholders and `@themeAsset(...)` stay unwrapped; the directive is a no-op for those hosts anyway.
+- Pick sizes for the surface (see `seo-and-images.md` §9.11). Prefer width-only (`null` height) when a square crop would zoom into the subject.
+- The platform appends Bunny Optimizer / desk resize params (`width`, `height`, `quality`, `aspect_ratio`). Full Bunny Dynamic Images capabilities (crop gravity, `format=webp`, filters, …) are documented in §9.11 — do not hand-roll those on arbitrary hosts.
 
 ---

@@ -1,0 +1,160 @@
+---
+title: Segmentation
+description: Customer Groups in B2Bware Admin (UI: Segmentation) — Customer- vs. Company-Group-Typen, wie Zuweisung Group Prices und Checkout-Overrides steuert, und wie sich das von Roles und Analytics unterscheidet.
+---
+
+**Segmentation** listet und bearbeitet **Customer Groups** — benannte Buckets für kommerzielles Targeting. Es ist der Admin-UI-Name für Customer Groups, **kein** separates Analytics-Produkt.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Customer Group** (UI: Segmentation) | `name`, `description`, **`type`**, optional `default`, Checkout-Methoden Allow-/Block-Listen + Defaults. Admin: **Customers → Segmentation**. |
+| **Typ `customer`** | Zuweisbar nur auf **`Customers.customer_group_id`**. Steuert person-level Group Price / Permission / SKU-Identität. |
+| **Typ `company`** | Zuweisbar nur auf **`Companies.company_group_id`**. Organisations-Grouping — **nicht** austauschbar mit Customer-Type-Groups. |
+| **Buyer-Identität für Preis** | Shop-finalPrice nutzt die **`customer_group_id`** des eingeloggten Customers (und zugehörige Price-Rows). Company Group ist eine separate Zuweisungsachse für Company-Master. |
+| **Analytics / CDP-„Segmente“** | **Außerhalb des Scope** — nicht gleichsetzen. |
+
+**Mentales Modell:** Segmentation = *Preis- und Policy-Labels, die Sie an Personen (und separat an Companies) hängen*. Eine Group anzulegen tut nichts, bis Sie sie **zuweisen** und **Group Prices** (sowie optionale Permission-/SKU-Rows) pflegen.
+
+Das Speichern einer Group ist **live**. Es gibt **keinen** Draft/Deploy für die Group-Entität selbst.
+
+<Callout kind="info" collapsed="false">
+**Segmentation = Customer Groups.** Die Power ist absichtlich nüchtern — eine typisierte Group-ID, die Products, Orders und optionale Module bereits verstehen. Vermitteln Sie das **Typ- / Zuweisungs- / Preis-Dreieck**, keine Analytics-Narrative.
+</Callout>
+
+**Was Segmentation *nicht* enthält:**
+
+- Verhaltens- oder RFM-Auto-Segmentation.
+- Marketing-Kampagnen-Audience-Builder.
+- Einen Deploy-Lifecycle für den Group-Master selbst.
+- Automatische Anlage von Product-Hub-Group-Price-Rows, wenn eine Group erstellt wird.
+
+## Warum Teams Segmentation nutzen
+
+1. **Group Prices** — Product-Hub-Live-Price-Typ `group` und Pricelist-Items mit `price_type=group` keyen auf `customer_group_id`.
+2. **Geteilte Buyer-Behandlung** — Eine Group für „retail“, „wholesale“, „VIP“ statt per-Customer-Price-Rows.
+3. **Checkout-Methoden-Overrides** — Billing- oder Shipping-Methoden pro Group erlauben/blockieren, wenn Order Hub installiert ist.
+4. **Optionale Katalog-Permissions** — Category-Permission-Modul kann auf Group keyen (install-gated).
+5. **Customer-SKU-Ownership auf Group-Grain** — Buyer-Teilenummern einmal pro Group mappen, wenn das Modul installiert ist (Resolve-Präzedenz customer → company → group).
+6. **Registrierungs-Default** — Settings `default_group_code` weist neuen Customers eine bekannte Group zu, wenn Groups aktiviert sind.
+
+Nutzen Sie **Segmentation**, wenn kommerzielle Regeln nach Cohort variieren. Nutzen Sie **Companies** für Account-Master. Nutzen Sie **Roles** für Admin-/Storefront-Permission-Keys (anderes System). Nutzen Sie **Pricelists / Product Price**, um Beträge tatsächlich zu setzen.
+
+## Wie Groups, Zuweisung und Pricing-Hooks funktionieren
+
+### Group-Felder
+
+| Feld | Hinweise |
+| --- | --- |
+| **name** | Erforderlich |
+| **description** | Optional |
+| **type** | Erforderlich; FE exponiert **`customer`** und **`company`** |
+| **default** | Model-Flag (Seed/Settings interagieren mit Default-Group-Code) |
+| **billing_/shipping_methods_*** + Defaults | Checkout-Methoden-Overrides |
+
+Anlegen/Aktualisieren über Customer-Groups-API; Admin-Route-Branding ist Segmentation.
+
+### Zuweisungsregeln (kritisch)
+
+| Zuweisung | Gültiger Group-Typ | Ungültig → |
+| --- | --- | --- |
+| `Customers.customer_group_id` | **`customer`** | Fehler: invalid / not of type customer |
+| `Companies.company_group_id` | **`company`** | Fehler: invalid / not of type company |
+
+Verwenden Sie keine Group-Row für beide Achsen wieder.
+
+### Detail-Tabs (install-gated, wo vermerkt)
+
+| Tab | Wann |
+| --- | --- |
+| **Details** | Name, Type, Description, Method-Overrides |
+| **Customers** | Mitglieder mit dieser Group (Customer-Type-Nutzung) |
+| **Checkout Methods** | Wenn **Order Hub** installiert |
+| **Category Permissions** | Wenn **Category-Permission-Modul** installiert |
+
+### Pricing-Hook (Cross-Hub)
+
+1. Eine **Customer-Type**-Group anlegen/auswählen.
+2. Buyer zuweisen (`customer_group_id`).
+3. **Group**-Prices auf Products pflegen und/oder Pricelist-Items deployen, die auf diese `customer_group_id` referenzieren.
+4. Der Buyer sieht **finalPrice**, die den Group Price für seine Group bevorzugen kann (dann special/regular laut Product-Hub-Regeln).
+5. Eine Änderung der Customer-Group ändert, welcher Group Price **als Nächstes** gilt — historische Order-Lines werden nicht umgeschrieben.
+
+Customer SKUs (optional): owner_type `customer_group` + owner_id = Group-ID; Resolve-Präzedenz customer → company → group. Siehe [Customer SKUs](/de/user-guide/products/customer-skus) und [Pricelists](/de/user-guide/products/pricelists) — den vollständigen finalPrice-Algorithmus hier nicht duplizieren.
+
+### Settings
+
+| Setting | Default (Doku) | Effekt |
+| --- | --- | --- |
+| `enable_customer_groups` | true | Kategorisierung in Groups erlauben |
+| `default_group_code` | `general` | Group-Code, der neuen Customers zugewiesen wird, wenn anwendbar |
+
+Events wie Group-Changed-Notifications existieren für Integrations-Nebeneffekte — kein Admin-„Kampagnen“-Feature.
+
+## Typische Workflows
+
+### Wholesale-Cohort einführen
+
+1. **Segmentation** → Group anlegen, **type = customer**, Name z. B. Wholesale.
+2. Ziel-Customers **customer_group_id** zuweisen.
+3. Unter Products **group**-Prices (und/oder Pricelist-Zeilen) für diese Group-ID anlegen.
+4. Storefront als Wholesale-Login prüfen (finalPrice).
+5. Optional Checkout-Methoden-Overrides auf der Group setzen.
+
+### Organisations-level Company Group
+
+1. Group **type = company** anlegen.
+2. Companies **company_group_id** setzen.
+3. Für company-targeted Policies / Reporting-Labels nutzen, soweit belegt — **nicht** erwarten, dass das allein Person-Group-Prices auswählt (die nutzen die Customer-Group).
+
+### Registrierungs-Defaults ausrichten
+
+1. Sicherstellen, dass die Default-Group existiert / Code zu `default_group_code` passt.
+2. `enable_customer_groups` an lassen, wenn Cohorts nötig sind.
+3. Neu registrierte Customers auf ihre Group spot-checken.
+
+### Customer SKUs auf Group-Grain (Modul installiert)
+
+1. Mappings mit Owner-Type **customer group** anlegen.
+2. Geteilte Group-/Company-Codes bevorzugen; bei Bedarf per Customer überschreiben (siehe [Customer SKUs](/de/user-guide/products/customer-skus)).
+
+## Dependencies
+
+| Dependency | Warum es zählt |
+| --- | --- |
+| **Customer Hub** (core) | Besitzt Customer Groups; Segmentation-UI |
+| **All Customers** | `customer_group_id`-Zuweisung |
+| **Companies** | `company_group_id` für Company-Type-Groups |
+| **Product Hub** | Group Prices, finalPrice, Pricelist-Deploy `customer_group_id` |
+| **Order Hub** | Checkout-Methods-Tab; Checkout braucht weiterhin Customer-Identität |
+| **Customer-SKUs-Modul** (optional) | `owner_type=customer_group` |
+| **Category-Permission-Modul** (optional) | Permissions-Tab |
+| **Rules Hub** (optional) | Promotions können **auf** Provider-/Base-/Group-Price **stacken** — nicht mit Groups vermengen |
+| **Customer-Hub-Settings** | Enable + Default-Group-Code |
+| **Roles** | Orthogonale Zugriffskontrolle |
+
+Segmentation erscheint mit Customer Hub. Der Demo Store zeigt es unter Customers.
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Segmentation für Analytics halten | Falsche Produkterwartung | Im Fließtext **Customer Groups** nennen; UI-Label Segmentation |
+| Company-Type-Group einem Customer zuweisen | Validierungsfehler / kein Price-Match | Typ zum Zuweisungsfeld passend halten |
+| Groups anlegen, aber nie Group Prices setzen | Buyer sehen weiter nur regular/special | Product-**group**-Prices oder Pricelist-Deploy pflegen |
+| Erwarten, dass Group-Wechsel alte Orders umschreibt | Orders snapshotten Commerce bei Placement | Historische Preise akzeptieren; vorwärts korrigieren |
+| Roles mit Groups verwechseln | Roles = Permission-Keys; Groups = kommerzielle Cohort | Roles für Admin-Menü; Segmentation für Preis/Policy |
+| Company Group mit Customer Group verwechseln | Unterschiedliche Felder und Typen | Company-Master → company-type; Buyer → customer-type |
+| Category-Permission- / Checkout-Tabs immer annehmen | Install-gated | Als optional markieren |
+| Groups in Settings deaktivieren, während Prices noch IDs referenzieren | Orphans / Verwirrung | Settings, Assignments und Price-Rows ausgerichtet halten |
+
+## Related
+
+- [Customers — Überblick](/de/user-guide/customers/overview)
+- [Companies](/de/user-guide/customers/companies)
+- [Contacts](/de/user-guide/customers/contacts)
+- [Roles](/de/user-guide/customers/roles)
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Pricelists](/de/user-guide/products/pricelists)
+- [Customer SKUs](/de/user-guide/products/customer-skus)
+- [Orders overview](/user-guide/orders/overview) (EN)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

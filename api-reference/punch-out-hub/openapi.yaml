@@ -1,0 +1,419 @@
+openapi: 3.0.0
+info:
+  title: PunchOutHub API
+  description: Complete API collection for PunchOutHub — generated from routes/api.php
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Buyer Configs
+  - name: Logs
+  - name: Punchout
+  - name: Sessions
+  - name: Settings
+paths:
+  /api/v1/apps/punch-out-hub/buyer-configs:
+    get:
+      tags:
+        - Buyer Configs
+      summary: Get Buyer Configs
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Buyer Configs
+      summary: Post Buyer Configs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                buyer_id: NetworkId:BUYER-CORP
+                name: Buyer Corp (Ariba cXML)
+                protocol: cxml
+                active: true
+                credentials:
+                  identity: BUYER-CORP
+                  shared_secret: s3cr3t-shared
+                  from_identity: NetworkId:B2BWARE-SUPPLIER
+                  to_identity: NetworkId:BUYER-CORP
+                return_url_allowlist:
+                  - https://buyer.example.com
+                company_id: 1
+                default_customer_id: 42
+                user_mapping_strategy: email
+                auto_provision: true
+                billing_method_id: 7
+                price_mode: net
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/buyer-configs/{id}:
+    get:
+      tags:
+        - Buyer Configs
+      summary: Get Buyer Configs
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Buyer Configs
+      summary: Put Buyer Configs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Buyer Configs
+      summary: Delete Buyer Configs
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/logs:
+    get:
+      tags:
+        - Logs
+      summary: Get Logs
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/punchout/{installationKey}/enter/{token}:
+    get:
+      tags:
+        - Punchout
+      summary: Get Enter
+      parameters:
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: token
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/punchout/{installationKey}/setup:
+    get:
+      tags:
+        - Punchout
+      summary: Get Setup
+      parameters:
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Punchout
+      summary: Post Setup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/punchout/{installationKey}/echo:
+    post:
+      tags:
+        - Punchout
+      summary: Post Echo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/punchout/{installationKey}/return/{sessionId}:
+    post:
+      tags:
+        - Punchout
+      summary: Post Return
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: installationKey
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: sessionId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/sessions:
+    get:
+      tags:
+        - Sessions
+      summary: Get Sessions
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/sessions/{id}:
+    get:
+      tags:
+        - Sessions
+      summary: Get Sessions
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/settings:
+    get:
+      tags:
+        - Settings
+      summary: Get Settings
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Post Settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                general:
+                  session_ttl_minutes: 120
+                  default_uom: C62
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/settings/groups/list:
+    get:
+      tags:
+        - Settings
+      summary: Get List
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/settings/{group}:
+    get:
+      tags:
+        - Settings
+      summary: Get Settings
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Post Settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/settings/reset:
+    post:
+      tags:
+        - Settings
+      summary: Post Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/punch-out-hub/settings/{group}/reset:
+    post:
+      tags:
+        - Settings
+      summary: Post Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

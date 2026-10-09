@@ -1,0 +1,87 @@
+---
+title: Customer SKU module
+description: Customer-specific SKUs — admin CRUD/upsert, storefront my-references, and App Settings for search and display.
+---
+
+## Overview
+
+The Customer SKU module maps customer-owned SKUs to catalog products. Admin product search always matches globally; the search setting affects storefront requests only.
+
+**Base URL:** `api/v1/apps/customer-sku-module/`
+
+<Callout kind="info">
+Admin endpoints require Bearer token authentication. See [Authentication](/authentication).
+`GET /my-references` is storefront-scoped (Installation-Key / shop customer).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas, see the [Customer SKU module API Reference](/api-reference/customer-sku-module).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Customer SKUs" icon="barcode">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/customer-skus` | List customer SKU mappings |
+| POST | `/customer-skus` | Create a mapping |
+| GET | `/customer-skus/{id}` | Get mapping details |
+| PUT | `/customer-skus/{id}` | Update a mapping |
+| DELETE | `/customer-skus/{id}` | Delete a mapping |
+| POST | `/customer-skus/upsert` | Idempotent upsert on `(owner_type, owner_id, product_id)` |
+| POST | `/customer-skus/bulk-upsert` | Bulk upsert mappings |
+
+  </Tab>
+  <Tab title="Storefront" icon="store">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/my-references` | Logged-in shop customer’s own SKU map (empty for guests) |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List settings groups |
+| GET | `/settings` | Get all settings |
+| POST | `/settings` | Update settings |
+| POST | `/settings/reset` | Reset all groups to defaults |
+| GET | `/settings/{group}` | Get one group (`search`, `display`) |
+| POST | `/settings/{group}` | Update one group |
+| POST | `/settings/{group}/reset` | Reset one group |
+
+See also [Hub Settings](/core-concepts/hub-settings).
+
+  </Tab>
+</Tabs>
+
+## Settings
+
+Groups: `search`, `display`.
+
+<Expandable title="search — Settings Reference" default-open="true">
+
+**search** — Storefront search scope
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `storefront_search_scope` | select (`customer` / `global`) | `customer` | `customer` — match only the logged-in customer’s (or company/group) SKUs. `global` — match any customer SKU. |
+
+</Expandable>
+
+<Expandable title="display — Settings Reference" default-open="false">
+
+**display** — Where customer SKUs appear on the storefront
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `show_on_detail_page` | boolean | `true` | Show the customer’s SKU on the product detail page. |
+| `show_on_list_page` | boolean | `true` | Show on product cards in listing / category pages. |
+| `show_in_cart` | boolean | `true` | Show on cart line items. |
+| `show_in_order_overview` | boolean | `true` | Show the snapshotted customer SKU in order overview / history. |
+
+</Expandable>

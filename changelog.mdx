@@ -12,6 +12,15 @@ description: Release history and version updates for the B2Bware DataHub platfor
 
 </Update>
 
+<Update label="2026-10-08" description="@storefrontImage desk media + hard rule" tags={["improvement", "storefront"]}>
+
+## `@storefrontImage` — desk media + authoring hard rule
+
+- **Platform:** `@storefrontImage` appends sizing params for SpiderDesk / user-service media hosts (`USER_SERVICE_BASE_URL`) as well as Bunny `*.b-cdn.net` / configured pull zones — every tenant benefits, not only Bunny-hosted catalogs.
+- **Hard rule for theme authors:** every catalog / customer `media_url` in an `<img src>` **must** use `@storefrontImage(...)`. Documented in [SEO & images](/advanced/storefront-themes/seo-and-images) §9.11 and [Hard rules](/advanced/storefront-themes/hard-rules) §9, including what the directive emits (`width`, `height`, `quality`, `aspect_ratio`) and the broader Bunny Dynamic Images API.
+
+</Update>
+
 <Update label="2026-10-02" description="OrderHub bulk delete" tags={["feature"]}>
 
 ## OrderHub bulk delete
@@ -25,6 +34,15 @@ Orders can now be deleted in a single all-or-nothing request. A batch that inclu
 ## Cart-line favorite state
 
 Cart lines expose `$line['is_favorite']` for the customer's active favorites list, replacing repeated Blade lookups. The value is `false` for guests and when favorites are disabled; disabled favorites skip the lookup. See [View data](/advanced/storefront-themes/view-data).
+
+</Update>
+
+<Update label="2026-10-02" description="SearchHub cluster and embed key" tags={["fix"]}>
+
+## SearchHub
+
+- **Cluster settings** — a store admin cannot read or save the cluster group. Index status omits the cluster host and error unless the caller is a platform super admin.
+- **Embed key** — a `customer_group` query does not change visibility. A signed-in storefront customer gets their own group, and the key does not return other groups' prices.
 
 </Update>
 
@@ -57,6 +75,90 @@ Cart lines expose `$line['is_favorite']` for the customer's active favorites lis
 - **Product page** — products with an enabled subscription setup show their delivery intervals and prices under the SKU. Signed-in customers open a **Subscribe** dialog, pick an interval, quantity, addresses, shipping and payment method, and place the first order directly; guests get a sign-in link. The customer's regular cart is never touched.
 - **Theme contract** — new `@storefrontForm('subscription-checkout')` form type (see [Forms](/advanced/storefront-themes/forms)). The markup is a module contribution to the `product.detail.meta` slot; themes may restyle it with `modules/subscription-hub/product-subscription.blade.php`.
 - **My subscriptions** — new account page `/account/subscriptions` (sidebar entry once the customer has a subscription) listing the customer's subscriptions with a **Cancel subscription** action that ends the subscription after the period already paid for, **Resume subscription** to undo that cancel while the period lasts, and **Pay now** for an unpaid renewal or a first order left unpaid. New `@storefrontForm('subscription-cancel')`, `@storefrontForm('subscription-resume')` and `@storefrontForm('subscription-pay')` form types; restyle via `modules/subscription-hub/account-subscriptions.blade.php`.
+
+<Update label="2026-09-30" description="SearchHub Typesense add-on" tags={["feature"]}>
+
+## SearchHub
+
+- **Typesense add-on** — per-store collections, scoped search keys, and Mongo fallback when the add-on is off or Typesense is down. Listings stay on Mongo (option B).
+- **Settings** — ranking, typo tolerance, synonyms, curation, facets, languages, and which hubs are indexed. See [SearchHub](/hubs/search-hub).
+
+</Update>
+
+<Update label="2026-09-22" description="Default catalog sorting attribute" tags={["feature", "storefront"]}>
+
+## Storefront — default sorting attribute
+
+- Store setup → Features can set **Default sorting attribute**: a product attribute with **Use for sorting** enabled.
+- All Products and category listings apply that attribute when the URL has no `sort`, ascending by default or descending when **Default sort direction** is Descending. The Sort by control shows that choice. A customer's explicit sort, including Relevance, wins.
+- Clearing the setting restores the previous default (`relevance`).
+- See [StorefrontHub → Settings](/hubs/storefront-hub#settings).
+
+</Update>
+
+<Update label="2026-09-21" description="Site-to-theme visual parity playbook" tags={["docs", "themes"]}>
+
+## Site → Theme visual parity
+
+- New resource: [Site to theme (visual parity)](/resources/site-to-theme/overview) — measure-first workflow to rebuild any live site section into a Blade theme.
+- Companion open-source repo: [b2bware-site-to-theme](https://github.com/SyncSpider-GmbH/b2bware-site-to-theme) (Cursor skill + pixel-diff script).
+- Linked from [Storefront Themes overview](/advanced/storefront-themes/overview) and [Download AI Skill](/ai-tools/download-skill).
+
+</Update>
+
+<Update label="2026-09-18" description="Wiki API coverage expansion" tags={["docs"]}>
+
+## Documentation gap fill — OpenAPI, hubs, guides
+
+- OpenAPI + Postman pipeline for IntegrationHub, Loyalty, PunchOut, Invoice, Ai, Storefront, DTOne, Customer SKU, A1 Top-Up, Mesonic, Accounting, Procurement, Transactions, Stock Movements, and permission modules.
+- New hub pages: Accounting, Procurement, Transactions, Stock Movements, Customer Product/Category Permission.
+- Expanded domain API docs beyond settings-only for Loyalty, Invoice, Ai, PunchOut, and related hubs.
+- User Guide stubs (Orders, Customers, Invoices, Loyalty), DE Integrations overview, Help Center guides (invoices, loyalty, punchout, product permissions).
+- Regenerated MediaHub / DashboardHub / StorefrontBuilderHub OpenAPI; agent meta (`CLAUDE.md`, `.cursorrules`) and skills/drift allowlists updated.
+
+</Update>
+
+<Update label="2026-09-17" description="Complete hub settings field references" tags={["docs"]}>
+
+## Hub Settings documentation
+
+- New index: [Hub Settings](/core-concepts/hub-settings) — every hub/module App Settings group linked in one place.
+- Completed Settings field references on ProductHub, OrderHub, CustomerHub, TaxHub, NotificationHub, EventHub, AutomationHub, LicenseHub, IntegrationHub, and SettingsHub currency/i18n.
+- New settings-focused hub pages: InvoiceHub, LoyaltyHub, StorefrontHub, AiHub, PunchOutHub, Customer SKU, DTOne, A1 Top-Up, Mesonic real-time pricing.
+- Hubs without App Settings (Attributes, Media, Auth, Rule, Dashboard, Storefront Builder) now note that explicitly.
+
+</Update>
+
+<Update label="2026-09-17" description="Sync configurable parent status from variants" tags={["feature", "product-hub"]}>
+
+## ProductHub — sync parent status from variants
+
+- New Product Visibility setting **`sync_parent_status_from_variants`** (default off).
+- When enabled, a configurable parent becomes `public` if any variant is `public` or `private`, and `draft` when all variants are `draft` (or none exist).
+- See [ProductHub → Settings → Product Visibility](/hubs/product-hub#product-visibility).
+
+</Update>
+
+<Update label="2026-09-19" description="AccountingHub bank reconciliation & ProcurementHub" tags={["feature", "accounting", "procurement"]}>
+
+## AccountingHub — Bank Reconciliation
+
+- **Auto-match** — `POST /reconciliations/auto-match` scans unmatched bank transactions and links them to open documents when confidence ≥ the configurable threshold (default 0.9) with a clear runner-up gap; runs automatically after every import when enabled. New **Settings → Apps → Accounting Hub** group: `auto_match_enabled`, `auto_match_min_confidence`, `amount_tolerance`.
+- **Smarter suggestions** — candidates limited to open documents in the transaction's currency; invoices match on `balance_due`; confidence blends amount, reference, counterparty name, and booking-date proximity.
+- **Bank fees on match** — pass `fee_amount` (net settlement): the document settles on the gross `matched_amount`, the fee is stored on the reconciliation and mirrored to the ledger transaction.
+- **Documentless classification** — `POST /bank-transactions/{id}/classify` books `bank_fee` / `bank_interest` / `other` without a document so charges leave the unmatched pool with an audit trail.
+- **Unmatch** — `DELETE /reconciliations/{id}` removes a wrong link and returns the transaction to the unmatched pool; matching an already-paid invoice is now rejected with 422.
+- **Reconciliation report** — `GET /reports/reconciliation` (JSON) and `POST /reports/reconciliation/pdf` per bank account and period: opening/closing balance, credits/debits, fees, matched/classified/unmatched, per-transaction match detail.
+- **Currency guards** — imported rows inherit the account currency; cross-currency matches are rejected.
+- New hub page: [AccountingHub](/hubs/accounting-hub) with full [API reference](/api-reference/accounting-hub).
+
+## ProcurementHub
+
+- New hub page: [ProcurementHub](/hubs/procurement-hub) — purchase orders, goods receipts with automatic stock posting, vendor bills, three-way match, and document PDFs; full [API reference](/api-reference/procurement-hub).
+
+## InvoiceHub
+
+- **Credit notes as payments** — `POST /credit-notes/{id}/apply` applies an issued credit note to an open invoice as a payment, behind the `payments.credit_note_application` setting.
 
 </Update>
 

@@ -1,0 +1,88 @@
+---
+title: Cart Validation
+description: Cart validation rules in B2Bware — mutual exclusion, requires, and quantity limits that gate carts without changing prices.
+---
+
+**Cart validation** rules encode **business constraints** on what may coexist or how much may be ordered in a cart. The engine returns valid plus **violations** (rule id + message) when constraints fail.
+
+| Concept | Role |
+| --- | --- |
+| **Cart validation rule** | Named active/inactive constraint with type, product groups, limits, error message |
+| **Constraint type** | How the cart is judged |
+| **Group A / Group B** | Product sets for exclusion / dependency styles |
+| **Limit value** | Qty bound for min/max types |
+| **Error message** | Buyer/operator-facing explanation on violation |
+| **Admin** | **Rules → Cart Validation** when Rule Hub is installed |
+
+**Mental model:** *Price rules change money; validation rules change whether checkout may proceed with this mix/qty.*
+
+<Callout kind="alert" collapsed="false">
+Rule Hub is optional. Cart validation rules are **constraints** — not discounts, coupons, or catalog price adjustments. They do not invent fraud scoring or inventory reservation.
+</Callout>
+
+## Why teams use cart validation
+
+1. **Mutual exclusivity** — Prevent incompatible lines (for example bulk vs standard variants of the same programme).
+2. **Requires / accessory rules** — Product set A needs at least one from set B.
+3. **Quantity policy** — Enforce min or max qty commercial limits beyond simple stock.
+4. **Clear messaging** — Custom error messages reduce support load vs generic cart errors.
+5. **Policy without theme hacks** — Server-side validation instead of storefront-only checks.
+
+Use **stock / warehouses** for availability. Use **roles / permissions** for who can buy. Use **cart validation** for *assortment and qty policy* inside an otherwise allowed cart.
+
+## How it works
+
+### Constraint types
+
+| Type | Intent | Example |
+| --- | --- | --- |
+| Mutual exclusion | Items from group A cannot coexist with group B | Cannot mix Bulk and Standard lines |
+| Requires | Group A requires ≥1 from group B | Device requires a service SKU |
+| Max quantity | Cap quantity | Max 10 per product / scoped set |
+| Min quantity | Floor quantity | Minimum order of 5 |
+
+### Engine behaviour
+
+- Validate cart → `{ valid, violations[] }`.
+- Violations carry rule id and message for UI.
+- Failed validation can emit domain events for automation/observability — this guide does not invent a full event-bus runbook.
+
+### Status
+
+Rules honour **status** (active/inactive). Inactive rules do not constrain.
+
+## How to use
+
+1. Confirm Rule Hub + permission to manage cart validation rules.
+2. Decide constraint type; define product membership for groups carefully (wrong group membership = false positives).
+3. Write an **actionable** error message (what to remove/add).
+4. Activate and test: violating cart, fixed cart, edge qty boundaries.
+5. Coordinate with catalog ops so new SKUs join the correct validation groups.
+6. Do not overload validation to replace catalog assortments or company allow-lists — those are adjacent Customer/Product controls.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Rule Hub** | Optional |
+| **Order Hub** | Carts / checkout must invoke validation |
+| **Product Hub** | Product identity in groups |
+| **Cart / catalog / coupon rules** | Separate layers — validation does not discount |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Using validation as a “hidden discount gate” | Wrong tool | Use cart/catalog rules for money |
+| Vague error message | Buyers stuck | Say which products conflict / what’s missing |
+| Stale product groups after catalog changes | False blocks or missed blocks | Maintain group membership with assortment changes |
+| Expecting validation to manage stock | Different system | Stock locations / movements |
+| Confusing with company checkout-method allow-lists | Different hub | [Companies](/user-guide/customers/companies) for method visibility |
+
+## Related
+
+- [Rules overview](/user-guide/rules/overview)
+- [Cart Price Rules](/user-guide/rules/cart-price-rules)
+- [Order lifecycle](/user-guide/orders/lifecycle)
+- [Manage products](/user-guide/products/manage-products)
+- [Companies](/user-guide/customers/companies)

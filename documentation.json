@@ -32,6 +32,10 @@
                     "title": "Getting started with B2Bware Admin",
                     "path": "user-guide/getting-started",
                     "icon": "home"
+                  },
+                  {
+                    "title": "How B2Bware fits together",
+                    "path": "user-guide/how-b2bware-fits-together"
                   }
                 ]
               },
@@ -43,6 +47,10 @@
                     "title": "Products overview",
                     "path": "user-guide/products/overview",
                     "icon": "layout-grid"
+                  },
+                  {
+                    "title": "How Products work",
+                    "path": "user-guide/products/how-products-work"
                   },
                   {
                     "title": "Manage products",
@@ -82,6 +90,32 @@
                 ]
               },
               {
+                "group": "Attributes",
+                "icon": "tags",
+                "pages": [
+                  {
+                    "title": "Attributes overview",
+                    "path": "user-guide/attributes/overview",
+                    "icon": "layout-grid"
+                  },
+                  {
+                    "title": "All Attributes",
+                    "path": "user-guide/attributes/all-attributes",
+                    "icon": "list"
+                  },
+                  {
+                    "title": "Attribute Groups",
+                    "path": "user-guide/attributes/attribute-groups",
+                    "icon": "folder"
+                  },
+                  {
+                    "title": "Attribute Collections",
+                    "path": "user-guide/attributes/attribute-collections",
+                    "icon": "layers"
+                  }
+                ]
+              },
+              {
                 "group": "Integrations",
                 "icon": "plug",
                 "pages": [
@@ -109,6 +143,261 @@
                     "title": "File feed and Response Relay",
                     "path": "user-guide/integrations/file-feed-and-relay",
                     "icon": "share-2"
+                  }
+                ]
+              },
+              {
+                "group": "Orders",
+                "icon": "shopping-cart",
+                "pages": [
+                  {
+                    "title": "Orders overview",
+                    "path": "user-guide/orders/overview",
+                    "icon": "list"
+                  },
+                  {
+                    "title": "Proposals",
+                    "path": "user-guide/orders/proposals"
+                  },
+                  {
+                    "title": "Order lifecycle",
+                    "path": "user-guide/orders/lifecycle"
+                  },
+                  {
+                    "title": "Order-related settings",
+                    "path": "user-guide/orders/related-settings"
+                  }
+                ]
+              },
+              {
+                "group": "Rules",
+                "icon": "percent",
+                "pages": [
+                  {
+                    "title": "Rules overview",
+                    "path": "user-guide/rules/overview",
+                    "icon": "layout-grid"
+                  },
+                  {
+                    "title": "Catalog Price Rules",
+                    "path": "user-guide/rules/catalog-price-rules"
+                  },
+                  {
+                    "title": "Cart Price Rules",
+                    "path": "user-guide/rules/cart-price-rules"
+                  },
+                  {
+                    "title": "Coupons",
+                    "path": "user-guide/rules/coupons"
+                  },
+                  {
+                    "title": "Cart Validation",
+                    "path": "user-guide/rules/cart-validation"
+                  },
+                  {
+                    "title": "Shipping Rates",
+                    "path": "user-guide/rules/shipping-rates"
+                  },
+                  {
+                    "title": "Usage Logs",
+                    "path": "user-guide/rules/usage-logs"
+                  }
+                ]
+              },
+              {
+                "group": "Customers",
+                "icon": "users",
+                "pages": [
+                  {
+                    "title": "Customers overview",
+                    "path": "user-guide/customers/overview",
+                    "icon": "list"
+                  },
+                  {
+                    "title": "Companies",
+                    "path": "user-guide/customers/companies",
+                    "icon": "building"
+                  },
+                  {
+                    "title": "Contacts",
+                    "path": "user-guide/customers/contacts",
+                    "icon": "contact"
+                  },
+                  {
+                    "title": "Roles",
+                    "path": "user-guide/customers/roles",
+                    "icon": "shield"
+                  },
+                  {
+                    "title": "Segmentation",
+                    "path": "user-guide/customers/segmentation",
+                    "icon": "layers"
+                  }
+                ]
+              },
+              {
+                "group": "Invoices",
+                "icon": "file-text",
+                "pages": [
+                  {
+                    "title": "Invoices overview",
+                    "path": "user-guide/invoices/overview",
+                    "icon": "list"
+                  }
+                ]
+              },
+              {
+                "group": "Loyalty",
+                "icon": "gift",
+                "pages": [
+                  {
+                    "title": "Loyalty overview",
+                    "path": "user-guide/loyalty/overview",
+                    "icon": "list"
+                  }
+                ]
+              },
+              {
+                "group": "Media",
+                "icon": "image",
+                "pages": [
+                  {
+                    "title": "Media overview",
+                    "path": "user-guide/media/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Notifications",
+                "icon": "bell",
+                "pages": [
+                  {
+                    "title": "Notifications overview",
+                    "path": "user-guide/notifications/overview"
+                  },
+                  {
+                    "title": "Delivery Logs",
+                    "path": "user-guide/notifications/delivery-logs"
+                  }
+                ]
+              },
+              {
+                "group": "Tax",
+                "icon": "percent",
+                "pages": [
+                  {
+                    "title": "Tax overview",
+                    "path": "user-guide/tax/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Licenses",
+                "icon": "key",
+                "pages": [
+                  {
+                    "title": "Licenses overview",
+                    "path": "user-guide/licenses/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Procurement",
+                "icon": "truck",
+                "pages": [
+                  {
+                    "title": "Procurement overview",
+                    "path": "user-guide/procurement/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Accounting",
+                "icon": "landmark",
+                "pages": [
+                  {
+                    "title": "Accounting overview",
+                    "path": "user-guide/accounting/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Stock Movements",
+                "icon": "warehouse",
+                "pages": [
+                  {
+                    "title": "Stock Movements overview",
+                    "path": "user-guide/stock-movements/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Storefront Builder",
+                "icon": "layout-template",
+                "pages": [
+                  {
+                    "title": "Storefront Builder overview",
+                    "path": "user-guide/storefront-builder/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Automation",
+                "icon": "zap",
+                "pages": [
+                  {
+                    "title": "Automation Hub overview",
+                    "path": "user-guide/automation/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Events",
+                "icon": "webhook",
+                "pages": [
+                  {
+                    "title": "Event Hub overview",
+                    "path": "user-guide/events/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Store Setup",
+                "icon": "store",
+                "pages": [
+                  {
+                    "title": "Store Setup",
+                    "path": "user-guide/store-setup/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Mobile App",
+                "icon": "smartphone",
+                "pages": [
+                  {
+                    "title": "Mobile App",
+                    "path": "user-guide/mobile-app/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Import / Export",
+                "icon": "arrow-up-down",
+                "pages": [
+                  {
+                    "title": "Import / Export",
+                    "path": "user-guide/import-export/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Settings",
+                "icon": "settings",
+                "pages": [
+                  {
+                    "title": "Settings overview",
+                    "path": "user-guide/settings/overview"
                   }
                 ]
               }
@@ -193,6 +482,11 @@
                     "title": "Pricing",
                     "path": "core-concepts/pricing",
                     "icon": "tag"
+                  },
+                  {
+                    "title": "Hub Settings",
+                    "path": "core-concepts/hub-settings",
+                    "icon": "sliders"
                   },
                   {
                     "title": "Media URLs",
@@ -331,9 +625,94 @@
                     "icon": "plug"
                   },
                   {
+                    "title": "StorefrontHub",
+                    "path": "hubs/storefront-hub",
+                    "icon": "store"
+                  },
+                  {
                     "title": "StorefrontBuilderHub",
                     "path": "hubs/storefront-builder-hub",
                     "icon": "layout"
+                  },
+                  {
+                    "title": "InvoiceHub",
+                    "path": "hubs/invoice-hub",
+                    "icon": "file-invoice"
+                  },
+                  {
+                    "title": "ProcurementHub",
+                    "path": "hubs/procurement-hub",
+                    "icon": "truck"
+                  },
+                  {
+                    "title": "AccountingHub",
+                    "path": "hubs/accounting-hub",
+                    "icon": "landmark"
+                  },
+                  {
+                    "title": "LoyaltyHub",
+                    "path": "hubs/loyalty-hub",
+                    "icon": "gift"
+                  },
+                  {
+                    "title": "AiHub",
+                    "path": "hubs/ai-hub",
+                    "icon": "sparkles"
+                  },
+                  {
+                    "title": "PunchOutHub",
+                    "path": "hubs/punch-out-hub",
+                    "icon": "cart-shopping"
+                  },
+                  {
+                    "title": "Customer SKU module",
+                    "path": "hubs/customer-sku-module",
+                    "icon": "barcode"
+                  },
+                  {
+                    "title": "DTOneHub",
+                    "path": "hubs/dtone-hub",
+                    "icon": "mobile"
+                  },
+                  {
+                    "title": "A1 Top-Up module",
+                    "path": "hubs/a1-top-up-module",
+                    "icon": "sim-card"
+                  },
+                  {
+                    "title": "Mesonic real-time pricing",
+                    "path": "hubs/mesonic-realtime-pricing",
+                    "icon": "chart-line"
+                  },
+                  {
+                    "title": "AccountingHub",
+                    "path": "hubs/accounting-hub",
+                    "icon": "calculator"
+                  },
+                  {
+                    "title": "ProcurementHub",
+                    "path": "hubs/procurement-hub",
+                    "icon": "truck"
+                  },
+                  {
+                    "title": "Transactions module",
+                    "path": "hubs/transactions-module",
+                    "icon": "arrows-rotate"
+                  },
+                  {
+                    "title": "Stock movements module",
+                    "path": "hubs/stock-movements-module",
+                    "icon": "boxes-stacked"
+                  },
+                  {
+                    "title": "Customer product permission module",
+                    "path": "hubs/customer-product-permission-module",
+                    "icon": "eye-slash"
+                  },
+                  {
+                    "title": "Customer category permission module",
+                    "path": "hubs/customer-category-permission-module",
+                    "icon": "folder-lock"
                   }
                 ]
               },
@@ -475,6 +854,11 @@
                         "title": "Author Checklist",
                         "path": "advanced/storefront-themes/checklist",
                         "icon": "check-square"
+                      },
+                      {
+                        "title": "Site to Theme (Visual Parity)",
+                        "path": "resources/site-to-theme/overview",
+                        "icon": "scan"
                       }
                     ]
                   }
@@ -575,6 +959,102 @@
                 "icon": "layout",
                 "openapi": "api-reference/storefront-builder-hub/openapi.yaml",
                 "pages": []
+              },
+              {
+                "group": "IntegrationHub",
+                "icon": "plug",
+                "openapi": "api-reference/integration-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "StorefrontHub",
+                "icon": "store",
+                "openapi": "api-reference/storefront-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "InvoiceHub",
+                "icon": "file-invoice",
+                "openapi": "api-reference/invoice-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "LoyaltyHub",
+                "icon": "gift",
+                "openapi": "api-reference/loyalty-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "AiHub",
+                "icon": "sparkles",
+                "openapi": "api-reference/ai-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "PunchOutHub",
+                "icon": "cart-shopping",
+                "openapi": "api-reference/punch-out-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Customer SKU module",
+                "icon": "barcode",
+                "openapi": "api-reference/customer-sku-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "DTOneHub",
+                "icon": "mobile",
+                "openapi": "api-reference/dtone-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "A1 Top-Up module",
+                "icon": "sim-card",
+                "openapi": "api-reference/a1-top-up-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Mesonic real-time pricing",
+                "icon": "chart-line",
+                "openapi": "api-reference/mesonic-dataflow-real-time-pricing/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "ProcurementHub",
+                "icon": "truck",
+                "openapi": "api-reference/procurement-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "AccountingHub",
+                "icon": "landmark",
+                "openapi": "api-reference/accounting-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Transactions module",
+                "icon": "arrows-rotate",
+                "openapi": "api-reference/transactions-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Stock movements module",
+                "icon": "boxes-stacked",
+                "openapi": "api-reference/stock-movements-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Customer product permission module",
+                "icon": "eye-slash",
+                "openapi": "api-reference/customer-product-permission-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Customer category permission module",
+                "icon": "folder-lock",
+                "openapi": "api-reference/customer-category-permission-module/openapi.yaml",
+                "pages": []
               }
             ]
           },
@@ -653,6 +1133,22 @@
                   {
                     "title": "Export Products as JSON",
                     "path": "help-center/guides/export-products-json"
+                  },
+                  {
+                    "title": "Invoices and dunning",
+                    "path": "help-center/guides/invoices"
+                  },
+                  {
+                    "title": "Loyalty programs",
+                    "path": "help-center/guides/loyalty"
+                  },
+                  {
+                    "title": "PunchOut (OCI / cXML)",
+                    "path": "help-center/guides/punchout"
+                  },
+                  {
+                    "title": "Product and category permissions",
+                    "path": "help-center/guides/permissions"
                   }
                 ]
               }
@@ -745,6 +1241,10 @@
                     "title": "Erste Schritte mit B2Bware Admin",
                     "path": "de/user-guide/getting-started",
                     "icon": "home"
+                  },
+                  {
+                    "title": "Wie B2Bware zusammenhängt",
+                    "path": "de/user-guide/how-b2bware-fits-together"
                   }
                 ]
               },
@@ -756,6 +1256,10 @@
                     "title": "Products Übersicht",
                     "path": "de/user-guide/products/overview",
                     "icon": "layout-grid"
+                  },
+                  {
+                    "title": "Wie Produkte funktionieren",
+                    "path": "de/user-guide/products/how-products-work"
                   },
                   {
                     "title": "Products verwalten",
@@ -791,6 +1295,301 @@
                     "title": "Customer SKUs",
                     "path": "de/user-guide/products/customer-skus",
                     "icon": "barcode"
+                  }
+                ]
+              },
+              {
+                "group": "Attributes",
+                "pages": [
+                  {
+                    "title": "Attributes — Überblick",
+                    "path": "de/user-guide/attributes/overview"
+                  },
+                  {
+                    "title": "Alle Attribute",
+                    "path": "de/user-guide/attributes/all-attributes"
+                  },
+                  {
+                    "title": "Attribute Groups",
+                    "path": "de/user-guide/attributes/attribute-groups"
+                  },
+                  {
+                    "title": "Attribute Collections",
+                    "path": "de/user-guide/attributes/attribute-collections"
+                  }
+                ]
+              },
+              {
+                "group": "Integrationen",
+                "icon": "plug",
+                "pages": [
+                  {
+                    "title": "Integrationen Übersicht",
+                    "path": "de/user-guide/integrations/overview",
+                    "icon": "list"
+                  },
+                  {
+                    "title": "Integration anlegen",
+                    "path": "de/user-guide/integrations/create-integration"
+                  },
+                  {
+                    "title": "Zuordnung und Filter",
+                    "path": "de/user-guide/integrations/mapping-and-filters"
+                  },
+                  {
+                    "title": "Sync-Läufe",
+                    "path": "de/user-guide/integrations/sync-runs"
+                  },
+                  {
+                    "title": "Datei-Feed und Response Relay",
+                    "path": "de/user-guide/integrations/file-feed-and-relay"
+                  }
+                ]
+              },
+              {
+                "group": "Customers",
+                "icon": "users",
+                "pages": [
+                  {
+                    "title": "Customers — Überblick",
+                    "path": "de/user-guide/customers/overview",
+                    "icon": "list"
+                  },
+                  {
+                    "title": "Companies",
+                    "path": "de/user-guide/customers/companies"
+                  },
+                  {
+                    "title": "Contacts",
+                    "path": "de/user-guide/customers/contacts"
+                  },
+                  {
+                    "title": "Roles",
+                    "path": "de/user-guide/customers/roles"
+                  },
+                  {
+                    "title": "Segmentation",
+                    "path": "de/user-guide/customers/segmentation"
+                  }
+                ]
+              },
+              {
+                "group": "Orders",
+                "pages": [
+                  {
+                    "title": "Orders — Überblick",
+                    "path": "de/user-guide/orders/overview"
+                  },
+                  {
+                    "title": "Proposals",
+                    "path": "de/user-guide/orders/proposals"
+                  },
+                  {
+                    "title": "Order-Lifecycle",
+                    "path": "de/user-guide/orders/lifecycle"
+                  },
+                  {
+                    "title": "Order-bezogene Settings",
+                    "path": "de/user-guide/orders/related-settings"
+                  }
+                ]
+              },
+              {
+                "group": "Rules",
+                "icon": "percent",
+                "pages": [
+                  {
+                    "title": "Rules — Überblick",
+                    "path": "de/user-guide/rules/overview",
+                    "icon": "layout-grid"
+                  },
+                  {
+                    "title": "Catalog Price Rules",
+                    "path": "de/user-guide/rules/catalog-price-rules"
+                  },
+                  {
+                    "title": "Cart Price Rules",
+                    "path": "de/user-guide/rules/cart-price-rules"
+                  },
+                  {
+                    "title": "Coupons",
+                    "path": "de/user-guide/rules/coupons"
+                  },
+                  {
+                    "title": "Cart Validation",
+                    "path": "de/user-guide/rules/cart-validation"
+                  },
+                  {
+                    "title": "Shipping Rates",
+                    "path": "de/user-guide/rules/shipping-rates"
+                  },
+                  {
+                    "title": "Usage Logs",
+                    "path": "de/user-guide/rules/usage-logs"
+                  }
+                ]
+              },
+              {
+                "group": "Media",
+                "icon": "image",
+                "pages": [
+                  {
+                    "title": "Media — Überblick",
+                    "path": "de/user-guide/media/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Notifications",
+                "icon": "bell",
+                "pages": [
+                  {
+                    "title": "Notifications — Überblick",
+                    "path": "de/user-guide/notifications/overview"
+                  },
+                  {
+                    "title": "Delivery Logs",
+                    "path": "de/user-guide/notifications/delivery-logs"
+                  }
+                ]
+              },
+              {
+                "group": "Tax",
+                "icon": "percent",
+                "pages": [
+                  {
+                    "title": "Tax — Überblick",
+                    "path": "de/user-guide/tax/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Invoices",
+                "icon": "file-text",
+                "pages": [
+                  {
+                    "title": "Invoices — Überblick",
+                    "path": "de/user-guide/invoices/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Loyalty",
+                "icon": "gift",
+                "pages": [
+                  {
+                    "title": "Loyalty — Überblick",
+                    "path": "de/user-guide/loyalty/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Licenses",
+                "icon": "key",
+                "pages": [
+                  {
+                    "title": "Licenses — Überblick",
+                    "path": "de/user-guide/licenses/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Procurement",
+                "icon": "truck",
+                "pages": [
+                  {
+                    "title": "Procurement — Überblick",
+                    "path": "de/user-guide/procurement/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Accounting",
+                "icon": "landmark",
+                "pages": [
+                  {
+                    "title": "Accounting — Überblick",
+                    "path": "de/user-guide/accounting/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Stock Movements",
+                "icon": "warehouse",
+                "pages": [
+                  {
+                    "title": "Stock Movements — Überblick",
+                    "path": "de/user-guide/stock-movements/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Storefront Builder",
+                "icon": "layout-template",
+                "pages": [
+                  {
+                    "title": "Storefront Builder — Überblick",
+                    "path": "de/user-guide/storefront-builder/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Automation",
+                "icon": "zap",
+                "pages": [
+                  {
+                    "title": "Automation Hub — Überblick",
+                    "path": "de/user-guide/automation/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Events",
+                "icon": "webhook",
+                "pages": [
+                  {
+                    "title": "Event Hub — Überblick",
+                    "path": "de/user-guide/events/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Store Setup",
+                "icon": "store",
+                "pages": [
+                  {
+                    "title": "Store Setup — Überblick",
+                    "path": "de/user-guide/store-setup/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Mobile App",
+                "icon": "smartphone",
+                "pages": [
+                  {
+                    "title": "Mobile App — Überblick",
+                    "path": "de/user-guide/mobile-app/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Import / Export",
+                "icon": "arrow-up-down",
+                "pages": [
+                  {
+                    "title": "Import / Export — Überblick",
+                    "path": "de/user-guide/import-export/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Settings",
+                "icon": "settings",
+                "pages": [
+                  {
+                    "title": "Einstellungen — Überblick",
+                    "path": "de/user-guide/settings/overview"
                   }
                 ]
               }

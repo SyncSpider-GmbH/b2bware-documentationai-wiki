@@ -1,0 +1,91 @@
+---
+title: Store Setup — Überblick
+description: Wie Store Setup den B2Bware-Shop-Tenant konfiguriert — Tabs, Themes-Freischaltung und warum Social Profil-Links meint, nicht ein Social-Publishing-Produkt.
+---
+
+**Store Setup** ist die Admin-Oberfläche für die **Tenant-Shop-Konfiguration**, die die Storefront und zugehörige Apps lesen — Identität, Erscheinungsbild, Feature-Flags, schlanke Integrationsschlüssel, Verweise auf rechtliche Inhalte, **Social-Profil-Links** und (wenn Storefront Hub installiert ist) **Themes**.
+
+| Tab | Verantwortet (Operator-Absicht) |
+| --- | --- |
+| **General** | Kern der Shop-Identität / SEO-orientierte Defaults, die die Storefront liest |
+| **Appearance** | Visuelle Branding-Eingaben für die Shop-Hülle |
+| **Features** | Feature-Schalter / Shop-Verhaltensflags (inkl. SEO-bezogener Textfelder, soweit sie angezeigt werden) |
+| **Integrations** | Storefront-nahe Integrationseinstellungen auf der Tenant-Config (Analytics usw.) — **nicht** der Top-Level-Integrations-Hub |
+| **Legal** | Konfiguration rechtlicher Seiten und Richtlinien, die der Shop ausliefert |
+| **Social** | **Nur Profil-URL-Links** für Footer, SEO und sameAs-artige Nutzung |
+| **Themes** | Theme-Auswahl und -Verwaltung — **nur wenn Storefront Hub installiert ist** |
+
+**Mentales Modell:** Store Setup konfiguriert **den Tenant dieses Shops**. Storefront Builder erstellt **Seiten- und Dokument-Content**. Top-Level-**Integrations** führt **Daten-Sync-Connectoren** aus. **Settings** hält Plattform und System sowie die Commerce-Methoden von Order Hub.
+
+<Callout kind="info" collapsed="false">
+Store Setup erscheint, wenn die **Storefront-Kombination** erfüllt ist (Product- + Order- + Customer- + Auth- + Settings-Hub). Präsenz im Demo Store bedeutet **nicht**, dass jeder Tenant Store Setup anzeigt.
+</Callout>
+
+### Social-Links ≠ Social-Publishing-Produkt
+
+| | **Store Setup → Social** | **Social-Publishing-Produkt** |
+| --- | --- | --- |
+| **Was es ist** | Formularfelder für öffentliche Profil-**URLs** am Tenant | Separates Produkt für Social Publishing, Kalender und Inbox |
+| **Production Admin** | **Ja** (mit Storefront-Kombination) | **Nein** — nicht in der Production- oder Demo-Sidebar |
+| **Benutzerhandbuch** | Als **Storefront-Social-Links** dokumentieren | **Parken** — nicht als Feature dokumentieren |
+
+Schreiben Sie nie „einen Social-Publishing-Hub unter Store Setup konfigurieren“. Sagen Sie **Social-Profil-Links** oder **Storefront-Social-Links**.
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Storefront Builder** | Authoring von Seiten- und Dokument-Content |
+| **Integrations-Hub** | Connector-Sync-Läufe und Mapping |
+| **Settings** | Plattform und System plus Commerce-Methoden von Order Hub |
+| **Content Hub** | Kein aktuelles Admin-Produkt — parken |
+
+## Warum Teams Store Setup nutzen
+
+1. Die öffentliche Identität und das Erscheinungsbild des Shops einmal für Themes und SEO setzen.
+2. Storefront-Features ohne Code-Deploys schalten.
+3. Rechtliche oder Policy-URLs bzw. Inhalte setzen, die das Theme erwartet.
+4. Social-Profil-URLs in Footer und strukturierte Daten bringen — nicht, um Beiträge zu planen.
+5. Themes auswählen, wenn Storefront Hub vorhanden ist.
+6. Storefront-Analytics und brand-nahe Einstellungen beim Shop halten (Integrations-**Tab**), getrennt vom Connector-Sync.
+
+## So nutzen Sie Store Setup
+
+1. Prüfen, dass **Store Setup** sichtbar ist (volle Storefront-Kombination installiert).
+2. **General** und **Appearance** abschließen, bevor die Theme-Qualität beurteilt wird.
+3. **Features** für Verhaltensflags nutzen; nach dem Speichern im Live-Shop prüfen.
+4. Store-Setup-**Integrations** nur für Integrationsfelder der Tenant-Storefront nutzen — Top-Level-**Integrations** für Sync-Jobs.
+5. **Legal** füllen, damit Compliance-Links in Checkout und Footer auflösen.
+6. Unter **Social** nur Profil-URLs einfügen; lieber leer lassen, als Handles zu erfinden.
+7. Fehlt **Themes**, ist Storefront Hub nicht installiert — das ist kein Fehler.
+8. Reichhaltige Seiten im **[Storefront Builder](/de/user-guide/storefront-builder/overview)** erstellen; Store Setup ist kein CMS.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Storefront-Kombination** | Gate für den Sidebar-Eintrag (Product + Order + Customer + Auth + Settings) |
+| **Settings Hub** | Beherbergt das Seitenpaket von Store Setup |
+| **Storefront Hub** (optional) | Themes-Tab plus Theme-Laufzeit und SEO-Helfer, die Social-Links konsumieren |
+| **Storefront Builder** (optional) | Seiten- und Dokument-Authoring — ergänzend |
+| **Media** (üblich) | Logos und Appearance-Assets, wenn Picker Media nutzen |
+| **Mobile App** | Dieselbe Storefront-Freischaltung; umschließt die Shop-URL |
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Den Social-Tab einen Social-Publishing-Hub nennen | Dokumentiert ein Produkt, das nicht in Production liegt | **Social-Profil-Links** sagen |
+| Hier nach Beitragsplanung suchen | Das Feature gibt es in Production nicht | Social-Publishing-Produkte parken |
+| Store-Setup-Integrations mit dem Integrations-Hub verwechseln | Unterschiedliche Aufgaben | Sync gegenüber Tenant-Shop-Schlüsseln |
+| Store Setup ohne die Core-Hubs erwarten | Der Eintrag ist ausgeblendet | Product, Order, Customer, Auth und Settings installieren |
+| Builder-Content in Store Setup bearbeiten | Falsche Oberfläche | Builder für Seiten und Dokumente; Setup für den Tenant |
+| Panik, wenn der Themes-Tab fehlt | An Storefront Hub gebunden | Installation von Storefront Hub prüfen |
+
+## Verwandtes
+
+- [Storefront Builder — Überblick](/de/user-guide/storefront-builder/overview)
+- [Mobile App — Überblick](/de/user-guide/mobile-app/overview)
+- [Einstellungen — Überblick](/de/user-guide/settings/overview)
+- [Integrationen (Übersicht)](/de/user-guide/integrations/overview)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

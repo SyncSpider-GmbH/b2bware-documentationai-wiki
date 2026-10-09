@@ -1,0 +1,110 @@
+---
+title: Tax overview
+description: Optional Tax Hub in B2Bware — tax classes, jurisdictions, rates, and priority rules; how rates resolve for cart and order lines, with install caveat, dependencies, and pitfalls.
+---
+
+**Tax** in B2Bware Admin is the UI for optional **Tax Hub** — a **rule-based tax engine** that resolves rates for cart and order line items from **tax classes**, **jurisdictions**, **class×jurisdiction rates**, and **priority-ordered tax rules** with conditions.
+
+| Concept | Role |
+| --- | --- |
+| **Tax Hub** | Optional installed package. When present and the operator can view it, Admin shows **Tax** with five children. |
+| **Tax Class** | Product-facing tax category (e.g. standard / reduced / zero) — products typically carry `tax_class_id`. |
+| **Jurisdiction** | Geographic tax zone (country ISO2, composite state codes, or `GLOBAL`). |
+| **Tax Rate** (`TaxClassJurisdiction`) | Rate for one **class + jurisdiction** pair. |
+| **Tax Rule** | Priority-ordered match that points at a rate; first matching active rule wins. |
+| **Tax Rule Condition** | Constraints (email, domain, country, region, customer group, VAT number) with `all` / `any` match. |
+| **Tax Settings** | Hub defaults (e.g. default country for tax resolution). |
+| **Calculate** | Preview API for cart/order tax before or alongside commerce flows. |
+
+**Mental model:** Product tax class = *what kind of tax*; customer location / VAT / group = *which jurisdiction and which rule*; TaxClassJurisdiction = *the numeric rate*; Tax Rules = *exceptions and B2B overrides* (including 0% exemption-style matches).
+
+<Callout kind="alert" collapsed="false">
+Tax Hub is **optional** (`hasTaxHub`). If the tenant has not installed it, the **Tax** sidebar group is absent. Core Products, Orders, and Customers still run — operators simply have no tax-engine UI. Demo Store presence does **not** mean every tenant has Tax.
+</Callout>
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Rule Hub** (Catalog / Cart Price Rules) | Promotions, coupons, shipping rates — not VAT |
+| **License Rules** | License Hub entitlement rules |
+| **Pricelists / finalPrice / price providers** | Pre-tax sell price stack |
+| **Invoice Hub** | Sales documents and balances (may *show* tax; Tax Hub *calculates* rates) |
+
+## Why teams use Tax
+
+1. **Correct B2B VAT / sales tax on checkout** — Rate depends on product class *and* buyer geography / VAT status, not a single global percentage.
+2. **Multi-country catalogs** — Same tax class, different jurisdiction rates (e.g. AT 20% vs DE 19% standard).
+3. **B2B exemptions / reverse-charge style overrides** — Priority rules with VAT-number or group conditions (0% exemption rules can apply across classes when configured that way).
+4. **Predictable fallbacks** — When no rule matches, the jurisdiction chain (specific → state → country → GLOBAL → config default) still resolves a rate for products that have a tax class.
+5. **Support triage** — “Wrong tax on order” becomes: class on product → customer country/VAT → matching rule → rate row — not a mystery percentage.
+
+Use **Tax Hub** for *which rate applies*. Use **[Pricelists](/user-guide/products/pricelists)** / **[Rules](/user-guide/rules/overview)** for *what the net unit price is before tax*. Use **[Invoices](/user-guide/invoices/overview)** for *billing documents* that present amounts after commerce.
+
+## How calculation resolves
+
+Commerce operators should keep this order in mind:
+
+1. **Resolve customer context** — Billing address → shipping address → Tax Settings default country → null; VAT via billing → company `vat_number`; email / customer group from customer.
+2. **Per line item** — Load active Tax Rules by **priority ascending** (lower number = higher priority); **stop at first match**.
+3. **Tax class gate** — If the line has `tax_class_id`, the rule’s class must match — **unless** the rule is an exemption (0% rate), which may apply to all classes.
+4. **Conditions** — `match_type` `all` (AND) or `any` (OR); empty conditions = blanket match.
+5. **Fallback (no rule)** — Look up TaxClassJurisdiction for the product’s class through the jurisdiction chain: specific id → state → country → GLOBAL → env/config default rate (often 0%). Without a product tax class, config default is used directly.
+6. **Price stack sits underneath** — Live Product prices → `finalPrice` → optional customer price provider → optional Rule Hub catalog/cart adjustments; Tax Hub then taxes the commercial line amounts.
+
+**Demo children → intent**
+
+| Child | Intent |
+| --- | --- |
+| Tax Classes | Define classes products reference |
+| Jurisdictions | Define zones rates attach to |
+| Tax Rates | Class × jurisdiction percentages |
+| Tax Rules | Priority overrides + conditions |
+| Tax Settings | Defaults (e.g. default country) |
+
+## How to use the hub
+
+1. Confirm **Tax** is visible (`hasTaxHub` + tax-hub view) and the role can configure tax entities.
+2. Create **Tax Classes** that match how products are sold (standard / reduced / exempt).
+3. Create **Jurisdictions** you actually ship or bill into (plus `GLOBAL` if used as catch-all).
+4. Enter **Tax Rates** for each class × jurisdiction you need.
+5. Assign **`tax_class_id` on products** (Edit Product / catalog ops) — without it, fallback behaviour is weaker.
+6. Add **Tax Rules** only for exceptions (VAT present, specific groups, country overrides); keep priority bands intentional.
+7. Set **Tax Settings** default country for unresolved addresses.
+8. Verify with a representative buyer cart (correct company VAT + addresses) before trusting go-live.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Tax Hub installed** | Sidebar + APIs (`hasTaxHub`) |
+| **Product Hub** | Products carry `tax_class_id`; catalog is the classify surface |
+| **Customer Hub** | Addresses, companies (`vat_number`), customer groups in conditions |
+| **Order Hub** | Cart/order lines are what get taxed at checkout / preview |
+| **Auth + admin access** | Admin configuration |
+| **Pricelists / Rules (optional stack)** | Supply the net amounts Tax Hub taxes — they do not configure VAT |
+
+**Not prerequisites:** Invoice Hub, Loyalty, License Hub, Procurement, Accounting — adjacent finance hubs with their own surfaces.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Expecting Tax on every tenant | Optional install | Confirm `hasTaxHub`; Demo ≠ all tenants |
+| Leaving products without `tax_class_id` | Weak / default-only resolution | Assign classes on sellable SKUs |
+| Confusing Tax Rules with Rule Hub | Wrong screen / wrong outcome | Tax = VAT engine; Rules = promotions |
+| Multiple blanket high-priority rules | First-match surprises | Design priority; test two active rules |
+| Ignoring billing vs shipping address order | Wrong country | Know waterfall: billing → shipping → default |
+| Editing a pricelist to “fix VAT” | Wrong layer | Fix class / rate / rule |
+| Claiming seeded EU rates exist everywhere | Tenant data varies | Configure rates for live jurisdictions |
+
+## Related
+
+- [Edit a product](/user-guide/products/edit-product) — assign tax class
+- [Pricelists](/user-guide/products/pricelists) — net price before tax
+- [Rules overview](/user-guide/rules/overview) — promotions ≠ Tax Rules
+- [Order lifecycle](/user-guide/orders/lifecycle) — checkout amounts
+- [Companies](/user-guide/customers/companies) — VAT / addresses
+- [Segmentation](/user-guide/customers/segmentation) — group conditions
+- [Invoices overview](/user-guide/invoices/overview) — documents after sale
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

@@ -1,0 +1,150 @@
+---
+title: Contacts
+description: Kommerzielles Partei-Verzeichnis im Customer Hub — Personen- vs. Organisations-Contacts, wie Customer-/Company-/Supplier-Facets verknüpfen, und warum Affiliations „contact-for“-Aussagen sind — keine Logins und keine Berechtigungen.
+---
+
+Ein **Contact** ist eine **Verzeichniszeile** für eine kommerzielle Partei — eine **Person** oder eine **Organisation**. Facets (Customer-Login, Company-Stammdaten, Procurement-Supplier) können über `contact_id` **auf** diese Zeile zeigen. Der Contact selbst loggt sich nicht ein.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Contact** | Verzeichnis: `kind` (`person` \| `organization`), `display_name`, Namen, E-Mail, Telefon, USt-/Register-Nr. (Org), `status`. Admin: **Customers → Contacts**. |
+| **Customer** | Authentifizierbarer Käufer/Operator. Kann `contact_id` tragen (Personen-Facet). Die Projektion kopiert Identität einwegig auf den Contact. |
+| **Company** | Organisations-Stammdatensatz. Kann `contact_id` tragen (Organisations-Facet). |
+| **ContactAffiliation** | Additive **Person → Organisation**-„contact-for“-Verknüpfung (`person_contact_id`, `org_contact_id`, `relation_type`, `status`). **Keine** Auth, **keine** Mitgliedschaft, **keine** rekursive Auflösung. |
+| **Beschäftigung / Mitgliedschaft** | Bleibt auf **`Customers.company_id`** — nicht auf Affiliations. |
+| **Supplier-Facet** | Procurement (wenn installiert) kann ebenfalls auf denselben Contact zeigen — eine Partei, mehrere Facets. |
+
+**Mentales Modell:** Contacts = *wer im kommerziellen Verzeichnis existiert*. Customers/Companies/Suppliers = *was diese Partei in jedem Hub tun kann*. Affiliations = *„diese Person ist der Kontakt für jene Org“*, ohne sie zum Mitarbeiter-Login zu machen.
+
+Das Speichern eines Contacts ist **live**. Es gibt **keinen** Deploy-Lebenszyklus.
+
+<Callout kind="info" collapsed="false">
+Contacts sind **keine** Authentifizierungs-Prinzipale. Ein Contact muss kein Customer sein. Login-Konten bleiben unter All Customers — diese Seite behandelt das **Verzeichnis** und wie es zu diesen Logins steht.
+</Callout>
+
+**Was Contacts *nicht* enthalten:**
+
+- Login, Passwort, Roles oder `admin.access` auf der Contact-Zeile.
+- Aus Affiliations geerbte Autorisierung.
+- Eine konkurrierende Zweiweg-Sync, die Customer-/Company-Felder aus dem Verzeichnis überschreibt (Projektion ist **einwegig Facet → Contact**).
+- Ein Marketing-Automation- oder Ticket-CRM-Produkt.
+
+## Warum Teams Contacts nutzen
+
+1. **Eine Partei-Identität über Facets hinweg** — Eine Person, die kauft (Customer) und zugleich als Supplier-Contact erscheint, verdichtet sich auf eine Verzeichniszeile mit mehreren Facet-IDs.
+2. **Verzeichnis ohne erzwungenes Login** — Eine Holding-Kontaktperson erfassen, die sich nie für den Shop registriert.
+3. **Holding-„contact-for“** — Eine Person, die bei Company A angestellt ist (`Customers.company_id`), kann trotzdem als contact-for für Companies B/C über Affiliations gelistet werden.
+4. **Operator-Konvertierungspfade** — Admin kann einen Personen-Contact zu einem **Customer** (Login) oder, wenn Procurement installiert ist, zu einem **Supplier**-Facet fördern — ohne zu lehren, dass Contact *diese* Datensätze *ist*.
+5. **Klarere CRM-artige Suche** — Parteien nach Display Name / Kind / Status finden, bevor das kommerzielle Facet geöffnet wird.
+
+Nutzen Sie **Contacts** für Verzeichnis- und Beziehungsaussagen. Nutzen Sie **All Customers**, wenn sich jemand authentifizieren muss. Nutzen Sie **Companies** für den B2B-Account-Stammdatensatz. Nutzen Sie **Roles** nur auf Customers.
+
+## Wie Verzeichnis, Facets und Affiliations funktionieren
+
+### Contact-Felder
+
+| Feld | Hinweise |
+| --- | --- |
+| **kind** | Beim Anlegen erforderlich: `person` \| `organization` (ältere UI-Query `kind=company` mappt auf organization) |
+| **display_name** | Besonders wichtig für Organisationen; bei Personen oft aus Vor-/Nachname ableitbar |
+| **first_name** / **last_name** / **salutation** | Personen-orientiert |
+| **email** / **phone** | Optional |
+| **vat_number** / **registration_number** | Org-orientierte kommerzielle IDs |
+| **status** | `active` \| `inactive` |
+
+Admin-Liste: Suche nach Display Name; Filter für Kind/Status; Papierkorb. Soft Delete verfügbar. Gewöhnliches CRUD — kein Deploy-Lebenszyklus.
+
+### Resolve-Payload (read-only)
+
+Resolve liefert `facets` (Customer- / Company- / Supplier-IDs) plus verwandte Personen (für Orgs) oder Organisationen (für Personen). **Mutiert nie** Facets — Operatoren nutzen es, um zu sehen, was die Verzeichniszeile bereits verknüpft.
+
+### Facet-Projektion (einwegig)
+
+| Facet | Projektion |
+| --- | --- |
+| Customer | Projiziert auf Kind **person**; setzt `Customers.contact_id` |
+| Company | Projiziert auf Kind **organization**; setzt `Companies.contact_id` |
+| Backfill | Sicher erneut lauffähig; dedupliziert über starke Keys (E-Mail für Personen; USt-ID/E-Mail für Orgs) |
+
+Facet-Domain-Felder bleiben autoritativ. Ändern Sie die Customer-E-Mail nicht nur am Contact und erwarten Sie, dass die Login-E-Mail mitzieht.
+
+### Affiliations (contact-for)
+
+| Regel | Bedeutung |
+| --- | --- |
+| Link-Form | Personen-Contact ↔ Org-Contact |
+| Auth | **Keine** — vergibt nie Roles, Company-Mitgliedschaft oder Admin-Zugang |
+| Mitgliedschaft | Weiterhin `Customers.company_id` |
+| Rekursion | Nur eine Stufe |
+
+Admin-Personen-Detail-Tab **Companies and access** / Org-Tab **People** sind die FE-Homes für diese Beziehungen.
+
+### Detail-Tabs
+
+| Kind | Tabs |
+| --- | --- |
+| **Person** | General; **Companies and access** |
+| **Organization** | General; **People** |
+
+Optionale Convert-Aktionen (Install- und Permission-gated): Contact → Customer; Contact → Procurement-Supplier. Behandeln Sie diese als *Facet anlegen/verknüpfen*, nicht als „der Contact wird ein anderer Entitätstyp“.
+
+## Typische Workflows
+
+### Verzeichnisperson anlegen (noch kein Login)
+
+1. Unter **Customers → Contacts →** **person** anlegen.
+2. Name/E-Mail/Telefon/Status erfassen.
+3. Später: zu Customer konvertieren, wenn sie shoppen oder Admin bedienen müssen.
+
+### „contact-for“ verknüpfen, ohne sie zum Mitarbeiter zu machen
+
+1. Sicherstellen, dass Personen- und Organisations-Contacts existieren (Org kann bereits von einer Company projiziert sein).
+2. Affiliation Person → Org anlegen.
+3. Die **customer.company_id** der Person auf dem echten Arbeitgeber belassen, falls sie auch kauft.
+
+### Zum Käufer fördern
+
+1. Vom Contact (oder All Customers) Customer-Facet anlegen und mit diesem Contact verknüpfen.
+2. **company**, **role**, **customer group** am **Customer** zuweisen — nicht am Contact.
+3. Mit Resolve prüfen, dass die Customer-Facet-ID erscheint.
+
+### Supplier-Übergabe (optional)
+
+1. Nur wenn Procurement installiert und erlaubt ist.
+2. Supplier-Facet auf denselben Contact konvertieren/verknüpfen.
+3. Einkaufs-Docs in den Procurement-Guides belassen — nicht hier.
+
+## Abhängigkeiten
+
+| Abhängigkeit | Warum sie zählt |
+| --- | --- |
+| **Customer Hub** (Core) | Besitzt Contact + ContactAffiliation |
+| **Companies / All Customers** | Facets, die auf Contacts projizieren; Mitgliedschaft getrennt |
+| **Roles** | Gelten erst, nachdem ein **Customer**-Facet existiert |
+| **Auth Hub** | Login liegt am Customer, nicht am Contact |
+| **Attributes Hub** (optional) | Contact als attributierbares Target |
+| **Procurement Hub** (optional) | Supplier-Facet / convert-to-supplier |
+| **Order- / Product-Hubs** | Indirekt — Käufer brauchen weiterhin Customer-Datensätze |
+
+Contacts erscheinen mit Customer Hub + View-Permission. Der Demo Store listet Contacts unter Customers.
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Erwarten, dass Contact sich einloggt | Kein Passwort/Role am Contact | **Customer** anlegen oder konvertieren |
+| Affiliation als Beschäftigung behandeln | Keine Auth / kein `company_id` | Mitgliedschaft am Customer setzen; Affiliation nur für „contact-for“ |
+| Nur das Verzeichnis bearbeiten und Facet-Felder erwarten | Projektion ist einwegig **zum** Contact | Customer-/Company-Stammdaten für kommerzielle Wahrheit ändern |
+| Parteien pro Facet duplizieren | Bricht „ein Contact, viele Facets“ | Resolve-/Backfill-Semantik bevorzugen; Contact beim Konvertieren wiederverwenden |
+| Contacts als shop-seitiges CRM dokumentieren | API ist Admin-only | Guidance im Admin-Benutzerhandbuch belassen |
+| Organisations-Contact mit Company-Stammdaten gleichsetzen | Company hält Adressen, Group, Default Role, Checkout-Overrides | **Companies** für B2B-Account-Ops pflegen; Contact ist Verzeichnis-Projektion |
+| Affiliation-basierte Katalog-Permissions erfinden | Category Permissions hängen an Customer/Company/Group | Segmentation / Permission-Module nutzen |
+
+## Related pages
+
+- [Customers — Überblick](/de/user-guide/customers/overview)
+- [Companies](/de/user-guide/customers/companies)
+- [Roles](/user-guide/customers/roles) (EN)
+- [Segmentation](/user-guide/customers/segmentation) (EN)
+- [Orders overview](/user-guide/orders/overview) (EN)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

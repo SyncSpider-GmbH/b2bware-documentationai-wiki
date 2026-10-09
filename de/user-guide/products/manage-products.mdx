@@ -1,50 +1,143 @@
 ---
 title: Produkte verwalten
-description: All Products öffnen, den Katalog suchen und filtern und in B2Bware Admin ein neues Produkt anlegen.
+description: Wie All Products als Katalogliste funktioniert — wann filtern und bulk-editieren statt Edit Product zu öffnen, wie Import/Export passt und wann Pricelists oder Stock locations besser sind.
 ---
 
-Nutzen Sie **All Products**, um Artikel zu finden, ein bestehendes Produkt zu öffnen oder ein neues anzulegen.
+**Produkte verwalten** ist der Operator-Name für **All Products** — die Katalog-**Liste** unter **Products → All Products**. Sie ist die Arbeitsfläche zum Finden, Filtern, Anlegen, Massenändern, Importieren/Exportieren und Öffnen von Produkten.
+
+Hier konfigurieren Sie **nicht** das volle verkaufbare Commerce-Verhalten (Varianten, Live-Preise, Tier/Group, Bestand pro Lager, Attribute). Das gehört zu **[Produkt bearbeiten](/de/user-guide/products/edit-product)** (Detail-Tabs).
 
 <Image
   src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404816099-c6umj3903fq-all-products.png?fm=auto&auto=compress%2Cformat"
-  alt="All-Products-Liste"
+  alt="All-Products-Liste (EN-Screenshot — DE-Screenshot folgt)"
 />
 
-## All Products öffnen
+| Konzept | Rolle |
+| --- | --- |
+| **All Products (Liste)** | Katalog browsen/suchen/filtern; gespeicherte Views; Bulk-Edit/Löschen; Import / Export; Papierkorb; neu anlegen; Zeile in Edit Product öffnen. |
+| **Edit Product (Detail)** | Operationen pro SKU (oder configurable Parent) über Tabs — General, Variants, Attributes, Price (+ Tier/Group), Stock, SEO, Shipping, Merchandising-Links, optional modul-gesteuerte Tabs. |
+| **Wie Produkte funktionieren** | System-Intent: Product-Hub-Besitz, Preisschichten, Pricelist-Deploy vs. Live-Price, Storefront-Spine. Einmal lesen; hier nicht wiederholen. |
+| **Pricelists** | Vorbereitete Multi-SKU-Preisänderungen — **Deploy** schreibt Live-Price. Bevorzugen gegenüber Massen-Edit von Price, wenn die Änderung reviewed oder kanalweit ist. |
+| **Stock locations** | Lager-**Stammdaten**. Mengen liegen weiterhin auf dem Produkt-Tab **Stock** (pro Lager). |
 
-<Steps>
-  <Step title="Products-Hub öffnen">
-    Klappen Sie in der linken Sidebar **Products** auf.
-  </Step>
-  <Step title="All Products wählen">
-    Wählen Sie **All Products**, um die Katalogliste zu öffnen.
-  </Step>
-</Steps>
+**Mentales Modell:** Liste = *viele finden und bearbeiten*. Detail = *ein Produkt commerce-ready machen*. Geschwister-Screens (Categories, Pricelists, Stock Locations, Vendors, Customer SKUs) = *Stammdaten und Cross-SKU-Workflows*, die Liste und Detail konsumieren.
 
-## Ein Produkt finden
+Speichern auf der Liste (Bulk-Edit, Anlegen) und auf Detail-Tabs ist **live** — es gibt **kein** Pricelist-ähnliches Deploy für Produkt-Stammdaten, Bestandsmengen oder Live-Price-Zeilen, die am Produkt editiert werden. Für Product-Hub-Spine und den vollen Preisschichten-Essay siehe [Wie Produkte funktionieren](/de/user-guide/products/how-products-work).
 
-- Nutzen Sie das Suchfeld für Name, SKU oder andere indexierte Felder
-- Nutzen Sie Spaltenfilter, wenn die Liste lang ist
-- Sortieren Sie durch Klick auf eine Spaltenüberschrift, sofern verfügbar
-
-<Callout kind="info" title="Attributspalten">
-  Zusätzliche Attributspalten können je nach Tenant-Setup erscheinen. Behandeln Sie sie als Filter für Ihren Katalog, nicht als Pflichtfelder für jedes Produkt.
+<Callout kind="info" collapsed="false">
+Nutzen Sie die **Liste** für Multi-SKU-Discovery oder dieselbe kleine Änderung auf vielen Zeilen. Nutzen Sie **Edit Product**, wenn Varianten, Preistypen, Bestandsrichtlinien, Attribute oder Medien korrekt für Commerce gesetzt werden müssen. Nutzen Sie eine **Pricelist**, wenn viele Preise vor Go-Live staged und reviewed werden müssen.
 </Callout>
 
-## Ein Produkt anlegen
+## Warum Teams die Liste nutzen
 
-<Steps>
-  <Step title="Anlage starten">
-    Klicken Sie auf **Create** (oder die entsprechende Primäraktion) in All Products.
-  </Step>
-  <Step title="Grunddaten eingeben">
-    Füllen Sie mindestens Name und SKU aus (sowie alle Pflichtfelder, die Ihr Tenant anzeigt).
-  </Step>
-  <Step title="Speichern">
-    Speichern Sie das Produkt und setzen Sie danach auf den Detail-Tabs Medien, Preis und Bestand fort.
-  </Step>
-</Steps>
+1. **Arbeit finden** — Nach Status, Typ, SKU/Name, Bestands-/Preissignalen oder Attributspalten filtern, ohne jede Zeile zu öffnen.
+2. **Operatives Triage** — Inaktive, fehlende Preise, niedrigen Bestand oder Variation-Parents mit Child-Cleanup erkennen.
+3. **Bulk gleiche Felder** — Status, Kategorien oder andere gemeinsame Felder über eine Auswahl, wenn fokussiertes Bulk-Edit sicherer ist als ein voller Import.
+4. **Einstieg Anlegen** — **Add New Product** landet auf Edit Product (General) für ein neues Produkt.
+5. **Import / Export** — Katalogmengen über die Listen-Steuerung Import/Export laden oder herunterladen. Große Katalog-Syncs können auch aus Integrations kommen — ersetzen aber nicht das Verständnis Live-Price vs. Pricelist-Deploy.
+6. **Papierkorb / Wiederherstellen** — Soft-Delete, wenn Trash für den Product-Hub-Kanal aktiviert ist; aus dem Papierkorb wiederherstellen statt SKUs neu anzulegen.
 
-## Nächste Schritte
+## Die Liste nutzen
 
-- [Produkt bearbeiten](/de/user-guide/products/edit-product) — Tabs General, Price und Stock
+### Wofür die Liste da ist
+
+| Fähigkeit | Operator-Bedeutung |
+| --- | --- |
+| **Gespeicherte Views / Layout** | Filter + Spaltenlayout für wiederkehrende Jobs persistieren (zum Beispiel „active simple“, „needs stock“). „Default“ ist reserviert. |
+| **Filter / Sortierung** | Nach Produktfeldern und (wenn konfiguriert) Attributspalten eingrenzen. Vor Bulk präzise filtern. |
+| **Attributspalten** | Extra-Header (zum Beispiel volume, scent) kommen aus **Produkt**-Attributen — keine neuen Produkttypen erfinden. |
+| **Bulk-Edit** | Gemappte Felder auf **ausgewählte** IDs anwenden (Berechtigung `bulk-update`). Eng scopen; danach Stichprobe prüfen. |
+| **Bulk-Löschen** | Auswahl entfernen (Soft-Delete / Trash, wenn aktiviert). Vor Massenlöschen Variation-Parents und verknüpfte VendorProduct- / Customer-SKU-Implikationen prüfen. |
+| **Import / Export** | Katalogdatei ein/aus über das Listenmenü. Nach Import Live-Preise, Default-Warehouse-Bestand und `manage_stock` für physische SKUs stichprobenartig prüfen. |
+| **Add New Product** | Erzeugt die Detail-Session — Identität + Typ auf General abschließen, dann Price / Stock / Variants nach Bedarf. |
+| **Zeile öffnen** | Öffnet Edit Product auf **General**. |
+
+### Liste vs. Detail — Entscheidung
+
+| Aufgabe | Bevorzugen |
+| --- | --- |
+| SKUs finden / Status prüfen / Menge exportieren | **Liste** |
+| Status oder gemeinsame Felder auf vielen ähnlichen SKUs ändern | **Listen-Bulk-Edit** (oder Import) |
+| Regular/Special/Tier/Group/Cost für eine SKU setzen | **Edit → Price** (live) |
+| Kanal-/Vertragspreise über viele SKUs ausrollen | **[Pricelists](/de/user-guide/products/pricelists) → Deploy** |
+| Menge / Backorders für eine SKU korrigieren | **Edit → Stock** (Default-Warehouse für Online) |
+| Configurable mit Variationen bauen | **Edit → Variants** (+ Attributes für Achsen) |
+| SKU im Katalogbaum platzieren | **Edit → General (categories)** und/oder [Categories](/de/user-guide/products/categories) |
+
+### Produkttypen (Listen-Bewusstsein)
+
+Unterstützte Typen: **simple**, **configurable** (Parent + Variationen), **virtual**, **downloadable**. Listen-Signale zu Variationen / Child-Produkten helfen, configurable Parents zu erkennen. Erfinden Sie keine Typen außerhalb dieses Sets.
+
+Physischer Verkauf braucht typischerweise `manage_stock` und eine **Default-Warehouse**-Stock-Zeile — eher Ops-Praxis als reine Listenlogik. Siehe [Produkt bearbeiten](/de/user-guide/products/edit-product) und [Stock locations](/de/user-guide/products/stock-locations).
+
+### Berechtigungen
+
+Operatoren brauchen Product-Hub-Ansicht plus **products**-CRUD wie gewährt. Bulk- und Dateiflows brauchen **`bulk-update`**, **`import`** und **`export`**, wo genutzt. Vendor-gescopte Rollen sehen ggf. nur **eigene** Produkte (`view-own` / `update-own`) — Listenresultate können enger sein als der volle Katalog.
+
+## Typische Workflows
+
+### Ein Produkt end-to-end anlegen
+
+1. **Add New Product** aus All Products.
+2. Auf **General**: Name, SKU, Typ, Status, Kategorien, Medien.
+3. **Price**: regular (für Verkauf erforderlich), optional special/cost; Tier/Group wenn B2B sie braucht.
+4. **Stock** (wenn physisch): Default-Warehouse-Menge + Backorder-Policy; `manage_stock` passend setzen.
+5. **Variants** nur für Configurables — Achsen über Attributes definieren, dann Children.
+6. Storefront/Warenkorb für eine Beispiel-Kundengruppe stichprobenartig prüfen.
+
+### Triage und Bulk-Fix
+
+1. Eine **View** mit dem wiederkehrenden Filter speichern.
+2. Zeilen auswählen → **Bulk-Edit** nur auf sichere gemeinsame Felder (zum Beispiel Status).
+3. Für Preiskampagnen → Liste verlassen und **[Pricelists](/de/user-guide/products/pricelists)** nutzen.
+4. Ausreißer in Edit Product öffnen.
+
+### Import-Kampagne
+
+1. Zuerst eine kleine Template-Menge exportieren, wenn Spalten unsicher sind.
+2. Importieren; Job-Abschluss abwarten.
+3. Auf importierte SKUs filtern; Price + Stock + Kategorien prüfen.
+4. Jede gestagte Pricelist **separat** deployen, wenn das Teil des Kampagnenplans war.
+
+## Abhängigkeiten
+
+| Abhängigkeit | Warum sie für Produkte verwalten zählt |
+| --- | --- |
+| **Product Hub** | Besitzt All-Products-Liste + Produkt-APIs. Kern-Hub im [Commerce-Rückgrat](/de/user-guide/how-b2bware-fits-together). |
+| **Edit Product** | Ziel für Anlegen/Öffnen; dort liegen Commerce-Tabs. Siehe [Produkt bearbeiten](/de/user-guide/products/edit-product). |
+| **Wie Produkte funktionieren** | Systemkontext — Preisschichten, optionale Tabs, Installation. Siehe [Wie Produkte funktionieren](/de/user-guide/products/how-products-work). |
+| **Attributes Hub** | Dynamische Attributspalten auf der Liste; Variationsachsen. |
+| **Categories** | Platzierung am Produkt; Baum unter [Categories](/de/user-guide/products/categories). |
+| **Stock locations** | Lager-Stammdaten müssen existieren, bevor sinnvolle Stock-Tab-Zeilen möglich sind. Siehe [Stock locations](/de/user-guide/products/stock-locations). |
+| **Pricelists** | Bulk gestagte Preise — nicht dasselbe wie Listen-Bulk-Edit eines Preisfelds. Siehe [Pricelists](/de/user-guide/products/pricelists). |
+| **Customer Hub** | Group-Preise brauchen Segmentation-Gruppen; Vendor-Own-Scoping nutzt Company/Vendor. |
+| **Order Hub / Storefront** | Käufer konsumieren aufgelöste Preise und Verfügbarkeit — Listen-PRICE/STOCK sind Ops-Signale, nicht allein der belastete Stack. |
+| **Data-transfer / Integrations** | Import-Export auf der Liste; externe Upserts schreiben ebenfalls Live-Produkte/Preise/Bestand (Last Writer Wins). |
+| **Media** | Galerie liegt auf Detail General; die Liste kann ein Bild-Thumbnail zeigen. |
+| **Vendors / Customer SKUs** | Benachbarte Stammdaten und Käufer-Artikelnummern — siehe [Vendors](/de/user-guide/products/vendors) und [Customer SKUs](/de/user-guide/products/customer-skus). |
+
+Tax, Licensing, DTOne, Customer-SKU-Modul und Rules sind optional/benachbart — keine Voraussetzungen, um die Liste zu öffnen.
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Listen-PRICE als „was jeder Käufer zahlt“ behandeln | finalPrice + Customer-Price-Provider + Rules können überschreiben | Liste als Triage nutzen; nach Änderungen mit repräsentativem Käufer/Gruppe prüfen |
+| Live-Preise masseneditieren, obwohl eine Pricelist gemeint war | Kein Staging/Review; schwer sauber zurückzurollen | In **[Pricelists](/de/user-guide/products/pricelists)** stagen, dann **deployen**; Detail-Price für Einzel-SKU-Fixes |
+| Import ohne Default-Warehouse / `manage_stock` zu prüfen | Storefront kann fehlenden Default-Bestand als **unmanaged (orderable)** behandeln | Nach Import Stock am **Default**-Standort für physische SKUs bestätigen |
+| Configurable Parents unbedacht bulk-löschen | Waisen / kaputte Variationsgraphen | Auf Parents filtern; zuerst Variants prüfen |
+| Erwarten, dass Listen-STOCK-Summe der Order-Abbuchung entspricht | Abbuchung nutzt die **Default**-Warehouse-Zeile | Verkaufbare Menge am Default-[Stock location](/de/user-guide/products/stock-locations) ausrichten |
+| Toolbar/Views als „das Produktsystem“ dokumentieren | Chrome ohne Commerce-Regeln | Listen-Docs kurz halten; Tiefe auf Edit + Geschwister-Intents |
+| Behaupten, Customer SKUs / Licensing / DTOne erschienen immer aus der Liste | Tabs sind modul-gesteuert am Detail | Optionale Seiten verlinken; nicht als immer-on darstellen |
+
+## Verwandte Seiten
+
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Produkt bearbeiten](/de/user-guide/products/edit-product)
+- [Pricelists](/de/user-guide/products/pricelists)
+- [Stock locations](/de/user-guide/products/stock-locations)
+- [Categories](/de/user-guide/products/categories)
+- [Vendors](/de/user-guide/products/vendors)
+- [Customer SKUs](/de/user-guide/products/customer-skus)
+- [Products — Überblick](/de/user-guide/products/overview)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

@@ -1,0 +1,124 @@
+---
+title: Automation Hub — Überblick
+description: Wie Automation Hub in B2Bware ereignisgesteuerte mehrstufige Flows ausführt — Flows vs. Runs, Abgrenzung zu Event-Hub-Webhooks und Integrations-Connectoren, Abhängigkeiten und Fallstricke.
+---
+
+**Automation** in B2Bware Admin ist die UI für das optionale **Automation Hub** — Workflow-**Orchestrierung**, die selbst erstellte Flows (Trigger → Bedingungen → Verzögerungen/Aktionen) auf derselben **Event-Registry** ausführt, die Event Hub und Notification Hub konsumieren.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Automation Hub** | Optional installiertes Package. Wenn vorhanden und der Operator es sehen darf, zeigt Admin **Automation** mit Flows, Runs, Activity log und Settings. |
+| **Flow** | Definition: Trigger-Slug, Bedingungen, geordnete Steps, Cancel-on-Events |
+| **Run** | Eine Ausführung für ein konkretes Event; idempotent pro Flow + Event; verfolgt Step-Index, nächsten Lauf, Retries, letzten Fehler |
+| **Activity log** | Admin-seitiges Audit von Flow anlegen/aktualisieren/aktivieren/deaktivieren/löschen sowie manuellem Cancel/Retry |
+| **Execution logs** (Backend) | Step-weises Audit (Delay enter/exit, Action invoke) — Aufbewahrung konfigurierbar; kann über das Run-Detail sichtbar werden |
+| **Settings** | Hub-Konfiguration unter Settings apps / Automation Hub settings |
+
+**Mentales Modell (drei Hubs, drei Aufgaben):**
+
+| Hub | Aufgabe |
+| --- | --- |
+| **Event Hub** | **Transport** — Events abonnieren und als **ausgehende Webhooks** zustellen |
+| **Notifications** | **Zustellung an Menschen** — Templates, Präferenzen, Kanäle, Zustellversuche |
+| **Automation Hub** | **Orchestrierung** — mehrstufige Flows, die warten, verzweigen und Hub-Aktionen aufrufen |
+
+<Callout kind="alert" collapsed="false">
+Automation Hub ist **optional** (`automation-hub`). Ohne das Package fehlt die Gruppe. Aktionskataloge werden von **anderen installierten Hubs beigesteuert** — ein Flow kann keine Aktion aufrufen, deren Hub nicht vorhanden ist. Präsenz im Demo Store bedeutet **nicht**, dass jeder Tenant Automation hat.
+</Callout>
+
+**Demo-Children → Absicht**
+
+| Child | Absicht |
+| --- | --- |
+| Flows | Definitionen anlegen / aktivieren / deaktivieren |
+| Runs | Ausführungszustand pro Event prüfen |
+| Activity log | Admin-Änderungs-Audit |
+| Settings | Hub-Konfiguration |
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Event Hub** | Transport ausgehender Webhooks plus Delivery Logs — keine Flow-Orchestrierung |
+| **Integrations** | Daten-Sync-**Connectoren** — weder mehrstufige Flows noch ausgehende Event-Webhooks |
+| **Notifications** | Menschliche Mehrkanal-Nachrichten |
+| **Rule Hub** | Preis- und Warenkorb-Promotions sowie Validierung — keine verzögerte Orchestrierung |
+| **Marketing- / Social-Journey-Produkte** | Keine Production-Admin-Produkte — parken |
+
+## Warum Teams Automation nutzen
+
+1. **Mehrstufig nach einem Event** — z. B. warten, dann benachrichtigen, dann den Status aktualisieren — ohne eigene Skripte.
+2. **Cancel-on-Event** — Einen Run stoppen, wenn ein späteres Event eintrifft (z. B. Bestellung storniert vor einem verzögerten Step).
+3. **Triage** — Runs und Activity log beantworten „ist dieser Flow gelaufen / wo ist er stehen geblieben?“.
+4. **Hub-übergreifende Verbindung** — Order, Notification, Attribute und andere Hubs stellen Aktionen und Trigger bereit, ohne den Kern von Automation Hub zu ändern.
+5. **Operator-Steuerung** — Flows aktivieren oder deaktivieren; Runs wiederholen oder abbrechen, wenn das unterstützt ist — ohne Code neu zu deployen.
+
+Nutzen Sie **[Event Hub](/de/user-guide/events/overview)**, wenn nur ein signierter Webhook an eine externe URL nötig ist. Nutzen Sie **[Notifications](/de/user-guide/notifications/overview)**, wenn nur eine Vorlage an Menschen nötig ist. Nutzen Sie **[Integrationen](/de/user-guide/integrations/overview)** für Connector-Sync zwischen Systemen — nicht für mehrstufige Flows und nicht für ausgehende Event-Webhooks. Nutzen Sie **[Rules](/de/user-guide/rules/overview)** für Katalog- und Warenkorbpreise sowie Validierung — nicht für verzögerte mehrstufige Orchestrierung.
+
+## Wie ein Flow läuft
+
+```
+Hub-Event (Registry-Slug)
+  → passende aktivierte Flow(s)
+  → Bedingungen erfüllt?
+  → Flow Run anlegen oder fortschreiben (idempotent auf Flow + Event)
+  → für jeden Step:
+       delay → next_run_at planen
+       action → Handler des beitragenden Hubs aufrufen
+  → Retries bei vorübergehendem Fehler; ein Schwellenwert kann ein Failing-Signal auslösen
+  → Activity log zeichnet Admin-Änderungen auf; Execution Logs zeichnen Step-Ergebnisse auf
+```
+
+**Für Operatoren relevant:**
+
+- Runs sind für denselben Flow und dasselbe Event **idempotent** — eine erneute Zustellung darf keine doppelten Runs erzeugen.
+- Die Step-Anzahl ist gedeckelt (Platform-Hard-Cap; als Konfiguration behandeln, nicht als festes Versprechen im Benutzerhandbuch).
+- Horizon-Worker auf der Queue **automation** müssen laufen, sonst bleiben Delays und Actions stehen.
+- Verfügbare Trigger und Actions in der UI hängen davon ab, **welche Hubs installiert sind** und was sie beisteuern.
+
+## So nutzen Sie Automation
+
+1. Prüfen, dass **Automation** sichtbar ist und die Berechtigungen die Flow-Verwaltung erlauben.
+2. Unter **Settings** die Hub-Defaults prüfen (Queues, Retention, Failure-Notify, soweit sichtbar), bevor Production-Flows entstehen.
+3. Einen **Flow** mit einem echten Trigger-Slug eines installierten Hubs anlegen (z. B. Order-Lifecycle-Events, wenn Order Hub vorhanden ist).
+4. Steps wenige und zielgerichtet halten; Notifications oder Event Hub bevorzugen, wenn ein einzelner Zweck keinen vollen Flow braucht.
+5. Den Flow erst nach einem gedanklichen Probelauf aktivieren: Cancel-on-Events, Nebenwirkungen von Empfängern und Aktionen, Fehlerverhalten.
+6. Ein echtes oder Test-Event auslösen; **Runs** für Step-Fortschritt und Fehler öffnen; **Activity log** für „wer hat den Flow geändert“ nutzen.
+7. Wenn nichts läuft: Event nicht emittiert, Flow deaktiviert, Bedingung nicht erfüllt oder Worker down — nicht standardmäßig „Automation ist kaputt“.
+8. Mit **[Order-Lifecycle](/de/user-guide/orders/lifecycle)** und **Notifications** abstimmen, damit Statusänderungen und E-Mails nicht an widersprüchlichen Stellen doppelt umgesetzt werden.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Automation Hub installiert** | Sidebar und APIs |
+| **Event-Registry / Event-Hub-Muster** | Trigger kommen aus der gemeinsamen Registry, in die andere Hubs publizieren |
+| **Beitragende Hubs** | Actions und Trigger (Order, Notification, Attributes, …) nur wenn installiert |
+| **Notification Hub** (häufig) | Aktionen im Stil „Send notification“ |
+| **Queue / Automation-Worker** | Verzögerte Runs fortschreiben |
+| **Berechtigungen** | automation-hub-Keys für Flow, Run, Activity und Settings, wie vergeben |
+| **Settings Hub** | Hostet die Settings-Seite von Automation Hub |
+
+**Keine Voraussetzungen:** Storefront Builder, Media, Tax oder Social- und Marketing-Produkte. Integrations-Connectoren und Event-Hub-Webhooks sind eigene Systeme und keine Voraussetzung für Automation Hub.
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Automation statt eines Notification Type | Zu viel Aufwand; schwerere Triage | Notifications für Ereignisse mit einer einzelnen Nachricht |
+| Automation statt eines Event-Hub-Webhooks | Falsches Werkzeug für „POST JSON an ein ERP“ | Event-Hub-Subscriptions |
+| Automation statt eines Integrations-Connectors | Falsches Werkzeug für Daten-Sync zwischen Systemen | Integrationen-Connectoren |
+| Aktionen nicht installierter Hubs erwarten | Aktion fehlt in der Auswahl oder der Run schlägt fehl | Zuerst den beitragenden Hub installieren |
+| Cancel-on-Events ignorieren | Verzögerte Steps laufen nach einem Cancel weiter | Cancel-Events für Commerce-Flows setzen |
+| Notification Delivery Logs für eine Flow-Action prüfen | Falsche Oberfläche | Runs und Automation-Activity; Notifications nur, wenn die Action eine Notification gesendet hat |
+| Annehmen, die Worker laufen immer | Runs bleiben im Delay stehen | Automation-Queue mit Platform Ops prüfen |
+| Dieselbe Logik in Rules und Automation | Preisregeln sind keine Orchestrierung | Pricing (Rules) von Workflows (Automation) trennen |
+
+## Verwandtes
+
+- [Event Hub](/de/user-guide/events/overview) — ausgehende Webhooks, keine Flows
+- [Integrationen (Übersicht)](/de/user-guide/integrations/overview) — Daten-Sync-Connectoren, keine Event-Webhooks und keine Flows
+- [Notifications — Überblick](/de/user-guide/notifications/overview) — Kanäle an Menschen
+- [Order-Lifecycle](/de/user-guide/orders/lifecycle) — Status-Events, die oft Flows auslösen
+- [Rules — Überblick](/de/user-guide/rules/overview) — Pricing und Validierung, keine Orchestrierung
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

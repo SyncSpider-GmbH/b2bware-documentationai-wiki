@@ -1,0 +1,154 @@
+---
+title: Companies
+description: B2B-Organisations-Stammdaten im Customer Hub — wie Companies zu Customers, Contacts und Segmentation stehen; Mitgliedschaft, Adressen, optionale Checkout- und Loyalty-Tabs; und wie Company-IDs Pricing-Owner und Vendor-Links speisen.
+---
+
+Eine **Company** ist der **B2B-Organisations-Stammdatensatz**: der Account-Container, dem viele Shop-**Customers** angehören können, mit gemeinsamen kommerziellen Feldern (Name, USt-ID, Adressen, optionale Group, Default Role, Checkout-Method-Overrides).
+
+Eine Company ist **kein** Login, **kein** Contact-Verzeichniseintrag für sich und **keine** Customer Group (Segmentation).
+
+| Konzept | Rolle |
+| --- | --- |
+| **Company** | Organisations-Stammdatensatz (`name`, `company_number`, Status, Kontaktfelder, Adressblock, `vat_number` / `registration_number`, optional `company_group_id`, `default_role_id`, Checkout-Method Allow-/Block-Listen). Admin: **Customers → Companies**. |
+| **Customer** | Login- / Kauf-Prinzipal mit `company_id` auf diese Company. Platziert Orders; hält `role_id` und `customer_group_id`. Admin: **All Customers**. |
+| **Contact** | Kanonische Verzeichnis-Partei (`kind` person \| organization). Companies projizieren Identität auf einen **organization**-Contact über `contact_id` (Einweg-Projektion). Die Affinity-UI kann zusätzlich Personen als „contact-for“ der Org listen — das ist **keine** Mitgliedschaft. |
+| **Segmentation (Customer Groups)** | Groups vom Typ **`company`** können über `company_group_id` verknüpft werden. Groups vom Typ **`customer`** gehören auf den **Customer**-Datensatz, nicht hier. |
+| **Product Hub Vendor** | Optionaler Marketplace-Lieferanten-Stammdatensatz, dessen **`owner_id`** diese Company ist (1 Company → höchstens 1 Vendor). Anderes Feature. |
+| **Procurement Supplier** | Separates Einkaufs-Facet (oft ebenfalls Contact-verknüpft). Nicht der Company-Datensatz. |
+
+**Mentales Modell:** Company = *das rechtliche / kommerzielle B2B-Konto*. Customers = *Personen, die sich unter diesem Konto einloggen*. Contacts = *Verzeichnis-Projektion + „contact-for“-Personen*. Segmentation = *Pricing- / Targeting-Buckets* (company-typed oder customer-typed).
+
+Das Speichern einer Company ist **live**. Es gibt **keinen** Draft → Deploy-Lebenszyklus.
+
+<Callout kind="info" collapsed="false">
+Das Löschen einer Company soft-deletes ihre company-typed Adressen und Notizen und **entfernt danach `company_id` bei Mitglieds-Customers**. Customers und ihre Orders bleiben — Mitglieder werden abgekoppelt, nicht gelöscht.
+</Callout>
+
+**Was Companies *nicht* enthalten:**
+
+- Verschachtelte Company-Bäume / Holding-Permission-Vererbung über belegte Affiliation + `company_id` hinaus.
+- Automatisches Löschen von Mitglieds-Customers, wenn die Company gelöscht wird.
+- Durchgesetzte Storefront-ACL „manage company users“ (Storefront-Keys existieren, sind aber **noch nicht** enforced — siehe [Roles](/user-guide/customers/roles)).
+
+## Warum Teams Companies nutzen
+
+1. **Eine kommerzielle Identität für viele Käufer** — Gemeinsamer Name, USt-ID, Adressen und Notizen für ein Konto mit mehreren Logins.
+2. **Default Role für Mitglieder** — `default_role_id` steuert, welche Role neue/verknüpfte Mitglieder in company-getriebenen Flows erben sollen (auch genutzt, wenn Product Hub Vendors eine Company an die geseedete **vendor**-Role binden).
+3. **Company-Level kommerzielle Overrides** — Checkout-Method Allow-/Block-Listen (wenn Order Hub installiert ist); optionale Category Permissions; optionaler Loyalty-Tab.
+4. **Group Pricing auf Company-Group-Ebene** — Eine **company-type** Segmentation Group verknüpfen, wenn Targeting nach Organisationssegment statt nach Person läuft.
+5. **Integration- / Vendor- / SKU-Owner** — Die Company-ID ist First-Class-Owner für Customer SKUs und Vendor `owner_id`.
+
+Nutzen Sie **Companies**, wenn der Tenant B2B an Organisationen verkauft. Nutzen Sie **All Customers** für das Login selbst. Nutzen Sie **Contacts** für Verzeichnis- / „contact-for“-Personen, die sich nie einloggen. Nutzen Sie **Segmentation** für Preis-/Permission-Groups. Party-Modell und Registrierungseinstellungen stehen unter [Customers — Überblick](/de/user-guide/customers/overview).
+
+## Wie Stammdaten, Mitglieder und Tabs funktionieren
+
+### Company-Felder
+
+| Feld | Hinweise |
+| --- | --- |
+| **name** | Beim Anlegen erforderlich |
+| **company_number** | Eindeutig wenn gesetzt; Settings können auto-generieren (`COMP-`-Präfix Standard) |
+| **status** | `active` \| `inactive` |
+| **email** / **phone** / **website** / **logo** | Kontakt / Branding |
+| **address_line_*** / **city** / **zip** / **state** / **country** | Master-Adressblock (plus typisierte Company Shipping-/Billing-Address-Collections) |
+| **vat_number** / **registration_number** | Kommerzielle IDs (`registration_number` eindeutig wenn gesetzt) |
+| **company_group_id** | Muss eine Customer Group mit **`type = company`** referenzieren (sonst Validierungsfehler) |
+| **default_role_id** | Optionale Default Role für company-getriebene Mitgliedschaft |
+| **billing_/shipping_methods_allowed\|blocked** + Defaults | Checkout-Method-Overrides (Order-Hub-Oberflächen) |
+| **attributes** | Optionale Attributes-Hub-Werte, wenn Collections Companies targeten |
+
+Gewöhnliches CRUD + Soft Delete. Die Liste unterstützt Filter/Sort/Suche (Admin-Suche fokussiert auf **name**).
+
+### Mitglieds-Customers
+
+- Mitgliedschaft ist **`Customers.company_id`**.
+- Der Company-Detail-Tab **Customers** listet / verwaltet diese Verknüpfung.
+- Settings können eine Company bei Registrierung verlangen, Company-Anlage beim Signup erlauben/verbieten, max. Customers pro Company deckeln (`0` = unbegrenzt) und Company-Codes auto-generieren — siehe [Customers — Überblick](/de/user-guide/customers/overview).
+
+### Detail-Tabs (Install-gated wo vermerkt)
+
+| Tab | Wann |
+| --- | --- |
+| **Details** | Immer — Stammdatenfelder |
+| **Customers** | Mitglieds-Logins |
+| **Contacts** | Verzeichnis- / Affiliation-Oberfläche für die Org |
+| **Shipping Address** / **Billing Address** | Company-typed Address Collections |
+| **Notes** | Interne Notizen |
+| **Checkout Methods** | Wenn **Order Hub** installiert |
+| **Category Permissions** | Wenn **Customer Category Permission Module** installiert |
+| **Loyalty** | Wenn **Loyalty Hub** installiert |
+
+### Contact-Projektion
+
+Beim Speichern/Verknüpfen einer Company wird Identität auf eine Contacts-**organization**-Zeile projiziert und `contact_id` gesetzt. Die Company-Facette bleibt autoritativ für Domain-Felder; das Verzeichnis ist eine Einweg-Projektion — bearbeiten Sie USt-ID/Name nicht am Contact als Source of Truth. Siehe [Contacts](/user-guide/customers/contacts).
+
+## Typische Workflows
+
+### B2B-Account-Shell anlegen
+
+1. Unter **Customers → Companies** Company anlegen: **name** (+ Nummer falls nicht auto), Status, Adresse/USt-ID wie von Tenant-Settings verlangt.
+2. Optional **company group** (Typ company) und **default role** setzen.
+3. Speichern — live. Liste stichprobenartig prüfen.
+
+### Käufer anbinden
+
+1. **All Customers**-Datensätze anlegen oder öffnen.
+2. **company** (`company_id`) und passende **role** setzen.
+3. Am Company-Tab **Customers** bestätigen.
+4. Wenn Registrierung Company / Admin-Freigabe verlangt, zuerst Customer-Hub-**Settings** ausrichten ([Customers — Überblick](/de/user-guide/customers/overview)).
+
+### Gemeinsame Adressen und Checkout-Overrides
+
+1. Company Shipping-/Billing-Addresses auf den Company-Tabs pflegen.
+2. Wenn Order Hub vorhanden ist, Checkout-Method Allow-/Block-Listen setzen, falls dieses Konto von Defaults abweichen muss.
+3. Als Mitglieds-Customer am Checkout verifizieren (Orders-Docs für Checkout-Verhalten).
+
+### Vorbereitung für Vendors / Customer SKUs
+
+1. Die Company muss existieren, bevor Product Hub Vendor `owner_id` oder Customer SKU `owner_type=company`.
+2. Auf diese Product-Hub-Guides cross-linken — hier nicht erneut dokumentieren.
+
+## Abhängigkeiten
+
+| Abhängigkeit | Warum sie zählt |
+| --- | --- |
+| **Customer Hub** (Core) | Besitzt Companies; Sidebar unter Customers |
+| **All Customers** | Mitglieds-Logins (`company_id`); Registrierungsstatus / Verifizierung |
+| **Roles** | `default_role_id`; Mitglieds-`role_id`; Vendor-Default-Role-Nebeneffekte |
+| **Segmentation** | `company_group_id` → Groups `type=company` |
+| **Contacts** | Organization-Projektion + Personen-Affiliations |
+| **Auth Hub** | Shop-Login für Mitglieds-Customers |
+| **Order Hub** (üblich) | Checkout-Methods-Tab; Orders hängen weiterhin an Customers |
+| **Product Hub** | Group Prices keyed by Groups; optionale Vendor-Ownership; Customer SKUs |
+| **Attributes Hub** (optional) | Custom Attributes an Companies |
+| **Loyalty- / Category-Permission-Module** (optional) | Extra Tabs |
+| **Customer Hub Settings** | require_company, Codes, max. Mitglieder, Adressvalidierung |
+
+Pricelist-UI selbst, Rules, Tax und Media Hubs sind benachbart — keine Voraussetzungen.
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Company als Login behandeln | Käufer können sich nicht als Company-Zeile authentifizieren | **Customers** mit `company_id` anlegen/verknüpfen |
+| Eine **customer-type** Group an `company_group_id` zuweisen | API lehnt ab / ungültige Group | Segmentation Groups mit **type = company** nutzen |
+| Erwarten, dass Company-Löschen Käufer löscht | Mitglieder werden nur abgekoppelt | Customers explizit umhängen oder deaktivieren |
+| Company mit Contact „organization“ verwechseln | Verwandt, aber andere Stammdaten | Kommerzielle Felder unter **Companies** bearbeiten; Contacts für Verzeichnis / Affiliations |
+| Company mit Segmentation verwechseln | Groups targeten Pricing/Permissions | Group über `company_group_id` verknüpfen; Group-Definition unter **Segmentation** bearbeiten |
+| Loyalty / Category Permissions / Checkout Methods immer erwarten | Tabs sind Install-gated | Als optional dokumentieren; Demo kann manche zeigen, nicht alle Tenants |
+| Company als Procurement Supplier nutzen | Falscher Stammdatensatz für POs / Vendor Bills | Procurement Supplier (Contact-Facet) vs Company vs Product Hub Vendor |
+| Storefront „manage users“ gewähren und Enforcement erwarten | Keys registriert mit `enforced: false` | Mitgliedschaft im Admin verwalten, bis Storefront-ACL real ist |
+| Company Group ändern und Preise ohne Product-Hub Group Prices erwarten | Group-ID allein tut nichts | **Group**-Prices / Pricelist-Deploy unter Products pflegen |
+
+## Related pages
+
+- [Customers — Überblick](/de/user-guide/customers/overview)
+- [Contacts](/user-guide/customers/contacts) (EN)
+- [Roles](/user-guide/customers/roles) (EN)
+- [Segmentation](/user-guide/customers/segmentation) (EN)
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Pricelists](/de/user-guide/products/pricelists)
+- [Customer SKUs](/de/user-guide/products/customer-skus)
+- [Vendors](/de/user-guide/products/vendors)
+- [Orders overview](/user-guide/orders/overview) (EN)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

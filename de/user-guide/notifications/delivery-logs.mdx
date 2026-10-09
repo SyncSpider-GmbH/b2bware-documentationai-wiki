@@ -1,0 +1,70 @@
+---
+title: Delivery Logs
+description: Kurzer Triage-Guide für Notification-Hub-Delivery-Attempts — Channel-Status, Retries und wie Sie fehlende Messages von fehlgeschlagenen Sends unterscheiden.
+---
+
+**Notification Delivery Logs** sind die Admin-Liste der **Delivery Attempts**: jede Zeile ist ein Versuch, eine **Notification** über einen **Channel** zu senden.
+
+| Feld (operatorrelevant) | Bedeutung |
+| --- | --- |
+| **notification** | Parent-Message-Instanz (Type, Notifiable, gerenderter Content) |
+| **channel** | email / sms / push / slack / broadcast / (database meist separater Pfad) |
+| **status** | `pending`, `processing`, `success`, `failed`, `retry` |
+| **attempt_number** | Welcher Versuch in der Retry-Sequenz |
+| **error_code** / **error_message** | Fehlerdetail, wenn vorhanden |
+| **attempted_at** / **completed_at** / **failed_at** / **next_retry_at** | Timing + geplanter Retry |
+| **response_data** | Provider-Response-Payload, wenn gespeichert (als technisches Detail behandeln) |
+
+Die Parent-**Notification** hält außerdem ein `delivery_status`-Array und einen aggregierten `status` (`pending` → `partial` → `sent` | `failed` | `read`), abgeleitet aus Non-Database-Channels.
+
+**Admin:** **Notifications → Delivery Logs**. Die API exponiert zudem Failures, Ready-for-Retry, Per-Channel-Filter und Retry-Failed-Actions für berechtigte Roles.
+
+**Mentales Modell:** *Logs erklären, ob ein Channel-Versuch erfolgreich war, fehlgeschlagen ist oder noch retryt — sie sind nicht der Message-Template-Editor und keine Event-Hub-Webhook-Posts.*
+
+<Callout kind="alert" collapsed="false">
+Diese Zeilen sind **Notification-Hub**-Delivery-Attempts. Sie sind **nicht** Event-Hub-Webhook-Delivery-Logs, nicht A1-Top-Up-Delivery-Logs und nicht Rule Usage Logs. Notification Hub muss installiert sein, damit dieser Screen existiert.
+</Callout>
+
+## Warum Teams Delivery Logs nutzen
+
+1. **„E-Mail ist nie angekommen“** — Sehen, ob ein Attempt erzeugt wurde, erfolgreich war, fehlgeschlagen ist oder auf Retry wartet.
+2. **Channel-Isolation** — SMTP-Failure vs. SMS-Provider vs. Push-Token — zuerst die **channel**-Spalte lesen.
+3. **Retry-Sichtbarkeit** — „retryt noch“ von „Retries erschöpft“ unterscheiden.
+4. **Beweis für Support** — Zeitgestempelte Attempt-Historie, gebunden an die Notification-Instanz.
+
+## So triageen Sie
+
+1. Vom **Business-Event** starten (Order #, Customer-Registration) → die **Notification**-Instanz finden.
+2. Wenn **keine Notification** existiert → stoppen; **Type active / Event-Mapping / Preferences / Dispatcher** auf [Notifications — Überblick](/de/user-guide/notifications/overview) fixen, nicht Delivery Logs.
+3. **Delivery Logs** öffnen (oder Attempts auf dem Notification-Detail), gefiltert auf diese Notification.
+4. **channel + status + error_message** lesen.
+5. **failed / retry** auf email → Notification-**Settings** (SMTP/Host, Test-Mode-Recipient) und Queue Workers prüfen.
+6. **success** auf database, aber Customer erwartete E-Mail → Email-Channel deaktiviert, Preference gemutet, Quiet Hours oder falscher Channel am Type.
+7. Nach Config-Fix erlaubte **retry**-Actions für failed Attempts nutzen — keine doppelten manuellen E-Mails außerhalb des Hubs erfinden, wenn Sie einen sauberen Audit Trail brauchen.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Notification Hub** installiert | Sonst kein Notifications → Delivery Logs |
+| **Permission** | Attempts View (Update für Retry; Delete für Cleanup-Jobs) |
+| **Parent Notifications** | Attempts gehören zu einer Notification-Instanz |
+| **Channel Settings + Workers** | Attempts gelingen nur, wenn Channels und Queues funktionieren |
+| **Overview-Verständnis** | Types / Prefs / Events erklärt auf [Notifications — Überblick](/de/user-guide/notifications/overview) |
+
+## Häufige Fehler
+
+| Fehler | Bessere Praxis |
+| --- | --- |
+| **Event Hub → Delivery Logs** öffnen | Unter **Notifications → Delivery Logs** bleiben |
+| A1-Top-Up-Delivery-Logs öffnen | Anderes Modul; andere Bedeutung von „Delivery“ |
+| SMTP debuggen, obwohl keine Notification-Zeile existiert | Zuerst Type/Event/Prefs fixen |
+| Success auf `database` als Inbox-Beweis behandeln | **email**- (oder andere) Attempt-Zeilen prüfen |
+| Erwarten, dass Delivery Logs Templates ändern | **Notification Types** editieren; Logs sind Audit/Tries |
+| `next_retry_at` ignorieren | Warten oder retryen; das ganze Business-Event nicht blind neu feuern |
+
+## Verwandt
+
+- [Notifications — Überblick](/de/user-guide/notifications/overview)
+- [Order-Lifecycle](/de/user-guide/orders/lifecycle) — wann Order-Events eine Notification hätten erzeugen sollen
+- [Orders — Überblick](/de/user-guide/orders/overview)

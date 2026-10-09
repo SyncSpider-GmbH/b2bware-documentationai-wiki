@@ -1,31 +1,141 @@
 ---
 title: Vendors
-description: Lieferanten pflegen, die mit Produkten verknüpft sind.
+description: Lieferanten-Stammdaten im B2Bware Product Hub — wie sich Vendors von Produkten und von Procurement-Suppliers unterscheiden, wie Produktverknüpfungen und Supply Price funktionieren und wie Company-Ownership optionale Vendor-Operator-Kataloge steuert.
 ---
 
-Fügen Sie Vendors hinzu, wenn Sie Lieferantenreferenzen auf Produkten oder in Beschaffungsabläufen brauchen.
+Ein **Vendor** (Product Hub) ist ein **Lieferanten-Stamm**, mit dem festgehalten wird, wer Katalogprodukte liefert und (optional) zu welchem **Supply**-Preis — und mit dem diese Lieferantenidentität an eine **Customer-Hub-Company** für marketplace-ähnliche Vendor-Operatoren gebunden wird.
+
+Ein Vendor ist **nicht** das Produkt, **nicht** ein Live-Verkaufspreis oder eine Pricelist und **nicht** der Procurement-Einkaufs-Gegenpart.
 
 <Image
   src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404845075-wbudr57v0t-vendors.png?fm=auto&auto=compress%2Cformat"
-  alt="Vendors — leerer oder Listenstatus"
+  alt="Vendors-Liste (EN-Screenshot — DE-Screenshot folgt)"
 />
 
-## Modul öffnen
+| Konzept | Rolle |
+| --- | --- |
+| **Vendor** | Stamm: Name, Kontaktdaten, owning **Company**, optionaler Status. Admin: **Products → Vendors**. |
+| **Vendor–Produkt-Link** | Junction: ein Produkt verknüpft mit einem Vendor, mit optionalem **Supply Price**. |
+| **Product** | Verkaufbares Katalog-Item. Der Link wird geschrieben, wenn Create/Update eine Vendor-ID (und optionalen Supply Price) trägt, oder wenn ein vendor-scoped Operator ein Produkt anlegt (Auto-Assign). |
+| **Company (Owner)** | Customer-Hub-Company, die diesen Vendor besitzt. **Eine Company ↔ höchstens ein Vendor.** |
+| **Procurement Supplier** | **Andere** Entität im Procurement Hub. Steuert Purchase Orders, Goods Receipts und Vendor Bills — nicht Products → Vendors. |
+| **Live catalog price / Pricelist** | Was Käufer zahlen (nach finalPrice, Providern, Rules). Vendor Supply Price ist **nicht** finalPrice. |
 
-<Steps>
-  <Step title="Products aufklappen">
-    Klappen Sie in der linken Sidebar **Products** auf.
-  </Step>
-  <Step title="Vendors öffnen">
-    Wählen Sie **Vendors**.
-  </Step>
-</Steps>
+**Mentales Modell:** Vendors = *wer welche SKUs liefert (und zu welchem Supply Price)*, optional *welche Company als dieser Lieferant in einem Vendor-Operator-Portal agiert*. Procurement Suppliers = *gegen wen Sie POs und Vendor Bills eröffnen*. Die beiden Verzeichnisse getrennt halten.
 
-<Callout kind="info" title="Leere Liste">
-  Eine leere Vendors-Liste ist auf einem frischen Demo-Tenant normal. Legen Sie einen Vendor an, bevor Sie ihn auf einem Produkt verknüpfen.
+Das Speichern eines Vendors oder eines Produkt–Vendor-Links ist **live**. Es gibt **kein** Pricelist-ähnliches Deploy.
+
+<Callout kind="info" collapsed="false">
+Product-Hub-**Vendor** ist nicht der Procurement-**Supplier**. Nutzen Sie Vendors für Katalog- / Lieferantenidentität und optionales Vendor-Portal-Scoping. Nutzen Sie Procurement, wenn Sie Einkaufsdokumente brauchen.
 </Callout>
 
-## Nächste Schritte
+## Warum Teams Vendors nutzen
 
+1. **Lieferanten-Stamm für den Katalog** — Lieferanten einmal mit Name und Kontakt anlegen; über Produkte wiederverwenden.
+2. **Produkt ↔ Lieferanten-Link** — Festhalten, welcher Vendor eine SKU liefert, mit optionalem **Supply Price** am Link (nicht der Shop-Verkaufspreis).
+3. **Company-backed Vendor-Operatoren** — Vendor an eine Customer-Hub-Company binden; Mitglieder unter der Vendor-Rolle dieser Company können auf **ihre** Produkte und verwandte Order-Sichtbarkeit beschränkt werden.
+4. **Vorbereitung vor Produkt-Ownership** — Vendor (und Company-Link) anlegen, bevor vendor-scoped Creates oder Vendor-Links gelingen sollen.
+5. **Ops-Klarheit** — Lieferantenidentität im Product Hub behalten, auch wenn der Tenant kein Procurement betreibt — und wenn doch, Procurement Supplier weiterhin als Einkaufsdatensatz behandeln.
+
+Nutzen Sie **Vendors**, wenn der Katalog Lieferantenidentität oder Vendor-Portal-Scoping braucht. Nutzen Sie **Procurement** für POs, Receipts und Vendor Bills. Nutzen Sie **Pricelists / Live Price**, wenn Sie ändern, was Käufer zahlen — siehe [Pricelists](/de/user-guide/products/pricelists).
+
+## Wie Stämme, Links und Scoping funktionieren
+
+### Vendor-Felder
+
+| Feld | Bedeutung |
+| --- | --- |
+| **Name** | Anzeigename (required) |
+| **Email / phone / address** | Kontakt (Admin-Formular erwartet diese) |
+| **Company** | Owning Customer-Hub-Company (required) — unique über Vendors |
+| **Status** | Model/API unterstützt active vs suspended (suspended blockiert Vendor-Operator-Auflösung). Das aktuelle Admin-Vendors-Formular exponiert Status **nicht** — bei Bedarf als API / Advanced Ops behandeln. |
+
+Vendors sind gewöhnliche Create- / Update- / Delete-Datensätze. **Kein** Draft → Deploy-Lifecycle. Delete entfernt die Produkt-Links dieses Vendors; **Produkte bleiben**.
+
+**Company-Nebeneffekt:** Eine Company als Owner zu verknüpfen kann die Default-Rolle dieser Company Richtung der geseedeten **Vendor**-Rolle setzen; Entlinken oder Delete kann Richtung einer normalen User-Rolle zurücksetzen. Das betrifft die Default-Rolle der Company-Mitglieder — nicht die Vendors-Listen-UI.
+
+### Produkt ↔ Vendor-Link
+
+| Mechanismus | Verhalten |
+| --- | --- |
+| **Expliziter Link** | Produkt-Create/Update mit einer Vendor-ID (+ optionalem Supply Price) upsertet die Junction. Unbekannte Vendor-ID wird abgelehnt. |
+| **Vendor-Operator-Create** | Ein scoped Vendor-Operator, der ein Produkt anlegt, kann Ownership automatisch an **seinen** Company-Vendor linken. |
+| **Supply price** | Optionaler Betrag, zu dem der Vendor das Produkt **liefert**. Er wird durch diesen Link allein **nicht** in Live Price / finalPrice geschrieben. |
+| **Delete product** | Zugehörige Vendor–Produkt-Zeilen werden entfernt. |
+| **Delete vendor** | Die Links dieses Vendors werden entfernt; Produkte bleiben. |
+
+Verknüpfung bevorzugt über Produkt-`vendor_id` / Supply Price (und Operator-Auto-Assign) dokumentieren — keinen separaten „Link über Attribute“-Admin-Pfad als Primärweg erfinden.
+
+### Vendor-Operator-Katalog-Scoping (wenn genutzt)
+
+1. **Auflösen:** Customer → Company → Vendor im Besitz dieser Company. Keine Company / kein Vendor / **suspended** → keine Vendor-Auflösung (fail closed für scoped Actors).
+2. **Wer ist scoped:** Actors mit Produkt-**view-own** (ohne unrestricted Produkt-**view**). Full-View-Admins und gewöhnliche Shopper sind **nicht** zeilen-scoped über diesen Pfad.
+3. **Effekt:** Produktliste und Find-by-id / sku liefern nur Produkte, die mit diesem Vendor verknüpft sind. Unauflösbarer Vendor → leeres Ergebnis.
+4. **Orders:** Order Hub kann separat Order-**view-own** für Vendor-Typ-Actors scopieren — tiefe Verhaltensdetails gehören in die Orders-Docs.
+
+Normales Storefront-Browsing für gewöhnliche Kunden ist durch dieses Vendor-Katalog-Scope **nicht** wholesale-beschränkt.
+
+## Typische Workflows
+
+### Einen Vendor-Stamm anlegen
+
+1. Sicherstellen, dass die **Customer-Hub-Company**, die diesen Lieferanten besitzen soll, existiert.
+2. Unter **Products → Vendors** einen Vendor anlegen: **Name**, Kontaktdaten und **Company**.
+3. Speichern — sofort live; diese Company darf nicht bereits einen anderen Vendor besitzen.
+4. Liste stichprobenartig prüfen (Name / Email / Phone / Address).
+
+### Produkte mit einem Vendor verknüpfen
+
+1. Zuerst den Vendor anlegen.
+2. Beim Produkt-Create/Update (API, Integration oder Flows, die es senden) die Vendor-ID und optional den Supply Price setzen.
+3. Über das Vendor-Product-Include des Produkts bestätigen, wenn verfügbar.
+4. Bei Vendor-Portal-Tenants: Vendor-Operatoren Produkte bevorzugt scoped anlegen lassen — Ownership verknüpft automatisch mit ihrem Company-Vendor.
+
+### Marketplace- / Vendor-Operator-Tenant
+
+1. Company ↔ Vendor als **1:1** halten.
+2. Default-Rolle und Permissions der Company prüfen: **view-own / update-own / create**, nicht unrestricted Produkt-**view**, es sei denn, Sie wollen absichtlich vollen Katalogzugriff.
+3. **Suspended** als bewussten Lockout für scoped Operators behandeln.
+4. Volles Produkt-**view** nicht vergeben, wenn die Business-Absicht zeilen-scoped Kataloge sind.
+
+### Berechtigungen
+
+Operatoren, die Stämme verwalten, brauchen Product-Hub-**Vendor** Create/Update/Delete (und üblicherweise **Companies**-Sichtbarkeit, um den Owner zu wählen). Produkt-Linking braucht **Products** Create/Update. Vendor-Portal-Actors nutzen **view-own / update-own** (plus Order-view-own, soweit vergeben).
+
+## Abhängigkeiten
+
+| Abhängigkeit | Warum sie zählt |
+| --- | --- |
+| **Product Hub** | Besitzt Vendor und Vendor–Produkt-Links; Vendors ist ein Products-Sidebar-Child. |
+| **Products (All Products)** | Links und Ownership hängen an Produkten; leere Vendors verkaufen allein nichts. Siehe [Wie Produkte funktionieren](/de/user-guide/products/how-products-work). |
+| **Customers (Companies + Roles)** | Owner-Company; geseedete Vendor-Rolle / Typ; Default-Rollen-Nebeneffekt; Permission-Keys für Scoping. |
+| **Orders** (üblich) | Optionales Vendor-Order-Scoping; Commerce konsumiert Produkte/Preise weiterhin unabhängig vom Supply Price. Siehe [Orders — Überblick](/de/user-guide/orders/overview). |
+| **Procurement** (optional) | Separater Supplier + PO / GR / Vendor Bills. **Nicht** erforderlich für Product-Hub-Vendors; **nicht** derselbe Datensatz. |
+| **Integrations / Import-Export** | Legen oft Produkte mit einer Vendor-ID an — Vendor-Stämme müssen zuerst existieren. |
+| **Pricelists / Live Price** | Pfad für gestufte oder Live-**Verkaufspreise** — orthogonal zum Vendor Supply Price. |
+
+Stock Locations, Categories, Attributes, Tax, Customer SKUs und Rules sind benachbarte Katalog-/Commerce-Features — keine Voraussetzungen. Siehe [Categories](/de/user-guide/products/categories) und [Stock locations](/de/user-guide/products/stock-locations).
+
+## Häufige Fehler
+
+| Fehler | Warum er schadet | Bessere Praxis |
+| --- | --- | --- |
+| Product-Hub-Vendors als Procurement behandeln | Falscher Stamm; POs/Bills erwarten **Supplier** | Products → Vendors für Katalog-/Lieferantenidentität; Procurement für Einkaufsdokumente |
+| Erwarten, dass Vendor-Save Käuferpreise ändert | Supply Price ≠ Live Price / finalPrice / Pricelist-Deploy | Verkaufspreise auf Produkt-Price-Tabs oder über [Pricelists](/de/user-guide/products/pricelists) → Deploy ändern |
+| Vendor-ID linken, bevor der Vendor existiert | Abgelehnt / not found | Zuerst Vendor anlegen; dann am Produkt linken |
+| Dieselbe **Company** zwei Vendors zuweisen | Duplicate Owner abgelehnt | Eine Company ↔ ein Vendor |
+| Company-Link verlieren oder suspenden und erwarten, dass Vendor-Operatoren weiterarbeiten | Scoped Listen werden leer | Owner korrekt halten; suspended als bewussten Lockout behandeln |
+| Supply Price mit Live-**cost**-Preistyp verwechseln | Verschiedene Schichten | Cost auf Live Price bleibt sell-seitige Buchhaltung; Supply-Link ist die Vendor–Produkt-Junction |
+| Vendor löschen und erwarten, dass Produkte verschwinden | Nur Links cascaden | Produkte neu linken, wenn Ownership umziehen muss |
+| Pricelist-ähnliches Deploy für Vendors erwarten | Saves sind **live** | Kein Deploy-Schritt |
+
+## Verwandte Seiten
+
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Customer SKUs](/de/user-guide/products/customer-skus)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
 - [Products — Überblick](/de/user-guide/products/overview)
-- [Produkte verwalten](/de/user-guide/products/manage-products)
+- [Pricelists](/de/user-guide/products/pricelists)
+- [Categories](/de/user-guide/products/categories)
+- [Stock locations](/de/user-guide/products/stock-locations)
+- [Orders — Überblick](/de/user-guide/orders/overview)

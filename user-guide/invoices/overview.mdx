@@ -1,0 +1,118 @@
+---
+title: Invoices overview
+description: Optional Invoice Hub in B2Bware — sales invoices, credit notes, payments and dunning; how billing documents relate to orders, tax, and accounting, with dependencies and pitfalls.
+---
+
+**Invoices** in B2Bware Admin is the UI for optional **Invoice Hub** — sales **invoices**, **credit notes**, document defaults / PDF rendering, **payment** recording against open balances, optional **dunning**, and related document kinds (advance invoices / payment receipts when configured).
+
+| Concept | Role |
+| --- | --- |
+| **Invoice Hub** | Optional installed package. When present and the operator can view it, Admin shows **Invoices** with invoices, credit notes, and settings. |
+| **Invoice** | Customer-facing sales document with amounts, balance, status, numbering; may link back to order commerce. |
+| **Credit note** | Negative / corrective document (returns, adjustments, overpayment handling). |
+| **Settings** | Numbering, document templates, payments behaviour, dunning defaults. |
+| **Payments** | Manual payment posting against an invoice (amount, method, reference; optional overpayment → draft credit note). |
+| **Dunning** | Optional overdue chase levels (pause/resume per invoice; Notification Hub emails when available). |
+| **Advance invoice / receipt** | Optional partial-payment document trail (settings-driven). |
+
+**Mental model:** Orders capture *what was bought and at what commercial price*. Invoices capture *what is billed / owed / credited* as finance documents. Tax Hub influences *rates on commercial lines*; Invoice Hub owns *AR documents and balances*.
+
+<Callout kind="alert" collapsed="false">
+Invoice Hub is **optional** (`hasInvoiceHub`). If the tenant has not installed it, the **Invoices** sidebar group is absent. Operators then manage orders only — no AR register in Admin. Demo Store presence does **not** mean every tenant has Invoices.
+</Callout>
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Orders / Proposals** | Commerce lifecycle (Order Hub) |
+| **Procurement → Vendor Bills** | Payables / supplier bills |
+| **Accounting Hub** | Bank accounts, imported transactions, reconciliation |
+| **Tax Hub** | Rate engine — not the invoice register |
+
+## Why teams use Invoices
+
+1. **Bill after (or beside) fulfilment** — Issue numbered invoices without treating the order screen as the AR register.
+2. **Credit notes** — Correct returns, price errors, or goodwill without rewriting history as a fake new order.
+3. **Balance tracking** — Record payments; keep `amount_paid` / `balance_due` / status coherent.
+4. **Overdue process** — Optional dunning levels with history (emails when Notification Hub + templates exist).
+5. **Partial-payment paperwork** — Optional advance invoices or payment receipts linked to the final invoice.
+6. **PDF / branded documents** — Templates via Storefront Builder document types when that hub is installed.
+
+Use **[Orders](/user-guide/orders/overview)** for fulfilment and commercial truth. Use **Invoices** for billing documents and collections. Use **[Accounting](/user-guide/accounting/overview)** for bank-side matching — not as a substitute invoice list.
+
+## How documents relate to commerce
+
+### Document surfaces (Demo children)
+
+| Child | Intent |
+| --- | --- |
+| Invoices | Sales invoice register |
+| Credit Notes | Corrections / credits |
+| Settings | Numbering, documents, payments, dunning |
+
+### Payments (intent)
+
+- Post positive amounts against an invoice; optional `method` (`bank_transfer`, `cash`, `card`, `other`), reference, note, idempotency key.
+- Without overpayment allowance, amount must not exceed open balance.
+- With overpayment allowed, open balance is applied and **excess can become a draft credit note**.
+- When a transactions module is present, payments can be ledger-backed; otherwise balances update directly (weaker idempotency).
+
+### Dunning (intent)
+
+- Hub settings + per-invoice `dunning_enabled`.
+- Default level timing (typical defaults): roughly 3 / 10 / 21 days after due with reminder / notice / final notice notification types.
+- Cases advance even if Notification Hub is missing; emails send only when Notification Hub + templates exist.
+- Paid or cancelled invoices resolve active dunning.
+
+### PDFs
+
+Document template IDs live in settings. Storefront Builder can seed Invoice / Credit note / Advance invoice / Payment receipt types on install/update when present. Explicit tenant template choices are not overwritten by seeding.
+
+## How to use the hub
+
+1. Confirm **Invoices** is visible (`hasInvoiceHub`) and the role can manage documents.
+2. Configure **Settings** first: prefixes/padding, document templates, payment partial-document policy, dunning defaults.
+3. Create / issue invoices from the commerce process your tenant uses (order-linked or standalone — follow your SOP; there is no single mandatory button path for every tenant).
+4. Record **payments** against open invoices; use credit notes for corrections rather than deleting issued docs.
+5. For overdue: enable dunning where appropriate; triage missing emails via [Notifications Delivery Logs](/user-guide/notifications/delivery-logs), not only the invoice screen.
+6. Keep **[Tax](/user-guide/tax/overview)** configuration correct upstream so invoice line taxes match checkout expectations.
+7. Do not expect Accounting bank import to auto-create invoices — different hub.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Invoice Hub installed** | Sidebar + APIs |
+| **Order Hub** | Typical commercial source / order context |
+| **Customer Hub** | Bill-to parties, companies, addresses |
+| **Product Hub** | Line identity / catalog context on documents |
+| **Tax Hub (optional)** | Rate correctness on taxable lines |
+| **Notification Hub (optional)** | Dunning emails |
+| **Storefront Builder (optional)** | PDF document templates |
+| **Transactions module (optional)** | Stronger payment ledger behaviour |
+
+**Not the same prerequisites:** Procurement Vendor Bills, Loyalty wallets, License keys.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Expecting Invoices on every tenant | Optional install | Check install; Demo ≠ universal |
+| Treating order status “invoiced” as Invoice Hub | May be status label only | Open Invoices register for AR truth |
+| Deleting instead of crediting | Audit / tax trail broken | Issue credit notes |
+| Blaming Invoice Hub for wrong VAT rate | Tax Hub / product class | Fix tax upstream |
+| Assuming dunning emails always send | Needs Notification Hub + templates | Verify Delivery Logs |
+| Confusing Vendor Bills with sales invoices | Payables vs AR | Procurement vs Invoices |
+| Expecting bank reconciliation here | Accounting Hub | Reconcile there; record payment here |
+
+## Related
+
+- [Order lifecycle](/user-guide/orders/lifecycle) — commerce upstream
+- [Proposals](/user-guide/orders/proposals) — quotes vs invoices
+- [Tax overview](/user-guide/tax/overview) — rates
+- [Companies](/user-guide/customers/companies) — bill-to / VAT
+- [Accounting overview](/user-guide/accounting/overview) — banks / reconciliation
+- [Procurement overview](/user-guide/procurement/overview) — vendor bills (payables)
+- [Notifications overview](/user-guide/notifications/overview) — dunning email delivery
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

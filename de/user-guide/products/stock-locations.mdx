@@ -1,31 +1,139 @@
 ---
 title: Stock locations
-description: Lager oder Standorte definieren, die Bestand für Produkte halten.
+description: Lager in B2Bware — wie Stock Locations sich von Produkt-Bestandsmengen unterscheiden, warum das Default-Warehouse für Warenkorb und Orders zählt und wie optionale Stock Movements zusammenhängen.
 ---
 
-Legen Sie Standorte an, bevor Sie Bestand auf Produkten zuweisen.
+**Stock Locations** ist der Products-Hub-Name für **Warehouses** (Lager): Stammdaten, die identifizieren, *wo* Bestand gehalten werden kann. Der Screen ist absichtlich klein — ein Standort ist nicht die Menge selbst.
+
+Mengen liegen auf **Stock-Zeilen**: eine Zeile pro **Produkt × Warehouse**, editiert auf dem Produkt-Tab **Stock** (oder über Stock-APIs, Bulk-Upsert oder Integrations).
 
 <Image
   src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404841938-3ntut5gmw82-stock-locations.png?fm=auto&auto=compress%2Cformat"
-  alt="Stock-Locations-Liste"
+  alt="Stock-Locations-Liste (EN-Screenshot — DE-Screenshot folgt)"
 />
 
-## Modul öffnen
+| Konzept | Rolle |
+| --- | --- |
+| **Stock Location (Warehouse)** | Benannter Ort (`name` + Freitext `location`) mit optionalem **Default**-Flag. Admin: **Products → Stock Locations**. |
+| **Stock-Zeile** | Bestand für ein Produkt an einem Warehouse: On-hand-Menge, Availability, Backorders, optionale Cart-Min/Max, Upcoming Qty und verwandte Felder. |
+| **Default warehouse** | Das als Default markierte Warehouse. Die Default-Stock-Relation des Product Hub und Order-/Storefront-Verfügbarkeit lösen **diese** Warehouse-Zeile auf, sofern ein Flow nicht explizit ein anderes Warehouse adressiert. |
+| **stock_sum / all locations** | Alle per-Warehouse-Zeilen eines Produkts (Listen können eine Summe zeigen). Nützlich für Multi-Site-Sichtbarkeit; **nicht** das, was Order Hub standardmäßig abbucht. |
+| **manage_stock (product)** | Produkt-Flag für bestandsgeführte Ware. Getrennt von „hat eine Stock-Zeile“. |
+| **Stock Movements (optional)** | Separates append-only **Ledger** von Mengen-Deltas. **Nicht** derselbe Screen wie Stock Locations und **nicht** auf jedem Tenant installiert (einschließlich des Demo Store für Docs). |
 
-<Steps>
-  <Step title="Products aufklappen">
-    Klappen Sie in der linken Sidebar **Products** auf.
-  </Step>
-  <Step title="Stock locations öffnen">
-    Wählen Sie **Stock locations**.
-  </Step>
-</Steps>
+**Mentales Modell:** Stock Locations = *Standorte*. Produkt-Tab Stock = *wie viel an jedem Standort*. Commerce (Warenkorb-Verfügbarkeit und Order-Abbuchung) = *die Zeile des Default-Standorts*, sofern Sie nicht bewusst auf einem anderen Warehouse operieren.
 
-<Callout kind="info" title="Verwendung auf dem Produkt-Tab Stock">
-  Die Stock-Tabs der Produkte listen diese Standorte. Legen Sie hier zuerst einen Standort an, wenn er auf einem Produkt fehlt.
+Das Speichern eines Warehouse oder einer Bestandsmenge ist **live**. Es gibt **kein** Pricelist-ähnliches Deploy für Bestands-Stammdaten oder Mengen.
+
+<Callout kind="info" collapsed="false">
+Der Warehouse-Master enthält **keine** Bins, Gangpläne, Transfer-UI, Reservierungen oder ATP-Kalender. Tiefe gehört in die **Default-Warehouse**-Regel und das Stock-Zeilen-Verhalten — nicht ins Erfinden von WMS-Features.
 </Callout>
 
-## Nächste Schritte
+## Warum Teams Stock Locations nutzen
 
+1. **Multi-Site-Katalog** — Physische oder logische Standorte trennen (Haupt-DC, City Warehouse, Web-/Virtual-Pool) und Menge pro Standort am jeweiligen Produkt hinterlegen.
+2. **Ein Primary für Online-Commerce** — Ein **Default**-Warehouse markieren, damit Storefront-Verfügbarkeit und Order-Line-Stock-Adjustments eine einzige, vorhersehbare Bilanz haben.
+3. **Vorbereitung vor Bestandserfassung** — Die Produkt-Stock-UI listet Warehouses in einem Selector; den Standort zuerst anlegen, wenn er fehlt.
+4. **Bulk- / Integrations-Ziele** — Stock-APIs und Stock-Imports keyen auf eine Warehouse-ID; Standorte müssen als Master existieren.
+5. **Ops-Klarheit** — Das Freitextfeld `location` (Stadt, „Physical location“, „Web“) ist für Menschen; es ist kein geocodiertes Adressobjekt.
+
+Nutzen Sie einen **einzigen Default-Standort**, wenn der Tenant faktisch ein Pool ist. Weitere Standorte hinzufügen, wenn Menge getrennt getrackt werden muss — und Ops schulen, dass **Non-Default**-Bilanzen **nicht** automatisch Warenkorb oder Order-Abbuchung speisen.
+
+## Wie Warehouses und Bestand auflösen
+
+### Warehouse-Felder
+
+| Feld | Required beim Anlegen | Bedeutung |
+| --- | --- | --- |
+| **name** | ja | Anzeigename (zum Beispiel „Default location“, „City Warehouse“) |
+| **location** | ja | Freitext-Label — keine strukturierte Adress-Entität |
+| **default_warehouse** | optional | Markiert das Primary-Warehouse für Online-Abbuchung und die Default-Stock-Relation des Produkts |
+
+Warehouses sind gewöhnliche Create-/Update-/Delete-Datensätze. Es gibt **keinen** Draft → Deploy-Lebenszyklus.
+
+**Default-Eindeutigkeit:** genau **einen** Default halten. Produkt und Services setzen ein Primary-Warehouse voraus; mehrere Defaults machen die Default-Stock-Auflösung mehrdeutig.
+
+### Stock-Zeilen (Produkt × Warehouse)
+
+Zeilen vom Produkt-Tab **Stock** anlegen oder aktualisieren, oder über Product-Hub Stock-Create- / Bulk-Upsert-APIs. Typische Felder:
+
+| Feld | Rolle |
+| --- | --- |
+| Warehouse | Welches Stock Location |
+| Stock quantity | On-hand-Menge |
+| Stock availability | Operator-/API-Availability-Flag |
+| Backorders | Keine Backorders, unter Null erlauben oder Pre-Orders erlauben — sonst gilt der Tenant-Product-Hub-Stock-Default |
+| Cart min / max | Kaufgrenzen pro Zeile, wenn gesetzt |
+| Upcoming quantity | Optionale zukünftige Eingänge (informativ — keine volle MRP-Engine) |
+
+Physische Simple Products nutzen typischerweise `manage_stock` und Stock-Zeilen. **Virtual / downloadable** Produkte überspringen oft physischen Bestand — nicht jeder Produkttyp braucht Warehouses.
+
+### Commerce-Auflösung (kritisch)
+
+1. **Storefront-Verfügbarkeit** lädt die **Default-Warehouse**-Stock-Relation des Produkts.
+   - **Keine Default-Warehouse-Stock-Zeile** → Bestand wird als **unmanaged** behandelt → **orderable** (blockiert Add-to-Cart nicht).
+   - **Mit Zeile** → angeforderte Menge mit On-hand vergleichen; bei Übermenge nur erlauben, wenn die Backorder-Policy nicht „no backorders“ ist (Zeilen-Policy, sonst Tenant-Default).
+2. **Order-Hub-Stock-Adjustment** (wenn die Stock-Adjustment-Einstellung des Order Hub an ist) mutiert die **Default-Warehouse**-Zeile des Produkts bei Line Create/Update/Delete und statusgetriebenem Restore / Re-Decrement. Non-Default-Warehouse-Mengen werden auf diesem Pfad **nicht** auto-dekrementiert.
+3. **Listen-Summe über Warehouses** ist Ops-Sichtbarkeit — nicht das Abbuchungsziel.
+
+## Typische Workflows
+
+### Ein Stock Location anlegen
+
+1. Unter **Products → Stock Locations** ein Warehouse mit **name** und **location** anlegen.
+2. **Default** nur setzen, wenn dies der Online-Primary sein soll (meist der erste oder einzige Standort).
+3. Speichern — der Standort ist sofort in Produkt-Stock-Warehouse-Selectoren verfügbar.
+
+### Menge auf ein Produkt legen
+
+1. Produkt öffnen → Tab **Stock**.
+2. Warehouse wählen (zuerst unter Stock Locations anlegen, wenn fehlend).
+3. Menge, Availability und Backorder-Policy nach Bedarf setzen.
+4. Speichern. Listen-Stock / Summe stichprobenartig prüfen, wenn mehrere Warehouses genutzt werden.
+5. Für Online-Sell-through sicherstellen, dass verkaufbare Menge auf dem **Default**-Warehouse liegt, wenn Order-Stock-Adjustment und Storefront-Checks zählen.
+
+### Multi-Warehouse-Tenant
+
+1. Einen klaren **Default** für Commerce halten.
+2. Sekundäre Standorte für andere Sites hinzufügen; deren Stock-Zeilen für Ops-Sichtbarkeit pflegen.
+3. **Nicht** annehmen, dass Order-Lines sekundäre Standorte abbuchen.
+4. Wenn das Business ein echtes Movement-Ledger oder Goods-Receipt-Posting braucht, ist das **Stock Movements** (und verwandte Procurement-Events) — optional, separate Docs, wenn dieser Hub im Scope ist.
+
+### Berechtigungen
+
+Operatoren brauchen Product-Hub-Zugang mit **warehouses**- und **stock**-Create/Update/Delete wie von der Rolle gewährt. Käuferseitige Bestands-Sichtbarkeit ist typischerweise settings-getrieben; nehmen Sie nicht an, dass ein Storefront-Schlüssel „view stock“ erzwungen wird.
+
+## Abhängigkeiten
+
+| Abhängigkeit | Warum sie zählt |
+| --- | --- |
+| **Product Hub** | Besitzt Warehouse + Stock; Stock Locations ist ein Products-Sidebar-Child. |
+| **Products (All Products)** | Menge und Policies werden pro Produkt editiert; `manage_stock` und Produkttyp zählen. Siehe [Wie Produkte funktionieren](/de/user-guide/products/how-products-work). |
+| **Order Hub** | Optional, aber üblich: Stock Adjustment dekrementiert/restored **Default**-Warehouse-Stock bei Line- und Status-Events. Siehe [Orders — Überblick](/de/user-guide/orders/overview). |
+| **Storefront** | Verfügbarkeit für Warenkorb/Katalog nutzt Default-Warehouse-Stock (oder unmanaged, wenn keine Zeile). |
+| **Product-Hub-Stock-Settings** | Tenant-Default-Backorders, wenn eine Zeilen-Policy leer ist. |
+| **Integrations / Import-Export** | Upserten oft Stock per Warehouse-ID — Standorte müssen existieren. |
+| **Stock Movements** (optional) | Ledger + optionale Kopplung; **nicht** erforderlich für Stock Locations; kann auf einem Tenant fehlen. |
+| **Procurement** (optional) | Goods Receipts können Stock Movements nur speisen, wenn dieser Stack installiert ist. |
+
+Pricelists, Rules, Attributes, Media, Customer SKUs und Tax sind benachbarte Katalog-/Commerce-Features — keine Voraussetzungen für Stock Locations.
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Erwarten, dass der Stock-Locations-Screen Mengen hält | Warehouse-Master hat keine Mengenfelder | Menge auf dem **Produkt-Tab Stock** (oder Stock-API / Integration) pro Warehouse erfassen |
+| Gesamte verkaufbare Menge nur auf ein **Non-Default**-Warehouse legen | Cart-/Order-Pfade, die Default-Stock nutzen, ignorieren Non-Default-Zeilen | Verkaufbare Online-Menge auf dem **Default**-Warehouse halten; andere Standorte für sekundäre Pools / Reporting |
+| Mehrere Warehouses als Default markieren | Mehrdeutige Default-Stock-Auflösung | Genau einen Default; andere klaren |
+| Ein Warehouse löschen, das noch von Stock-Zeilen referenziert wird | Waisen / kaputte Selectoren | Stock-Zeilen zuerst umhängen oder entfernen; bestätigen, dass Integrations die ID nicht hardcoden |
+| Annehmen, Stock Movements sei immer vorhanden | Optionales Modul; fehlt auf manchen Tenants (einschließlich Demo Store) | Product-Hub-Stock als Live-Mengen-Oberfläche behandeln, solange das Ledger-Hub nicht installiert ist |
+| Annehmen, Stock Movements aktualisiere immer die Product-Hub-Menge | Kopplung ist optional und oft standardmäßig aus | Ledger und Product-Hub-Stock als getrennt behandeln, bis ein Deployment sie explizit koppelt |
+| Mit Pricelist „Save ≠ Live“ verwechseln | Stock- und Warehouse-Saves **sind** live | Kein Deploy-Schritt für Bestands-Stammdaten oder Mengen — siehe [Pricelists](/de/user-guide/products/pricelists) für den Kontrast |
+
+## Verwandte Seiten
+
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
 - [Products — Überblick](/de/user-guide/products/overview)
-- [Produkte verwalten](/de/user-guide/products/manage-products)
+- [Pricelists](/de/user-guide/products/pricelists)
+- [Orders — Überblick](/de/user-guide/orders/overview)

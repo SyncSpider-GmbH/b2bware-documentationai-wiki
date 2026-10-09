@@ -1,0 +1,2276 @@
+openapi: 3.0.0
+info:
+  title: AccountingHub API
+  description: Complete API collection for AccountingHub — generated from routes/api.php
+  version: 1.0.0
+servers:
+- url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+    BankAccount:
+      type: object
+      properties:
+        id:
+          type: integer
+        provider:
+          type: string
+          nullable: true
+        name:
+          type: string
+        iban_masked:
+          type: string
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+          example: EUR
+        status:
+          type: string
+          enum:
+          - pending
+          - connected
+          - disconnected
+          - error
+        last_imported_at:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+    BankAccountInput:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        provider:
+          type: string
+          nullable: true
+          maxLength: 64
+        iban_masked:
+          type: string
+          nullable: true
+          maxLength: 64
+        currency:
+          type: string
+          nullable: true
+          maxLength: 8
+        status:
+          type: string
+          enum:
+          - pending
+          - connected
+          - disconnected
+          - error
+    BankStatement:
+      type: object
+      properties:
+        id:
+          type: integer
+        bank_account_id:
+          type: integer
+        provider_statement_id:
+          type: string
+          nullable: true
+        from_date:
+          type: string
+          format: date
+          nullable: true
+        to_date:
+          type: string
+          format: date
+          nullable: true
+        opening_balance:
+          type: number
+          nullable: true
+        closing_balance:
+          type: number
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        imported_at:
+          type: string
+          nullable: true
+    BankTransaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        bank_account_id:
+          type: integer
+        bank_statement_id:
+          type: integer
+          nullable: true
+        provider_transaction_id:
+          type: string
+          nullable: true
+        booking_date:
+          type: string
+          format: date
+          nullable: true
+        value_date:
+          type: string
+          format: date
+          nullable: true
+        amount:
+          type: number
+        currency:
+          type: string
+          nullable: true
+        direction:
+          type: string
+          enum:
+          - debit
+          - credit
+        counterparty_name:
+          type: string
+          nullable: true
+        counterparty_iban:
+          type: string
+          nullable: true
+        reference:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+          - unmatched
+          - matched
+          - reconciled
+        department_id:
+          type: integer
+          nullable: true
+        matches:
+          type: array
+          items:
+            type: object
+            properties:
+              document_type:
+                type: string
+              document_id:
+                type: integer
+                nullable: true
+              matched_amount:
+                type: number
+              fee_amount:
+                type: number
+                nullable: true
+              match_method:
+                type: string
+        raw_payload:
+          type: object
+          nullable: true
+    Department:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        code:
+          type: string
+          nullable: true
+        user_ids:
+          type: array
+          items:
+            type: integer
+          nullable: true
+        bank_account_id:
+          type: integer
+          nullable: true
+    DepartmentInput:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        code:
+          type: string
+          nullable: true
+          maxLength: 64
+        user_ids:
+          type: array
+          items:
+            type: integer
+          nullable: true
+        bank_account_id:
+          type: integer
+          nullable: true
+    Reconciliation:
+      type: object
+      properties:
+        id:
+          type: integer
+        bank_transaction_id:
+          type: integer
+        document_type:
+          type: string
+        document_id:
+          type: integer
+          nullable: true
+        matched_amount:
+          type: number
+        fee_amount:
+          type: number
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        status:
+          type: string
+        match_method:
+          type: string
+          enum:
+          - manual
+          - auto
+          - classification
+          - amount
+        confidence:
+          type: number
+        completed_at:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+    ImportRequest:
+      type: object
+      properties:
+        statement:
+          type: object
+          nullable: true
+          properties:
+            provider_statement_id:
+              type: string
+            from_date:
+              type: string
+              format: date
+            to_date:
+              type: string
+              format: date
+            opening_balance:
+              type: number
+            closing_balance:
+              type: number
+            currency:
+              type: string
+            metadata:
+              type: object
+        transactions:
+          type: array
+          items:
+            type: object
+            required:
+            - amount
+            properties:
+              provider_transaction_id:
+                type: string
+                nullable: true
+              booking_date:
+                type: string
+                format: date
+                nullable: true
+              value_date:
+                type: string
+                format: date
+                nullable: true
+              amount:
+                type: number
+              currency:
+                type: string
+                nullable: true
+                description: Defaults to the bank account currency when omitted.
+              direction:
+                type: string
+                enum:
+                - debit
+                - credit
+                nullable: true
+              counterparty_name:
+                type: string
+                nullable: true
+              counterparty_iban:
+                type: string
+                nullable: true
+              reference:
+                type: string
+                nullable: true
+              raw_payload:
+                type: object
+                nullable: true
+    ImportResponse:
+      type: object
+      properties:
+        statement:
+          $ref: '#/components/schemas/BankStatement'
+          nullable: true
+        imported:
+          type: integer
+        skipped:
+          type: integer
+        auto_match:
+          $ref: '#/components/schemas/AutoMatchSummary'
+          nullable: true
+    Suggestion:
+      type: object
+      properties:
+        document_type:
+          type: string
+          enum:
+          - invoice
+          - credit_note
+          - vendor_bill
+          - transaction
+        document_id:
+          type: integer
+        number:
+          type: string
+          nullable: true
+        total:
+          type: number
+        open_amount:
+          type: number
+        currency:
+          type: string
+          nullable: true
+        match_method:
+          type: string
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+    MatchRequest:
+      type: object
+      required:
+      - document_type
+      - document_id
+      properties:
+        document_type:
+          type: string
+          enum:
+          - invoice
+          - credit_note
+          - vendor_bill
+        document_id:
+          type: integer
+        matched_amount:
+          type: number
+          nullable: true
+          description: Gross amount that settles the document.
+        fee_amount:
+          type: number
+          nullable: true
+          minimum: 0
+        match_method:
+          type: string
+          nullable: true
+          default: manual
+    ClassifyRequest:
+      type: object
+      required:
+      - classification
+      properties:
+        classification:
+          type: string
+          enum:
+          - bank_fee
+          - bank_interest
+          - other
+        note:
+          type: string
+          nullable: true
+          maxLength: 1024
+    ReconciliationMutationResponse:
+      type: object
+      properties:
+        reconciliation:
+          $ref: '#/components/schemas/Reconciliation'
+        created:
+          type: boolean
+    AutoMatchRequest:
+      type: object
+      properties:
+        bank_account_id:
+          type: integer
+          nullable: true
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 200
+    AutoMatchSummary:
+      type: object
+      properties:
+        scanned:
+          type: integer
+        matched:
+          type: array
+          items:
+            type: object
+        skipped_ambiguous:
+          type: integer
+        skipped_low_confidence:
+          type: integer
+        failed:
+          type: integer
+    SettingsAll:
+      type: object
+      properties:
+        reconciliation:
+          type: object
+          properties:
+            auto_match_enabled:
+              type: boolean
+              default: false
+            auto_match_min_confidence:
+              type: number
+              default: 0.9
+              minimum: 0.5
+              maximum: 1
+            amount_tolerance:
+              type: number
+              default: 0.01
+              minimum: 0
+    ReconciliationReportRequest:
+      type: object
+      required:
+      - bank_account_id
+      - from
+      - to
+      properties:
+        bank_account_id:
+          type: integer
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+          description: Must be the same date as or later than from.
+    ReconciliationReport:
+      type: object
+      properties:
+        account:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            iban_masked:
+              type: string
+              nullable: true
+            currency:
+              type: string
+              nullable: true
+        period:
+          type: object
+          properties:
+            from:
+              type: string
+              format: date
+            to:
+              type: string
+              format: date
+        opening_balance:
+          type: number
+        closing_balance:
+          type: number
+        totals:
+          type: object
+          properties:
+            credits:
+              type: number
+            debits:
+              type: number
+            net:
+              type: number
+            fees:
+              type: number
+            transactions:
+              type: integer
+            matched:
+              type: integer
+            classified:
+              type: integer
+            unmatched:
+              type: integer
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/BankTransaction'
+        unmatched:
+          type: array
+          items:
+            $ref: '#/components/schemas/BankTransaction'
+    PdfReportResponse:
+      type: object
+      properties:
+        pdf_url:
+          type: string
+          format: uri
+        pdf_media_id:
+          type: integer
+          nullable: true
+security:
+- bearerAuth: []
+tags:
+- name: Bank Accounts
+- name: Bank Statements
+- name: Bank Transactions
+- name: Departments
+- name: Documents
+- name: Reconciliations
+- name: Reports
+- name: Settings
+paths:
+  /api/v1/apps/accounting-hub/bank-accounts:
+    get:
+      tags:
+      - Bank Accounts
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BankAccount'
+                  total:
+                    type: integer
+                    example: 1234
+                  current_page:
+                    type: integer
+                    example: 1
+                  total_pages:
+                    type: integer
+                    example: 13
+                  per_page:
+                    type: integer
+                    example: 100
+                required:
+                - data
+                - total
+                - current_page
+                - total_pages
+                - per_page
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        description: Page number.
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 25
+        description: 'Items per page. Responses are flat: data, total, current_page,
+          total_pages, per_page.'
+      - name: sort
+        in: query
+        schema:
+          type: string
+        description: Comma-separated sort fields; prefix with - for descending.
+      - name: filter
+        in: query
+        schema:
+          type: string
+        description: 'URL-encoded JSON filter object. Supported keys: id, name, provider,
+          status, currency.'
+    post:
+      tags:
+      - Bank Accounts
+      summary: Store
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BankAccountInput'
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccount'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/bank-accounts/{bankAccount}/connection:
+    get:
+      tags:
+      - Bank Accounts
+      summary: Connection
+      parameters:
+      - name: bankAccount
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/bank-accounts/{id}:
+    get:
+      tags:
+      - Bank Accounts
+      summary: Show
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccount'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+      - Bank Accounts
+      summary: Update
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BankAccountInput'
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: id
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccount'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+      - Bank Accounts
+      summary: Destroy
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/bank-accounts/{bankAccount}/authorize:
+    post:
+      tags:
+      - Bank Accounts
+      summary: Start
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                customer_ip: 203.0.113.10
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: bankAccount
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/bank-accounts/{bankAccount}/callback:
+    post:
+      tags:
+      - Bank Accounts
+      summary: Callback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                access_id: banksapi-access-id
+                provider_account_id: banksapi-product-id
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: bankAccount
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/bank-accounts/{bankAccount}/import:
+    post:
+      tags:
+      - Bank Accounts
+      summary: Import
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                statement:
+                  provider_statement_id: stmt-2026-09
+                  from_date: '2026-09-01'
+                  to_date: '2026-09-30'
+                  opening_balance: 1000
+                  closing_balance: 1098.5
+                  currency: EUR
+                transactions:
+                - provider_transaction_id: tx-1001
+                  booking_date: '2026-09-18'
+                  value_date: '2026-09-18'
+                  amount: 98.5
+                  currency: EUR
+                  direction: credit
+                  counterparty_name: ACME GmbH
+                  counterparty_iban: DE89370400440532013000
+                  reference: Invoice INV-1001
+                  raw_payload: {}
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: bankAccount
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/bank-statements:
+    get:
+      tags:
+      - Bank Statements
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BankStatement'
+                  total:
+                    type: integer
+                    example: 1234
+                  current_page:
+                    type: integer
+                    example: 1
+                  total_pages:
+                    type: integer
+                    example: 13
+                  per_page:
+                    type: integer
+                    example: 100
+                required:
+                - data
+                - total
+                - current_page
+                - total_pages
+                - per_page
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        description: Page number.
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 25
+        description: 'Items per page. Responses are flat: data, total, current_page,
+          total_pages, per_page.'
+      - name: sort
+        in: query
+        schema:
+          type: string
+        description: Comma-separated sort fields; prefix with - for descending.
+      - name: filter
+        in: query
+        schema:
+          type: string
+        description: 'URL-encoded JSON filter object. Supported keys: id, bank_account_id,
+          currency.'
+  /api/v1/apps/accounting-hub/bank-transactions:
+    get:
+      tags:
+      - Bank Transactions
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BankTransaction'
+                  total:
+                    type: integer
+                    example: 1234
+                  current_page:
+                    type: integer
+                    example: 1
+                  total_pages:
+                    type: integer
+                    example: 13
+                  per_page:
+                    type: integer
+                    example: 100
+                required:
+                - data
+                - total
+                - current_page
+                - total_pages
+                - per_page
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        description: Page number.
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 25
+        description: 'Items per page. Responses are flat: data, total, current_page,
+          total_pages, per_page.'
+      - name: sort
+        in: query
+        schema:
+          type: string
+        description: Comma-separated sort fields; prefix with - for descending.
+      - name: filter
+        in: query
+        schema:
+          type: string
+        description: 'URL-encoded JSON filter object. Supported keys: id, bank_account_id,
+          bank_statement_id, status, direction, department_id, reference, counterparty_name,
+          counterparty_iban, amount, booking_date.'
+  /api/v1/apps/accounting-hub/bank-transactions/{bankTransaction}/suggestions:
+    get:
+      tags:
+      - Bank Transactions
+      summary: Suggestions
+      parameters:
+      - name: bankTransaction
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Suggestion'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/bank-transactions/{id}:
+    get:
+      tags:
+      - Bank Transactions
+      summary: Show
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankTransaction'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/bank-transactions/{bankTransaction}/classify:
+    post:
+      tags:
+      - Bank Transactions
+      summary: Classify
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassifyRequest'
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: bankTransaction
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconciliationMutationResponse'
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconciliationMutationResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/bank-transactions/{bankTransaction}/match:
+    post:
+      tags:
+      - Bank Transactions
+      summary: Match
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MatchRequest'
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: bankTransaction
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconciliationMutationResponse'
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconciliationMutationResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      description: Manual match. Cross-currency pairs are rejected with 422. Matching
+        an invoice whose status is paid or whose balance_due is <= 0 is rejected with
+        422 because there is nothing left to reconcile.
+  /api/v1/apps/accounting-hub/departments:
+    get:
+      tags:
+      - Departments
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Department'
+                  total:
+                    type: integer
+                    example: 1234
+                  current_page:
+                    type: integer
+                    example: 1
+                  total_pages:
+                    type: integer
+                    example: 13
+                  per_page:
+                    type: integer
+                    example: 100
+                required:
+                - data
+                - total
+                - current_page
+                - total_pages
+                - per_page
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        description: Page number.
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 25
+        description: 'Items per page. Responses are flat: data, total, current_page,
+          total_pages, per_page.'
+      - name: sort
+        in: query
+        schema:
+          type: string
+        description: Comma-separated sort fields; prefix with - for descending.
+      - name: filter
+        in: query
+        schema:
+          type: string
+        description: 'URL-encoded JSON filter object. Supported keys: id, name, code.'
+    post:
+      tags:
+      - Departments
+      summary: Store
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentInput'
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/departments/{id}:
+    get:
+      tags:
+      - Departments
+      summary: Show
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+      - Departments
+      summary: Update
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentInput'
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: id
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+      - Departments
+      summary: Destroy
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/documents/{type}/{id}/departments:
+    put:
+      tags:
+      - Documents
+      summary: Assign
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                department_ids:
+                - 1
+                - 2
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: type
+        in: path
+        schema:
+          type: string
+        required: true
+      - name: id
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/reconciliations:
+    get:
+      tags:
+      - Reconciliations
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reconciliation'
+                  total:
+                    type: integer
+                    example: 1234
+                  current_page:
+                    type: integer
+                    example: 1
+                  total_pages:
+                    type: integer
+                    example: 13
+                  per_page:
+                    type: integer
+                    example: 100
+                required:
+                - data
+                - total
+                - current_page
+                - total_pages
+                - per_page
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        description: Page number.
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 25
+        description: 'Items per page. Responses are flat: data, total, current_page,
+          total_pages, per_page.'
+      - name: sort
+        in: query
+        schema:
+          type: string
+        description: Comma-separated sort fields; prefix with - for descending.
+      - name: filter
+        in: query
+        schema:
+          type: string
+        description: 'URL-encoded JSON filter object. Supported keys: id, bank_transaction_id,
+          document_type, document_id, status.'
+  /api/v1/apps/accounting-hub/reconciliations/{id}:
+    get:
+      tags:
+      - Reconciliations
+      summary: Show
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reconciliation'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/reconciliations/auto-match:
+    post:
+      tags:
+      - Reconciliations
+      summary: Auto Match
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AutoMatchRequest'
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AutoMatchSummary'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/reconciliations/{reconciliation}:
+    delete:
+      tags:
+      - Reconciliations
+      summary: Unmatch
+      parameters:
+      - name: reconciliation
+        in: path
+        schema:
+          type: integer
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Match removed
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      description: Deletes the reconciliation link. If this was the bank transaction’s
+        last link, the transaction status returns to unmatched. Booked invoice payments
+        are not reversed.
+  /api/v1/apps/accounting-hub/reports/credit-notes:
+    get:
+      tags:
+      - Reports
+      summary: Credit Notes
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      total:
+                        type: number
+                      total_refunded:
+                        type: number
+                      by_refund_status:
+                        type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/reports/department-profit-loss:
+    get:
+      tags:
+      - Reports
+      summary: Department Profit And Loss
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      departments:
+                        type: array
+                        items:
+                          type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/reports/payables:
+    get:
+      tags:
+      - Reports
+      summary: Payables
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      total_billed:
+                        type: number
+                      total_paid:
+                        type: number
+                      total_outstanding:
+                        type: number
+                      by_status:
+                        type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/reports/reconciliation:
+    get:
+      tags:
+      - Reports
+      summary: Reconciliation
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ReconciliationReport'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: bank_account_id
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Must be the same date as or later than from.
+  /api/v1/apps/accounting-hub/reports/reconciliation-status:
+    get:
+      tags:
+      - Reports
+      summary: Reconciliation Status
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      transactions:
+                        type: object
+                      total_transactions:
+                        type: integer
+                      credit_total:
+                        type: number
+                      debit_total:
+                        type: number
+                      matched_count:
+                        type: integer
+                      matched_total:
+                        type: number
+                      unmatched_count:
+                        type: integer
+                      unmatched_total:
+                        type: number
+                      reconciliations:
+                        type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/reports/revenue-receivables:
+    get:
+      tags:
+      - Reports
+      summary: Revenue Receivables
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      total_invoiced:
+                        type: number
+                      total_paid:
+                        type: number
+                      total_outstanding:
+                        type: number
+                      by_status:
+                        type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/reports/reconciliation/pdf:
+    post:
+      tags:
+      - Reports
+      summary: Reconciliation Pdf
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReconciliationReportRequest'
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PdfReportResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/settings:
+    get:
+      tags:
+      - Settings
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettingsAll'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+      - Settings
+      summary: Store
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SettingsAll'
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettingsAll'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/settings/groups/list:
+    get:
+      tags:
+      - Settings
+      summary: Get Groups List
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/settings/{group}:
+    get:
+      tags:
+      - Settings
+      summary: Show
+      parameters:
+      - name: group
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+      - Settings
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                auto_match_enabled: false
+                auto_match_min_confidence: 0.9
+                amount_tolerance: 0.01
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: group
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/settings/reset:
+    post:
+      tags:
+      - Settings
+      summary: Reset
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/apps/accounting-hub/settings/{group}/reset:
+    post:
+      tags:
+      - Settings
+      summary: Reset
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: Content-Type
+        in: header
+        schema:
+          type: string
+        example: application/json
+      - name: group
+        in: path
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

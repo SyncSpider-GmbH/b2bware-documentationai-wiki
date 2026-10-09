@@ -1,0 +1,311 @@
+openapi: 3.0.0
+info:
+  title: CustomerSkuModule API
+  description: >-
+    Complete API collection for CustomerSkuModule — generated from
+    routes/api.php
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Customer Sku
+paths:
+  /api/v1/apps/customer-sku-module/customer-skus:
+    get:
+      tags:
+        - Customer Sku
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Customer Sku
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                owner_type: customer
+                owner_id: 123
+                product_id: 456
+                value: CSKU-001
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-sku-module/customer-skus/{id}:
+    get:
+      tags:
+        - Customer Sku
+      summary: Show
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Customer Sku
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                value: CSKU-001-REV
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Customer Sku
+      summary: Destroy
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-sku-module/my-references:
+    get:
+      tags:
+        - Customer Sku
+      summary: My References
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-sku-module/settings:
+    get:
+      tags:
+        - Customer Sku
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Customer Sku
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-sku-module/settings/groups/list:
+    get:
+      tags:
+        - Customer Sku
+      summary: Get Groups List
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-sku-module/settings/{group}:
+    get:
+      tags:
+        - Customer Sku
+      summary: Show
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Customer Sku
+      summary: Update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-sku-module/customer-skus/bulk-upsert:
+    post:
+      tags:
+        - Customer Sku
+      summary: Bulk Upsert
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                items:
+                  - owner_type: customer
+                    owner_id: 123
+                    product_id: 456
+                    value: CSKU-001
+                  - owner_type: company
+                    owner_id: 789
+                    product_id: 456
+                    value: ACME-REF-9
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-sku-module/customer-skus/upsert:
+    post:
+      tags:
+        - Customer Sku
+      summary: Upsert
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                owner_type: customer
+                owner_id: 123
+                product_id: 456
+                value: CSKU-001
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-sku-module/settings/reset:
+    post:
+      tags:
+        - Customer Sku
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-sku-module/settings/{group}/reset:
+    post:
+      tags:
+        - Customer Sku
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

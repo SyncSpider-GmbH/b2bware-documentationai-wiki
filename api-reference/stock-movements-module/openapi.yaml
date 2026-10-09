@@ -1,0 +1,88 @@
+openapi: 3.0.0
+info:
+  title: StockMovementsModule API
+  description: >-
+    Complete API collection for StockMovementsModule — generated from
+    routes/api.php
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Movements
+paths:
+  /api/v1/apps/stock-movements-module/movements:
+    get:
+      tags:
+        - Movements
+      summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Movements
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/stock-movements-module/movements/{movement}:
+    get:
+      tags:
+        - Movements
+      summary: Show
+      parameters:
+        - name: movement
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/stock-movements-module/movements/adjustments:
+    post:
+      tags:
+        - Movements
+      summary: Store Adjustment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

@@ -1,19 +1,24 @@
 openapi: 3.0.0
 info:
-  title: MediaHub API
-  description: Public CDN proxy.
+  title: MediaHub
+  description: >-
+    Public media CDN proxy for B2Bware DataHub.
+
+
+    MediaHub exposes a single unauthenticated CDN endpoint mounted at the root
+    path. The `:domain` segment is a fully qualified hostname (e.g.
+    `gogatec.com`) and `:path` is the object path inside the configured storage
+    backend. Media URLs returned by other hubs (`mainMedia.media_url`,
+    `gallery[].media_url`) already point here; storefronts usually consume those
+    URLs directly rather than calling this themselves.
   version: 1.0.0
-  contact:
-    name: B2Bware
-    url: https://syncspider.com
 servers:
   - url: https://api.datahub.syncspider.com
-    description: Production
 tags:
   - name: CDN
     description: Public media delivery — no authentication, no headers required.
 paths:
-  /cdn/{domain}/{path}:
+  /cdn/:domain/:path:
     get:
       tags:
         - CDN
@@ -31,24 +36,6 @@ paths:
           schema:
             type: string
           example: application/json
-        - name: domain
-          in: path
-          schema:
-            type: string
-          required: true
-          description: >-
-            Tenant media domain (FQDN). Validated against
-            `[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}`.
-          example: gogatec.com
-        - name: path
-          in: path
-          schema:
-            type: string
-          required: true
-          description: >-
-            Object path inside the configured storage backend; may contain
-            slashes.
-          example: 01_files/Kataloge/GOGAEX.pdf
       responses:
         '200':
           description: Successful response

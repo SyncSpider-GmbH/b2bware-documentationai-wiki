@@ -1,0 +1,162 @@
+---
+title: Notifications — Überblick
+description: Wie Notification Hub Hub-Events in B2Bware zu Multi-Channel-Messages macht — Types, Preferences, Channels, Delivery Attempts, Abhängigkeiten und Fallstricke.
+---
+
+**Notifications** in B2Bware Admin ist die UI für **Notification Hub** — die Multi-Channel-Engine, die:
+
+1. auf **Hub-Events** (Orders, Customers, Products, Licenses, …) hört und/oder **manuelle / API**-Creates annimmt,
+2. einen **Notification Type** auflöst (Template + Channels + Recipients),
+3. Templates rendert (Mustache-Style `{{vars}}` + Locale-Marker),
+4. **User Preferences** respektiert (aktivierte Channels, Quiet Hours, Digest-Frequenz),
+5. über Queued Jobs an **Channels** dispatcht,
+6. **Delivery Attempts** für Triage aufzeichnet.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Notification Type** | Template-Definition: Slug, Subject-/Body-Templates, unterstützte/Default-Channels, Active-Flag, optionales Event-Binding + Recipient-Resolver, Role Scope |
+| **Notification** | Eine Message-Instanz für ein **Notifiable** (polymorph User/Customer/…) mit gerendertem Content, Channels, aggregiertem `status`, `delivery_status` |
+| **Delivery Attempt** | Per-Channel-Versuch (`pending` / `processing` / `success` / `failed` / `retry`) — Admin **Delivery Logs** |
+| **Preference** | Per-User-Overrides für einen Type (enable/disable, Channels, Quiet Hours, Frequency) |
+| **Channel Settings** | Hub-Settings-Gruppen: global, email, sms, push, slack, broadcast, database |
+| **Dashboard** | Health- / Channel-Performance- / Recent-Activity-Widgets für Operatoren |
+| **Send Notification** | Manueller Compose-/Send-Pfad (ersetzt keine event-getriebenen Types) |
+
+**Channels (Engine-Capability):** email, database (in-app), broadcast (WebSockets), SMS, push (FCM/OneSignal), Slack. **Database** wird typischerweise immer als In-App-Kopie geschrieben; andere Channels hängen von **aktivierten Settings** und Credentials ab.
+
+**Mentales Modell:** Type = *was gesagt werden kann und über welche Pipes*; Notification = *ein gerenderter Send*; Attempt = *ob diese Pipe erfolgreich war*; Preferences/Settings = *wer empfangen darf und ob die Pipe an ist*.
+
+<Callout kind="alert" collapsed="false">
+Notification Hub ist **core-listed** (nicht `isOptional` wie Tax oder Rule), aber die Sidebar-Gruppe **Notifications** erfordert trotzdem Install + Modul-View. Einen Notification Type anzulegen **sendet niemandem** eine E-Mail, bis ein Event oder manueller Send feuert **und** Channel Settings, Preferences und Queue Workers erfolgreich sind. Demo-Store-Präsenz bedeutet **nicht**, dass jeder Tenant jeden Channel konfiguriert hat.
+</Callout>
+
+**Admin-Children (typisch wenn installiert):**
+
+| Child | Intent |
+| --- | --- |
+| **Dashboard** | KPI / Health |
+| **Notification Types** | Templates + Event-Mapping |
+| **Notifications** | Message-Instanzen |
+| **Delivery Logs** | Attempts-Triage |
+| **Send Notification** | Manueller Send |
+| **Preferences** | User-Channel-Prefs |
+| **Settings** | Channel-Config |
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Event Hub Delivery Logs** | Outbound-**Webhook**-HTTP-Posts an externe Systeme — andere Daten |
+| **Automation Hub** | Multi-Step-Flows, die Actions *aufrufen* können — kein Ersatz für Notification Types |
+| **Marketing ESP / Newsletter-Produkt** | Notification Hub ist operationales Multi-Channel-Messaging, kein Campaign-Marketing |
+| **Media Hub** | Catalog-Assets, keine human-facing Messages |
+
+## Warum Teams Notifications nutzen
+
+1. **Customer-Commerce-Emails** — Order created / updated / completed / cancelled (und verwandt), ohne einen parallelen Mailer zu bauen.
+2. **Registration & Account-Lifecycle** — Customer registered / verified / Status oder Group geändert; Admin-„new customer“-Alerts.
+3. **Ops-Alerts** — Low Stock, License-Pool-Warnungen, Product-Price-Change-Admin-Notices (wenn diese Types aktiv sind).
+4. **Preference-Control** — Empfänger können Channels muten oder Quiet Hours einhalten, ohne Types zu löschen.
+5. **Triage** — „Warum haben sie es nicht bekommen?“ über Type active → Event gefeuert → Preference → Channel Settings → **Delivery Logs**-Attempts beantworten.
+6. **Manuelle Outreach** — Send Notification für einmalige operative Messages (weiterhin subject zu Channels/Settings).
+
+Nutzen Sie **Event Hub**, wenn die Aufgabe **Outbound-Webhooks** an externe Systeme ist. Nutzen Sie **Notifications**, wenn die Aufgabe **human-facing** Multi-Channel-Messages ist. Nutzen Sie **Automation Hub** (optional) für Multi-Step-Flows, die ebenfalls Actions aufrufen können — nicht als Ersatz für Notification Types.
+
+## Wie Event → Message → Channel funktioniert
+
+### Zwei Dispatch-Modi (einer live pro Tenant)
+
+| Mode | Verhalten |
+| --- | --- |
+| **Legacy Subscriber** | Hardcodierte Handler für spezifische Hub-Events mappen auf Type-**Slugs** |
+| **Generic Event-Registry-Dispatcher** | Matched Type-Event-Bindings an Event-Hub-Registry-Einträge; nutzt Recipient-Resolver + Data Builder |
+
+Ein Tenant-Setting wählt **einen** Pfad, damit dasselbe Event **nicht** doppelt sendet. Operatoren brauchen: *Types binden an Events; nur ein Dispatcher-Pfad ist live*.
+
+### Runtime-Spine
+
+```
+Hub event (or manual create)
+  → resolve Notification Type (slug / event binding, active)
+  → resolve recipients (customer, roles, …)
+  → render template variables per recipient / language
+  → persist Notification (+ optional grouping of duplicates)
+  → Channel handler fans out jobs
+  → each channel: settings enabled? → create Attempt → send → success/fail/retry
+  → aggregate notification status: pending → partial → sent | failed | read
+```
+
+### Beispiel-Type-Slugs (geseedetes Vokabular — keine Zusage, dass jeder Tenant alle aktiviert hat)
+
+| Area | Beispiel-Type-Slugs |
+| --- | --- |
+| Orders | `order_created`, `order_updated`, `order_completed`, `order_cancelled`, `cart_abandoned`, … |
+| Customers | `customer_registered`, `customer_verified`, `customer_updated`, `customer_status_changed`, `admin_new_customer`, … |
+| Auth | `forgot_password`, `password_reset_success`, `email_verification`, … |
+| Products (admin) | `admin_product_stock_low`, `admin_product_price_changed`, … |
+| Licenses | `license_key_created`, `license_low_stock`, … |
+
+Seed-Listen als **geteiltes Vokabular** behandeln. Ein Tenant kann Types deaktivieren, Templates ändern oder optionale Source-Hubs fehlen (zum Beispiel License Hub).
+
+### Preferences & Quiet Hours
+
+- Preference disabled → User erhält für diesen Type **nichts**.
+- Channel-Liste auf der Preference kann unter die Type-Defaults verengen.
+- Quiet Hours unterdrücken non-critical Channels, es sei denn, ein Channel erlaubt Send während Quiet Hours.
+- Digest-Frequenzen ändern *wann* manche Messages flushen — Maintenance-/Digest-Jobs greifen.
+
+### Order-Lifecycle-Link
+
+Order-Status- / Create-Events sind ein primärer Producer. Eine Statusänderung kann Buyer **nur dann** benachrichtigen, wenn der passende Type aktiv ist und Delivery gelingt — Notifications ersetzt nicht die Order-Status-Maschine. Siehe [Order-Lifecycle](/de/user-guide/orders/lifecycle).
+
+## So nutzen Sie den Hub
+
+1. Bestätigen Sie, dass **Notifications** sichtbar ist und die Role die nötigen `notification-hub.*`-Keys hat.
+2. In **Settings** die Channels aktivieren und testen, die Sie wirklich nutzen (starten mit **email** + **database**).
+3. In **Notification Types** prüfen, dass der Slug für das Business-Event **active** ist, Channels Sinn ergeben und Templates/Variablen für die Locale stimmen.
+4. **Recipient**-Erwartungen (Customer vs Admin-Roles) mit dem abgleichen, wer von dem Event hören soll.
+5. Nach einem echten Event (Order platzieren, Customer registrieren) **Notifications** für die Instanz öffnen, dann **Delivery Logs** für Channel-Attempts.
+6. Wenn die Instanz nie erscheint: Event-/Type-Mapping oder Dispatcher — noch nicht SMTP.
+7. Wenn die Instanz erscheint, aber der Channel failed: Settings-Credentials, Preference-Mute, Quiet Hours oder Retry-Exhaustion — **Delivery Logs** prüfen.
+8. **Preferences** nutzen, um „Ich habe E-Mail ausgeschaltet“-Streitfälle zu erklären; **Send Notification** nur für bewusste manuelle Sends.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Notification Hub installiert** | Sidebar-Gruppe + APIs |
+| **Permissions** | CRUD auf Notifications / Types / Preferences / Attempts; Settings View/Update; Dashboard View |
+| **Order Hub** | Order-/Cart-Events und Order-Data-Builder |
+| **Customer Hub** | Registration-/Verification-/Status-Events; Notifiables; Permission Registry |
+| **Product Hub** (optional für diese Types) | Stock-/Price-Admin-Notification-Sources |
+| **License Hub** (optional) | License-Key- / Pool-Types |
+| **Invoice Hub** (optional) | Invoice-Style-Types, wenn vorhanden |
+| **Event Hub** (optional, soft) | Registry für Generic Dispatcher; **andere** Delivery Logs |
+| **Settings Hub** | Channel-Settings-Storage |
+| **Queue / Workers** | Channel-Jobs müssen laufen, sonst stallen Attempts |
+| **Attributes / Translations** | Lokalisierte Type-Name-/Template-Felder, wenn genutzt |
+| **Dashboard Hub** (soft) | Admin News / KPI-Widgets, wenn installiert |
+
+**Keine Voraussetzungen:** Media Hub, Rule Hub, Tax Hub — nur benachbarte Labels.
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| „Type existiert ⇒ E-Mail gesendet“ | Braucht Event + active Type + Prefs + Channel Settings + Workers | Spine nachverfolgen; Delivery Logs prüfen |
+| Event Hub Delivery Logs für fehlende E-Mail editieren | Falscher Hub | **Notifications → Delivery Logs** nutzen |
+| Annehmen, alle Channels sind live | SMS/Push/Slack brauchen Provider-Settings | Nur konfigurierte Channels aktivieren; Connection testen |
+| Preference / Quiet Hours ignorieren | Wirkt wie „System kaputt“ | Preferences prüfen, bevor SMTP-Kaninchenlöcher |
+| Inaktiver oder vertippter Slug | Event feuert; nichts wird erstellt | Type-Slug / Event-Binding an den live Dispatcher-Mode matchen |
+| Doppel-Sends während Dispatcher-Migration | Zwei Pfade kurzzeitig | Nur einen Dispatcher-Mode pro Tenant sicherstellen |
+| Themes/Custom-Code mit eigenem SMTP | Umgeht Attempts & Prefs | Notification Hub bevorzugen, damit Triage an einem Ort bleibt |
+| Notifications ohne Install erwarten | Gruppe fehlt | Install + Permissions; Demo ≠ alle Tenants |
+| Database-Channel mit „E-Mail zugestellt“ verwechseln | In-App-Kopie ≠ Inbox | Attempt-**channel**-Spalte lesen |
+
+## Verwandt
+
+- [Order-Lifecycle](/de/user-guide/orders/lifecycle) — Status-/Create-Side-Effects
+- [Orders — Überblick](/de/user-guide/orders/overview) — Cart → Order-Kontext
+- [Customers — Überblick](/de/user-guide/customers/overview)
+- [Media — Überblick](/de/user-guide/media/overview) — Assets, keine Messages
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
