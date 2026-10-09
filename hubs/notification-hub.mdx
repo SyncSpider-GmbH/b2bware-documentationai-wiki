@@ -461,13 +461,14 @@ NotificationHub channel settings are edited in the admin under **NotificationHub
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `enabled` | boolean | `false` | Enable the SMS channel. |
-| `provider` | select (`twilio` / `nexmo` / `messagebird` / `plivo` / `infobip`) | — | SMS provider. |
-| `from_number` | text | — | Sender phone number / alphanumeric ID. |
+| `provider` | select (`twilio` / `nexmo` / `messagebird` / `plivo` / `infobip` / `linkmobility`) | — | SMS provider. |
+| `from_number` | text | — | Sender phone number / alphanumeric ID (max 11 chars for alphanumeric). |
 | `twilio_settings` | object | — | Twilio credentials: <ul><li>`account_sid` — Account SID</li><li>`auth_token` — Auth token (password)</li><li>`messaging_service_sid` — Optional Messaging Service SID</li></ul> |
 | `nexmo_settings` | object | — | Nexmo/Vonage credentials: <ul><li>`api_key` — API key</li><li>`api_secret` — API secret (password)</li></ul> |
 | `messagebird_settings` | object | — | MessageBird credentials: <ul><li>`access_key` — Access key (password)</li></ul> |
 | `plivo_settings` | object | — | Plivo credentials: <ul><li>`auth_id` — Auth ID</li><li>`auth_token` — Auth token (password)</li></ul> |
 | `infobip_settings` | object | — | Infobip credentials: <ul><li>`base_url` — API base URL</li><li>`api_key` — API key (password)</li></ul> |
+| `linkmobility_settings` | object | — | LinkMobility MyLINK credentials: <ul><li>`client_id` — OAuth2 client ID</li><li>`client_secret` — OAuth2 client secret (password)</li><li>`base_url` — Optional API base URL (default `https://api.linkmobility.com`)</li><li>`token_url` — Optional token URL (default MyLINK SSO)</li></ul> |
 | `general_settings` | object | — | Delivery constraints: <ul><li>`webhook_url` — Delivery-status webhook</li><li>`country_codes_allowed` — Allowed codes (empty = all)</li><li>`country_codes_blocked` — Blocked codes</li></ul> |
 | `test_mode` | boolean | `false` | Route SMS to the test number. |
 | `test_number` | text | — | Destination phone when test mode is on. |
