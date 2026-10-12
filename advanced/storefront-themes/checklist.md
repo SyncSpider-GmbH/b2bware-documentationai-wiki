@@ -5,17 +5,19 @@ description: Override strategy and the pre-upload author checklist.
 
 ## 12. Override strategy
 
-A theme only needs to ship the files it overrides. Anything missing falls back to the bundled default theme.
+A theme only needs to ship the files it overrides. Anything missing falls back to the bundled default theme, and keeps receiving default-theme updates.
 
-Typical minimal override set:
+**Start small.** Ship `theme.json`, your CSS, and a thin page that `@extends('default::pages.…')` and overrides only the sections you change (see [blade-api.md §9.0](blade-api.md)):
 
 ```
 theme.json
-pages/product.blade.php          # change just the product page
+README.md                        # required — what the theme changes (theme-readme.md)
+CHANGELOG.md                     # optional — what changed in this version
+pages/cart.blade.php             # @extends('default::pages.cart') + one @section override
 assets/css/storefront.css        # override CSS variables
 ```
 
-When overriding a page, include the same `@extends(...)` / `@section(...)` blocks as the default version so layout slots stay connected.
+**Replacing a whole page file opts that page out of default updates.** If you copy `pages/product.blade.php` and edit it, later fixes and features to the default product page no longer reach your store. Only do that when you really need a different page structure, and then include the same `@extends(...)` / `@section(...)` blocks as the default version so layout slots stay connected.
 
 ---
 
@@ -24,6 +26,8 @@ When overriding a page, include the same `@extends(...)` / `@section(...)` block
 Before zipping:
 
 - [ ] `theme.json` is at the zip root with `name`, `slug`, `version`
+- [ ] `README.md` is at the zip root and every required section (`Purpose`, `What this theme changes`, `Scripts and libraries`, `Still on the default theme`) describes the current files — see [theme-readme.md](theme-readme.md)
+- [ ] `CHANGELOG.md` has an entry for this upload (recommended)
 - [ ] Every blade path matches the canonical surface (or `pages/<slug>.blade.php`)
 - [ ] No `@php`, `@inject`, `@eval`, `<?php`, `<?=`, backticks, or `$__env`
 - [ ] No dynamic `@include($x)` / `@extends($x)` — string literals only

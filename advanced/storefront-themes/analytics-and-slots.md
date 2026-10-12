@@ -117,8 +117,11 @@ The bundled default theme already places every slot, so a fresh theme (or one th
 | `product.detail.meta` | Product detail page, under the SKU | `$product`, `$store`, `$locale`, … |
 | `cart.line.meta` | Cart line item, under the SKU | `$line` (the cart line array), `$store`, … |
 | `order.line.meta` | Account order detail, in the SKU cell | `$item` (the order line model), `$store`, … |
+| `account.nav` | Account sidebar, above the sign-out separator | `$active` (the current section key), `$store`, … |
 
 A module receives the surrounding surface's variables plus whatever it computes itself, so its override blade can read e.g. `$product` or `$line` directly.
+
+`account.nav` is the one slot a module uses to add a **page** rather than a detail: it contributes the sidebar link, and registers the page itself through `StorefrontRoutes::extendAccount()` so the route inherits the tenant host, the locale prefix and the signed-in-customer guard. A module entry is expected to match the theme's own nav links, and reads `$active` to know whether it is the current section — see McpHub's `storefront/account-nav.blade.php` for the shape.
 
 ### Owner-authored content slots
 

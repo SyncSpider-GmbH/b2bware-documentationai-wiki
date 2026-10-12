@@ -45,6 +45,8 @@ Most of these flags also carry a **server-side safety net** (a 404, a rejected f
 | `$hideChrome` | bool | `true` on standalone pages (e.g. the public proposal share page). Wrap header/footer/breadcrumbs in `@unless($hideChrome ?? false)` (see §2, §10). |
 | `$cart`, `$cartItems`, `$cartCount`, `$cartTotals` | mixed | Cart summary snapshot injected on every page for the mini-cart / header count; the full cart page/sections receive the richer `$cartLines` + `$cartPricing`. |
 
+**Cart-line favorites.** Every `$cartLines` row includes `is_favorite` (bool): whether its product belongs to the signed-in customer's active favorites list (falling back to the first list when no active list matches). It is always `false` for guests or when `$store['favorites_enabled']` is false; disabled favorites do not resolve customer favorites. Render `$line['is_favorite']` directly instead of searching `$favoriteIds` in Blade. Keep favorite controls behind `$isAuthenticated && ($store['favorites_enabled'] ?? true)`.
+
 **Tenant appearance CSS variables.** The platform also injects branding CSS the theme must not fight: `$tenantBrandCss` / `$tenantFontsHtml` (b2bware Appearance settings) and `$brandingCss` (per-customer category ramp). The default `shop.blade.php` prints them in a fixed **head cascade** — see §10 (Styling) for the exact order (`base.css` → tenant brand/fonts → theme `storefront.css` → branding). Do not reorder it.
 
 The two gates are derived as (read them, don't recompute them):
@@ -91,10 +93,14 @@ Like Shopify's `shop` object, `$store` carries both store **identity** and store
 | `reorder_enabled`          | bool   | `true`      | Customers may re-order a completed order from their account.       |
 | `catalog_export_enabled`   | bool   | `false`     | Opt-in module (`catalog_export.enabled`): renders the account "Catalog export" page/nav item and enables the tokenized public share link for a customer's stored export. |
 | `quick_order_enabled`      | bool   | `false`     | Opt-in Quick Order (SKU autocomplete + CSV bulk add) account feature. |
+| `mcp_enabled`              | bool   | `false`     | Opt-in AI assistant access (MCP): customers may connect an assistant that acts with their own storefront permissions. |
 | `variation_display_mode`   | string | `table`     | How a configurable product's variants are presented: `table` or `dropdown`. |
 | `branch_display_mode`      | string | `children`  | Default layout for parent categories with children: `children` (subcategory grid), `products` (descendant-aware listing), or `both`. Per-category override may change the resolved `$branchDisplayMode` on a category page. |
+| `category_ui_type`         | string | `list`      | Header category navigation: `list` (a link to the categories index) or `mega_menu` (a panel of the depth window). Anything else, including a missing value, is `list`. |
+| `mega_menu_depth_start`    | int    | `0`         | First category depth shown in the mega-menu panel. The panel includes this depth and the next one. Missing or invalid values are `0`. |
 | `indexable`                | bool   | `true`      | Search engines may index the storefront; drives `<meta name="robots">` automatically. |
 | `display_prices_with_tax`  | string | `excluding_tax` | How catalog/cart prices are shown: `excluding_tax` (net, B2B), `including_tax` (gross, B2C) or `both`. Follows the tenant's TaxHub setting. |
+| `captcha`                  | array  | `['enabled' => false]` | Client-safe CAPTCHA configuration: `enabled`, `provider`, `site_key`, `token_input`, `protected_forms`. The widget renders itself on protected forms (see `forms.md`), so read this only for extra copy around it. The secret key is never exposed. |
 
 ### Feature-by-feature compliance guide
 
@@ -117,7 +123,9 @@ One row per tenant-toggleable feature from the Features admin page (plus `quick_
 | Allow search engines to index            | `indexable`                                              | `true`    | Automatic — platform-rendered.                                                                             | Nothing to do — keep `@storefrontSeo` in every layout; never hardcode your own robots meta tag. |
 | Product variation display mode           | `variation_display_mode` (`table` or `dropdown`)        | `'table'` | None — presentation only.                                                                                  | Branch your variant UI on this value — mirror `partials/product-details.blade.php` (see *Configurable products* below). |
 | Parent category display mode             | `branch_display_mode` (`children`, `products`, or `both`) | `'children'` | Full — platform resolves `$showChildren` / `$showProducts` / `$branchDisplayMode` on category pages (store default + per-category override). | Branch category layout on `$showChildren` / `$showProducts` — mirror `pages/category.blade.php` (see catalog.md). Do not key layout off `$isLeaf` alone. |
+| Category UI type                         | `category_ui_type` (`list` or `mega_menu`) plus `mega_menu_depth_start` | `'list'` / `0` | None — presentation only. The panel's category rows are still limited to navigable categories (`exclude_from_main_menu` off). | Branch the header on `category_ui_type` — mirror `partials/nav.blade.php`. `list` links to the categories index. `mega_menu` opens `$megaMenuCategories` (depths `mega_menu_depth_start` and the next one). Do not reuse `$rootCategories` for the panel. |
 | Quick Order & CSV upload _(same tenant_config family; not yet on the Features page)_ | `quick_order_enabled` | `false` | Full — every Quick Order route 404s when disabled. | Only render the account nav link and Quick Order page when true — mirror `partials/account-nav.blade.php` and `pages/account/quick-order.blade.php`. |
+| Enable AI assistant access               | `mcp_enabled`                                            | `false`   | Full — the account page 404s, new connections are refused, and turning the flag off revokes every grant this shop handed out. | Nothing to do — McpHub contributes its own nav entry and page through the `account.nav` slot, and withdraws both when the flag is off. Never render your own link to it. |
 
 ### One source per concept
 
@@ -154,7 +162,8 @@ Never fetch customer orders or account PII through `@fetch` — use these keys.
 | `$accountOverview` | array | `orders_count`, `open_orders`, `lifetime_spend`, `favorites_count`, `addresses_count`. |
 | `$favoritesCount` | int | Badge-friendly count (use `count(...)`). |
 | `$isAgent` | bool | Agent role or impersonation; use `count($isAgent)`. |
-| `$rootCategories` | Collection | Navigable root categories with children. |
+| `$rootCategories` | Collection | Navigable root categories with children. Footer and catalog export. Not the mega menu. |
+| `$megaMenuCategories` | Collection | Header mega-menu rows for `category_ui_type === 'mega_menu'`: parents at `mega_menu_depth_start`, each with `children` at the next depth, and `menu_path` (full slug path). Empty in list mode. |
 | `$favoriteIds` | array | Active list product ids; `[]` for guests. Prefer `collect($favoriteIds)->contains(...)`. |
 | `$canAccessAdmin` / `$adminUrl` | bool / string\|null | Admin hand-off; use `count(...)`. |
 | `$favoritesLists` | array | Lists + `active_list_id`; eager on the favorites page. |
@@ -311,8 +320,31 @@ How the parent product page presents its variants follows the tenant flag **`$st
 | `$displayProduct` | The model whose name / SKU / short description the theme should show: the selected variant when `$isVariantView`, otherwise the parent `$product`. |
 | `$parentUrl` | Absolute path back to the parent product page (no `?variant=`). Non-null only when `$isVariantView`. |
 | `$variantColumns` | Ordered list of parent-defined variation-axis attribute names (`ParentProductAttribute`) — the table columns. |
-| `$variantRows` | One row per variant: `{ id, sku, name, image, attributes: [{ id, code, name, value, type, use_for_storefront_variant_filtering }], priceView, unit_amount, stock: {manage, available, quantity, low, min, max} }`. `priceView` feeds `components/price`; `image` is a raw URL (wrap in `@storefrontImage`) — the variant's own primary, else the parent's. In table mode, wrap the thumbnail in a link to `/{locale}/products/{{ $productSlug }}?variant={{ $row['id'] }}`. |
+| `$variantRows` | One row per variant: `{ id, sku, name, image, attributes: [{ id, code, name, value, type, use_for_storefront_variant_filtering }], priceView, unit_amount, stock: {manage, available, quantity, low, min, max, incoming} }`. `priceView` feeds `components/price`; `image` is a raw URL (wrap in `@storefrontImage`) — the variant's own primary, else the parent's. In table mode, wrap the thumbnail in a link to `/{locale}/products/{{ $productSlug }}?variant={{ $row['id'] }}`. |
 | `$variantFilters` | Typed filter controls for the variation table (see below). Empty when no axis is flagged or when display mode is not `table`. |
+
+### `$stockInfo` (product / PDP)
+
+Present on the product detail page (and mirrored on each `$variantRows[*].stock`). Quantity is **buyable** (on hand − reserved + incoming per ProductHub stock settings), not raw on-hand.
+
+| Field | Type | Meaning |
+| ----- | ---- | ------- |
+| `manage` | bool | ProductHub `manage_stock`. When false the storefront treats the product as always orderable and hides the stock badge. |
+| `available` | bool | In-stock flag when `manage` is true. |
+| `quantity` | int | Buyable quantity. |
+| `low` | bool | True when buyable is at or below the out-of-stock threshold but still available. |
+| `min` / `max` | int / int\|null | Cart min/max from the stock row. |
+| `incoming` | list | Incoming rows when ProductHub `storefront_show_incoming` **and** `allow_upcoming_quantity` are on; otherwise `[]`. Do not read hub settings in the theme. |
+
+Each `incoming` row:
+
+| Field | Meaning |
+| ----- | ------- |
+| `quantity` | Incoming quantity. |
+| `date` | ISO date (`Y-m-d`) for dated rows; computed `today + N` when undated policy is `plus_days`; `null` when undated policy is `immediate` (no fake date). |
+| `undated` | `true` when the stock row had no date. |
+
+Undated incoming with policy `ignore` is omitted from theme data (admin still stores it). Switch `storefront_show_incoming` off → `incoming` is always empty. Default theme: simple list in `partials/product-details.blade.php`.
 
 **Table-mode variant view.** When `$isVariantView` is true the default theme:
 

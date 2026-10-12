@@ -80,6 +80,11 @@ All account pages receive the signed-in customer plus page-specific collections.
   `catalog-export*` forms and the `catalog-export-preview` AJAX section.
 - `account/api-keys.blade.php` — `api-key-create` / `api-key-revoke`; the one-time plaintext token
   arrives as `$newApiKeyToken` for a single render only.
+- `account/profile.blade.php` — receives `$deletionRequest` (`null` or
+  `{status: 'awaiting_confirmation'|'scheduled', scheduled_for, expires_at, grace_days, …}`), which
+  drives the account-deletion danger zone: no request → `profile-delete` form (password + emailed
+  code), awaiting confirmation → `profile-delete-confirm` (6-digit `token`) + `profile-delete-cancel`,
+  scheduled → banner with the deletion date + `profile-delete-cancel` (§9.5).
 
 ### 10.6 Auth pages (`pages/login|register|forgot-password|reset-password|verify-email`)
 
