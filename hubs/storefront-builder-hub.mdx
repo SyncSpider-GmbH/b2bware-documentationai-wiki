@@ -46,6 +46,8 @@ Document content is validated on create and update: an invalid document design (
 
 Queueing while an export for the same document is already running returns `409`. Downloading before an export has completed returns `409`.
 
+The stored file name comes from **App Settings → PDF exports**. The default is `{name}-{yyyyMMddHHmmss}-{id}` (for example `price-list-20261012112905-42.pdf`). A fixed name such as `price-list.pdf` is rejected, because the media service keeps one file per name and a second export would overlap the first.
+
   </Tab>
   <Tab title="Generated PDFs" icon="files">
 
@@ -153,7 +155,15 @@ The complete endpoint catalog — including blocks, emails, fonts, form submissi
 
 ## App Settings
 
-<Callout kind="info">
-This hub has no FormGenerator App Settings group. See [Hub Settings](/core-concepts/hub-settings) for hubs that do.
-</Callout>
+Configured in the admin at **Settings → Configuration → Storefront Builder** (`/admin/settings/apps/storefront-builder-hub`).
+
+<Expandable title="pdf — PDF exports" default-open="true">
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `filename_template` | string | File name for each rendered PDF. Fixed text is kept as written. Placeholders: `{name}` (document title, slugified), `{id}` (this export), `{timestamp}` (Unix time), `{unique}` (random suffix), `{date}`, `{time}`, `{datetime}`, and date tokens `{yyyy}` `{MM}` `{dd}` `{HH}` `{mm}` `{ss}` (the same alphabet as Settings → General → Date; they can be combined, for example `{yyyyMMddHHmmss}`). Default `{name}-{yyyyMMddHHmmss}-{id}`. A template with no value that changes on every export is rejected. |
+
+Example: `{name}-catalogue-{yyyyMMddHHmmss}-{id}` → `price-list-catalogue-20261012112905-42.pdf`.
+
+</Expandable>
 

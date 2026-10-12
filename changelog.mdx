@@ -3,6 +3,15 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-12" description="PDF export file names" tags={["feature", "storefront-builder"]}>
+
+## Storefront Builder — PDF file names
+
+- **Unique export files.** A rendered PDF is no longer always `{title}.pdf`. The media service keeps one file per name, so two exports of "Price list" used to overlap as `price-list.pdf`.
+- **File name template** in App Settings → PDF exports (`/admin/settings/apps/storefront-builder-hub`). Default `{name}-{yyyyMMddHHmmss}-{id}`. Fixed text is kept; `{name}`, `{id}`, `{timestamp}`, `{datetime}`, and date tokens (`{yyyy}`, `{MM}`, `{dd}`, `{HH}`, `{mm}`, `{ss}`) are filled in. A template that does not change between exports is rejected. See [Storefront Builder Hub](/hubs/storefront-builder-hub#app-settings).
+
+</Update>
+
 <Update label="2026-10-11" description="Required theme README, in-place uploads, section overrides" tags={["feature", "storefront"]}>
 
 ## Storefront themes — required README, in-place uploads, section overrides
