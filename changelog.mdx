@@ -3,6 +3,16 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-11" description="Required theme README, in-place uploads, section overrides" tags={["feature", "storefront"]}>
+
+## Storefront themes — required README, in-place uploads, section overrides
+
+- **Every theme documents itself:** a theme `.zip` must include a root `README.md` with four filled-in sections — *Purpose*, *What this theme changes*, *Scripts and libraries* and *Still on the default theme*. Uploads without it, or with an empty section, are rejected at the manifest step with a message that names the missing sections. An optional `CHANGELOG.md` is kept as well. Both are stored on the version (`readme`, `changelog`) and shown on the theme's page in the admin. See [Theme README and CHANGELOG](/advanced/storefront-themes/theme-readme).
+- **Upload into an existing theme:** `POST /themes/{theme}/versions` creates the next version of that theme. An archive whose `theme.json` name belongs to a different theme is rejected.
+- **Section overrides:** the default theme has new override points on cart, checkout, favorites, every account page, sign-in, category, guest-order, proposal, customer-selection and error pages. A theme can `@extends('default::pages.cart')` and replace one section, keeping default-theme updates for the rest. See [Blade API](/advanced/storefront-themes/blade-api) §9.0 and the [author checklist](/advanced/storefront-themes/checklist).
+
+</Update>
+
 <Update label="2026-10-09" description="SubscriptionHub payment confirmation and status counts" tags={["improvement"]}>
 
 ## SubscriptionHub: payment confirmation and status counts

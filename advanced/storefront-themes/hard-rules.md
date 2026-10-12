@@ -5,15 +5,15 @@ description: Archive layout, canonical file surface, and the forbidden Blade/PHP
 
 ## 1. Archive layout
 
-A theme zip must contain **`theme.json` at the root**. A single top-level wrapper folder is unwrapped automatically, and OS/editor junk (`__MACOSX/`, `.DS_Store`, AppleDouble `._*`, `.git/`, …) is stripped — so a zip made with macOS Finder "Compress" uploads as-is.
+A theme zip must contain **`theme.json` and `README.md` at the root**. A single top-level wrapper folder is unwrapped automatically, and OS/editor junk (`__MACOSX/`, `.DS_Store`, AppleDouble `._*`, `.git/`, …) is stripped — so a zip made with macOS Finder "Compress" uploads as-is.
 
 Theme top-level entries (everything else is ignored, not rejected):
 
 ```
 theme.json        (required)
+README.md         (required — what the theme does, see theme-readme.md)
+CHANGELOG.md      (optional — what changed per version, see theme-readme.md)
 preview.png       (optional)
-README.md         (optional)
-readme.md         (optional)
 rules.md          (optional, thin stub — points at docs/)
 docs/             (optional, this authoring guide; *.md only)
 layouts/
@@ -27,6 +27,13 @@ assets/
 > `docs/` ships **with** the default theme and is kept when you re-upload, but it is
 > documentation only — it is never rendered. The authoritative, always-current version is
 > online (see the header of each doc page). Only `*.md` files are kept under `docs/`.
+
+> **README.md is a hard requirement.** An upload is rejected at the manifest step when the root
+> `README.md` is missing, larger than 64 KB, not UTF-8, or when any of its four required `## `
+> sections (`Purpose`, `What this theme changes`, `Scripts and libraries`, `Still on the default
+> theme`) is empty. HTML comments do not count as content. An optional `CHANGELOG.md` must meet the
+> same size and UTF-8 limits. The store admin shows `README.md` and
+> `CHANGELOG.md` on the theme's page. Full outline: [theme-readme.md](theme-readme.md).
 
 ### `theme.json` shape
 

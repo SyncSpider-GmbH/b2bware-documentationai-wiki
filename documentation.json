@@ -791,6 +791,11 @@
                         "icon": "shield"
                       },
                       {
+                        "title": "Theme README & Changelog",
+                        "path": "advanced/storefront-themes/theme-readme",
+                        "icon": "file-text"
+                      },
+                      {
                         "title": "Blade API",
                         "path": "advanced/storefront-themes/blade-api",
                         "icon": "code"
@@ -819,6 +824,11 @@
                         "title": "Catalog",
                         "path": "advanced/storefront-themes/catalog",
                         "icon": "search"
+                      },
+                      {
+                        "title": "Pricing",
+                        "path": "advanced/storefront-themes/pricing",
+                        "icon": "tag"
                       },
                       {
                         "title": "SEO & Images",
