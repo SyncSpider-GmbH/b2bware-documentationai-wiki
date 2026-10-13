@@ -3,6 +3,16 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-13" description="Numeric sort for custom attributes" tags={["improvement"]}>
+
+## AttributesHub — custom attributes sort by number
+
+- `?sort=<attribute_code>` sorts numerically when the values are numbers, including `select`, `multiselect`, `radio` and `swatch` options with a unit such as `80 MM` or `0,5 l`. Before, options sorted as text, so `100 MM` came before `9 MM`.
+- Values that are numbers come first, then the other values in text order, then records without a value, in both directions. Text attributes such as an EAN keep sorting as text. Storefront category ordering by an attribute follows the same order. See [Sort order](/core-concepts/filtering#sort-order).
+- Existing data is updated in the background shortly after the update. Renaming an option updates the sort within a minute.
+
+</Update>
+
 <Update label="2026-10-11" description="Required theme README, in-place uploads, section overrides" tags={["feature", "storefront"]}>
 
 ## Storefront themes — required README, in-place uploads, section overrides

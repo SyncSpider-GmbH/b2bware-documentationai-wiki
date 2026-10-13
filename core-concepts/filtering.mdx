@@ -186,6 +186,10 @@ Swap `use_for_sorting` for `use_for_admin_filtering` to discover filterable attr
 
 Each row carries `id`, `attribute_code`, `name`, `type`, and (with `include=translation`) localized labels.
 
+### Sort order
+
+For numeric attributes and for `select`, `multiselect`, `radio` and `swatch` attributes, a value that is a number, optionally followed by a unit, sorts by that number: `9 MM`, `80 MM`, `100 MM`, `0,5 l`. A comma or a dot is a decimal separator, so `1.000` sorts as 1. In both directions, values that read as numbers come first, then the other values (`UNI`, `S/M`, `80-90 MM`) in text order, then records without a value. A multiselect sorts by its smallest number. Text attributes such as an EAN always sort as text.
+
 ### Examples
 
 ```bash
