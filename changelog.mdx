@@ -31,12 +31,41 @@ description: Release history and version updates for the B2Bware DataHub platfor
 
 </Update>
 
+<Update label="2026-10-06" description="Media library filters and collections" tags={["feature"]}>
+
+## Media library filters and collections
+
+- `GET /media-hub/media` filters by `type`, exact `mime_types[]`, and upload date (`created_from` / `created_to`), and sorts by `created_at` in either direction.
+- New `GET /media-hub/media/collections` lists collections with their file counts.
+- `PUT /media-hub/media` moves files to another collection with `media.*.collection`. Files keep their id and URL.
+- Files uploaded by a hub are stored in that hub's collection instead of `uncategorized`.
+
+See [MediaHub](/hubs/media-hub#media-library).
+
+</Update>
+
 <Update label="2026-10-02" description="SearchHub cluster and embed key" tags={["fix"]}>
 
 ## SearchHub
 
 - **Cluster settings** — a store admin cannot read or save the cluster group. Index status omits the cluster host and error unless the caller is a platform super admin.
 - **Embed key** — a `customer_group` query does not change visibility. A signed-in storefront customer gets their own group, and the key does not return other groups' prices.
+
+</Update>
+
+<Update label="2026-10-02" description="OrderHub bulk delete" tags={["feature"]}>
+
+## OrderHub bulk delete
+
+Orders can now be deleted in a single all-or-nothing request. A batch that includes a missing, locked, or unauthorized order is rejected without deleting any selected orders.
+
+</Update>
+
+<Update label="2026-10-02" description="Cart-line favorite state" tags={["improvement", "storefront"]}>
+
+## Cart-line favorite state
+
+Cart lines expose `$line['is_favorite']` for the customer's active favorites list, replacing repeated Blade lookups. The value is `false` for guests and when favorites are disabled; disabled favorites skip the lookup. See [View data](/advanced/storefront-themes/view-data).
 
 </Update>
 
