@@ -668,6 +668,7 @@ curl -s -X GET \
     </Request>
   </Step>
   <Step title="Full-text search products">
+    Every word must match `name`, `sku`, `short_description`, `description`, or an attribute flagged `use_in_search`. The start of a name word or SKU also matches, and a variant's SKU returns its configurable parent. A single word containing a digit (SKU, EAN, article number) matches only the start of the SKU, of a name word, or of a code in a searchable attribute, not the descriptions. Without `sort`, results come back most relevant first (name matches rank above SKU, attribute values, and descriptions). Passing `sort` replaces the relevance order.
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \

@@ -3,6 +3,17 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-13" description="Product search ranked by relevance" tags={["improvement"]}>
+
+## ProductHub — product search ranked by relevance
+
+- `GET /products?filter[search]=…` requires every word to match `name`, `sku`, `short_description`, `description`, or an attribute flagged `use_in_search`. Before, the whole term had to appear as one substring.
+- Without `sort`, results come back most relevant first. Name matches rank above SKU, attribute values, and descriptions. Passing `sort` keeps the order you ask for.
+- The start of a name word or SKU matches (`keyb` finds "Pro Keyboard"), and a variant's SKU returns its configurable parent. A single word containing a digit, such as a SKU or EAN, matches only the start of the SKU, of a name word, or of a code in a searchable attribute.
+- Storefront search and the SearchHub fallback without Typesense use the same matching. See [ProductHub](/hubs/product-hub).
+
+</Update>
+
 <Update label="2026-10-11" description="Required theme README, in-place uploads, section overrides" tags={["feature", "storefront"]}>
 
 ## Storefront themes — required README, in-place uploads, section overrides
