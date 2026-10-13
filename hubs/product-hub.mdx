@@ -154,7 +154,7 @@ makes it manual and rate changes will no longer overwrite it. See
 | GET | `/settings` | Get all ProductHub settings |
 | POST | `/settings` | Update ProductHub settings |
 | POST | `/settings/reset` | Reset all groups to defaults |
-| GET | `/settings/{group}` | Get one settings group (`stock`, `visibility`, `destination_pricing`, `pricing`) |
+| GET | `/settings/{group}` | Get one settings group (`stock`, `visibility`, `destination_pricing`, `pricing`, `search`) |
 | POST | `/settings/{group}` | Update one settings group |
 | POST | `/settings/{group}/reset` | Reset one group to defaults |
 
@@ -811,7 +811,7 @@ curl -s -X GET \
 
 ProductHub settings are edited in the admin under **ProductHub → Settings** (also
 available via the `/settings` endpoints above). Groups: `stock`, `visibility`,
-`destination_pricing`, `pricing`. See also [Hub Settings](/core-concepts/hub-settings).
+`destination_pricing`, `pricing`, `search`. See also [Hub Settings](/core-concepts/hub-settings).
 
 ### Settings Groups
 
@@ -863,6 +863,16 @@ Nested under `parent_product_price_if_missing` per marketplace (`e_bay`, `etsy`)
 |---------|------|---------|-------------|
 | `group_source` | select | `customer` | Which group drives group/tier prices: `customer`, `company`, `customer_then_company`, or `company_then_customer`. |
 | `tier_quantity_comparison` | select | `gte` | When a volume tier applies: `gte` (at or above min qty) or `gt` (strictly above min qty). |
+
+</Expandable>
+
+<Expandable title="search — Settings Reference" default-open="false">
+
+**search** — Product search index
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `auto_rebuild_index` | boolean | `true` | When the product search index is missing (for example on a new installation), it is rebuilt automatically within six hours. When off, product search keeps the slower substring matching until an admin starts a rebuild on **Settings → System**. ProductHub updates always rebuild the index. |
 
 </Expandable>
 
