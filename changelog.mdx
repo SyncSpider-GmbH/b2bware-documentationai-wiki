@@ -11,6 +11,7 @@ description: Release history and version updates for the B2Bware DataHub platfor
 - Without `sort`, results come back most relevant first. Name matches rank above SKU, attribute values, and descriptions. Passing `sort` keeps the order you ask for.
 - The start of a name word or SKU matches (`keyb` finds "Pro Keyboard"), and a variant's SKU returns its configurable parent. A single word containing a digit, such as a SKU or EAN, matches only the start of the SKU, of a name word, or of a code in a searchable attribute.
 - Storefront search and the SearchHub fallback without Typesense use the same matching. See [ProductHub](/hubs/product-hub).
+- The new matching starts once the product search index is built, which happens in the background shortly after the update. Until then search works as before.
 - New setting `search.auto_rebuild_index` (default on): a missing product search index is rebuilt automatically within six hours. Turn it off to rebuild only from **Settings → System**. See [ProductHub settings](/hubs/product-hub#settings).
 
 </Update>

@@ -668,7 +668,7 @@ curl -s -X GET \
     </Request>
   </Step>
   <Step title="Full-text search products">
-    Every word must match `name`, `sku`, `short_description`, `description`, or an attribute flagged `use_in_search`. The start of a name word or SKU also matches, and a variant's SKU returns its configurable parent. A single word containing a digit (SKU, EAN, article number) matches only the start of the SKU, of a name word, or of a code in a searchable attribute, not the descriptions. Without `sort`, results come back most relevant first (name matches rank above SKU, attribute values, and descriptions). Passing `sort` replaces the relevance order.
+    Every word must match `name`, `sku`, `short_description`, `description`, or an attribute flagged `use_in_search`. The start of a name word or SKU also matches, and a variant's SKU returns its configurable parent. A single word containing a digit (SKU, EAN, article number) matches only the start of the SKU, of a name word, or of a code in a searchable attribute, not the descriptions. Without `sort`, results come back most relevant first (name matches rank above SKU, attribute values, and descriptions). Passing `sort` replaces the relevance order. Until the product search index is built (shortly after the update or on a new installation), the whole term must appear as one piece of text and results are not ranked.
     <Request tabs="cURL">
 ```bash
 curl -s -X GET \
@@ -872,7 +872,7 @@ Nested under `parent_product_price_if_missing` per marketplace (`e_bay`, `etsy`)
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `auto_rebuild_index` | boolean | `true` | When the product search index is missing (for example on a new installation), it is rebuilt automatically within six hours. When off, product search keeps the slower substring matching until an admin starts a rebuild on **Settings → System**. ProductHub updates always rebuild the index. |
+| `auto_rebuild_index` | boolean | `true` | When the product search index is missing (for example on a new installation), it is rebuilt automatically within six hours. When off, product search keeps the slower substring matching until an admin starts a rebuild on **Settings → System**. |
 
 </Expandable>
 
