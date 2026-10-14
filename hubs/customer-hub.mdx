@@ -28,6 +28,19 @@ For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts
 | DELETE | `/customers/{id}` | Delete a customer |
 | PUT | `/customers/bulk/update` | Bulk update customers |
 
+<Callout kind="info" title="Deleting customers that have orders">
+Customer deletion is **not** blocked by existing orders (single, bulk and
+bulk-all delete). Before the customer record is removed, a full identity
+snapshot (name, email, phone, company, group, language, billing/shipping
+addresses) is written to `meta_data.deleted_customer` on every order of the
+customer, and each order exposes a computed `customer_deleted: true` flag. If
+the snapshot cannot be persisted on every order, the deletion is aborted.
+Orders of deleted customers in a terminal status (`completed`, `canceled`,
+`refunded`) become read-only and reject mutations with `409 order_locked`.
+Restoring the customer from trash clears the snapshots and lifts the lock.
+See [Deleted-Customer Orders](/hubs/order-hub#deleted-customer-orders-historical-orders).
+</Callout>
+
   </Tab>
   <Tab title="Companies" icon="building">
 
