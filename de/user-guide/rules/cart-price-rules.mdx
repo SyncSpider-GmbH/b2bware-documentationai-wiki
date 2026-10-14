@@ -1,0 +1,109 @@
+---
+title: Cart Price Rules
+description: Cart-Level-Promotions im B2Bware Rule Hub — Action Types, Conditions, Priority, Free Shipping, Tiers und Abgrenzung zu Catalog Rules und Coupons.
+---
+
+Eine **Cart Price Rule** wertet Conditions gegen den **Cart** (und Items / Customer) aus und wendet eine **cart-level commercial Action** an — Discount-Beträge, Per-Item-Discounts, gestaffelte Breaks, Buy-X-Get-Y und/oder Free-Shipping-Flags.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Cart Price Rule** | Benannte Rule mit Status, Priority, Conditions, Action Type/Amount, Limits, Daten |
+| **Action** | Was passiert, wenn Conditions matchen |
+| **Coupon-Link** | Optional; Coupons referenzieren eine Cart Rule und steuern die Aktivierung per Code |
+| **Progress** | Storefront kann zeigen, wie nah der Cart an Thresholds ist (Aggregates / Subtotals) |
+| **Admin** | **Rules → Cart Price Rules**, wenn Rule Hub installiert ist |
+
+**Mentales Modell:** Catalog Rules ändern den **Stückpreis**; Cart Rules ändern die **Cart-Economics**, nachdem Lines existieren (und können Free Shipping gewähren). Beide können in Applied-Rules-Metadata auf der Order erscheinen.
+
+<Callout kind="alert" collapsed="false">
+Rule Hub ist optional. Cart Price Rules sind von **Catalog**-Stückpreis-Rules und von Settings-Shipping-**Methods** zu unterscheiden. Coupons **aktivieren** Cart Rules — sie sind keine separate Discount-Engine.
+</Callout>
+
+## Warum Teams Cart Price Rules nutzen
+
+1. **Order-Value-Promotions** („10 % Rabatt ab Bestellwert 100“).
+2. **Volume- / Attribute-Aggregates** (zum Beispiel Free Delivery, wenn eine summiert Attribute-Qty einen Threshold überschreitet — Progress-APIs unterstützen UX).
+3. **Tiered- und Buy-X-Get-Y**-Strukturen, ohne sie in jeden Product-Preis einzucodieren.
+4. **Free-Shipping-Kampagnen**, ohne bezahlte Shipping Methods zu löschen.
+5. **Usage Caps** (max uses / max uses per customer) für kontrollierte Kampagnen.
+6. **Coupon-gestützte Angebote** — Economics auf der Rule definieren; Codes unter **Coupons** verteilen.
+
+## Wie es funktioniert
+
+### Action Types
+
+| Action Type | Intent |
+| --- | --- |
+| Percent-off / fixed-off | Prozentualer oder fester Abzug (Cart / qualifying Kontext) |
+| To-percent / to-fixed | Auf X % des Originals reduzieren oder auf einen festen Betrag setzen |
+| Per-item fixed / percent | Pro matching Item |
+| Per-unit attribute fixed | Pro Einheit eines Product-Felds oder Custom Attributes |
+| Free shipping | Shipping-Promotion (mit Free-Shipping-Scope-Optionen) |
+| Tiered | Mengen-Tiers |
+| Buy X get Y | Multi-Buy Free-/Discount-Muster |
+
+Verwandte Knöpfe: Free-Shipping-Scope (none / matching items / whole shipment), apply-to-shipping, **stop further rules**, Datumsfenster, max uses / max uses per customer, uses count.
+
+### Apply-Pfad
+
+1. Cart existiert mit Line-Preisen (bereits Provider-/Basis- + Catalog-Rules wo zutreffend).
+2. Die Cart-Rule-Engine wertet aktive Rules aus (und Coupon-Validation, wenn ein Code vorhanden ist).
+3. Liefert Total Discount, Applied-Rule-Liste, Item-Discount-Breakdown, Free-Shipping-Flags, Coupon-Errors bei Ablehnung.
+4. Checkout speichert angewandte Cart Rules auf der Order und loggt Usage (siehe **Usage Logs**; Coupon-Zähler unter **Coupons**).
+
+### Conditions und Progress
+
+- Targets umfassen **cart**, **cart item**, **product**, **customer**.
+- Aggregates (sum / avg / count / …) können mengenbewusst und optional gefiltert sein.
+- **Rule Progress** exponiert Threshold-Fortschritt für Storefront-Messaging — wendet den Discount **nicht** von allein an.
+
+### Priority
+
+Niedrigerer **Priority**-Wert = höhere Precedence. **Stop further rules** kann die weitere Cart-Rule-Verarbeitung nach einem Match stoppen — Stacking bewusst designen.
+
+## So nutzen Sie es
+
+1. Rule Hub + Permission zum Verwalten von Cart Price Rules bestätigen.
+2. Action Type wählen, der zur commercial Story passt (Total-off vs Per-Item vs Free Shipping vs Tier).
+3. Conditions bauen, die echte Cart-Shapes matchen; bei Groups/Attributes Daten auf Products und [Segmentation](/de/user-guide/customers/segmentation) verifizieren.
+4. Priority relativ zu anderen aktiven Cart Rules setzen; Stop-Verhalten entscheiden.
+5. Usage Limits und Datumsfenster vor dem Aktivieren setzen.
+6. Wenn code-gated: Coupons anlegen, die auf diese Rule zeigen (**Coupons**).
+7. Testen: leerer Cart → qualifying Cart → mit/ohne Coupon; Progress-UX prüfen, falls genutzt.
+8. Nach Orders Anwendungen in **Usage Logs** bestätigen.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Rule Hub** | Optionale Installation |
+| **Order Hub** | Carts, Checkout-Apply-Pfad, Rule-Progress-API, Shipping-Interaktion |
+| **Product Hub** | Line-Products; Attribute-Quellen |
+| **Customer Hub** | Customer Limits / Group Conditions |
+| **Coupons** | Code-Aktivierung von Cart Rules |
+| **Shipping Methods** | Free-Shipping-Actions interagieren mit Shipping-Cost; Methods bleiben in Settings definiert |
+| **Attributes Hub** (optional) | Aggregate- / Per-Unit-Attribute-Actions |
+| **Catalog Price Rules** | Vorherige Stückpreis-Schicht — Debug-Schichten nicht verwechseln |
+
+## Häufige Fehler
+
+| Fehler | Warum es wehtut | Bessere Praxis |
+| --- | --- | --- |
+| „10 % off SKU“ nur als Cart Rule bauen, wenn PDP-Strikethrough nötig ist | Cart Rules rewrite Catalog-Anzeige nicht denselben Weg | Catalog Rules für Stückpreis-Anzeige; Cart für Totals |
+| Free-Shipping-Rule, aber keine Shipping Method | Checkout braucht weiterhin Methods | Zuerst Settings → Shipping konfigurieren — siehe [Order-related settings](/de/user-guide/orders/related-settings) |
+| Unbegrenztes Stacking von Percent-Rules | Margin-Erosion | Priority + stop further rules + Caps |
+| Coupon ohne aktive Cart Rule | Code tut nichts Nützliches | Zuerst Rule, dann Coupon |
+| Max uses per customer bei Guests ignorieren | Per-Customer-Check braucht authentifizierten Customer | Guest-Verhalten dokumentieren; siehe Coupons |
+| Rule Progress als Beweis für Apply behandeln | Progress ist Threshold-UX | Apply-Result / Order-Metadata bestätigen |
+| Cart-Promo durch Pricelist-Redeploy „fixen“ | Falsche Schicht | Cart Rule / Coupon anpassen |
+
+## Related
+
+- [Rules — Überblick](/de/user-guide/rules/overview)
+- [Catalog Price Rules](/de/user-guide/rules/catalog-price-rules)
+- Coupons
+- Cart Validation
+- Shipping Rates
+- [Order-related settings](/de/user-guide/orders/related-settings)
+- [Pricelists](/de/user-guide/products/pricelists)
+- Usage Logs

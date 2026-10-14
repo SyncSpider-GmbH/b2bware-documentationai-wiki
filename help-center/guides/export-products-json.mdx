@@ -1,0 +1,172 @@
+---
+title: Export Products as JSON
+description: How to download the raw product JSON for every product in your ProductHub instance via the API.
+---
+
+## Overview
+
+ProductHub does **not** offer a one-click “Download all products as JSON” button in the admin UI. The supported way to get the full catalog as raw JSON is the ProductHub list API:
+
+```
+GET /api/v1/apps/product-hub/products
+```
+
+That endpoint returns the same product JSON the rest of the platform uses (attributes, status, SKU, etc.). Related data such as prices, stock, media, and categories is **not** embedded by default — you request it with `include`.
+
+<Callout kind="info" title="What you need">
+- A [server-to-server API token](/authentication/server-to-server) from the DataHub admin panel (a **read-only** token is enough for export)
+- Access to a terminal with `curl` and preferably `jq`
+</Callout>
+
+## Step-by-step
+
+<Steps>
+  <Step title="Get an API token" icon="key">
+    In the DataHub admin panel, create or copy a Bearer API token for your installation. Prefer a **read-only** token if you only need to export.
+
+    Store it in your shell (never commit it to git):
+
+```bash
+export DATAHUB_TOKEN="YOUR_API_TOKEN"
+export DATAHUB_DOMAIN="api.datahub.syncspider.com"
+```
+  </Step>
+  <Step title="Fetch one page to verify access" icon="box">
+    Confirm authentication and see the response shape:
+
+    <Request tabs="cURL">
+```bash
+curl -s -X GET \
+  "https://${DATAHUB_DOMAIN}/api/v1/apps/product-hub/products?per_page=5&page=1" \
+  -H "Authorization: Bearer ${DATAHUB_TOKEN}" \
+  -H "Accept: application/json"
+```
+    </Request>
+
+    A successful response looks like:
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Premium Widget",
+      "sku": "WDG-001",
+      "status": "public",
+      "product_type": "simple"
+    }
+  ],
+  "current_page": 1,
+  "total_pages": 42,
+  "per_page": 5,
+  "total": 210
+}
+```
+  </Step>
+  <Step title="Add related fields with include" icon="layers">
+    Bare product rows omit prices, stock, media, attributes, and categories. Pass the relations you need:
+
+```
+?include=price,finalPrice,stock,mainMedia,media,categories.category,attributeValues.value,childProducts
+```
+
+    Only request what you need — large `include` lists on big catalogs are slower and heavier.
+
+    Common includes:
+
+    | Include | What you get |
+    |---------|--------------|
+    | `price`, `finalPrice`, `costPrice` | Pricing |
+    | `stock`, `stock.warehouse` | Warehouse stock |
+    | `mainMedia`, `media` | Product images / files |
+    | `categories.category` | Category assignments |
+    | `attributeValues.value` | Attribute values |
+    | `childProducts` | Variation children (configurable parents) |
+    | `translation` | Localized name / description |
+  </Step>
+  <Step title="Page through the full catalog" icon="download">
+    ProductHub allows at most **`per_page=50`**. Walk every page until `current_page` equals `total_pages`, then merge the `data` arrays into one JSON file.
+
+    Bash example (requires [`jq`](https://jqlang.github.io/jq/)):
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOMAIN="${DATAHUB_DOMAIN:-api.datahub.syncspider.com}"
+TOKEN="${DATAHUB_TOKEN:?Set DATAHUB_TOKEN}"
+INCLUDE="${INCLUDE:-price,finalPrice,stock,mainMedia,categories.category,attributeValues.value}"
+PER_PAGE=50
+OUT="${OUT:-products-export.json}"
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+page=1
+total_pages=1
+
+while [[ "$page" -le "$total_pages" ]]; do
+  echo "Fetching page ${page}..." >&2
+  curl -sS -X GET \
+    "https://${DOMAIN}/api/v1/apps/product-hub/products?per_page=${PER_PAGE}&page=${page}&include=${INCLUDE}" \
+    -H "Authorization: Bearer ${TOKEN}" \
+    -H "Accept: application/json" \
+    > "${TMP}/page-${page}.json"
+
+  total_pages="$(jq -r '.total_pages' "${TMP}/page-${page}.json")"
+  page=$((page + 1))
+done
+
+jq -s '[.[].data[]]' "${TMP}"/page-*.json > "${OUT}"
+echo "Wrote $(jq 'length' "${OUT}") products to ${OUT}" >&2
+```
+
+    Save as `export-products.sh`, then:
+
+```bash
+chmod +x export-products.sh
+./export-products.sh
+```
+
+    The file `products-export.json` is a JSON **array** of every product.
+  </Step>
+</Steps>
+
+## Optional filters
+
+You can narrow the export the same way as any ProductHub list call:
+
+| Goal | Query |
+|------|-------|
+| Public products only | `filter[status]=[{"condition":"=","value":"public"}]` |
+| Hide variation children | `filter[exclude_child_products]=1` |
+| One product type | `filter[product_type]=[{"condition":"=","value":"simple"}]` |
+| Search by name / SKU | `filter[search]=widget` |
+
+URL-encode filter JSON when calling from a shell. See [Filtering](/core-concepts/filtering).
+
+## Single product
+
+To download one product by ID:
+
+<Request tabs="cURL">
+```bash
+curl -s -X GET \
+  "https://${DATAHUB_DOMAIN}/api/v1/apps/product-hub/products/42?include=price,stock,mainMedia,attributeValues.value,categories.category" \
+  -H "Authorization: Bearer ${DATAHUB_TOKEN}" \
+  -H "Accept: application/json"
+```
+</Request>
+
+## Tips
+
+- Use `per_page=50` (the ProductHub maximum) to minimize round-trips.
+- Respect [rate limits](/help-center/troubleshooting/rate-limiting); add a short `sleep` between pages on very large catalogs if you hit `429`.
+- For ongoing syncs (not a one-shot dump), prefer cursor-style pulls on `_updated_at` — see [Common Patterns](/core-concepts/common-patterns#cursor-style-sync).
+- Catalog feeds on the **storefront** (CSV / PDF / XML) are customer-facing exports, not the admin raw ProductHub JSON.
+
+## See also
+
+- [ProductHub](/hubs/product-hub)
+- [Authentication — server-to-server tokens](/authentication/server-to-server)
+- [Common patterns (pagination)](/core-concepts/common-patterns)
+- [Product Import Guide](/help-center/guides/product-import)

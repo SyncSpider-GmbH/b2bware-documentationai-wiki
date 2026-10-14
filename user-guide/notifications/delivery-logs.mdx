@@ -1,0 +1,70 @@
+---
+title: Delivery Logs
+description: Short triage guide for Notification Hub delivery attempts — channel status, retries, and how to tell missing messages from failed sends.
+---
+
+**Notification Delivery Logs** are the Admin list of **delivery attempts**: each row is one try to send one **Notification** on one **channel**.
+
+| Field (operator-relevant) | Meaning |
+| --- | --- |
+| **notification** | Parent message instance (type, notifiable, rendered content) |
+| **channel** | email / sms / push / slack / broadcast / (database usually separate path) |
+| **status** | `pending`, `processing`, `success`, `failed`, `retry` |
+| **attempt_number** | Which try in the retry sequence |
+| **error_code** / **error_message** | Failure detail when present |
+| **attempted_at** / **completed_at** / **failed_at** / **next_retry_at** | Timing + scheduled retry |
+| **response_data** | Provider response payload when stored (treat as technical detail) |
+
+The parent **Notification** also keeps a `delivery_status` array and an aggregate `status` (`pending` → `partial` → `sent` | `failed` | `read`) derived from non-database channels.
+
+**Admin:** **Notifications → Delivery Logs**. API also exposes failures, ready-for-retry, per-channel filters, and retry-failed actions for permitted roles.
+
+**Mental model:** *Logs explain whether a channel try succeeded, failed, or is still retrying — they are not the message template editor, and they are not Event Hub webhook posts.*
+
+<Callout kind="alert" collapsed="false">
+These rows are **Notification Hub** delivery attempts. They are **not** Event Hub webhook Delivery Logs, not A1 Top Up delivery logs, and not Rule Usage Logs. Notification Hub must be installed for this screen to exist.
+</Callout>
+
+## Why teams use Delivery Logs
+
+1. **“Email never arrived”** — See whether an attempt was created, succeeded, failed, or is waiting to retry.
+2. **Channel isolation** — SMTP failure vs SMS provider vs push token — read the **channel** column first.
+3. **Retry visibility** — Distinguish “still retrying” from “exhausted failures.”
+4. **Proof for support** — Timestamped attempt history tied to the notification instance.
+
+## How to triage
+
+1. Start from the **business event** (order #, customer registration) → find the **Notification** instance.
+2. If **no notification** exists → stop; fix **type active / event mapping / preferences / dispatcher** on [Notifications overview](/user-guide/notifications/overview), not Delivery Logs.
+3. Open **Delivery Logs** (or attempts on the notification detail) filtered to that notification.
+4. Read **channel + status + error_message**.
+5. **failed / retry** on email → check Notification **Settings** (SMTP/host, test mode recipient) and queue workers.
+6. **success** on database but customer expected email → email channel disabled, preference muted, quiet hours, or wrong channel on the type.
+7. After fixing config, use permitted **retry** actions for failed attempts — do not invent duplicate manual emails outside the hub if you need a clean audit trail.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Notification Hub** installed | Otherwise no Notifications → Delivery Logs |
+| **Permission** | Attempts view (update for retry; delete for cleanup jobs) |
+| **Parent Notifications** | Attempts belong to a notification instance |
+| **Channel settings + workers** | Attempts only succeed when channels and queues work |
+| **Overview understanding** | Types / prefs / events explained on [Notifications overview](/user-guide/notifications/overview) |
+
+## Common mistakes
+
+| Mistake | Better practice |
+| --- | --- |
+| Opening **Event Hub → Delivery Logs** | Stay under **Notifications → Delivery Logs** |
+| Opening A1 Top Up delivery logs | Different module; different meaning of “delivery” |
+| Debugging SMTP when no Notification row exists | Fix type/event/prefs first |
+| Treating success on `database` as inbox proof | Check **email** (or other) attempt rows |
+| Expecting Delivery Logs to change templates | Edit **Notification Types**; logs are audit/tries |
+| Ignoring `next_retry_at` | Wait or retry; don’t re-fire the whole business event blindly |
+
+## Related
+
+- [Notifications overview](/user-guide/notifications/overview)
+- [Order lifecycle](/user-guide/orders/lifecycle) — when order events should have created a notification
+- [Orders overview](/user-guide/orders/overview)

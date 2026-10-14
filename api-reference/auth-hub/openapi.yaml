@@ -1,27 +1,69 @@
 openapi: 3.0.0
 info:
-  title: AuthHub API
-  description: Storefront customer authentication.
+  title: AuthHub
+  description: >-
+    Storefront-facing authentication endpoints for B2Bware DataHub.
+
+
+    All endpoints are under `/api/v1/apps/auth-hub`.
+
+
+    ## Authentication modes
+
+
+    - `installationKey.header` middleware (URL-based) — `{installationKey}` is
+    part of the path; no headers required. Used for `reset-password` and
+    `verify-email` (called from email links).
+
+    - `auth:api` (custom `spiderDesk` driver) — accepts either `Authorization:
+    Bearer {api_token}` OR `x-installation-key: {uuid}`. Storefront should
+    always use the installation key form.
+
+
+    ## Headers used by storefronts
+
+
+    - `x-installation-key` — tenant identifier (safe to expose in the browser).
+
+    - `x-auth-token` — issued by `POST /login`, format
+    `{customer_id}.{bcrypt(bearer)}`. Required for `/me`, `/logout`, and
+    `/impersonate/*`.
+
+
+    See `authentication/storefront-customer.mdx` for full docs.
   version: 1.0.0
-  contact:
-    name: B2Bware
-    url: https://syncspider.com
 servers:
   - url: https://api.datahub.syncspider.com
-    description: Production
 tags:
   - name: Public (URL-based installation key)
     description: >-
       These endpoints are called from email links — `{installationKey}` is part
       of the path, no auth headers are required.
-  - name: Customer auth (installation-key)
+  - name: Customer auth (x-installation-key)
     description: >-
-      Storefront customer endpoints. All require `installation-key`. `/me`,
+      Storefront customer endpoints. All require `x-installation-key`. `/me`,
       `/logout`, and `/impersonate/*` additionally require `x-auth-token`.
   - name: Impersonation (sales agent)
     description: >-
       Only customers whose role type is `agent` can use these endpoints.
       Non-agent callers get 403.
+  - name: Account deletion (customer)
+    description: >-
+      GDPR self-service account deletion. The customer starts a request with
+      their password, confirms it with an emailed 6-digit code, and the account
+      is soft-deleted after a grace period (default 14 days). The request can be
+      cancelled at any time before execution.
+  - name: 'Admin: Email change (admin auth)'
+    description: >-
+      Admin-panel endpoints that change a customer's email by ID, without the
+      customer's password. They require admin auth (`auth:api`, SpiderDesk
+      Bearer). The installation key is resolved from the customer when the
+      header is absent.
+  - name: 'Admin: Account deletion (admin auth)'
+    description: >-
+      Admin visibility and cancellation of a customer's account deletion
+      request. Requires the auth-hub.account-deletion.view /
+      auth-hub.account-deletion.manage permissions.
 paths:
   /api/v1/apps/auth-hub/{installationKey}/reset-password:
     post:
@@ -43,13 +85,13 @@ paths:
         success.
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
-              type: string
-              example: >-
-                "{\n  \"code\": \"ABC123\",\n  \"password\":
-                \"new-strong-password\",\n  \"password_confirmation\":
-                \"new-strong-password\"\n}"
+              type: object
+              example:
+                code: ABC123
+                password: new-strong-password
+                password_confirmation: new-strong-password
       parameters:
         - name: Content-Type
           in: header
@@ -85,10 +127,11 @@ paths:
         also activated.
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
-              type: string
-              example: '"{\n  \"code\": \"ABC123\"\n}"'
+              type: object
+              example:
+                code: ABC123
       parameters:
         - name: Content-Type
           in: header
@@ -113,7 +156,7 @@ paths:
   /api/v1/apps/auth-hub/login:
     post:
       tags:
-        - Customer auth (installation-key)
+        - Customer auth (x-installation-key)
       summary: Login
       description: >-
         Exchanges email + password for an `x-auth-token`.
@@ -148,14 +191,14 @@ paths:
         variable.
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
-              type: string
-              example: >-
-                "{\n  \"email\": \"jane.doe@example.com\",\n  \"password\":
-                \"correct-horse-battery-staple\"\n}"
+              type: object
+              example:
+                email: jane.doe@example.com
+                password: correct-horse-battery-staple
       parameters:
-        - name: installation-key
+        - name: x-installation-key
           in: header
           schema:
             type: string
@@ -178,7 +221,7 @@ paths:
   /api/v1/apps/auth-hub/register:
     post:
       tags:
-        - Customer auth (installation-key)
+        - Customer auth (x-installation-key)
       summary: Register
       description: >-
         Creates a B2B customer account.
@@ -202,20 +245,26 @@ paths:
         NULL`.
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
-              type: string
-              example: >-
-                "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n 
-                \"email\": \"jane.doe@example.com\",\n  \"password\":
-                \"correct-horse-battery-staple\",\n  \"password_confirmation\":
-                \"correct-horse-battery-staple\",\n  \"phone\": \"+43 660
-                1234567\",\n  \"language\": \"en\",\n  \"company\": {\n   
-                \"name\": \"Acme GmbH\",\n    \"vat_id\": \"ATU12345678\",\n   
-                \"street\": \"Hauptstrasse 1\",\n    \"city\": \"Vienna\",\n   
-                \"zip\": \"1010\",\n    \"country_code\": \"AT\"\n  }\n}"
+              type: object
+              example:
+                first_name: Jane
+                last_name: Doe
+                email: jane.doe@example.com
+                password: correct-horse-battery-staple
+                password_confirmation: correct-horse-battery-staple
+                phone: +43 660 1234567
+                language: en
+                company:
+                  name: Acme GmbH
+                  vat_id: ATU12345678
+                  street: Hauptstrasse 1
+                  city: Vienna
+                  zip: '1010'
+                  country_code: AT
       parameters:
-        - name: installation-key
+        - name: x-installation-key
           in: header
           schema:
             type: string
@@ -238,7 +287,7 @@ paths:
   /api/v1/apps/auth-hub/forgot-password:
     post:
       tags:
-        - Customer auth (installation-key)
+        - Customer auth (x-installation-key)
       summary: Forgot Password
       description: >-
         Sends a 6-character reset code to `email` (1 hour expiry). The customer
@@ -249,12 +298,13 @@ paths:
         (prevents email enumeration).
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
-              type: string
-              example: '"{\n  \"email\": \"jane.doe@example.com\"\n}"'
+              type: object
+              example:
+                email: jane.doe@example.com
       parameters:
-        - name: installation-key
+        - name: x-installation-key
           in: header
           schema:
             type: string
@@ -277,7 +327,7 @@ paths:
   /api/v1/apps/auth-hub/send-verification-email:
     post:
       tags:
-        - Customer auth (installation-key)
+        - Customer auth (x-installation-key)
       summary: Send Verification Email
       description: >-
         (Re)sends a 6-character email-verification code (24 hour expiry). Used
@@ -285,12 +335,13 @@ paths:
         registration.
       requestBody:
         content:
-          '*/*':
+          application/json:
             schema:
-              type: string
-              example: '"{\n  \"email\": \"jane.doe@example.com\"\n}"'
+              type: object
+              example:
+                email: jane.doe@example.com
       parameters:
-        - name: installation-key
+        - name: x-installation-key
           in: header
           schema:
             type: string
@@ -313,7 +364,7 @@ paths:
   /api/v1/apps/auth-hub/me:
     get:
       tags:
-        - Customer auth (installation-key)
+        - Customer auth (x-installation-key)
       summary: Get Me
       description: >-
         Returns the currently authenticated customer.
@@ -334,7 +385,7 @@ paths:
 
         Use this to distinguish 'token missing' from 'token expired'.
       parameters:
-        - name: installation-key
+        - name: x-installation-key
           in: header
           schema:
             type: string
@@ -357,7 +408,7 @@ paths:
   /api/v1/apps/auth-hub/logout:
     post:
       tags:
-        - Customer auth (installation-key)
+        - Customer auth (x-installation-key)
       summary: Logout
       description: >-
         Revokes the current `x-auth-token`. Subsequent requests with that token
@@ -369,7 +420,7 @@ paths:
       requestBody:
         content: {}
       parameters:
-        - name: installation-key
+        - name: x-installation-key
           in: header
           schema:
             type: string
@@ -401,7 +452,7 @@ paths:
 
         Agents cannot impersonate other agents or admins.
       parameters:
-        - name: installation-key
+        - name: x-installation-key
           in: header
           schema:
             type: string
@@ -421,12 +472,17 @@ paths:
           schema:
             type: integer
           example: '20'
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+          example: acme
       responses:
         '200':
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/auth-hub/impersonate/{customerId}:
+  /api/v1/apps/auth-hub/impersonate/:customerId:
     post:
       tags:
         - Impersonation (sales agent)
@@ -439,7 +495,7 @@ paths:
       requestBody:
         content: {}
       parameters:
-        - name: installation-key
+        - name: x-installation-key
           in: header
           schema:
             type: string
@@ -454,13 +510,6 @@ paths:
           schema:
             type: string
           example: application/json
-        - name: customerId
-          in: path
-          schema:
-            type: integer
-          required: true
-          description: ID of the customer to impersonate.
-          example: '42'
       responses:
         '200':
           description: Successful response
@@ -477,7 +526,7 @@ paths:
       requestBody:
         content: {}
       parameters:
-        - name: installation-key
+        - name: x-installation-key
           in: header
           schema:
             type: string
@@ -492,6 +541,349 @@ paths:
           schema:
             type: string
           example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/me/deletion:
+    get:
+      tags:
+        - Account deletion (customer)
+      summary: Get Deletion Status
+      description: >-
+        Returns the authenticated customer's active deletion request, or
+        `{"deletion_request": null}` when none exists.
+
+
+        Payload fields: `id`, `status` (`awaiting_confirmation` | `scheduled`),
+        `requested_at`, `expires_at`, `confirmed_at`, `scheduled_for`,
+        `grace_days`.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Account deletion (customer)
+      summary: Request Account Deletion
+      description: >-
+        Starts the deletion flow. Re-authenticates with the customer's current
+        password, then emails a 6-digit confirmation code (1h expiry) via
+        NotificationHub.
+
+
+        Responses: 201 with `deletion_request` (status `awaiting_confirmation`),
+        422 wrong password, 409 when a deletion is already scheduled (cancel it
+        first). Rate limited: 5/min.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                current_password: correct-horse-battery-staple
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Account deletion (customer)
+      summary: Cancel Account Deletion
+      description: >-
+        Cancels the customer's active deletion request (pending or scheduled)
+        and sends a cancellation email.
+
+
+        Responses: 200, 404 when no active request exists.
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/me/deletion/confirm:
+    post:
+      tags:
+        - Account deletion (customer)
+      summary: Confirm Account Deletion
+      description: >-
+        Confirms the pending request with the emailed code. Schedules the
+        deletion after the grace period (`scheduled_for` = now + `grace_days`,
+        default 14) and revokes every other active session for the customer.
+
+
+        Responses: 200 with `deletion_request` (status `scheduled`), 422
+        invalid/expired code, 404 when no pending request exists. Rate limited:
+        10/min.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                token: '123456'
+      parameters:
+        - name: x-installation-key
+          in: header
+          schema:
+            type: string
+          example: '{{installationKey}}'
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+          example: '{{authToken}}'
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/admin/customer/:customerId/request-email-change:
+    post:
+      tags:
+        - 'Admin: Email change (admin auth)'
+      summary: Request Email Change (admin)
+      description: >-
+        Starts an email change for the given customer without the customer's
+        password. A 6-digit verification code (24h expiry) is sent to the new
+        address via NotificationHub. Errors: 400 (same email), 404 (not found),
+        409 (already in use).
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                new_email: jane.new@example.com
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/admin/customer/:customerId/pending-email-change:
+    get:
+      tags:
+        - 'Admin: Email change (admin auth)'
+      summary: Get Pending Email Change (admin)
+      description: >-
+        Returns the customer's current unverified, non-revoked, non-expired
+        email-change request. has_pending is false and pending_change is null
+        when there is none.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/admin/customer/:customerId/verify-email-change:
+    post:
+      tags:
+        - 'Admin: Email change (admin auth)'
+      summary: Verify Email Change (admin)
+      description: >-
+        Confirms a pending email change with the 6-digit code, updates the
+        customer's email and marks it verified. Returns 400 for an invalid or
+        expired code.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                token: '123456'
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/admin/customer/:customerId/cancel-email-change:
+    delete:
+      tags:
+        - 'Admin: Email change (admin auth)'
+      summary: Cancel Email Change (admin)
+      description: >-
+        Revokes all pending email-change requests for the customer. Returns {
+        "cancelled": true } (200) or { "cancelled": false } (404) when nothing
+        was pending.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/auth-hub/admin/customer/{customerId}/deletion-request:
+    get:
+      tags:
+        - 'Admin: Account deletion (admin auth)'
+      summary: Get Deletion Request (admin)
+      description: >-
+        Returns the customer's active deletion request, or `{"deletion_request":
+        null}`. Requires `auth-hub.account-deletion.view`. Errors: 404 customer
+        not found.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: customerId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - 'Admin: Account deletion (admin auth)'
+      summary: Cancel Deletion Request (admin)
+      description: >-
+        Cancels the customer's active deletion request on their behalf and sends
+        the customer a cancellation email. Requires
+        `auth-hub.account-deletion.manage`. Errors: 404 customer not found / no
+        active request.
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: Bearer {{apiToken}}
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: customerId
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response

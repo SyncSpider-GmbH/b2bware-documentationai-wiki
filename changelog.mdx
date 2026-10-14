@@ -3,6 +3,141 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-11" description="Required theme README, in-place uploads, section overrides" tags={["feature", "storefront"]}>
+
+## Storefront themes — required README, in-place uploads, section overrides
+
+- **Every theme documents itself:** a theme `.zip` must include a root `README.md` with four filled-in sections — *Purpose*, *What this theme changes*, *Scripts and libraries* and *Still on the default theme*. Uploads without it, or with an empty section, are rejected at the manifest step with a message that names the missing sections. An optional `CHANGELOG.md` is kept as well. Both are stored on the version (`readme`, `changelog`) and shown on the theme's page in the admin. See [Theme README and CHANGELOG](/advanced/storefront-themes/theme-readme).
+- **Upload into an existing theme:** `POST /themes/{theme}/versions` creates the next version of that theme. An archive whose `theme.json` name belongs to a different theme is rejected.
+- **Section overrides:** the default theme has new override points on cart, checkout, favorites, every account page, sign-in, category, guest-order, proposal, customer-selection and error pages. A theme can `@extends('default::pages.cart')` and replace one section, keeping default-theme updates for the rest. See [Blade API](/advanced/storefront-themes/blade-api) §9.0 and the [author checklist](/advanced/storefront-themes/checklist).
+
+</Update>
+
+<Update label="2026-10-08" description="@storefrontImage desk media + hard rule" tags={["improvement", "storefront"]}>
+
+## `@storefrontImage` — desk media + authoring hard rule
+
+- **Platform:** `@storefrontImage` appends sizing params for SpiderDesk / user-service media hosts (`USER_SERVICE_BASE_URL`) as well as Bunny `*.b-cdn.net` / configured pull zones — every tenant benefits, not only Bunny-hosted catalogs.
+- **Hard rule for theme authors:** every catalog / customer `media_url` in an `<img src>` **must** use `@storefrontImage(...)`. Documented in [SEO & images](/advanced/storefront-themes/seo-and-images) §9.11 and [Hard rules](/advanced/storefront-themes/hard-rules) §9, including what the directive emits (`width`, `height`, `quality`, `aspect_ratio`) and the broader Bunny Dynamic Images API.
+
+</Update>
+
+<Update label="2026-10-02" description="SearchHub cluster and embed key" tags={["fix"]}>
+
+## SearchHub
+
+- **Cluster settings** — a store admin cannot read or save the cluster group. Index status omits the cluster host and error unless the caller is a platform super admin.
+- **Embed key** — a `customer_group` query does not change visibility. A signed-in storefront customer gets their own group, and the key does not return other groups' prices.
+
+</Update>
+
+<Update label="2026-09-30" description="SearchHub Typesense add-on" tags={["feature"]}>
+
+## SearchHub
+
+- **Typesense add-on** — per-store collections, scoped search keys, and Mongo fallback when the add-on is off or Typesense is down. Listings stay on Mongo (option B).
+- **Settings** — ranking, typo tolerance, synonyms, curation, facets, languages, and which hubs are indexed. See [SearchHub](/hubs/search-hub).
+
+</Update>
+
+<Update label="2026-09-22" description="Default catalog sorting attribute" tags={["feature", "storefront"]}>
+
+## Storefront — default sorting attribute
+
+- Store setup → Features can set **Default sorting attribute**: a product attribute with **Use for sorting** enabled.
+- All Products and category listings apply that attribute when the URL has no `sort`, ascending by default or descending when **Default sort direction** is Descending. The Sort by control shows that choice. A customer's explicit sort, including Relevance, wins.
+- Clearing the setting restores the previous default (`relevance`).
+- See [StorefrontHub → Settings](/hubs/storefront-hub#settings).
+
+</Update>
+
+<Update label="2026-09-21" description="Site-to-theme visual parity playbook" tags={["docs", "themes"]}>
+
+## Site → Theme visual parity
+
+- New resource: [Site to theme (visual parity)](/resources/site-to-theme/overview) — measure-first workflow to rebuild any live site section into a Blade theme.
+- Companion open-source repo: [b2bware-site-to-theme](https://github.com/SyncSpider-GmbH/b2bware-site-to-theme) (Cursor skill + pixel-diff script).
+- Linked from [Storefront Themes overview](/advanced/storefront-themes/overview) and [Download AI Skill](/ai-tools/download-skill).
+
+</Update>
+
+<Update label="2026-09-18" description="Wiki API coverage expansion" tags={["docs"]}>
+
+## Documentation gap fill — OpenAPI, hubs, guides
+
+- OpenAPI + Postman pipeline for IntegrationHub, Loyalty, PunchOut, Invoice, Ai, Storefront, DTOne, Customer SKU, A1 Top-Up, Mesonic, Accounting, Procurement, Transactions, Stock Movements, and permission modules.
+- New hub pages: Accounting, Procurement, Transactions, Stock Movements, Customer Product/Category Permission.
+- Expanded domain API docs beyond settings-only for Loyalty, Invoice, Ai, PunchOut, and related hubs.
+- User Guide stubs (Orders, Customers, Invoices, Loyalty), DE Integrations overview, Help Center guides (invoices, loyalty, punchout, product permissions).
+- Regenerated MediaHub / DashboardHub / StorefrontBuilderHub OpenAPI; agent meta (`CLAUDE.md`, `.cursorrules`) and skills/drift allowlists updated.
+
+</Update>
+
+<Update label="2026-09-17" description="Complete hub settings field references" tags={["docs"]}>
+
+## Hub Settings documentation
+
+- New index: [Hub Settings](/core-concepts/hub-settings) — every hub/module App Settings group linked in one place.
+- Completed Settings field references on ProductHub, OrderHub, CustomerHub, TaxHub, NotificationHub, EventHub, AutomationHub, LicenseHub, IntegrationHub, and SettingsHub currency/i18n.
+- New settings-focused hub pages: InvoiceHub, LoyaltyHub, StorefrontHub, AiHub, PunchOutHub, Customer SKU, DTOne, A1 Top-Up, Mesonic real-time pricing.
+- Hubs without App Settings (Attributes, Media, Auth, Rule, Dashboard, Storefront Builder) now note that explicitly.
+
+</Update>
+
+<Update label="2026-09-17" description="Sync configurable parent status from variants" tags={["feature", "product-hub"]}>
+
+## ProductHub — sync parent status from variants
+
+- New Product Visibility setting **`sync_parent_status_from_variants`** (default off).
+- When enabled, a configurable parent becomes `public` if any variant is `public` or `private`, and `draft` when all variants are `draft` (or none exist).
+- See [ProductHub → Settings → Product Visibility](/hubs/product-hub#product-visibility).
+
+</Update>
+
+<Update label="2026-09-19" description="AccountingHub bank reconciliation & ProcurementHub" tags={["feature", "accounting", "procurement"]}>
+
+## AccountingHub — Bank Reconciliation
+
+- **Auto-match** — `POST /reconciliations/auto-match` scans unmatched bank transactions and links them to open documents when confidence ≥ the configurable threshold (default 0.9) with a clear runner-up gap; runs automatically after every import when enabled. New **Settings → Apps → Accounting Hub** group: `auto_match_enabled`, `auto_match_min_confidence`, `amount_tolerance`.
+- **Smarter suggestions** — candidates limited to open documents in the transaction's currency; invoices match on `balance_due`; confidence blends amount, reference, counterparty name, and booking-date proximity.
+- **Bank fees on match** — pass `fee_amount` (net settlement): the document settles on the gross `matched_amount`, the fee is stored on the reconciliation and mirrored to the ledger transaction.
+- **Documentless classification** — `POST /bank-transactions/{id}/classify` books `bank_fee` / `bank_interest` / `other` without a document so charges leave the unmatched pool with an audit trail.
+- **Unmatch** — `DELETE /reconciliations/{id}` removes a wrong link and returns the transaction to the unmatched pool; matching an already-paid invoice is now rejected with 422.
+- **Reconciliation report** — `GET /reports/reconciliation` (JSON) and `POST /reports/reconciliation/pdf` per bank account and period: opening/closing balance, credits/debits, fees, matched/classified/unmatched, per-transaction match detail.
+- **Currency guards** — imported rows inherit the account currency; cross-currency matches are rejected.
+- New hub page: [AccountingHub](/hubs/accounting-hub) with full [API reference](/api-reference/accounting-hub).
+
+## ProcurementHub
+
+- New hub page: [ProcurementHub](/hubs/procurement-hub) — purchase orders, goods receipts with automatic stock posting, vendor bills, three-way match, and document PDFs; full [API reference](/api-reference/procurement-hub).
+
+## InvoiceHub
+
+- **Credit notes as payments** — `POST /credit-notes/{id}/apply` applies an issued credit note to an open invoice as a payment, behind the `payments.credit_note_application` setting.
+
+</Update>
+
+<Update label="2026-08-18" description="Parent category branch display mode" tags={["feature", "storefront"]}>
+
+## Parent category products on the storefront
+
+- **Store default** — `tenant_config.categories.branch_display_mode`: `children` (default), `products`, or `both`. Surfaced to themes as `$store['branch_display_mode']`.
+- **Per-category override** — ProductHub `Category.branch_display_mode` (`null` = inherit). Admin: Category → General and Store setup → Features.
+- **Theme contract** — category pages expose `$branchDisplayMode`, `$showChildren`, `$showProducts`. Branch product listings use `anchor_category_id` (category + descendants). See [Catalog](/advanced/storefront-themes/catalog) and [View data](/advanced/storefront-themes/view-data).
+
+</Update>
+
+<Update label="2026-08-17" description="Storefront theme authoring docs" tags={["docs"]}>
+
+## Storefront Themes documentation
+
+- **New docs section** — [Advanced → Storefront Themes](/advanced/storefront-themes/overview) is the full authoring contract for custom Blade storefront themes (hard rules, Blade API, forms, view data, styling, tokens, page recipes). The same content now ships inside every theme download under `docs/` (replacing the single `rules.md`, which is now a thin pointer).
+- **Two theme repos** — start a new theme from [`theme_b2bware_starter_kit`](https://github.com/SyncSpider-GmbH/theme_b2bware_starter_kit) (blank canvas) or [`theme_b2bware_default`](https://github.com/SyncSpider-GmbH/theme_b2bware_default) (the complete default theme). Both share the same project layout — `theme/` plus these docs, build scripts and `.cursor/rules` — and the admin **Themes** page now links to them under **Get theme source**.
+- **Default theme manifest** — the bundled theme is now named **B2Bware Default** (`theme.json` `name` / `author`); the `default` slug is unchanged.
+- **Contract corrections** (docs caught up to the platform; no runtime change): `$store` contact keys are `contact_email` / `contact_phone`; documented identity keys (`logo_dark`, `favicon`, `product_placeholder`, `login_background*`, `contact_address`, `legal`, `social`); completed the `@storefrontForm` registry (checkout, profile/email, address CRUD, favorites, proposal, customer-selection, impersonation); documented `@storefrontColorScheme`, `orderStatusLabel()` / `orderStatusTone()`, the `storefront:favorite:toggled` / `storefront:color-scheme` events, `Storefront.setColorScheme()` / `toggleColorScheme()`, and the head-cascade order; and added `product-details` / `added-to-cart-modal` partials and the `proposal-preview` page to the canonical surface.
+
+</Update>
+
 <Update label="2026-07-22" description="OrderHub automated notifications" tags={["feature"]}>
 
 ## OrderHub Automated Notifications

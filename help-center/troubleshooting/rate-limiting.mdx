@@ -13,6 +13,7 @@ never exhaust another caller's budget:
 | Scope | Default (req/min) | Keyed by |
 |---|---|---|
 | `admin` (authenticated admin API) | **300** | Authenticated user id (IP fallback) |
+| `integration` (machine-to-machine `/apiv1/*` API) | **3000** | Authenticated user id (IP fallback) |
 | `storefront` (server-rendered pages) | **120** | Shop customer → session → IP |
 | `webhook` (payment/provider callbacks) | **120** | Installation key in the URL |
 | `bulk` (export / import / AI ops) | **60** | Authenticated user id (IP fallback) |
@@ -104,11 +105,14 @@ Use the bulk variants where they exist — each counts as **one** request regard
 
 ## Concurrency
 
-Most server-to-server traffic uses the **`admin`** scope — 300 req/min is
-**~5 req/s**. With 4 concurrent workers your safe throughput is one request per
-worker every ~800 ms. Note that **`bulk`** operations (export / import / AI) sit
-on a tighter 60 req/min budget, so batch them rather than fanning out. If you
-need more headroom, raise the relevant `RATELIMIT_*` variable in coordination
+Most server-to-server traffic against the admin API uses the **`admin`** scope
+— 300 req/min is **~5 req/s**. With 4 concurrent workers your safe throughput
+is one request per worker every ~800 ms. Note that **`bulk`** operations
+(export / import / AI) sit on a tighter 60 req/min budget, so batch them rather
+than fanning out. Integration platforms syncing through the legacy `/apiv1/*`
+surface use the far higher **`integration`** scope (3000 req/min, bulk paths
+included) and are unaffected by the admin/bulk ceilings. If you need more
+headroom, raise the relevant `RATELIMIT_*` variable in coordination
 with the DataHub admin — the ceilings are server-configured in
 `config/ratelimits.php`.
 

@@ -1,0 +1,66 @@
+---
+title: Usage Logs
+description: Kurzer Leitfaden zu Rule-Hub-Usage-Logs — wie Sie auditieren, welche Catalog-, Cart-, Coupon- oder Shipping-Rate-Rule auf einer Order angewendet wurde.
+---
+
+**Rule Usage Logs** sind append-artige Audit-Zeilen, die entstehen, wenn Rule-Hub-Anwendungen für eine Order (und verwandte Coupon-Buchhaltung) erfasst werden.
+
+| Feld (operatorrelevant) | Bedeutung |
+| --- | --- |
+| **Rule / Rule Type** | Welche Rule; Typ unter Cart Price / Catalog Price / Shipping Rate |
+| **Coupon / Coupon Code** | Vorhanden, wenn ein Coupon beteiligt war |
+| **Customer / Order / Product** | Wer / welche Order / Product (Catalog-Kontext) |
+| **Original Price / Discount Amount** | Beträge zur Anwendung |
+| **Free Shipping** | Ob Free Shipping gewährt wurde |
+| **Applied at** | Zeitstempel |
+| **Pending Payment** | Usage noch nicht vollständig settled, bis asynchrone Zahlung erfolgreich ist (wenn genutzt) |
+
+**Admin:** **Rules → Usage Logs**, wenn Rule Hub installiert ist. Query-Helfer existieren nach Rule, Customer und Order.
+
+**Mentales Modell:** *Logs erklären, was gefeuert hat — sie sind kein Control Panel zum Deaktivieren von Promotions und keine vollständige Order-Historie.*
+
+<Callout kind="alert" collapsed="false">
+Rule Hub ist optional (`rule-hub.rule-usage-logs.view` ist view-only). Verwechseln Sie diese Logs nicht mit License-Hub-„Usage Logs“, Loyalty-Ledgern oder Notification-Delivery-Logs.
+</Callout>
+
+## Warum Teams Usage Logs nutzen
+
+1. **„Warum war das rabattiert?“** — Order ↔ Rule ↔ Coupon matchen.
+2. **Kampagnen-Caps** — Redemptions sehen, die Coupon-/Rule-Counter speisen.
+3. **Support** — Catalog-Overlay vs. Cart-Coupon vs. Shipping-Rate-Match unterscheiden.
+4. **Async-Payment-Nuance** — Pending vs. settled Usage verstehen, wenn Per-Customer-Coupon-Limits strittig sind (siehe [Coupons](/de/user-guide/rules/coupons)).
+
+## So nutzen Sie es
+
+1. Starten Sie bei der **Order** (oder dem Customer), die falsch aussieht.
+2. Öffnen Sie Usage Logs gefiltert nach Order/Customer/Rule (oder lesen Sie Order-Applied-Rules-Metadata, wo vorhanden).
+3. Bestätigen Sie den **Rule Type**, bevor Sie das falsche Admin-Kind bearbeiten (Catalog vs. Cart vs. Shipping).
+4. Bei Coupon-Limit-Streitfällen **Pending Payment** prüfen und ob die Zahlung tatsächlich settled ist.
+5. Vorwärts auf der Rule-/Coupon-Konfiguration korrigieren; erwarten Sie nicht, historische Log-Zeilen als Business-Korrektur „wegzu-editieren“.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Rule Hub** installiert | Sonst kein Rules → Usage Logs |
+| **Order Hub** | Checkout schreibt Logs |
+| **Permission** | View-only Rule Usage Logs |
+| **Coupons / Cart / Catalog / Shipping Rules** | Quellen der Anwendungen |
+
+## Häufige Fehler
+
+| Fehler | Bessere Praxis |
+| --- | --- |
+| Versehentlich License-Hub Usage Logs öffnen | Unter **Rules → Usage Logs** bleiben |
+| Logs als Live-„Promo deaktivieren“-Control behandeln | Rule/Coupon deaktivieren; Logs sind Audit |
+| Pending Payment bei Coupon-Streitfällen ignorieren | [Coupons](/de/user-guide/rules/coupons)-Hinweis zu deferred counting lesen |
+| Logs ohne Rule Hub / ohne Checkout-Pfad erwarten | Installieren + Orders platzieren, die Rules anwenden |
+
+## Verwandt
+
+- [Rules — Überblick](/de/user-guide/rules/overview)
+- [Coupons](/de/user-guide/rules/coupons)
+- [Cart Price Rules](/de/user-guide/rules/cart-price-rules)
+- [Catalog Price Rules](/de/user-guide/rules/catalog-price-rules)
+- [Shipping Rates](/de/user-guide/rules/shipping-rates)
+- [Order-Lifecycle](/de/user-guide/orders/lifecycle)

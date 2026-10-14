@@ -1,0 +1,102 @@
+---
+title: Loyalty — Überblick
+description: Optionaler Loyalty Hub in B2Bware — Programs, Wallets, Ledger und Checkout Earn/Redeem; wie Loyalty neben Pricelists und Rule Hub steht, mit Abhängigkeiten und Fallstricken.
+---
+
+**Loyalty** in B2Bware Admin ist die UI für den optionalen **Loyalty Hub** — Programs, die Wert (Points und/oder Credit) in **Wallets** **earn** und **redeem**, mit append-style **Ledger**, optionalen **POS-Receipt**-Submissions, **Rewards** und geplanten **Payout Runs**.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Loyalty Hub** | Optional installiertes Package. Wenn vorhanden und der Operator es sehen darf, zeigt Admin **Loyalty** mit Program-, Wallet- und Ops-Children. |
+| **Program** | Basis-Earn- / Redeem- / Payout-Konfiguration; B2B- (`company`) oder B2C- (`customer`) Account-Mode. |
+| **Program action** | Zeitgebundenes Boost (z. B. Double-Points-Fenster). |
+| **Wallet** | Balance-Container für eine Company oder einen Customer (pending / available / reserved). |
+| **Ledger** | Audit-Trail der Balance-Movements. |
+| **Receipt submissions** | POS-Upload → Admin Approve/Reject Earn-Pfad. |
+| **Rewards** | Reward-Katalog / Fulfilment-Surface (hier nur Überblick). |
+| **Payout runs** | Batch-Freigabe von Pending Credit (scheduled). |
+| **Settings** | Hub-weite Loyalty-Konfiguration. |
+
+**Mentales Modell:** Loyalty sitzt **neben** dem Price Stack. Pricelists / Providers / Rule Hub entscheiden *Listen- und Promo-Preise*. Loyalty entscheidet, *ob der Buyer Program Value auf eligible Activity earnt oder spendet* — einschließlich Checkout-Redemption-Hooks im Order Hub.
+
+<Callout kind="alert" collapsed="false">
+Loyalty Hub ist **optional** (`hasLoyaltyHub`). Wenn der Tenant ihn nicht installiert hat, fehlt die Sidebar-Gruppe **Loyalty** (und kein Company-Loyalty-Tab). Demo-Store-Präsenz bedeutet **nicht**, dass jeder Tenant Loyalty hat.
+</Callout>
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Rule Hub Coupons** | Promo Codes / Cart Discounts (können koexistieren; andere Engine) |
+| **Segmentation / Customer Groups** | Wen Sie targeten — oft Inputs für Eligibility, nicht das Wallet selbst |
+| **Invoice Payments** | AR Cash Application |
+| **Company Notes / Tags** | CRM-Chrome — keine Ledger-Balances |
+
+## Warum Teams Loyalty nutzen
+
+1. **B2B-Accounts binden** — Company-Mode-Wallets, damit Points/Credit der einkaufenden Organisation zuwachsen.
+2. **Auf Orders earn** — Credit-Activity, wenn Orders erstellt werden / Status wechseln (event-driven).
+3. **Am Checkout redeem** — Points oder Credit während Order-Hub-Checkout ausgeben (server-authoritative Parameters).
+4. **POS / Offline Earn** — Receipt-Submission-Workflow, wenn Storefront-Order-Events nicht die einzige Quelle sind.
+5. **Kontrollierte Freigabe** — Pending Balances → Payout Runs / Expiry Jobs statt sofort unbeschränktem Credit.
+6. **Audit** — Ledger beantwortet „warum hat sich dieses Wallet geändert?“
+
+Bevorzugen Sie **[Rules](/de/user-guide/rules/overview)** für kurze Catalog-/Cart-Promotions. Bevorzugen Sie **Loyalty** für laufende Earn/Burn-Programs an Wallets.
+
+## Wie es in die Commerce-Spine passt
+
+1. **Program konfigurieren** (Mode: company vs. customer) und Eligibility.
+2. **Wallets** existieren pro qualifying Company/Customer.
+3. **Earn** — Order-Events und/oder genehmigte Receipt Submissions (und Program Actions als Multipliers).
+4. **Ledger** zeichnet Movements auf; Balances zeigen pending / available / reserved.
+5. **Redeem** — Checkout kann Loyalty-Redemption-Fields akzeptieren (Points, Credit, Fixed-Point-Line-Payment, wenn Product Attributes Redeemability markieren).
+6. **Payout- / Expiry-Jobs** — Geplante Wartung von Pending und ablaufenden Balances.
+7. **Price Stack bleibt getrennt** — Live Prices → `finalPrice` → Providers → Rule Hub; Loyalty Redemption passt zahlbare Beträge am Checkout an, statt Pricelist-Zeilen umzuschreiben.
+
+**Product-Attribute-Flags (wenn Attributes Hub vorhanden):** z. B. Earn-Eligibility / Redeemable / Fixed Redeem Points — als optionale Catalog-Hooks behandeln, nicht als Pflicht für jedes SKU.
+
+**Demo-Children → Überblick-Intent only:** Programs, Program actions, Wallets, Ledger, Receipt submissions, Rewards, Payout runs, Settings.
+
+## So nutzen Sie den Hub
+
+1. Bestätigen Sie, dass **Loyalty** sichtbar ist (`hasLoyaltyHub`) und die Rolle Programs/Wallets verwalten darf.
+2. Erstellen Sie das **Program** mit dem korrekten Account-Mode (company vs. customer), bevor Sie Wallets erwarten.
+3. Richten Sie **Companies / Customers**-Membership auf diesen Mode aus; nutzen Sie [Segmentation](/de/user-guide/customers/segmentation) / Groups nur als Eligibility-Inputs.
+4. Entscheiden Sie Earn-Quellen: Order-Events und/oder Receipt-Approvals.
+5. Schulen Sie Checkout/Support zu Redemption-Parameters — Themes dürfen Balances nicht client-seitig erfinden.
+6. Nutzen Sie **Ledger** + **Payout runs** für Dispute-Triage; editieren Sie kein „Gedächtnis“ außerhalb ledgered Flows.
+7. Dokumentieren Sie Rule-Hub-Coupons getrennt, damit Support einen Coupon nicht mit Wallet-Redeem verwechselt.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Loyalty Hub installiert** | Sidebar + APIs |
+| **Customer Hub** | Companies/Customers als Wallet-Owners; optionaler Company-Tab |
+| **Order Hub** | Earn-Events + Checkout-Redemption |
+| **Product Hub** | Catalog Context; optionale Attribute Flags via Attributes Hub |
+| **Rule Hub (soft)** | Gemeinsame Condition-Evaluation-Patterns für Eligibility |
+| **Notification Hub (optional)** | Expiry- / Program-Notices |
+| **Auth + Admin Access** | Admin-Konfiguration |
+
+## Häufige Fehler
+
+| Fehler | Warum es wehtut | Bessere Praxis |
+| --- | --- | --- |
+| Loyalty überall erwarten | Optional Install | Install-Caveat; Demo ≠ alle Tenants |
+| Coupons mit Wallet-Redeem verwechseln | Falsche Engine | Coupons = Rule Hub; Wallets = Loyalty |
+| Falscher Program-Mode (company vs. customer) | Earn landet nutzlos | B2B- vs. B2C-Design matchen |
+| Pricelists editieren, um „mit Points zu zahlen“ | Falsche Schicht | Redemption + Product-Redeem-Flags nutzen |
+| Pending vs. available ignorieren | Buyer können Pending nicht redeem | Payout- / Release-Jobs erklären |
+| Annehmen, Demo-Reward-Tiefe = alle Tenants | Config unterscheidet sich | Zuerst Überblick; später erweitern |
+
+## Verwandt
+
+- [Companies](/de/user-guide/customers/companies) — B2B Wallet Owners
+- [Segmentation](/de/user-guide/customers/segmentation) — Eligibility Groups
+- [Order Lifecycle](/de/user-guide/orders/lifecycle) — Earn / Checkout Redeem
+- [Rules — Überblick](/de/user-guide/rules/overview) — Coupons vs. Loyalty
+- [Pricelists](/de/user-guide/products/pricelists) — Price Stack unter Loyalty
+- [Attributes — Überblick](/de/user-guide/attributes/overview) — optionale Product Flags
+- [Invoices — Überblick](/de/user-guide/invoices/overview) — AR ≠ Wallets
+- [Wie B2Bware zusammenpasst](/de/user-guide/how-b2bware-fits-together)

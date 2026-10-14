@@ -141,8 +141,10 @@ include=company,role,customerGroup
 ### Address Book
 
 ```
-include=country
+include=attributeValues.value.attribute.translation,attributeValues.value.translation,attributeCollections
 ```
+
+Use this include set on `GET /customer-hub/shippingAddresses` and `GET /customer-hub/billingAddresses` when the address-book UI renders custom address attributes. Drop `attributeCollections` if you only need raw assigned values.
 
 ### Favorites
 
@@ -186,6 +188,24 @@ Rough cost on a tenant with ~10k products / 5k images:
 | PDP (above) | ~150 KB | Per-product, run on demand. |
 | PLP + `media` (gallery) | ~250 KB | Avoid. |
 | PLP + `translation` | ~200 KB | Avoid. |
+
+## InvoiceHub
+
+Invoice list / detail (customer + lines):
+
+```
+include=customer,company,lineItems,lineItems.product
+```
+
+## LoyaltyHub
+
+Wallet / enrollment screens:
+
+```
+include=program,customer,company
+```
+
+(Exact relation names follow each hub’s `allowedIncludes` — drop any that return `400`.)
 
 ## Common Pitfalls
 

@@ -1,0 +1,88 @@
+---
+title: Orders — Überblick
+description: Wie der Order Hub funktioniert — Warenkörbe, Checkout, Orders, Proposals, Trusted Pricing, Settings, Permissions und Abhängigkeiten zu Products und Customers.
+---
+
+**Orders** besitzt die kommerziellen Transaktionen in B2Bware Admin: Warenkörbe und Checkout (Guest und registriert), Sales Orders und Line Items, B2B-**Proposals** (Quotes) sowie die Shipping-/Billing-/Carrier-Settings, die beim Checkout genutzt werden.
+
+Admin landet hier oft zuerst — das ist das operative Zentrum für den täglichen Commerce.
+
+<Callout kind="info" collapsed="false">
+Dieser Überblick erklärt Intent und Abhängigkeiten. Er ersetzt den alten dünnen Stub, der nur auf technische API-Docs verwies.
+</Callout>
+
+## Was Orders besitzt (Sidebar)
+
+| Bereich | Wofür |
+| --- | --- |
+| **All Orders** | Sales Orders, Line Items, Comments, Statusänderungen, Refunds/Cancels wo erlaubt |
+| **Proposals** | Quotes / Proposals vor einer verbindlichen Order (Permissions können „proposals“ sagen; Datenmodell sind Quotes) |
+
+Wenn Orders installiert ist, erhält **Settings** zusätzlich Commerce-Kinder wie **Shipping**, **Carriers** und **Billing**-Methoden.
+
+Orders ist ein **Core**-Hub in der [Storefront-Spine](/de/user-guide/how-b2bware-fits-together).
+
+## Cart → Checkout → Order
+
+1. Ein **Cart** sammelt Zeilen mit serverseitig aufgelösten Stückpreisen.
+2. **Checkout** vervollständigt Adressen, Shipping-/Billing-Auswahl, optionale Checkout-Attributes und den Payment-Provider-Flow.
+3. Eine **Order** ist der dauerhafte kommerzielle Datensatz mit Statusen für Ops und Integrationen.
+
+**Guest vs registriert (Intent):**
+
+- Guest-Checkout nutzt einen Session-Cart; die Plattform kann unter der konfigurierten Guest-Role einen Customer anlegen oder finden und legt typischerweise neue Adressen an.
+- Registrierter Checkout nutzt bestehende Customer- und Address-IDs.
+- Optionale **Checkout-Attributes** kommen aus Attributes, wenn dieser Hub Order-/Checkout-Attribute-Groups definiert.
+
+## Proposals vs Orders
+
+Nutzen Sie **Proposals**, wenn der Sales Motion ein Quote vor dem Commitment braucht. Nutzen Sie **Orders**, wenn der Verkauf platziert (oder konvertiert) ist. Agent-orientierte Roles zentrieren oft auf Proposals; Warehouse- und Finance-Roles zentrieren auf Orders und Status.
+
+## Trusted Pricing (warum Käufer sehen, was sie zahlen)
+
+Der Order Hub hostet den serverseitigen Contract, der Stückpreise für Kataloganzeige und Cart-Zeilen gemeinsam auflöst — damit „gesehener Preis = berechneter Preis“ gilt.
+
+- Product Hub liefert Basispreise (und Pricelist-Deploys).
+- Integrations-**Price Providers** können vertrauenswürdige per-Customer-Preise liefern (fail-soft; erster non-null gewinnt).
+- **Rules** (falls installiert) können weiterhin Catalog-/Cart-Promotions darüber stapeln.
+
+Dokumentieren Sie niemals clientseitige oder im Theme hardcodierte berechnete Preise als gültig.
+
+Siehe [Wie Produkte funktionieren](/de/user-guide/products/how-products-work).
+
+## Abhängigkeiten
+
+| Related | Warum |
+| --- | --- |
+| **Products** | Line Items und Katalogpreise |
+| **Customers** | Registrierter Checkout, Guest-Customer-Anlage, Adressen, Agent-/Proposal-Roles |
+| **Auth** | Shop- und Admin-Identität |
+| **Attributes** (optional) | Custom Checkout- / Order-Attributes |
+| **Rules** (optional) | Promotions und Cart-Validierung |
+| **Notifications / Automation / Events** (optional) | Order-Lifecycle-Messaging und Workflows |
+| **Invoices / Tax / Loyalty** (optional) | Downstream von Orders, wenn installiert |
+| **Settings** | Hostet Shipping-, Carrier-, Billing-Method-Pages |
+
+## Install und Permissions
+
+- **Install:** Order Hub muss installiert sein.
+- **Sidebar:** Sichtbar mit Install + view-Permission für den Order Hub.
+- Admin-Permissions decken Orders, Line Items, Comments, Quotes/Proposals, Shipping/Billing/Carriers und Aktionen wie Refund, Cancel, Change Status, Export und Settings ab.
+
+<Callout kind="alert" collapsed="false">
+Shop-seitige Order-Permission-Labels (create order, view history, reorder, cancel) können ohne vollständige Enforcement existieren. Buyer-Journeys werden oft über Guest-Checkout-Settings, Customer-Scope und Feature-Flags wie reorder enabled gesteuert — dokumentieren Sie Settings, nicht eine unfertige ACL-Matrix.
+</Callout>
+
+## Related pages
+
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Customers — Überblick](/de/user-guide/customers/overview)
+- [Integrationen (Übersicht)](/de/user-guide/integrations/overview)
+
+## Nicht behaupten
+
+- Jedes Template-Status-Label sei ein garantierter End-User-Workflow ohne Produktbestätigung der UX-State-Machine.
+- Ein einzelner Payment Provider sei „das“ B2Bware-Payment-Produkt — Payments sind konfigurierbare Provider.
+- Automatischer Stock-Abzug passiere immer — bestätigen Sie Stock Movements / Inventory-Kopplung für Ihren Tenant, bevor Sie das dokumentieren.
+- Optionale Soft-UI-Cards (zum Beispiel License Keys an einer Order) erscheinen für jeden Tenant.

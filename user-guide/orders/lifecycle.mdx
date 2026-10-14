@@ -1,0 +1,186 @@
+---
+title: Order lifecycle
+description: How B2Bware orders move through status, what blocks checkout and transitions, where charged prices come from, and how stock and events react.
+---
+
+An **order lifecycle** is the journey of a durable **sales order** after it exists: how it is created, what **status** it carries, which transitions are allowed, what **blocks** creation or progress, where **money on the line** came from, and which side effects (stock, notifications, automations, payments) listen to status changes.
+
+| Concept | Role |
+| --- | --- |
+| **Order** | Commercial record with line items, comments, totals, addresses/methods, status, and previous status |
+| **Status** | Free-form string constrained by template tags + (when enabled) a transition whitelist |
+| **Transition** | Guarded `from → to` write — the only intended writer of order status |
+| **Initial status** | Often set from the chosen **billing method**’s new-order status (and payment / provider flows thereafter) |
+| **Price on the line** | Snapshot charged at placement from the server resolution stack (or from proposal lines on public proposal place) |
+
+**Mental model:** Lifecycle = *creation context + status machine + commercial provenance + side effects* — not a screenshot of the orders grid.
+
+**Template status vocabulary (shared options include):** `draft`, `pending`, `pending_payment`, `processing` (and a legacy typo variant still recognised in transitions), `invoiced`, `paid`, `shipped`, `completed`, `refunded`, `partially_refunded`, `canceled` / `cancelled`, plus related failure/expiry values (`failed`, `expired`).
+
+Treat this as a **shared vocabulary**, not a promise that every tenant UI exposes every tag or that every tag has a dedicated button.
+
+## Why teams need this page
+
+1. **Ops clarity** — “Where is this order, and what can it move to next?”
+2. **Avoid double fulfilment** — Illegal or accidental status flips (for example cancelled → paid on payment retry) historically could revive fulfilment; the state machine exists to stop that.
+3. **Price disputes** — Explain *why* the buyer paid X (provider vs final price vs Rules vs proposal snapshot).
+4. **Stock honesty** — Know when inventory moves, and that it is the **default warehouse** balance.
+5. **Integration / automation** — Status-changed events are the reliable hook, not every generic update.
+
+## How creation, status, price, and stock work
+
+### How an order is born
+
+| Source | Notes |
+| --- | --- |
+| **Registered checkout** | Existing customer + address IDs; shipping + billing method IDs required |
+| **Guest checkout** | Session cart; platform creates/finds customer under guest role; typically **new** addresses |
+| **Public proposal place** | Transient cart from proposal lines; methods/addresses from proposal; prices from quote lines — see [Proposals](/user-guide/orders/proposals) |
+| **Admin / API create** | Direct order/line create where permitted — still subject to stock settings and policies |
+
+Optional **checkout attributes** (Attributes groups typed for orders and flagged for checkout) persist on the order at checkout.
+
+### Status state machine
+
+Order Hub exposes an **order status state machine**:
+
+| Mode | Behaviour |
+| --- | --- |
+| **Off** | No guard — status writes pass through |
+| **Soft** (default) | Illegal transitions logged (blocked-transition activity); soft phase may still apply depending on configured hard/soft handling — operators should read tenant setting copy; intent: gather data before locking down |
+| **Strict** | Illegal transitions **rejected**; nothing persisted |
+
+Every **accepted** transition:
+
+- Writes previous status
+- Logs a status-transition activity
+- Dispatches a status-changed event **once per real change** (same-status save is a no-op)
+
+**Default whitelist (conceptual):** for example `draft` → pending/cancelled; `pending` → paid/processing/invoiced/…; terminal-like cancelled / refunded have empty forward sets unless an **allow-revive** context opts a payment-retry path back to `pending` from cancelled/failed/expired.
+
+<Callout kind="tip" collapsed="false">
+Changing status in Admin, payment webhooks, and automations should all go through the transitioner. Document **tenant mode + activity log**, not a universal flowchart screenshot.
+</Callout>
+
+### Price provenance (charged unit price)
+
+Trusted commerce spine (catalog + cart — see [Orders overview](/user-guide/orders/overview)):
+
+1. **Customer price providers** (Order Hub) — integration-supplied per-customer unit price; **first non-null wins**; **fail-soft**; same path for **catalog display** and **cart line resolver** so seen = charged.
+2. Else Product Hub cascade / final price candidates (tier → group → special → regular; **cost** never sells).
+3. Optional **Rules** catalog rules stack on the provider/base; cart rules/coupons at checkout.
+
+**Pricelists** only matter after **deploy** onto live Price — they do not bypass providers or Rules. See [Pricelists](/user-guide/products/pricelists).
+
+**Public proposal path exception:** unit prices are taken from **proposal lines**, not re-resolved from providers at place time.
+
+Never document client-side or theme-hardcoded charged prices as valid.
+
+### Checkout / progress blockers
+
+| Blocker | Typical symptom |
+| --- | --- |
+| Missing shipping or billing **method** | Checkout cannot complete |
+| Missing / invalid addresses | Checkout rejected |
+| Method **visibility** (public vs restricted + company/customer allow/block lists) | Method missing from storefront list |
+| Required checkout **attributes** missing | Validation error |
+| Cart empty / invalid lines | Cannot checkout |
+| Payment provider decline / webhook lag | Status stuck in pending / pending_payment / cancelled until retry path |
+| Strict state machine | Status change action rejected; activity shows blocked transition |
+| Stock policy | Add-to-cart / availability may block when default-warehouse stock + no backorders — see [Stock Locations](/user-guide/products/stock-locations) |
+
+### Stock adjustment (default warehouse)
+
+Order Hub **Stock Management** settings:
+
+| Setting | Meaning |
+| --- | --- |
+| **Enable stock adjustments** | Master switch (default on). When off, orders do not move inventory. |
+| **Decrement on statuses** | Optional list — when empty, legacy behaviour decrements regardless of status on line create paths; when set, decrement ties to listed statuses |
+| **Restore on statuses** | For example cancelled / refunded — restore once per order |
+
+<Callout kind="alert" collapsed="false">
+Adjustments mutate the product’s **default warehouse** stock row. Non-default warehouse quantities are **not** auto-decremented by this path. See [Stock Locations](/user-guide/products/stock-locations).
+</Callout>
+
+Do **not** equate this with optional **Stock Movements** ledger modules unless the tenant has that stack and coupling is confirmed.
+
+### Events worth knowing
+
+| Event | When |
+| --- | --- |
+| Order created | New order |
+| Order updated | General field changes |
+| Order status changed | Real status transition (prefer this for status workflows) |
+| Order completed / cancelled | Entered those statuses |
+| Agent assigned | Agent set/changed |
+
+## Typical workflows
+
+### Triage a stuck order
+
+1. Read **current status** and **previous status**.
+2. Check activity for status transitions / blocked transitions.
+3. Confirm tenant **state machine mode** (off / soft / strict).
+4. Check payment provider / billing method expectations for new-order status.
+5. Only then attempt an allowed status change (change-status permission).
+
+### Explain “why did they pay X?”
+
+1. Was this a **public proposal** order? → quote line prices.
+2. Else: provider price present for that customer/SKU?
+3. Else: live Price / final price (group, tier, special, regular) after last pricelist **deploy**.
+4. Else: Rules / coupons at cart.
+5. Never trust a theme-only number.
+
+### Inventory mismatch after cancel/refund
+
+1. Confirm stock adjustment is enabled.
+2. Confirm restore-on-statuses includes the status you moved to.
+3. Confirm quantity lives on the **default** warehouse.
+4. Re-check once — restore is designed to run **once per order** for a given restore transition pattern.
+
+### Permissions
+
+Refund, cancel, change-status, and export are separate admin actions on top of orders CRUD. View-own may scope agents. Storefront order keys remain **unenforced** — document settings (reorder enabled, guest checkout, customer scope), not a finished ACL matrix.
+
+## Dependencies
+
+| Dependency | Why it matters |
+| --- | --- |
+| **Order Hub** | Orders, transitioner, stock settings, price provider registry, events |
+| **Products / Pricelists** | Live Price + deploy feed base cascade |
+| **Stock Locations** | Default warehouse = deduction target |
+| **Customers** | Buyer identity, addresses, groups (group prices), company |
+| **Settings → Shipping / Billing / Carriers** | Checkout methods; billing new-order status; tracking after ship — see [Order-related settings](/user-guide/orders/related-settings) |
+| **Rules** (optional) | Promotions / validation on top of base/provider |
+| **Attributes** (optional) | Checkout/order attributes |
+| **Event / Automation / Notifications** (optional) | Lifecycle messaging |
+| **Invoices / Tax / Loyalty / License** (optional) | Downstream cards when installed |
+| **Payment provider add-ons** | Webhooks drive many status moves |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Treating every template status as a guaranteed button journey | Tenants differ; vocabulary ≠ UX | Document tags + transition settings; confirm tenant mode |
+| Writing status outside the transitioner | Bypasses events / revive guards | Always use change-status paths that call the transitioner |
+| Assuming cancelled → paid is fine on retry | Double fulfilment risk | Keep state machine on; use revive only where payment retry is intentional |
+| Blaming pricelists for cart price when a provider returns a price | Provider supersedes base | Check integrations / customer price providers first |
+| Expecting non-default warehouse qty to fall on order | Only default warehouse row adjusts | Put sellable online quantity on default warehouse |
+| Claiming stock always moves | Master switch / status lists / unmanaged stock | Read Order Hub stock settings + product stock rows |
+| Subscribing automations only to “updated” | Noise; misses once-per-transition semantics | Prefer status-changed + condition on status |
+| Naming a single payment brand as “the” B2Bware payment | Providers are configurable | Document provider pattern; link payment docs separately |
+| Redeploy pricelist to fix one historical order | Orders keep placed line prices | Adjust commercial policy going forward; don’t rewrite history casually |
+| Ignore previous status in support | Loses transition context | Always read both |
+
+## Related
+
+- [Orders overview](/user-guide/orders/overview)
+- [Proposals](/user-guide/orders/proposals)
+- [Order-related settings](/user-guide/orders/related-settings)
+- [Pricelists](/user-guide/products/pricelists)
+- [Stock Locations](/user-guide/products/stock-locations)
+- [How Products work](/user-guide/products/how-products-work)
+- [Customers overview](/user-guide/customers/overview)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

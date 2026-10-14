@@ -1,0 +1,151 @@
+---
+title: Attributes overview
+description: What Attributes Hub owns in B2Bware — definitions vs values, group types across Products / Orders / Customers, checkout attributes, collections, and how this differs from category membership.
+---
+
+**Attributes** in B2Bware Admin is the top-level hub that owns **custom field definitions** and how those fields attach to commerce objects. It is not the product catalog, not categories, and not pricing.
+
+| Concept | Role |
+| --- | --- |
+| **Attribute (definition)** | Named field: `name`, auto `attribute_code`, `type`, optional `group_id`, flags (PDP / cart / checkout / search / sort / filter / unique…), optional predefined **values**. Admin: **Attributes → All Attributes**. |
+| **Attribute group** | Named bucket with a **type** (`product`, `category`, `order`, `customer`, `company`, plus types other installed hubs register). The type decides *which kind of record* the attributes are meant for and which flags are legal. Admin: **Attribute Groups**. |
+| **Attribute value (option)** | Predefined option for option-based types (`select`, `multiselect`, `radio`, `swatch`, …). |
+| **Attributable value** | Polymorphic join: “this **record** carries this attribute value.” Written when you save attributes on a product, category, order (checkout), customer, etc. |
+| **Attribute collection** | Named, reusable **bundle** of attributes sharing one `group_type`, with storefront surface flags (PDP heading, cart, checkout block, category page, My Account…). Admin: **Attribute Collections**. |
+| **Attributable target** | A model that can carry attribute values (Product, Category, Orders, Customers, Companies, …) and may declare which collection `group_type` applies. |
+
+**Mental model:**
+
+1. **Define** the field once in Attributes Hub (group → attribute → options if needed).
+2. **Assign values** on the owning record’s Attributes surface (product detail, category Attributes tab, checkout, customer profile, …).
+3. Optionally **bundle** attributes into a **collection** so storefront themes render them under one heading on the right surface.
+
+**Definitions vs live values**
+
+| Layer | What operators edit | When it affects buyers |
+| --- | --- | --- |
+| Definition (attribute / group / collection) | Attributes Hub screens | Immediately for *structure* (which fields exist, which storefront flags are on) — **no** pricelist-style deploy |
+| Value on a record | Product / Category / Order / Customer UIs (or APIs) | When that record is shown or checked out — also **live** on save |
+
+<Callout kind="info" collapsed="false">
+Categories can carry **category-typed** attributes; that does **not** gate which **product** attribute definitions appear on the product form. There is no Magento-style attribute-set switcher driven by category membership. See [Categories](/user-guide/products/categories).
+</Callout>
+
+**What Attributes Hub is *not*:**
+
+- A Magento-style **attribute set** forced by category membership onto products.
+- A substitute for core product fields (name, SKU, prices, stock) or for pricelists.
+- A Rules / promotions engine (Rule Hub is separate).
+- Guaranteed presence of every group type — types are **contributed by installed hubs**.
+
+## Why teams use Attributes
+
+1. **Product specs & filters** — Brand, material, certifications, technical fields for PDP, layered navigation, search, and admin grids.
+2. **Configurable variation axes** — Select-style attributes that drive configurable parents / children (Product Hub variation flows).
+3. **Checkout / order capture** — Order-group attributes with `use_in_checkout` (for example PO number, delivery note) collected at checkout and stored on the order.
+4. **Category presentation** — Category-typed attributes and collections flagged for the category page (banner / filter chrome — not product SKU specs).
+5. **Customer / company enrichment** — Profile fields for B2B account data beyond core CRM fields.
+6. **Grouped storefront UX** — Collections so themes show related fields under one heading instead of a flat dump.
+7. **Automation** — Soft-coupled set-attribute actions against product, category, order, customer, and other attributable targets when Automation Hub is in scope.
+
+Use Attributes Hub when the field is **tenant-defined custom data**. Use Product Hub native fields for sellable identity, stock, and price. Use Categories for *where* the catalog is filed — not as a fake attribute-set switcher.
+
+## How group types, records, and surfaces fit together
+
+### Hub install and sidebar
+
+| Item | Behaviour |
+| --- | --- |
+| **Hub** | Attributes Hub (standard commerce-adjacent hub in the FE catalog — still requires install on the tenant) |
+| **Nav** | Shown when Attributes Hub is installed and the role can view the module |
+| **Children** | **All Attributes**; **Attribute Groups**; **Attribute Collections** |
+| **Demo** | Attributes is present on the Demo Store used for these docs |
+
+Catalogs can work without rich custom attributes, but most B2B tenants install Attributes for specs and checkout fields.
+
+### Group types (hub-contributed)
+
+Attributes Hub starts with an empty type list; other hubs **merge** types at boot:
+
+| Contributing hub | Types (typical) |
+| --- | --- |
+| **Product Hub** | `product`, `category` |
+| **Order Hub** | `order`, `order_line` |
+| **Customer Hub** | `customer`, `company`, `contact` |
+| Other optionals (examples) | Invoice, License, Rule, … when those hubs are installed |
+
+The live types list is whatever installed hubs registered — Admin’s group-types list reflects that merge. Template seed tags may lag; **trust the live list**.
+
+### Definition → assignment flow
+
+1. Create an **Attribute Group** with the correct **type**.
+2. Create **Attributes** in that group; set type + flags that match the group (illegal flags are rejected — for example `use_in_checkout` only for `order`).
+3. For option types, maintain **Attribute Values**.
+4. Optionally add attributes to an **Attribute Collection** of the same `group_type` and turn on surface flags.
+5. Enter **values on records**: Products Attributes tab / payload; Category Attributes tab; checkout attributes; customer/company attributes UIs; automation set-attribute.
+
+Saving definitions and values is **live**. There is **no** pricelist-style deploy for attribute definitions.
+
+### Checkout contract (order group)
+
+Only attributes where **group type is `order` AND `use_in_checkout` is true** appear in checkout context and are accepted on place-order. Required checkout attributes missing from the payload → validation error. Values persist as attributable values on the **Order**. See [Orders overview](/user-guide/orders/overview).
+
+### Categories ↔ products (accurate scope)
+
+| Exists | Does **not** exist |
+| --- | --- |
+| Category is attributable (`group_type` / collection type `category`) | Selecting a category **does not** change which **product** attribute definitions are available on the product form |
+| Category Metadata for category-page field defs | Automatic attribute-set inheritance from category membership |
+| Collections may set category-page flags for **category** `group_type` | Categories as Magento-style attribute sets |
+
+Cross-link: [Categories](/user-guide/products/categories); [How Products work](/user-guide/products/how-products-work).
+
+### Permissions
+
+Attributes Hub permissions cover attributes, attribute values, attribute groups, attributable values, and attribute collections (view / create / update / delete). Sidebar needs module view; fine-grained CRUD controls the registry screens.
+
+## Typical workflows
+
+1. **Catalog specs** — `product` group → attributes (select for filters/variations; text for free-form) → assign on products → optional collection with PDP / cart surface flags.
+2. **Checkout extras** — `order` group → attributes with `use_in_checkout` (+ `required` if mandatory) → optional collection with checkout / order-summary flags → verify on Demo checkout.
+3. **Category chrome** — `category` group → attributes / metadata on category → collection with category-page flag if bundling needed.
+4. **Account fields** — `customer` / `company` groups → attributes → collection with My Account flag when storefront should show them.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Product Hub** | Product + category attributable models; variation attributes; product attribute flags (PDP, cart, search, variant filter) |
+| **Order Hub** | Order (+ order_line) types; checkout available attributes / persist on order |
+| **Customer Hub** | Customer / company / contact types; My Account collection flag |
+| **Notification Hub** | Notification flag exposes attributes as template variables |
+| **Automation / Event Hub** (optional) | Set-attribute actions + attributable targets |
+| **Media / Storefront / Themes** | Rendering of collections and PDP / cart / checkout surfaces |
+| **Auth + Roles** | Attributes Hub view (and CRUD) for Admin access |
+
+Attributes Hub does **not** replace Product pricing, stock locations, or Rule Hub promotions.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Put product specs in a `category` group (or vice versa) | Wrong attributable target / wrong storefront flags | Match group **type** to the record you will write on |
+| Expect `use_in_checkout` on a product attribute | Flag rejected / ignored outside `order` groups | Create an **order** group for checkout fields |
+| Assume category membership unlocks product attribute sets | Not how B2Bware works | Design product attributes in Attributes Hub; use category attributes only for branch presentation |
+| Delete a “system” attribute (EAN, Brand/Manufacturer, dimensions, hub-shipped) | Delete blocked | Treat as protected; leave seeded system attributes alone |
+| Turn on sorting / admin-filter flags casually | Background backfill onto related documents | Enable when ops need the column; expect async work |
+| Confuse Attribute Collections with Attribute Groups | Groups = typing / ownership; Collections = storefront bundling | Groups first; collections for presentation |
+| Expect pricelist-style deploy for attribute definitions | Saves are **live** | Review flags before flipping storefront surfaces |
+| Document Attributes as always installed | Tenant may hide hub if not installed | Confirm Attributes Hub is installed on the tenant |
+
+## Related
+
+- [All Attributes](/user-guide/attributes/all-attributes)
+- [Attribute Groups](/user-guide/attributes/attribute-groups)
+- [Attribute Collections](/user-guide/attributes/attribute-collections)
+- [How Products work](/user-guide/products/how-products-work)
+- [Categories](/user-guide/products/categories)
+- [Edit a product](/user-guide/products/edit-product)
+- [Orders overview](/user-guide/orders/overview)
+- [Customers overview](/user-guide/customers/overview)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

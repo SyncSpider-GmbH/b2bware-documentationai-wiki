@@ -196,47 +196,49 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 
 ## Settings Groups
 
+TaxHub App Settings. See also [Hub Settings](/core-concepts/hub-settings).
+
 <Expandable title="Tax Settings Reference" default-open="false">
 
 **general** — General Tax Settings
 
-| Setting | Type | Description |
-|---------|------|-------------|
-| `enable_tax_rules` | boolean | Enable/disable rule-based tax calculation |
-| `default_tax_class_id` | number | Default tax class for products without one |
-| `default_jurisdiction_id` | number | Default jurisdiction |
-| `default_country_tax` | number | Fallback tax rate by country |
-| `log_tax_calculations` | boolean | Enable calculation logging |
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enable_tax_rules` | boolean | — | Enable/disable rule-based tax calculation |
+| `default_tax_class_id` | number | — | Default tax class for products without one |
+| `default_jurisdiction_id` | number | — | Default jurisdiction |
+| `default_country_tax` | number | — | Fallback tax rate by country |
+| `log_tax_calculations` | boolean | — | Enable calculation logging |
 
 **calculation** — Calculation Settings
 
-| Setting | Type | Description |
-|---------|------|-------------|
-| `tax_calculation_method` | string | Method (per item, per row, total) |
-| `tax_rounding_mode` | string | Rounding (round, ceil, floor) |
-| `prices_include_tax` | boolean | Whether catalog prices are tax-inclusive |
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `tax_calculation_method` | string | — | Method (per item, per row, total) |
+| `tax_rounding_mode` | string | — | Rounding (round, ceil, floor) |
+| `prices_include_tax` | boolean | — | Whether catalog prices are tax-inclusive |
 
 **product_pricing** — Product Pricing Display
 
-| Setting | Type | Description |
-|---------|------|-------------|
-| `price_entry_mode` | string | How prices are entered (excl_tax, incl_tax) |
-| `display_prices_with_tax` | boolean | Display prices with tax |
-| `final_price_includes_tax` | boolean | Final computed price includes tax |
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `price_entry_mode` | string | — | How prices are entered (excl_tax, incl_tax) |
+| `display_prices_with_tax` | boolean | — | Display prices with tax |
+| `final_price_includes_tax` | boolean | — | Final computed price includes tax |
 
 **vat** — VAT Settings
 
-| Setting | Type | Description |
-|---------|------|-------------|
-| `enable_vat_exemption` | boolean | Enable VAT exemption for valid VAT numbers |
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enable_vat_exemption` | boolean | — | Enable VAT exemption for valid VAT numbers |
 
 **import** — Tax Rate Import Settings
 
-| Setting | Type | Description |
-|---------|------|-------------|
-| `auto_refresh_enabled` | boolean | Automatically refresh imported rates |
-| `taxrate_io_api_key` | string | API key for taxrate.io service |
-| `last_refresh_at` | datetime | Last successful refresh timestamp |
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `auto_refresh_enabled` | boolean | — | Automatically refresh imported rates |
+| `taxrate_io_api_key` | string | — | API key for taxrate.io service (secret) |
+| `last_refresh_at` | datetime | — | Last successful refresh timestamp |
 
 </Expandable>
 

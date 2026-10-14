@@ -1,0 +1,67 @@
+---
+title: Wie B2Bware zusammenhängt
+description: Wie Products, Orders, Customers, Auth und Settings den Commerce-Kern bilden — Installations-Gating, Berechtigungen, Hub-Abhängigkeiten und wie die Hubs aufeinander aufbauen.
+---
+
+B2Bware Admin ist keine Liste unzusammenhängender Menüs. **Products**, **Orders** und **Customers** — zusammen mit **Auth** und **Settings** — bilden den Commerce-Kern: Katalog, Preise, wer kaufen darf und wie Bestellungen entstehen.
+
+<Callout kind="info" collapsed="false">
+Diese Seite erklärt, *warum* die Hubs existieren und wie sie zusammenhängen. Für den Alltag in Products siehe die Products-How-tos. Für Orders und Customers starten Sie bei den jeweiligen Übersichtsseiten (Links unten).
+</Callout>
+
+## Das Storefront-Rückgrat
+
+Auf der Plattform gilt ein Tenant als bereit für storefront-artigen Commerce, wenn diese Apps gemeinsam installiert sind:
+
+| Baustein | Rolle im Rückgrat |
+| --- | --- |
+| **Products** | Was verkauft werden kann — Katalog, Lagerorte, Preise und Preislisten, Lieferanten |
+| **Orders** | Wie Geld fließt — Warenkorb, Checkout, Verkaufsbestellungen, Proposals/Angebote |
+| **Customers** | Wer kaufen und wer Admin bedienen darf — Kunden, Unternehmen, Kontakte, Rollen, Segmentation (Kundengruppen) |
+| **Auth** | Identität für Shop-Nutzer und Admin-Operatoren (kein eigener Sidebar-Eintrag) |
+| **Settings** | Tenant-Konfiguration — Allgemein, System, Übersetzungen und verwandte Einstellungen |
+
+Optionale Hubs (Attributes, Rules, Tax, Media, Loyalty, Invoices und weitere) **setzen auf diesem Rückgrat auf**. Sie erweitern den Kern; sie sind nicht für jeden Tenant erforderlich.
+
+## Wie die Bausteine voneinander abhängen
+
+1. **Customers** legen fest, *wer* kaufen und *wer* Admin öffnen darf (Rollen und Berechtigungen). **Segmentation** in der Sidebar ist der UI-Name für **Kundengruppen** — genutzt für Gruppenpreise, Berechtigungen und Checkout-Verhalten.
+2. **Products** legen fest, *was* verkauft werden kann. Live-Preise können regular, special, tier (Mengenstaffel), group (Kundengruppe) und cost umfassen. **Pricelists** bereiten Preisänderungen in Masse vor und werden erst live, wenn Sie sie **deployen**.
+3. **Orders** machen aus Katalog und Identität Transaktionen: Warenkorb → Checkout → Bestellung. **Proposals** (Angebote) unterstützen B2B-Quoting vor einer festen Bestellung. Vertrauenswürdige Stückpreise werden **auf dem Server** aufgelöst, damit der Preis, den der Käufer sieht, dem berechneten Preis entspricht.
+4. Optionale Hubs steuern oder erweitern Ergebnisse: **Attributes** erweitern Produkte und Checkout-Felder; **Rules** wenden Katalog-/Warenkorb-Promotions auf Basispreise an; Tax, Invoices, Loyalty und ähnliche Hubs greifen, wenn sie installiert sind.
+
+Admin öffnet oft auf **Orders** als operatives Zuhause für den täglichen Commerce-Alltag.
+
+## Warum ein Hub in der Sidebar fehlen kann
+
+Ein Sidebar-Eintrag erscheint nur, wenn ungefähr all dies zutrifft:
+
+- Der Hub (die App) ist für den Tenant **installiert**
+- Der angemeldete Operator hat eine passende **Ansichts**-Berechtigung für diesen Hub
+- Speziell für Store Setup / Mobile App: die volle Storefront-Rückgrat-Kombination ist installiert
+
+<Callout kind="tip" collapsed="false">
+Wenn ein Kollege einen Hub sieht, den Sie nicht sehen, vergleichen Sie **installierte Apps** des Tenants und **Rollenberechtigungen** — nicht nur das Menü-Layout.
+</Callout>
+
+## Kern vs. optional (für Dokumentation und Schulung)
+
+| Commerce-Kern (Rückgrat) | Häufige Optionals (installationsgesteuert) |
+| --- | --- |
+| Products, Orders, Customers, Auth, Settings | Attributes, Rules, Tax, Media, Notifications, Loyalty, Invoices, Procurement, Accounting, Storefront Builder, Automation, Integrations, … |
+
+Dokumentieren Sie optionale Module **nicht** als immer vorhanden. Formulieren Sie: „wenn dieser Hub für Ihren Tenant installiert ist.“
+
+## Verwandte Seiten im Benutzerhandbuch
+
+- [Erste Schritte mit B2Bware Admin](/de/user-guide/getting-started)
+- [How Products work](/user-guide/products/how-products-work) (EN)
+- [Products Übersicht](/de/user-guide/products/overview)
+- [Orders overview](/user-guide/orders/overview) (EN)
+- [Customers overview](/user-guide/customers/overview) (EN)
+
+## Nicht annehmen
+
+- Sichtbarkeit in der Sidebar allein ist keine Sicherheit — Berechtigungen steuern weiterhin Aktionen.
+- Shop-seitige Berechtigungsbezeichnungen können in der Plattform existieren, ohne schon vollständig durchgesetzt zu sein; viele Käufer-Journeys steuern weiterhin **Tenant-Einstellungen** (z. B. Login für Preise erforderlich, Guest-Checkout-Flags).
+- Social- oder Marketing-Hubs sind **nicht** Teil dieses Rückgrats und liegen außerhalb dieses Leitfadens, bis sie für Ihren Tenant auf Production verfügbar sind.

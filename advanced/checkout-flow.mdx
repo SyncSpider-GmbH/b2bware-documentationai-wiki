@@ -26,7 +26,7 @@ The OrderHub provides a complete checkout flow that converts a cart into an orde
 Create a cart for a known customer or a guest session:
 
 <Callout kind="info" title="Currency is locked in at cart creation">
-The cart snapshots the negotiated request currency (`Accept-Currency` header, or the tenant's default) into `currency_code`. Every later mutation — adding items, changing quantities, checkout — must negotiate the same currency, otherwise the API returns **409 `cart_currency_mismatch`**. The completed order inherits the cart's currency. See [Currency Negotiation](/core-concepts/common-patterns#currency-negotiation).
+The cart snapshots the negotiated request currency (`Accept-Currency` header, or the tenant's default) into `currency_code`. Every later mutation — adding items, changing quantities, checkout — must negotiate the same currency, otherwise the API returns **409 `cart_currency_mismatch`**. The one exception: an **empty** cart adopts the newly negotiated currency instead of returning 409. The completed order inherits the cart's currency. See [Currency Negotiation](/core-concepts/common-patterns#currency-negotiation).
 </Callout>
 
 <Tabs>

@@ -1,0 +1,185 @@
+---
+title: Order-Lifecycle
+description: Wie B2Bware-Orders durch Status laufen, was Checkout und Transitionen blockiert, wo berechnete Preise herkommen und wie Bestand und Events auf Statusänderungen reagieren.
+---
+
+Ein **Order-Lifecycle** ist die Reise einer dauerhaften **Sales Order**, nachdem sie existiert: wie sie entsteht, welchen **Status** sie trägt, welche Transitionen erlaubt sind, was Erstellung oder Fortschritt **blockiert**, woher das **Geld auf der Zeile** kommt und welche Side Effects (Bestand, Benachrichtigungen, Automationen, Payments) auf Statusänderungen hören.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Order** | Kommerzieller Datensatz mit Line Items, Comments, Totals, Adressen/Methoden, Status und Previous Status |
+| **Status** | Freier String, eingeschränkt durch Template-Tags und (wenn aktiv) eine Transition-Whitelist |
+| **Transition** | Bewachter `from → to`-Write — der einzig vorgesehene Writer des Order-Status |
+| **Initial status** | Oft gesetzt aus dem New-Order-Status der gewählten **Billing Method** (danach Payment-/Provider-Flows) |
+| **Price on the line** | Snapshot beim Placement aus dem Server-Resolution-Stack (oder aus Proposal-Zeilen beim öffentlichen Proposal-Place) |
+
+**Mentales Modell:** Lifecycle = *Creation Context + Status Machine + kommerzielle Provenienz + Side Effects* — kein Screenshot der Orders-Grid.
+
+**Template-Status-Vokabular (gemeinsame Optionen u. a.):** `draft`, `pending`, `pending_payment`, `processing` (plus eine Legacy-Tippfehler-Variante, die Transitionen weiterhin erkennen), `invoiced`, `paid`, `shipped`, `completed`, `refunded`, `partially_refunded`, `canceled` / `cancelled`, plus verwandte Failure-/Expiry-Werte (`failed`, `expired`).
+
+Behandeln Sie das als **gemeinsames Vokabular**, nicht als Versprechen, dass jede Tenant-UI jedes Tag zeigt oder dass jedes Tag einen eigenen Button hat.
+
+## Warum Teams diese Seite brauchen
+
+1. **Ops-Klarheit** — „Wo steht diese Order, und wohin darf sie als Nächstes?“
+2. **Doppel-Fulfilment vermeiden** — Illegale oder versehentliche Status-Flips (z. B. cancelled → paid bei Payment-Retry) konnten Fulfilment historisch wiederbeleben; die State Machine existiert, um das zu stoppen.
+3. **Preisstreitigkeiten** — Erklären, *warum* der Buyer X gezahlt hat (Provider vs Final Price vs Rules vs Proposal-Snapshot).
+4. **Bestandsehrlichkeit** — Wissen, wann Inventory bewegt wird, und dass es der Bestand des **Default Warehouse** ist.
+5. **Integration / Automation** — Status-Changed-Events sind der zuverlässige Hook, nicht jedes generische Update.
+
+## Wie Creation, Status, Preis und Bestand funktionieren
+
+### Wie eine Order entsteht
+
+| Quelle | Hinweise |
+| --- | --- |
+| **Registered checkout** | Bestehender Customer + Adress-IDs; Shipping- + Billing-Method-IDs erforderlich |
+| **Guest checkout** | Session-Cart; Plattform legt Customer unter Guest-Role an bzw. findet ihn; typischerweise **neue** Adressen |
+| **Öffentliches Proposal-Place** | Transienter Cart aus Proposal-Zeilen; Methoden/Adressen vom Proposal; Preise aus Quote-Zeilen — siehe [Proposals](/de/user-guide/orders/proposals) |
+| **Admin / API create** | Direktes Order-/Line-Create, wo erlaubt — weiterhin unter Stock-Settings und Policies |
+
+Optionale **Checkout Attributes** (Attribute-Groups vom Typ Orders und für Checkout geflaggt) werden beim Checkout an der Order persistiert.
+
+### Status State Machine
+
+Order Hub stellt eine **Order-Status-State-Machine** bereit:
+
+| Modus | Verhalten |
+| --- | --- |
+| **Off** | Kein Guard — Status-Writes gehen durch |
+| **Soft** (Default) | Illegale Transitionen werden geloggt (Blocked-Transition-Activity); Soft-Phase kann je nach Hard-/Soft-Handling noch schreiben — Operatoren lesen die Tenant-Setting-Copy; Absicht: Daten sammeln, bevor gelockt wird |
+| **Strict** | Illegale Transitionen **abgelehnt**; nichts persistiert |
+
+Jede **akzeptierte** Transition:
+
+- Schreibt Previous Status
+- Loggt eine Status-Transition-Activity
+- Dispatcht ein Status-Changed-Event **einmal pro echter Änderung** (Same-Status-Save ist ein No-Op)
+
+**Default-Whitelist (konzeptionell):** z. B. `draft` → pending/cancelled; `pending` → paid/processing/invoiced/…; terminal-ähnliche cancelled / refunded haben leere Forward-Sets, sofern kein **Allow-Revive**-Kontext einen Payment-Retry-Pfad zurück nach `pending` aus cancelled/failed/expired zulässt.
+
+<Callout kind="tip" collapsed="false">
+Statusänderungen in Admin, Payment-Webhooks und Automationen sollten alle über den Transitioner laufen. Dokumentieren Sie **Tenant-Modus + Activity Log**, keinen universellen Flowchart-Screenshot.
+</Callout>
+
+### Preis-Provenienz (berechneter Stückpreis)
+
+Trusted Commerce Spine (Katalog + Cart — siehe [Orders — Überblick](/de/user-guide/orders/overview)):
+
+1. **Customer Price Providers** (Order Hub) — integrationsgelieferter Per-Customer-Stückpreis; **erster non-null gewinnt**; **fail-soft**; gleicher Pfad für **Kataloganzeige** und **Cart-Line-Resolver**, damit gesehen = berechnet.
+2. Sonst Product-Hub-Cascade / Final-Price-Kandidaten (Tier → Group → Special → Regular; **Cost** verkauft nie).
+3. Optionale **Rules**-Katalogregeln auf Provider/Basis; Cart-Rules/Coupons beim Checkout.
+
+**Pricelists** zählen erst nach **Deploy** auf Live Price — sie umgehen weder Providers noch Rules. Siehe [Pricelists](/de/user-guide/products/pricelists).
+
+**Ausnahme öffentlicher Proposal-Pfad:** Stückpreise kommen aus **Proposal-Zeilen**, nicht erneut aus Providers zum Place-Zeitpunkt.
+
+Dokumentieren Sie niemals clientseitige oder theme-hardcodierte berechnete Preise als gültig.
+
+### Checkout- / Fortschritts-Blocker
+
+| Blocker | Typisches Symptom |
+| --- | --- |
+| Fehlende Shipping- oder Billing-**Methode** | Checkout kann nicht abschließen |
+| Fehlende / ungültige Adressen | Checkout abgelehnt |
+| Methoden-**Visibility** (public vs restricted + Company-/Customer-Allow-/Block-Listen) | Methode fehlt in der Storefront-Liste |
+| Erforderliche Checkout-**Attributes** fehlen | Validierungsfehler |
+| Cart leer / ungültige Lines | Kein Checkout |
+| Payment-Provider-Ablehnung / Webhook-Lag | Status hängt in pending / pending_payment / cancelled bis zum Retry-Pfad |
+| Strict State Machine | Statusänderungs-Aktion abgelehnt; Activity zeigt Blocked Transition |
+| Stock Policy | Add-to-Cart / Availability kann blockieren, wenn Default-Warehouse-Bestand + keine Backorders — siehe [Stock Locations](/de/user-guide/products/stock-locations) |
+
+### Bestandsanpassung (Default Warehouse)
+
+Order Hub **Stock Management**-Settings:
+
+| Setting | Bedeutung |
+| --- | --- |
+| **Enable stock adjustments** | Master-Schalter (Default an). Wenn aus, bewegen Orders kein Inventory. |
+| **Decrement on statuses** | Optionale Liste — wenn leer, dekrementiert Legacy-Verhalten unabhängig vom Status auf Line-Create-Pfaden; wenn gesetzt, koppelt Decrement an gelistete Statusse |
+| **Restore on statuses** | Z. B. cancelled / refunded — Restore einmal pro Order |
+
+<Callout kind="alert" collapsed="false">
+Anpassungen mutieren die **Default-Warehouse**-Bestandszeile des Products. Mengen in Nicht-Default-Warehouses werden auf diesem Pfad **nicht** automatisch dekrementiert. Siehe [Stock Locations](/de/user-guide/products/stock-locations).
+</Callout>
+
+Gleichsetzen Sie das **nicht** mit optionalen **Stock-Movements**-Ledger-Modulen, sofern der Tenant diesen Stack nicht hat und die Kopplung bestätigt ist.
+
+### Events, die zählen
+
+| Event | Wann |
+| --- | --- |
+| Order created | Neue Order |
+| Order updated | Allgemeine Feldänderungen |
+| Order status changed | Echte Status-Transition (bevorzugen für Status-Workflows) |
+| Order completed / cancelled | Diese Statusse erreicht |
+| Agent assigned | Agent gesetzt/geändert |
+
+## Typische Workflows
+
+### Steckengebliebene Order triageen
+
+1. **Current Status** und **Previous Status** lesen.
+2. Activity auf Status-Transitionen / Blocked Transitions prüfen.
+3. Tenant-**State-Machine-Modus** bestätigen (off / soft / strict).
+4. Payment-Provider- / Billing-Method-Erwartungen für New-Order-Status prüfen.
+5. Erst dann eine erlaubte Statusänderung versuchen (Change-Status-Permission).
+
+### Erklären „warum haben sie X gezahlt?“
+
+1. War das eine **öffentliche Proposal**-Order? → Quote-Zeilenpreise.
+2. Sonst: Provider-Preis für diesen Customer/SKU vorhanden?
+3. Sonst: Live Price / Final Price (Group, Tier, Special, Regular) nach dem letzten Pricelist-**Deploy**.
+4. Sonst: Rules / Coupons am Cart.
+5. Niemals einer Theme-only-Zahl vertrauen.
+
+### Inventory-Mismatch nach Cancel/Refund
+
+1. Bestätigen, dass Stock Adjustment aktiv ist.
+2. Bestätigen, dass Restore-on-Statuses den Status enthält, den Sie angefahren haben.
+3. Bestätigen, dass die Menge auf dem **Default** Warehouse liegt.
+4. Einmal nachprüfen — Restore ist so ausgelegt, dass er **einmal pro Order** für ein gegebenes Restore-Transition-Muster läuft.
+
+### Permissions
+
+Refund, Cancel, Change-Status und Export sind separate Admin-Aktionen zusätzlich zu Orders-CRUD. View-own kann Agents scoppen. Storefront-Order-Keys bleiben **unenforced** — dokumentieren Sie Settings (Reorder enabled, Guest Checkout, Customer Scope), keine fertige ACL-Matrix.
+
+## Abhängigkeiten
+
+| Abhängigkeit | Warum sie zählt |
+| --- | --- |
+| **Order Hub** | Orders, Transitioner, Stock Settings, Price-Provider-Registry, Events |
+| **Products / Pricelists** | Live Price + Deploy speisen die Basis-Cascade |
+| **Stock Locations** | Default Warehouse = Abzugs-Ziel |
+| **Customers** | Buyer-Identität, Adressen, Groups (Group Prices), Company |
+| **Settings → Shipping / Billing / Carriers** | Checkout-Methoden; Billing New-Order-Status; Tracking nach Ship |
+| **Rules** (optional) | Promotions / Validation auf Basis/Provider |
+| **Attributes** (optional) | Checkout-/Order-Attributes |
+| **Event / Automation / Notifications** (optional) | Lifecycle-Messaging |
+| **Invoices / Tax / Loyalty / License** (optional) | Downstream-Cards, wenn installiert |
+| **Payment-Provider-Add-ons** | Webhooks treiben viele Status-Moves |
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Jeden Template-Status als garantierte Button-Journey behandeln | Tenants unterscheiden sich; Vokabular ≠ UX | Tags + Transition-Settings dokumentieren; Tenant-Modus bestätigen |
+| Status außerhalb des Transitioners schreiben | Umgeht Events / Revive-Guards | Immer Change-Status-Pfade nutzen, die den Transitioner aufrufen |
+| Annehmen, cancelled → paid sei beim Retry okay | Doppel-Fulfilment-Risiko | State Machine anlassen; Revive nur, wo Payment-Retry absichtlich ist |
+| Pricelists für Cart-Preis beschuldigen, wenn ein Provider einen Preis liefert | Provider ersetzt Basis | Zuerst Integrationen / Customer Price Providers prüfen |
+| Erwarten, dass Nicht-Default-Warehouse-Mengen bei Order fallen | Nur Default-Warehouse-Zeile passt an | Verkaufbare Online-Menge auf Default Warehouse legen |
+| Behaupten, Bestand bewege sich immer | Master-Schalter / Status-Listen / unmanaged Stock | Order-Hub-Stock-Settings + Product-Stock-Rows lesen |
+| Automationen nur auf „updated“ abonnieren | Rauschen; verfehlt Once-per-Transition-Semantik | Status-Changed + Condition auf Status bevorzugen |
+| Eine einzelne Payment-Marke als „das“ B2Bware-Payment benennen | Provider sind konfigurierbar | Provider-Muster dokumentieren; Payment-Docs separat verlinken |
+| Pricelist redeployen, um eine historische Order zu „fixen“ | Orders behalten platzierte Zeilenpreise | Kommerzielle Policy für die Zukunft anpassen; Geschichte nicht beiläufig umschreiben |
+| Previous Status im Support ignorieren | Verliert Transition-Kontext | Immer beides lesen |
+
+## Related pages
+
+- [Orders — Überblick](/de/user-guide/orders/overview)
+- [Proposals](/de/user-guide/orders/proposals)
+- [Pricelists](/de/user-guide/products/pricelists)
+- [Stock Locations](/de/user-guide/products/stock-locations)
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Customers — Überblick](/de/user-guide/customers/overview)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

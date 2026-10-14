@@ -1,0 +1,85 @@
+---
+title: Sync runs
+description: Run full or incremental syncs, inspect payloads, lock entities, and read sync logs and diagnostics.
+---
+
+## What a run tells you
+
+A **sync run** is the execution record for an integration. Use it to identify the connector, direction, time, scope, counts, and errors; then inspect a representative record in the relevant hub (Products, Orders, or Customers).
+
+A run is **not** the same as:
+
+- an [Import / Export](/user-guide/import-export/overview) download job,
+- an [Event Hub](/user-guide/events/overview) delivery attempt, or
+- an [Automation Hub](/user-guide/automation/overview) flow run.
+
+Available run fields, retry controls, and entity support vary by connector — treat the screens below as the common operator path, not a universal field list.
+
+<Callout kind="info" collapsed="false">
+A completed (green) run means the connector finished its work. It does not by itself prove business correctness — validate identifiers, required fields, status ownership, and a sample record in the destination hub.
+</Callout>
+
+## Starting a sync
+
+From **Integration detail** (or entity cards):
+
+| Action | Effect |
+|---|---|
+| **Sync integration** | Runs all enabled entities for that integration. |
+| **Sync entity** | Runs one entity only. |
+| **Test sync** | Small / dry-style run to validate mapping without a full catalog pull (connector-dependent). |
+| **Cancel** | Stops a running sync run when the job still accepts cancel. |
+| **Re-run** | Starts again from a previous run's context where supported. |
+
+### Full vs incremental
+
+| Type | Behaviour |
+|---|---|
+| **Full** | Re-process the entity scope (connector may still paginate; policies from Decisions apply). |
+| **Incremental** | Prefer records changed since the last successful watermark when the connector supports it. |
+
+Schedule presets (Manual, every 15 minutes, hourly, every 6 hours, daily) only enqueue work; workers on the `integration-sync` queue must be running for jobs to finish.
+
+## Progress and counters
+
+Sync Run Detail shows:
+
+- **Processed / total** in source-parent units (e.g. styles or variable products).
+- Optional **child** counters when one source expands into many hub rows (variations).
+- Status filters on the runs list (running, completed, failed, cancelled).
+
+## Payload inspector
+
+**Inspect** on an entity opens a read-only preview of mapped payloads (and source samples). Use it to debug transforms without writing to the remote or Hub until you are ready.
+
+## Lock
+
+**Lock** on an entity blocks conflicting syncs for that entity while you investigate or edit. Unlock when finished so scheduled runs can proceed.
+
+## Logs and diagnostics
+
+| Surface | What you see |
+|---|---|
+| **Sync runs list** | History for the integration or across integrations. |
+| **Sync run detail** | Stage, timings, KPIs, diagnostics rail, record-level outcomes. |
+| **Logs** | Per-record audit trail for the integration / run. |
+| **Health / reachability** | High-level connection and recent-run health on list and detail. |
+
+Failed rows show error messages on the log; fix mapping, credentials, or filters, then re-run.
+
+## Triage by symptom
+
+| Symptom | Where to look next |
+| --- | --- |
+| **Product mismatch** | Inspect the product identifier, mapping, filter, and destination product — [How products work](/user-guide/products/how-products-work), [Manage products](/user-guide/products/manage-products). |
+| **Order mismatch** | Inspect order ownership / status mapping and the [Order lifecycle](/user-guide/orders/lifecycle). |
+| **Customer mismatch** | Inspect account / contact matching and the external key — [Customers overview](/user-guide/customers/overview). |
+| **File job or downloaded artifact** | Go to [Import / Export](/user-guide/import-export/overview), not Sync runs. |
+| **Webhook delivery problem** | Go to [Event Hub overview](/user-guide/events/overview). |
+| **Multi-step reaction problem** | Go to [Automation Hub overview](/user-guide/automation/overview). |
+
+## Next steps
+
+- [File feed and Response Relay](/user-guide/integrations/file-feed-and-relay)
+- [Mapping and filters](/user-guide/integrations/mapping-and-filters)
+- [Integrations overview](/user-guide/integrations/overview)

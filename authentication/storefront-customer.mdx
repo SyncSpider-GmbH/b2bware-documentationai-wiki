@@ -31,6 +31,10 @@ All endpoints below are under the prefix `/api/v1/apps/auth-hub`.
 | `POST` | `/impersonate/{customerId}` | sales agent token | Sales agent: act as a customer |
 | `POST` | `/impersonate/leave` | sales agent token | Sales agent: stop impersonating |
 | `GET` | `/impersonate/customers` | sales agent token | Sales agent: list customers eligible for impersonation |
+| `GET` | `/me/deletion` | `installation-key` + `x-auth-token` | Current account-deletion request status |
+| `POST` | `/me/deletion` | `installation-key` + `x-auth-token` | Start account deletion (requires `current_password`) |
+| `POST` | `/me/deletion/confirm` | `installation-key` + `x-auth-token` | Confirm deletion with the emailed 6-digit code |
+| `DELETE` | `/me/deletion` | `installation-key` + `x-auth-token` | Cancel the pending or scheduled deletion |
 
 ## Login
 
@@ -265,6 +269,43 @@ The token issued by `/impersonate/{customerId}` carries the impersonator's ident
 
 Non-agents receive `403` from any of these endpoints.
 
+## Account Deletion (GDPR)
+
+A logged-in customer can delete their own account. The flow is deliberately two-step and grace-perioded:
+
+### 1. Request deletion (password re-auth)
+
+```bash
+POST /api/v1/apps/auth-hub/me/deletion
+```
+
+```json
+{ "current_password": "correct-horse-battery-staple" }
+```
+
+A session token alone is not enough — the current password is re-checked so a hijacked token cannot delete the account. On success (`201`) a 6-digit confirmation code is emailed to the customer (expires in 1 hour). A wrong password returns `422`; if a deletion is already scheduled the endpoint returns `409` (cancel it first). Rate limited to 5 requests/minute.
+
+### 2. Confirm with the emailed code
+
+```bash
+POST /api/v1/apps/auth-hub/me/deletion/confirm
+```
+
+```json
+{ "token": "123456" }
+```
+
+On success the deletion is **scheduled** after a grace period (default 14 days — `scheduled_for` in the response), and **every other active session for the customer is revoked**. An invalid or expired code returns `422`. Rate limited to 10 requests/minute.
+
+### Status & cancellation
+
+```bash
+GET    /api/v1/apps/auth-hub/me/deletion   # {"deletion_request": {...}} or {"deletion_request": null}
+DELETE /api/v1/apps/auth-hub/me/deletion   # cancel (200), 404 when nothing to cancel
+```
+
+The `deletion_request` payload: `id`, `status` (`awaiting_confirmation` | `scheduled`), `requested_at`, `expires_at`, `confirmed_at`, `scheduled_for`, `grace_days`. The customer can cancel any time before execution; an admin can also view or cancel the request on their behalf (see [AuthHub](/hubs/auth-hub)). When the grace period elapses, the account is soft-deleted, the remaining sessions die, and a final confirmation email is sent to the address on file.
+
 ## Guest Checkout
 
 Storefronts can let unauthenticated visitors place orders without registering. In that flow you do **not** include `x-auth-token`; the cart is identified by the `session-uuid` header the storefront generates on first visit and persists in the browser (typically in `localStorage`). The API echoes the same `session-uuid` back on every response so the client can pick up server-side rotations. After login the guest cart is merged onto the customer account; the same `session-uuid` can still be sent and is ignored where not relevant. See [Cart and Checkout](/advanced/storefront/cart-and-checkout) for the full guest flow.
@@ -282,7 +323,6 @@ The following customer-account capabilities are **not yet exposed** by the API. 
 - Explicit token refresh endpoint (the sliding idle window is the only refresh mechanism today)
 - Two-factor authentication
 - Social login (Google, Apple, …)
-- Customer-initiated account deletion
 
 If your integration depends on one of these, contact your DataHub representative.
 

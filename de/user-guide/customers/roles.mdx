@@ -1,0 +1,164 @@
+---
+title: Roles
+description: Wie Customer-Hub-Roles Admin- und Storefront-Berechtigungen vergeben, warum admin.access und der Role-Typ für leere Menüs entscheidend sind, und wie Type-Sync mit installierten Hubs zusammenspielt.
+---
+
+Eine **Role** ist ein benanntes Bündel von Permission-Keys, gespeichert als zwei Listen:
+
+- **`admin_permissions`** — Backoffice- / Admin-API-Fähigkeiten (einschließlich, ob die Person Admin überhaupt betreten darf).
+- **`storefront_permissions`** — shop-seitige Keys, die installierte Hubs beisteuern.
+
+Jeder **Customer**, der in Admin oder im Shop handeln soll, trägt eine **`role_id`**. Hubs registrieren ihre Keys bei Installation in der **PermissionRegistry** des Customer Hub; fehlt Customer Hub, laufen diese Registrierungen sicher als No-Op.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Role** | `code`, `name`, `type`, `description`, `admin_permissions[]`, `storefront_permissions[]`. Admin: **Customers → Roles**. |
+| **Role-Typ** (Admin-UI / Roles-API) | `admin` \| `agent` \| `user` \| `guest` — steuert Default-Sync-Sets und ob Admin-Scope erlaubt ist. |
+| **`admin.access`** | Synthetischer Key unter Handler `admin`. Erforderlich, damit ein Customer-Operator das Backoffice betreten kann. Plattform-Administratoren können per Gate umgehen — sagen Sie „Plattform-Administrator“ vs. „Store-Admin-Operator“. |
+| **Customer** | Hält `role_id`. Effektive Keys werden für Auth `/me` aufgelöst (UI ausblenden), während **Gate / `permission:`-Middleware** die Quelle der Wahrheit bleibt. |
+| **Company `default_role_id`** | Schlägt die Default-Mitgliedschafts-Role vor / setzt sie (z. B. setzen Vendor-Flows die geseedete **vendor**-Role auf der eigenen Company). |
+| **Sidebar-Sichtbarkeit** | Install + `canViewModule` / View-Keys — **nur UX**. Ein ausgeblendeter Nav-Eintrag ersetzt keine Permission-Checks. |
+
+**Mentales Modell:** Roles = *was dieses Login tun darf*. Einen Hub zu installieren fügt Keys zur Registry hinzu; eine Role zuzuweisen vergibt eine Teilmenge an einen Customer. Leeres Admin-Menü ≈ fehlendes `admin.access` oder fehlende Hub-`*.view`-Keys — nicht „Hubs sind verschwunden.“
+
+Das Speichern einer Role ist **live**. Gewöhnliches CRUD; Bulk-Update existiert für Role-Arrays.
+
+<Callout kind="info" collapsed="false">
+Die meisten „Permission-Bugs“ sind **falscher Role-Typ** oder **fehlendes `admin.access`**, nicht fehlende Produktfeatures. Beginnen Sie die Diagnose beim Customer des Operators → Role — nicht mit dem Neuinstallieren von Hubs.
+</Callout>
+
+**Was Roles *nicht* enthalten:**
+
+- Per-Row-Record-ACLs jenseits belegter `*-own`-Keys (z. B. products.view-own für Vendors).
+- Durchgesetzte Storefront-`storefront.account.manage-users` / `manage-addresses` (registriert mit **`enforced: false`**).
+- Eine Roles-UI-Typoption für **vendor** (Marketplace-Vendor-Permissions werden geseedet/gesynct; der Product-Hub-Vendors-Guide deckt Operator-Scoping ab).
+- Den Gate-Bypass von Plattform-Administratoren als kundenorientiertes Feature zu behaupten.
+
+## Warum Teams Roles nutzen
+
+1. **Käufer von Operatoren trennen** — `user`/`guest` bleiben storefront-scoped; `admin`/`agent` können Admin-Keys erhalten.
+2. **Leere Menüs erklären** — Operatoren ohne `admin.access` oder Hub-View-Keys sehen fast nichts, selbst wenn Apps installiert sind.
+3. **Least Privilege für Sales Agents** — `agent`-Defaults fokussieren auf Proposals/Quotes plus nötige Customer-/Order-Reads (geschnitten mit installierten Hubs).
+4. **Sicherer Sync nach Hub-Install** — Type-Sync aktualisiert Admin-Keys aus dem Installierten; Storefront-Keys werden **gemerged**, sodass manuell hinzugefügte Storefront-Keys erhalten bleiben (Sync erneut ausführen **stellt** Default-Storefront-Keys **wieder her**, wenn jemand sie abgewählt hat — bewusste Ops-Aktion).
+5. **Impersonation steuern** — Separater Action-Key `customer-hub.customers.impersonate` (sparsam nutzen).
+
+## Wie Typen, Scopes und Sync funktionieren
+
+### Role-Felder
+
+| Feld | Hinweise |
+| --- | --- |
+| **code** / **name** | Erforderlich |
+| **type** | `admin` \| `agent` \| `user` \| `guest` beim Anlegen/Aktualisieren |
+| **admin_permissions** | Müssen Keys aus Registry-Scope `admin` sein; werden entfernt, wenn disabled |
+| **storefront_permissions** | Müssen Keys aus Registry-Scope `storefront` sein |
+| **description** | Optional |
+
+Listen-Spalten (FE): ID, Code, Name, Type, Permission-Counts, Actions.
+
+### Typ → Scope-Regel (kritisch)
+
+| Typ | Admin-Permissions | Storefront-Permissions (Defaults) |
+| --- | --- | --- |
+| **admin** | Alle Admin-Keys installierter Hubs (beim Type-Sync) | Nicht der Fokus; Sync-Policy bleibt im Syncer definiert |
+| **agent** | Schnittmenge der Agent-Admin-Defaults mit installierten Keys (`admin.access`, Customer-View, Order-/Quote-Keys, …) | Storefront-Keys für storefront-fähige Typen |
+| **user** | Beim Schreiben **erzwungen leer** — kann kein `admin.access` halten | Storefront-Keys |
+| **guest** | **Erzwungen leer** | Leere Defaults (Guests werden über Tenant-Guest-Settings gesteuert, nicht über Keys) |
+
+Die FE blendet den Admin-Permission-Editor für `user`/`guest` aus und leert Admin-Listen, um zur API zu passen.
+
+### Vom Customer Hub registrierte Keys (nicht abschließend)
+
+CRUD-Familien: `customers`, `companies`, `contacts`, `contact-affiliations`, `customer-groups`, `roles`.
+
+Extra: `customers.view-own`, `customers.impersonate`, `roles.assign-permissions`, `settings.view|update`, `dashboard.view`.
+
+Storefront (Customer Hub): `storefront.account.manage-users`, `manage-addresses` — **nicht enforced**.
+
+Querschnitt: `admin.access`.
+
+Andere Hubs hängen ihre eigenen Keys an, wenn sie installiert sind (Products, Orders, …).
+
+### Sync-Asymmetrie (Ops)
+
+| Scope | Sync-Verhalten |
+| --- | --- |
+| **Admin-Keys** | Werden aus dem installierten Universum / Typ-Defaults **ersetzt** — einen Hub zu deinstallieren sollte dessen Admin-Keys beim Sync entfernen |
+| **Storefront-Keys** | **Union** mit Bestehendem — manuell hinzugefügte Keys bleiben; abgewählte **Defaults** kommen beim Sync zurück |
+
+Sync aus Install-Seeder oder expliziten Artisan-Commands ausführen — **nicht** bei unrelated Events.
+
+### Zuweisungsflächen
+
+- Customer-Detail: **`role_id`**.
+- Company: **`default_role_id`** (Mitgliedschaft / Vendor-Operator-Vorbereitung).
+- Checkout / Registrierung: Guest-Role-Codes aus Customer-Hub-Settings (`guest_role_codes`).
+
+Shop-Customers dürfen sich nicht selbst eskalieren: Customer-Self-Update-Pfade strippen `role_id`, `company_id`, `customer_group_id`, `status` und Token-Felder.
+
+## Typische Workflows
+
+### Leeres Admin-Menü diagnostizieren
+
+1. Bestätigen, dass Customer Hub + Ziel-Hubs installiert sind.
+2. Den **Customer** des Operators → **Role** öffnen.
+3. Sicherstellen, dass der Typ `admin` oder `agent` ist (nicht user/guest).
+4. **`admin.access`** plus die relevanten Hub-**View**-Keys sicherstellen.
+5. Neu einloggen / Session aktualisieren, damit `/me` die Grants übernimmt.
+
+### Least-Privilege-Agent-Role anlegen
+
+1. **Customers → Roles** → Typ **agent** anlegen.
+2. Von Defaults (oder Sync) starten, dann Quote-/Order-Keys nach Bedarf kürzen — innerhalb der Registry-Keys bleiben.
+3. Über `role_id` Sales-Customers zuweisen.
+4. Prüfen, dass sie die vorgesehenen Orders-/Proposals-Oberflächen sehen — nicht volle Settings.
+
+### Käufer storefront-only halten
+
+1. Typ **user** nutzen (oder guest für echte Guests).
+2. Gegen die Admin-Scope-Leerung nicht ankämpfen — nur Storefront.
+3. Guest-Role-Codes in den Customer-Hub-Settings mit dem Order-Hub-Guest-Checkout abstimmen.
+
+### Nach Installation eines neuen Hubs
+
+1. Hub installieren.
+2. Role-Permission-Sync ausführen / darauf verlassen, damit **admin**-Roles neue Admin-Keys erhalten.
+3. Custom Roles, die den neuen Hub ebenfalls sehen sollen, stichprobenartig prüfen — View-Keys explizit vergeben, wenn sie kein Full Admin sind.
+
+## Abhängigkeiten
+
+| Abhängigkeit | Warum sie zählt |
+| --- | --- |
+| **Customer Hub** (Core) | Besitzt Roles + PermissionRegistry |
+| **Auth Hub** | Login; `/me`-Permission-Resolver soft gekoppelt |
+| **All Customers** | `role_id`-Zuweisung; Security-Tab / Passwort-Flows ([Customers — Überblick](/de/user-guide/customers/overview)) |
+| **Companies** | `default_role_id`; Vendor-Default-Role-Nebeneffekte |
+| **Jeder andere Hub** | Registriert Permissions hier; Menüs/Aktionen hängen an Keys |
+| **Product Hub Vendors** | Geseedete Vendor-Role / view-own-Scoping (Cross-Link) |
+| **Order Hub** | Agent-Quote-Permissions; Guest-Checkout-Role-Codes |
+
+Roles erscheinen mit Customer Hub. Der Demo Store zeigt Roles unter Customers.
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| „Hubs installiert, aber Menü leer“ | Fehlendes `admin.access` oder `*.view` | Admin-fähigen Role-Typ + nötige View-Keys vergeben; `/me`-Permissions bestätigen |
+| Admin-Keys auf `user`/`guest` legen | API/FE leeren sie | `admin` oder `agent` für Operatoren nutzen |
+| Sidebar-Ausblenden mit Security gleichsetzen | Nur UX | Gate bleibt SoT; nie auf ausgeblendete Nav verlassen |
+| manage-users/addresses als Live-ACL dokumentieren | `enforced: false` | „Für später registriert / nicht enforced“ sagen |
+| Roles-UI-Typ „vendor“ erfinden | Nicht in Roles-Create-Validierung / Picker | Auf Product Hub Vendors + geseedetes Vendor-Role-Verhalten verweisen |
+| Storefront-Defaults abwählen und dann re-syncen | Keys kommen zurück | Sync als bewusst behandeln; nach Hub-Installs erneut prüfen |
+| Eine noch zugewiesene Role löschen | Customers können effektiven Zugang verlieren | Customers zuerst neu zuweisen |
+| Impersonate ohne Prozess | Sensitiver Action-Key | `customers.impersonate` einschränken; vorsichtig und knapp dokumentieren |
+
+## Related pages
+
+- [Customers — Überblick](/de/user-guide/customers/overview)
+- [Companies](/de/user-guide/customers/companies)
+- [Contacts](/de/user-guide/customers/contacts)
+- [Segmentation](/user-guide/customers/segmentation) (EN)
+- [Erste Schritte mit B2Bware Admin](/de/user-guide/getting-started)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
+- [Vendors](/de/user-guide/products/vendors)
+- [Orders overview](/user-guide/orders/overview) (EN)

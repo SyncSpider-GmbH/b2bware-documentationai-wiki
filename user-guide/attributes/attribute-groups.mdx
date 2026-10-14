@@ -1,0 +1,102 @@
+---
+title: Attribute Groups
+description: Typed attribute buckets in B2Bware Attributes Hub — product, category, order, customer, and other hub-contributed types — and why group type gates checkout and storefront flags.
+---
+
+An **Attribute Group** is a named container that:
+
+1. Holds related **Attribute** definitions via `group_id`.
+2. Declares a **type** that announces which class of record those attributes belong to (`product`, `order`, `category`, …).
+3. Optionally orders groups via `display_order` for admin / storefront grouping UIs.
+
+| Concept | Role |
+| --- | --- |
+| **Attribute Group** | Admin: **Attributes → Attribute Groups**. Fields: `name`, `type`, `display_order`. |
+| **type** | Discriminator used by flag validation, checkout filters, collections, automation attribute pickers. |
+| **Member attributes** | Attributes pointing at this group; orphaned (`group_id` null) if the group is deleted. |
+| **Not an attribute set on category** | Putting a product in a category does **not** auto-attach a group’s attributes to that product. |
+
+**Mental model:** Groups = *who / what this field family is for*. Collections = *how we present a bundle on a surface*. Attributes = *the fields themselves*.
+
+Saving a group is **live**. There is **no** draft → deploy lifecycle for Attribute Groups.
+
+## Why teams use groups
+
+1. **Separate concerns** — Product specs vs checkout fields vs customer profile fields stay in different typed groups so flags cannot be mis-applied.
+2. **Checkout safety** — Order Hub only surfaces attributes from **order** groups with `use_in_checkout`.
+3. **Admin clarity** — Operators browse “Technical specs” vs “Checkout notes” instead of one flat list.
+4. **Automation targeting** — Attributable targets filter the attribute picker by group types (for example product target → product-typed attributes).
+5. **Collection compatibility** — A collection’s `group_type` must match the group type of every member attribute.
+
+Create a group **before** creating attributes that need gated flags. Prefer few, stable groups over one group per attribute.
+
+## How types and lifecycle work
+
+### Available types
+
+Types are **not hard-coded only in Attributes Hub**. Each hub merges types at boot. Operators see the union for the tenant.
+
+| When Product + Order + Customer are installed (typical Demo) | Meaning |
+| --- | --- |
+| `product` | Specs / variation / PDP / cart / search flags |
+| `category` | Values **on the category record**; category-page collections |
+| `order` | Checkout + order summary attributes |
+| `order_line` | Line-level order attributes (automation / advanced; not the main checkout list contract) |
+| `customer` / `company` / `contact` | Account / CRM enrichment; My Account collections for customer / company |
+
+Additional types appear when Invoice, License, Rule, and similar hubs are installed. Template seed tags may lag config — **trust the live group-types list** in Admin / API.
+
+### Create / update / delete
+
+| Action | Behaviour |
+| --- | --- |
+| **Create** | Name + type (+ optional display_order). Saves **live**. |
+| **Update** | Changing type on a group that already has attributes can invalidate previously legal flags on those attributes — plan type changes carefully (prefer new group + migrate attributes). |
+| **Delete** | Attributes are **not** deleted; their `group_id` is set to **null**. Recollect orphans into a new group or leave ungrouped (flags that need a group type will fail until reassigned). |
+
+### Interaction with attributes and collections
+
+- Attribute write validation loads the group to allow / deny checkout, PDP, and related flags.
+- Checkout discovery: group type `order` **and** `use_in_checkout`.
+- Collection attach: attribute’s group type must equal collection `group_type`.
+- Storefront / admin UIs often group displayed fields by attribute group for readability.
+
+### Categories note
+
+A **category**-typed group stores attributes **about the category**. It does **not** define which **product** attributes a SKU may use when placed in that category. See [Categories](/user-guide/products/categories).
+
+## Typical workflows
+
+1. **Catalog** — Groups such as “General specs” and “Technical” with `type=product`.
+2. **Checkout** — Single `type=order` group “Checkout fields”.
+3. **Category chrome** — `type=category` group only if category Attributes / collections are in use.
+4. **B2B account** — `customer` / `company` groups for profile extras.
+
+## Dependencies
+
+| Related | Why |
+| --- | --- |
+| **All Attributes** | Members live here. See [All Attributes](/user-guide/attributes/all-attributes). |
+| **Attribute Collections** | Same `group_type` constraint. See [Attribute Collections](/user-guide/attributes/attribute-collections). |
+| **Product / Order / Customer Hubs** | Contribute types + attributable models |
+| **Roles** | Attributes Hub attribute-groups permissions |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| One mega-group “All” typed as product | Cannot host checkout fields; flag confusion | Split by type; name clearly |
+| Delete group expecting attributes to vanish | Attributes remain, ungrouped | Reassign or delete attributes deliberately |
+| Change group type casually | Flags / collections / checkout break | New group + move attributes |
+| Expect category group to gate product forms | Not how B2Bware works | Use product groups for SKU specs |
+| Create order attributes in a product group | Checkout never sees them | `type=order` + `use_in_checkout` |
+| Assume every type tag in the template exists on every tenant | Types follow installed hubs | Check group-types list on the tenant |
+
+## Related
+
+- [Attributes overview](/user-guide/attributes/overview)
+- [All Attributes](/user-guide/attributes/all-attributes)
+- [Attribute Collections](/user-guide/attributes/attribute-collections)
+- [Categories](/user-guide/products/categories)
+- [Orders overview](/user-guide/orders/overview)
+- [Customers overview](/user-guide/customers/overview)

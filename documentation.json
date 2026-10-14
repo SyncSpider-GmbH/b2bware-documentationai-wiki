@@ -8,501 +8,1600 @@
       "brand": "#8291C9"
     }
   },
+  "redirects": [
+    {
+      "source": "/advanced/storefront-themes",
+      "destination": "/advanced/storefront-themes/overview"
+    }
+  ],
   "navigation": {
-    "tabs": [
+    "languages": [
       {
-        "tab": "Documentation",
-        "icon": "book",
-        "groups": [
+        "language": "English",
+        "icon": "languages",
+        "tabs": [
           {
-            "group": "Getting Started",
-            "icon": "rocket",
-            "pages": [
+            "tab": "User Guide",
+            "icon": "book-open",
+            "groups": [
               {
-                "title": "Introduction",
-                "path": "introduction",
-                "icon": "home"
-              },
-              {
-                "title": "Quickstart",
-                "path": "quickstart",
-                "icon": "zap"
-              },
-              {
-                "group": "Authentication",
-                "icon": "lock",
+                "group": "Getting started",
+                "icon": "rocket",
                 "pages": [
                   {
-                    "title": "Overview",
-                    "path": "authentication",
-                    "icon": "lock"
+                    "title": "Getting started with B2Bware Admin",
+                    "path": "user-guide/getting-started",
+                    "icon": "home"
                   },
                   {
-                    "title": "Storefront Customer Auth",
-                    "path": "authentication/storefront-customer",
-                    "icon": "user"
+                    "title": "How B2Bware fits together",
+                    "path": "user-guide/how-b2bware-fits-together"
+                  }
+                ]
+              },
+              {
+                "group": "Products",
+                "icon": "box",
+                "pages": [
+                  {
+                    "title": "Products overview",
+                    "path": "user-guide/products/overview",
+                    "icon": "layout-grid"
                   },
                   {
-                    "title": "Installation Key",
-                    "path": "authentication/installation-key",
-                    "icon": "key"
+                    "title": "How Products work",
+                    "path": "user-guide/products/how-products-work"
                   },
                   {
-                    "title": "Server-to-Server Tokens",
-                    "path": "authentication/server-to-server",
-                    "icon": "server"
+                    "title": "Manage products",
+                    "path": "user-guide/products/manage-products",
+                    "icon": "package"
                   },
                   {
-                    "title": "CORS and Browser Clients",
-                    "path": "authentication/cors-and-browsers",
-                    "icon": "globe"
+                    "title": "Edit a product",
+                    "path": "user-guide/products/edit-product",
+                    "icon": "pencil"
+                  },
+                  {
+                    "title": "Categories",
+                    "path": "user-guide/products/categories",
+                    "icon": "folder-tree"
+                  },
+                  {
+                    "title": "Stock locations",
+                    "path": "user-guide/products/stock-locations",
+                    "icon": "warehouse"
+                  },
+                  {
+                    "title": "Pricelists",
+                    "path": "user-guide/products/pricelists",
+                    "icon": "tags"
+                  },
+                  {
+                    "title": "Vendors",
+                    "path": "user-guide/products/vendors",
+                    "icon": "truck"
+                  },
+                  {
+                    "title": "Customer SKUs",
+                    "path": "user-guide/products/customer-skus",
+                    "icon": "barcode"
+                  }
+                ]
+              },
+              {
+                "group": "Attributes",
+                "icon": "tags",
+                "pages": [
+                  {
+                    "title": "Attributes overview",
+                    "path": "user-guide/attributes/overview",
+                    "icon": "layout-grid"
+                  },
+                  {
+                    "title": "All Attributes",
+                    "path": "user-guide/attributes/all-attributes",
+                    "icon": "list"
+                  },
+                  {
+                    "title": "Attribute Groups",
+                    "path": "user-guide/attributes/attribute-groups",
+                    "icon": "folder"
+                  },
+                  {
+                    "title": "Attribute Collections",
+                    "path": "user-guide/attributes/attribute-collections",
+                    "icon": "layers"
+                  }
+                ]
+              },
+              {
+                "group": "Integrations",
+                "icon": "plug",
+                "pages": [
+                  {
+                    "title": "Integrations overview",
+                    "path": "user-guide/integrations/overview",
+                    "icon": "layout-grid"
+                  },
+                  {
+                    "title": "Create an integration",
+                    "path": "user-guide/integrations/create-integration",
+                    "icon": "plus"
+                  },
+                  {
+                    "title": "Mapping and filters",
+                    "path": "user-guide/integrations/mapping-and-filters",
+                    "icon": "git-branch"
+                  },
+                  {
+                    "title": "Sync runs",
+                    "path": "user-guide/integrations/sync-runs",
+                    "icon": "refresh-cw"
+                  },
+                  {
+                    "title": "File feed and Response Relay",
+                    "path": "user-guide/integrations/file-feed-and-relay",
+                    "icon": "share-2"
+                  }
+                ]
+              },
+              {
+                "group": "Orders",
+                "icon": "shopping-cart",
+                "pages": [
+                  {
+                    "title": "Orders overview",
+                    "path": "user-guide/orders/overview",
+                    "icon": "list"
+                  },
+                  {
+                    "title": "Proposals",
+                    "path": "user-guide/orders/proposals"
+                  },
+                  {
+                    "title": "Order lifecycle",
+                    "path": "user-guide/orders/lifecycle"
+                  },
+                  {
+                    "title": "Order-related settings",
+                    "path": "user-guide/orders/related-settings"
+                  }
+                ]
+              },
+              {
+                "group": "Rules",
+                "icon": "percent",
+                "pages": [
+                  {
+                    "title": "Rules overview",
+                    "path": "user-guide/rules/overview",
+                    "icon": "layout-grid"
+                  },
+                  {
+                    "title": "Catalog Price Rules",
+                    "path": "user-guide/rules/catalog-price-rules"
+                  },
+                  {
+                    "title": "Cart Price Rules",
+                    "path": "user-guide/rules/cart-price-rules"
+                  },
+                  {
+                    "title": "Coupons",
+                    "path": "user-guide/rules/coupons"
+                  },
+                  {
+                    "title": "Cart Validation",
+                    "path": "user-guide/rules/cart-validation"
+                  },
+                  {
+                    "title": "Shipping Rates",
+                    "path": "user-guide/rules/shipping-rates"
+                  },
+                  {
+                    "title": "Usage Logs",
+                    "path": "user-guide/rules/usage-logs"
+                  }
+                ]
+              },
+              {
+                "group": "Customers",
+                "icon": "users",
+                "pages": [
+                  {
+                    "title": "Customers overview",
+                    "path": "user-guide/customers/overview",
+                    "icon": "list"
+                  },
+                  {
+                    "title": "Companies",
+                    "path": "user-guide/customers/companies",
+                    "icon": "building"
+                  },
+                  {
+                    "title": "Contacts",
+                    "path": "user-guide/customers/contacts",
+                    "icon": "contact"
+                  },
+                  {
+                    "title": "Roles",
+                    "path": "user-guide/customers/roles",
+                    "icon": "shield"
+                  },
+                  {
+                    "title": "Segmentation",
+                    "path": "user-guide/customers/segmentation",
+                    "icon": "layers"
+                  }
+                ]
+              },
+              {
+                "group": "Invoices",
+                "icon": "file-text",
+                "pages": [
+                  {
+                    "title": "Invoices overview",
+                    "path": "user-guide/invoices/overview",
+                    "icon": "list"
+                  }
+                ]
+              },
+              {
+                "group": "Loyalty",
+                "icon": "gift",
+                "pages": [
+                  {
+                    "title": "Loyalty overview",
+                    "path": "user-guide/loyalty/overview",
+                    "icon": "list"
+                  }
+                ]
+              },
+              {
+                "group": "Media",
+                "icon": "image",
+                "pages": [
+                  {
+                    "title": "Media overview",
+                    "path": "user-guide/media/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Notifications",
+                "icon": "bell",
+                "pages": [
+                  {
+                    "title": "Notifications overview",
+                    "path": "user-guide/notifications/overview"
+                  },
+                  {
+                    "title": "Delivery Logs",
+                    "path": "user-guide/notifications/delivery-logs"
+                  }
+                ]
+              },
+              {
+                "group": "Tax",
+                "icon": "percent",
+                "pages": [
+                  {
+                    "title": "Tax overview",
+                    "path": "user-guide/tax/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Licenses",
+                "icon": "key",
+                "pages": [
+                  {
+                    "title": "Licenses overview",
+                    "path": "user-guide/licenses/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Procurement",
+                "icon": "truck",
+                "pages": [
+                  {
+                    "title": "Procurement overview",
+                    "path": "user-guide/procurement/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Accounting",
+                "icon": "landmark",
+                "pages": [
+                  {
+                    "title": "Accounting overview",
+                    "path": "user-guide/accounting/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Stock Movements",
+                "icon": "warehouse",
+                "pages": [
+                  {
+                    "title": "Stock Movements overview",
+                    "path": "user-guide/stock-movements/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Storefront Builder",
+                "icon": "layout-template",
+                "pages": [
+                  {
+                    "title": "Storefront Builder overview",
+                    "path": "user-guide/storefront-builder/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Automation",
+                "icon": "zap",
+                "pages": [
+                  {
+                    "title": "Automation Hub overview",
+                    "path": "user-guide/automation/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Events",
+                "icon": "webhook",
+                "pages": [
+                  {
+                    "title": "Event Hub overview",
+                    "path": "user-guide/events/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Store Setup",
+                "icon": "store",
+                "pages": [
+                  {
+                    "title": "Store Setup",
+                    "path": "user-guide/store-setup/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Mobile App",
+                "icon": "smartphone",
+                "pages": [
+                  {
+                    "title": "Mobile App",
+                    "path": "user-guide/mobile-app/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Import / Export",
+                "icon": "arrow-up-down",
+                "pages": [
+                  {
+                    "title": "Import / Export",
+                    "path": "user-guide/import-export/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Settings",
+                "icon": "settings",
+                "pages": [
+                  {
+                    "title": "Settings overview",
+                    "path": "user-guide/settings/overview"
                   }
                 ]
               }
             ]
           },
           {
-            "group": "Core Concepts",
-            "icon": "compass",
-            "pages": [
+            "tab": "Documentation",
+            "icon": "book",
+            "groups": [
               {
-                "title": "Common Patterns",
-                "path": "core-concepts/common-patterns",
-                "icon": "layers"
-              },
-              {
-                "title": "Filtering",
-                "path": "core-concepts/filtering",
-                "icon": "filter"
-              },
-              {
-                "title": "Includes & Relations",
-                "path": "core-concepts/includes",
-                "icon": "git-branch"
-              },
-              {
-                "title": "Recommended Includes",
-                "path": "core-concepts/recommended-includes",
-                "icon": "list"
-              },
-              {
-                "title": "Pricing",
-                "path": "core-concepts/pricing",
-                "icon": "tag"
-              },
-              {
-                "title": "Media URLs",
-                "path": "core-concepts/media-urls",
-                "icon": "image"
-              },
-              {
-                "title": "Product & Category Media Uploads",
-                "path": "core-concepts/product-media-uploads",
-                "icon": "upload"
-              },
-              {
-                "title": "Webhooks",
-                "path": "core-concepts/webhooks",
-                "icon": "webhook"
-              },
-              {
-                "title": "Idempotency",
-                "path": "core-concepts/idempotency",
-                "icon": "repeat"
-              },
-              {
-                "title": "Versioning",
-                "path": "core-concepts/versioning",
-                "icon": "git-branch"
-              },
-              {
-                "title": "Environments",
-                "path": "core-concepts/environments",
-                "icon": "layers"
-              },
-              {
-                "title": "Error Handling",
-                "path": "core-concepts/error-handling",
-                "icon": "alert-circle"
-              },
-              {
-                "title": "Rate Limiting",
-                "path": "core-concepts/rate-limiting",
-                "icon": "gauge"
-              }
-            ]
-          },
-          {
-            "group": "Hubs",
-            "icon": "database",
-            "pages": [
-              {
-                "title": "Hub Overview",
-                "path": "hubs/overview",
-                "icon": "grid"
-              },
-              {
-                "title": "ProductHub",
-                "path": "hubs/product-hub",
-                "icon": "box"
-              },
-              {
-                "title": "OrderHub",
-                "path": "hubs/order-hub",
-                "icon": "shopping-cart"
-              },
-              {
-                "title": "CustomerHub",
-                "path": "hubs/customer-hub",
-                "icon": "users"
-              },
-              {
-                "title": "AttributesHub",
-                "path": "hubs/attributes-hub",
-                "icon": "sliders"
-              },
-              {
-                "title": "MediaHub",
-                "path": "hubs/media-hub",
-                "icon": "image"
-              },
-              {
-                "title": "NotificationHub",
-                "path": "hubs/notification-hub",
-                "icon": "bell"
-              },
-              {
-                "title": "TaxHub",
-                "path": "hubs/tax-hub",
-                "icon": "percent"
-              },
-              {
-                "title": "SettingsHub",
-                "path": "hubs/settings-hub",
-                "icon": "settings"
-              },
-              {
-                "title": "LicenseHub",
-                "path": "hubs/license-hub",
-                "icon": "key"
-              },
-              {
-                "title": "AuthHub",
-                "path": "hubs/auth-hub",
-                "icon": "lock"
-              },
-              {
-                "title": "EventHub",
-                "path": "hubs/event-hub",
-                "icon": "rss"
-              },
-              {
-                "title": "RuleHub",
-                "path": "hubs/rule-hub",
-                "icon": "gavel"
-              },
-              {
-                "title": "AutomationHub",
-                "path": "hubs/automation-hub",
-                "icon": "bolt"
-              },
-              {
-                "title": "DashboardHub",
-                "path": "hubs/dashboard-hub",
-                "icon": "gauge"
-              }
-            ]
-          },
-          {
-            "group": "Advanced",
-            "icon": "code",
-            "pages": [
-              {
-                "title": "Bulk Operations",
-                "path": "advanced/bulk-operations",
-                "icon": "layers"
-              },
-              {
-                "title": "Checkout Flow",
-                "path": "advanced/checkout-flow",
-                "icon": "credit-card"
-              },
-              {
-                "title": "Tax Calculation",
-                "path": "advanced/tax-calculation",
-                "icon": "calculator"
-              },
-              {
-                "title": "Product Variations",
-                "path": "advanced/product-variations",
-                "icon": "copy"
-              },
-              {
-                "title": "AI Features",
-                "path": "advanced/ai-features",
-                "icon": "cpu"
-              },
-              {
-                "group": "Storefront",
-                "icon": "shopping-bag",
+                "group": "Getting Started",
+                "icon": "rocket",
                 "pages": [
                   {
-                    "title": "Browse the Catalog",
-                    "path": "advanced/storefront/browse-catalog",
-                    "icon": "search"
+                    "title": "Introduction",
+                    "path": "introduction",
+                    "icon": "home"
                   },
                   {
-                    "title": "Product Detail",
-                    "path": "advanced/storefront/product-detail",
+                    "title": "Quickstart",
+                    "path": "quickstart",
+                    "icon": "zap"
+                  },
+                  {
+                    "group": "Authentication",
+                    "icon": "lock",
+                    "pages": [
+                      {
+                        "title": "Overview",
+                        "path": "authentication",
+                        "icon": "lock"
+                      },
+                      {
+                        "title": "Storefront Customer Auth",
+                        "path": "authentication/storefront-customer",
+                        "icon": "user"
+                      },
+                      {
+                        "title": "Installation Key",
+                        "path": "authentication/installation-key",
+                        "icon": "key"
+                      },
+                      {
+                        "title": "Server-to-Server Tokens",
+                        "path": "authentication/server-to-server",
+                        "icon": "server"
+                      },
+                      {
+                        "title": "CORS and Browser Clients",
+                        "path": "authentication/cors-and-browsers",
+                        "icon": "globe"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Core Concepts",
+                "icon": "compass",
+                "pages": [
+                  {
+                    "title": "Common Patterns",
+                    "path": "core-concepts/common-patterns",
+                    "icon": "layers"
+                  },
+                  {
+                    "title": "Filtering",
+                    "path": "core-concepts/filtering",
+                    "icon": "filter"
+                  },
+                  {
+                    "title": "Includes & Relations",
+                    "path": "core-concepts/includes",
+                    "icon": "git-branch"
+                  },
+                  {
+                    "title": "Recommended Includes",
+                    "path": "core-concepts/recommended-includes",
+                    "icon": "list"
+                  },
+                  {
+                    "title": "Pricing",
+                    "path": "core-concepts/pricing",
+                    "icon": "tag"
+                  },
+                  {
+                    "title": "Hub Settings",
+                    "path": "core-concepts/hub-settings",
+                    "icon": "sliders"
+                  },
+                  {
+                    "title": "Media URLs",
+                    "path": "core-concepts/media-urls",
+                    "icon": "image"
+                  },
+                  {
+                    "title": "Product & Category Media Uploads",
+                    "path": "core-concepts/product-media-uploads",
+                    "icon": "upload"
+                  },
+                  {
+                    "title": "Webhooks",
+                    "path": "core-concepts/webhooks",
+                    "icon": "webhook"
+                  },
+                  {
+                    "title": "Idempotency",
+                    "path": "core-concepts/idempotency",
+                    "icon": "repeat"
+                  },
+                  {
+                    "title": "Versioning",
+                    "path": "core-concepts/versioning",
+                    "icon": "git-branch"
+                  },
+                  {
+                    "title": "Environments",
+                    "path": "core-concepts/environments",
+                    "icon": "layers"
+                  },
+                  {
+                    "title": "Sub-Companies",
+                    "path": "core-concepts/sub-companies",
+                    "icon": "network"
+                  },
+                  {
+                    "title": "Error Handling",
+                    "path": "core-concepts/error-handling",
+                    "icon": "alert-circle"
+                  },
+                  {
+                    "title": "Rate Limiting",
+                    "path": "core-concepts/rate-limiting",
+                    "icon": "gauge"
+                  }
+                ]
+              },
+              {
+                "group": "Hubs",
+                "icon": "database",
+                "pages": [
+                  {
+                    "title": "Hub Overview",
+                    "path": "hubs/overview",
+                    "icon": "grid"
+                  },
+                  {
+                    "title": "ProductHub",
+                    "path": "hubs/product-hub",
                     "icon": "box"
                   },
                   {
-                    "title": "Cart and Checkout",
-                    "path": "advanced/storefront/cart-and-checkout",
+                    "title": "OrderHub",
+                    "path": "hubs/order-hub",
                     "icon": "shopping-cart"
                   },
                   {
-                    "title": "Customer Account",
-                    "path": "advanced/storefront/customer-account",
-                    "icon": "user"
+                    "title": "CustomerHub",
+                    "path": "hubs/customer-hub",
+                    "icon": "users"
                   },
                   {
-                    "title": "Post-Purchase",
-                    "path": "advanced/storefront/post-purchase",
-                    "icon": "receipt"
+                    "title": "AttributesHub",
+                    "path": "hubs/attributes-hub",
+                    "icon": "sliders"
+                  },
+                  {
+                    "title": "MediaHub",
+                    "path": "hubs/media-hub",
+                    "icon": "image"
+                  },
+                  {
+                    "title": "NotificationHub",
+                    "path": "hubs/notification-hub",
+                    "icon": "bell"
+                  },
+                  {
+                    "title": "TaxHub",
+                    "path": "hubs/tax-hub",
+                    "icon": "percent"
+                  },
+                  {
+                    "title": "SettingsHub",
+                    "path": "hubs/settings-hub",
+                    "icon": "settings"
+                  },
+                  {
+                    "title": "LicenseHub",
+                    "path": "hubs/license-hub",
+                    "icon": "key"
+                  },
+                  {
+                    "title": "AuthHub",
+                    "path": "hubs/auth-hub",
+                    "icon": "lock"
+                  },
+                  {
+                    "title": "EventHub",
+                    "path": "hubs/event-hub",
+                    "icon": "rss"
+                  },
+                  {
+                    "title": "RuleHub",
+                    "path": "hubs/rule-hub",
+                    "icon": "gavel"
+                  },
+                  {
+                    "title": "AutomationHub",
+                    "path": "hubs/automation-hub",
+                    "icon": "bolt"
+                  },
+                  {
+                    "title": "DashboardHub",
+                    "path": "hubs/dashboard-hub",
+                    "icon": "gauge"
+                  },
+                  {
+                    "title": "IntegrationHub",
+                    "path": "hubs/integration-hub",
+                    "icon": "plug"
+                  },
+                  {
+                    "title": "StorefrontHub",
+                    "path": "hubs/storefront-hub",
+                    "icon": "store"
+                  },
+                  {
+                    "title": "StorefrontBuilderHub",
+                    "path": "hubs/storefront-builder-hub",
+                    "icon": "layout"
+                  },
+                  {
+                    "title": "InvoiceHub",
+                    "path": "hubs/invoice-hub",
+                    "icon": "file-invoice"
+                  },
+                  {
+                    "title": "ProcurementHub",
+                    "path": "hubs/procurement-hub",
+                    "icon": "truck"
+                  },
+                  {
+                    "title": "AccountingHub",
+                    "path": "hubs/accounting-hub",
+                    "icon": "landmark"
+                  },
+                  {
+                    "title": "LoyaltyHub",
+                    "path": "hubs/loyalty-hub",
+                    "icon": "gift"
+                  },
+                  {
+                    "title": "AiHub",
+                    "path": "hubs/ai-hub",
+                    "icon": "sparkles"
+                  },
+                  {
+                    "title": "PunchOutHub",
+                    "path": "hubs/punch-out-hub",
+                    "icon": "cart-shopping"
+                  },
+                  {
+                    "title": "Customer SKU module",
+                    "path": "hubs/customer-sku-module",
+                    "icon": "barcode"
+                  },
+                  {
+                    "title": "DTOneHub",
+                    "path": "hubs/dtone-hub",
+                    "icon": "mobile"
+                  },
+                  {
+                    "title": "A1 Top-Up module",
+                    "path": "hubs/a1-top-up-module",
+                    "icon": "sim-card"
+                  },
+                  {
+                    "title": "Mesonic real-time pricing",
+                    "path": "hubs/mesonic-realtime-pricing",
+                    "icon": "chart-line"
+                  },
+                  {
+                    "title": "AccountingHub",
+                    "path": "hubs/accounting-hub",
+                    "icon": "calculator"
+                  },
+                  {
+                    "title": "ProcurementHub",
+                    "path": "hubs/procurement-hub",
+                    "icon": "truck"
+                  },
+                  {
+                    "title": "Transactions module",
+                    "path": "hubs/transactions-module",
+                    "icon": "arrows-rotate"
+                  },
+                  {
+                    "title": "Stock movements module",
+                    "path": "hubs/stock-movements-module",
+                    "icon": "boxes-stacked"
+                  },
+                  {
+                    "title": "Customer product permission module",
+                    "path": "hubs/customer-product-permission-module",
+                    "icon": "eye-slash"
+                  },
+                  {
+                    "title": "Customer category permission module",
+                    "path": "hubs/customer-category-permission-module",
+                    "icon": "folder-lock"
+                  }
+                ]
+              },
+              {
+                "group": "Advanced",
+                "icon": "code",
+                "pages": [
+                  {
+                    "title": "Bulk Operations",
+                    "path": "advanced/bulk-operations",
+                    "icon": "layers"
+                  },
+                  {
+                    "title": "Checkout Flow",
+                    "path": "advanced/checkout-flow",
+                    "icon": "credit-card"
+                  },
+                  {
+                    "title": "Tax Calculation",
+                    "path": "advanced/tax-calculation",
+                    "icon": "calculator"
+                  },
+                  {
+                    "title": "Product Variations",
+                    "path": "advanced/product-variations",
+                    "icon": "copy"
+                  },
+                  {
+                    "title": "AI Features",
+                    "path": "advanced/ai-features",
+                    "icon": "cpu"
+                  },
+                  {
+                    "group": "Storefront",
+                    "icon": "shopping-bag",
+                    "pages": [
+                      {
+                        "title": "Browse the Catalog",
+                        "path": "advanced/storefront/browse-catalog",
+                        "icon": "search"
+                      },
+                      {
+                        "title": "Product Detail",
+                        "path": "advanced/storefront/product-detail",
+                        "icon": "box"
+                      },
+                      {
+                        "title": "Cart and Checkout",
+                        "path": "advanced/storefront/cart-and-checkout",
+                        "icon": "shopping-cart"
+                      },
+                      {
+                        "title": "Customer Account",
+                        "path": "advanced/storefront/customer-account",
+                        "icon": "user"
+                      },
+                      {
+                        "title": "Post-Purchase",
+                        "path": "advanced/storefront/post-purchase",
+                        "icon": "receipt"
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Storefront Themes",
+                    "icon": "palette",
+                    "pages": [
+                      {
+                        "title": "Overview",
+                        "path": "advanced/storefront-themes/overview",
+                        "icon": "palette"
+                      },
+                      {
+                        "title": "Hard Rules",
+                        "path": "advanced/storefront-themes/hard-rules",
+                        "icon": "shield"
+                      },
+                      {
+                        "title": "Theme README & Changelog",
+                        "path": "advanced/storefront-themes/theme-readme",
+                        "icon": "file-text"
+                      },
+                      {
+                        "title": "Blade API",
+                        "path": "advanced/storefront-themes/blade-api",
+                        "icon": "code"
+                      },
+                      {
+                        "title": "i18n & Formatting",
+                        "path": "advanced/storefront-themes/i18n-and-formatting",
+                        "icon": "globe"
+                      },
+                      {
+                        "title": "Forms",
+                        "path": "advanced/storefront-themes/forms",
+                        "icon": "file-text"
+                      },
+                      {
+                        "title": "View Data",
+                        "path": "advanced/storefront-themes/view-data",
+                        "icon": "database"
+                      },
+                      {
+                        "title": "AJAX & Runtime",
+                        "path": "advanced/storefront-themes/ajax-and-runtime",
+                        "icon": "refresh-cw"
+                      },
+                      {
+                        "title": "Catalog",
+                        "path": "advanced/storefront-themes/catalog",
+                        "icon": "search"
+                      },
+                      {
+                        "title": "Pricing",
+                        "path": "advanced/storefront-themes/pricing",
+                        "icon": "tag"
+                      },
+                      {
+                        "title": "SEO & Images",
+                        "path": "advanced/storefront-themes/seo-and-images",
+                        "icon": "image"
+                      },
+                      {
+                        "title": "Server Data & Auth",
+                        "path": "advanced/storefront-themes/fetch-and-auth",
+                        "icon": "server"
+                      },
+                      {
+                        "title": "Analytics & Slots",
+                        "path": "advanced/storefront-themes/analytics-and-slots",
+                        "icon": "bar-chart-2"
+                      },
+                      {
+                        "title": "Page Recipes",
+                        "path": "advanced/storefront-themes/page-recipes",
+                        "icon": "layout"
+                      },
+                      {
+                        "title": "Styling",
+                        "path": "advanced/storefront-themes/styling",
+                        "icon": "droplet"
+                      },
+                      {
+                        "title": "Design Tokens",
+                        "path": "advanced/storefront-themes/tokens",
+                        "icon": "sliders"
+                      },
+                      {
+                        "title": "Author Checklist",
+                        "path": "advanced/storefront-themes/checklist",
+                        "icon": "check-square"
+                      },
+                      {
+                        "title": "Site to Theme (Visual Parity)",
+                        "path": "resources/site-to-theme/overview",
+                        "icon": "scan"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "API Reference",
+            "icon": "code",
+            "groups": [
+              {
+                "group": "AuthHub",
+                "icon": "lock",
+                "openapi": "api-reference/auth-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "ProductHub",
+                "icon": "box",
+                "openapi": "api-reference/product-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "OrderHub",
+                "icon": "shopping-cart",
+                "openapi": "api-reference/order-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "CustomerHub",
+                "icon": "users",
+                "openapi": "api-reference/customer-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "MediaHub",
+                "icon": "image",
+                "openapi": "api-reference/media-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "TaxHub",
+                "icon": "percent",
+                "openapi": "api-reference/tax-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "AttributesHub",
+                "icon": "sliders",
+                "openapi": "api-reference/attributes-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "NotificationHub",
+                "icon": "bell",
+                "openapi": "api-reference/notification-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "SettingsHub",
+                "icon": "settings",
+                "openapi": "api-reference/settings-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "LicenseHub",
+                "icon": "key",
+                "openapi": "api-reference/license-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "EventHub",
+                "icon": "rss",
+                "openapi": "api-reference/event-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "RuleHub",
+                "icon": "gavel",
+                "openapi": "api-reference/rule-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "AutomationHub",
+                "icon": "bolt",
+                "openapi": "api-reference/automation-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "DashboardHub",
+                "icon": "gauge",
+                "openapi": "api-reference/dashboard-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "StorefrontBuilderHub",
+                "icon": "layout",
+                "openapi": "api-reference/storefront-builder-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "IntegrationHub",
+                "icon": "plug",
+                "openapi": "api-reference/integration-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "StorefrontHub",
+                "icon": "store",
+                "openapi": "api-reference/storefront-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "InvoiceHub",
+                "icon": "file-invoice",
+                "openapi": "api-reference/invoice-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "LoyaltyHub",
+                "icon": "gift",
+                "openapi": "api-reference/loyalty-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "AiHub",
+                "icon": "sparkles",
+                "openapi": "api-reference/ai-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "PunchOutHub",
+                "icon": "cart-shopping",
+                "openapi": "api-reference/punch-out-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Customer SKU module",
+                "icon": "barcode",
+                "openapi": "api-reference/customer-sku-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "DTOneHub",
+                "icon": "mobile",
+                "openapi": "api-reference/dtone-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "A1 Top-Up module",
+                "icon": "sim-card",
+                "openapi": "api-reference/a1-top-up-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Mesonic real-time pricing",
+                "icon": "chart-line",
+                "openapi": "api-reference/mesonic-dataflow-real-time-pricing/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "ProcurementHub",
+                "icon": "truck",
+                "openapi": "api-reference/procurement-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "AccountingHub",
+                "icon": "landmark",
+                "openapi": "api-reference/accounting-hub/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Transactions module",
+                "icon": "arrows-rotate",
+                "openapi": "api-reference/transactions-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Stock movements module",
+                "icon": "boxes-stacked",
+                "openapi": "api-reference/stock-movements-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Customer product permission module",
+                "icon": "eye-slash",
+                "openapi": "api-reference/customer-product-permission-module/openapi.yaml",
+                "pages": []
+              },
+              {
+                "group": "Customer category permission module",
+                "icon": "folder-lock",
+                "openapi": "api-reference/customer-category-permission-module/openapi.yaml",
+                "pages": []
+              }
+            ]
+          },
+          {
+            "tab": "Help Center",
+            "icon": "help-circle",
+            "pages": [
+              {
+                "title": "Help Center",
+                "path": "help-center",
+                "icon": "home"
+              },
+              {
+                "group": "FAQs",
+                "icon": "help-circle",
+                "expandable": false,
+                "pages": [
+                  {
+                    "title": "Authentication FAQ",
+                    "path": "help-center/faq/datahub-authentication"
+                  },
+                  {
+                    "title": "Filtering FAQ",
+                    "path": "help-center/faq/filtering"
+                  },
+                  {
+                    "title": "Pricing & Plans",
+                    "path": "help-center/faq/pricing"
+                  }
+                ]
+              },
+              {
+                "group": "Troubleshooting",
+                "icon": "alert-triangle",
+                "expandable": false,
+                "pages": [
+                  {
+                    "title": "Sync Failures",
+                    "path": "help-center/troubleshooting/datahub-sync-failures"
+                  },
+                  {
+                    "title": "Authentication Errors",
+                    "path": "help-center/troubleshooting/authentication-errors"
+                  },
+                  {
+                    "title": "Rate Limiting",
+                    "path": "help-center/troubleshooting/rate-limiting"
+                  }
+                ]
+              },
+              {
+                "group": "Guides",
+                "icon": "book-open",
+                "expandable": false,
+                "pages": [
+                  {
+                    "title": "SyncSpider Integration",
+                    "path": "help-center/guides/datahub-integration-setup"
+                  },
+                  {
+                    "title": "ERP Sync Setup",
+                    "path": "help-center/guides/erp-sync-setup"
+                  },
+                  {
+                    "title": "Integration Hub",
+                    "path": "help-center/guides/integration-hub"
+                  },
+                  {
+                    "title": "Embed Integration Hub",
+                    "path": "help-center/guides/embed-integration-hub"
+                  },
+                  {
+                    "title": "Product Import Guide",
+                    "path": "help-center/guides/product-import"
+                  },
+                  {
+                    "title": "Export Products as JSON",
+                    "path": "help-center/guides/export-products-json"
+                  },
+                  {
+                    "title": "Invoices and dunning",
+                    "path": "help-center/guides/invoices"
+                  },
+                  {
+                    "title": "Loyalty programs",
+                    "path": "help-center/guides/loyalty"
+                  },
+                  {
+                    "title": "PunchOut (OCI / cXML)",
+                    "path": "help-center/guides/punchout"
+                  },
+                  {
+                    "title": "Product and category permissions",
+                    "path": "help-center/guides/permissions"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "AI Tools & MCP",
+            "icon": "cpu",
+            "groups": [
+              {
+                "group": "Overview",
+                "icon": "sparkles",
+                "pages": [
+                  {
+                    "title": "Download AI Skill",
+                    "path": "ai-tools/download-skill",
+                    "icon": "download"
+                  },
+                  {
+                    "title": "AI Tools & Skills",
+                    "path": "ai-tools/overview",
+                    "icon": "cpu"
+                  },
+                  {
+                    "title": "MCP Server",
+                    "path": "ai-tools/mcp-server",
+                    "icon": "server"
+                  }
+                ]
+              },
+              {
+                "group": "AI Coding Assistants",
+                "icon": "code",
+                "pages": [
+                  {
+                    "title": "Claude Code",
+                    "path": "ai-tools/claude-code",
+                    "icon": "terminal"
+                  },
+                  {
+                    "title": "Cursor",
+                    "path": "ai-tools/cursor",
+                    "icon": "mouse-pointer"
+                  },
+                  {
+                    "title": "GitHub Copilot",
+                    "path": "ai-tools/github-copilot",
+                    "icon": "github"
+                  },
+                  {
+                    "title": "Windsurf",
+                    "path": "ai-tools/windsurf",
+                    "icon": "wind"
+                  },
+                  {
+                    "title": "Other Tools",
+                    "path": "ai-tools/other-tools",
+                    "icon": "plus-circle"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Changelog",
+            "icon": "clock",
+            "pages": [
+              {
+                "title": "Release History",
+                "path": "changelog",
+                "icon": "history"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "language": "Deutsch",
+        "icon": "languages",
+        "tabs": [
+          {
+            "tab": "Benutzerhandbuch",
+            "icon": "book-open",
+            "groups": [
+              {
+                "group": "Erste Schritte",
+                "icon": "rocket",
+                "pages": [
+                  {
+                    "title": "Erste Schritte mit B2Bware Admin",
+                    "path": "de/user-guide/getting-started",
+                    "icon": "home"
+                  },
+                  {
+                    "title": "Wie B2Bware zusammenhängt",
+                    "path": "de/user-guide/how-b2bware-fits-together"
+                  }
+                ]
+              },
+              {
+                "group": "Products",
+                "icon": "box",
+                "pages": [
+                  {
+                    "title": "Products Übersicht",
+                    "path": "de/user-guide/products/overview",
+                    "icon": "layout-grid"
+                  },
+                  {
+                    "title": "Wie Produkte funktionieren",
+                    "path": "de/user-guide/products/how-products-work"
+                  },
+                  {
+                    "title": "Products verwalten",
+                    "path": "de/user-guide/products/manage-products",
+                    "icon": "package"
+                  },
+                  {
+                    "title": "Product bearbeiten",
+                    "path": "de/user-guide/products/edit-product",
+                    "icon": "pencil"
+                  },
+                  {
+                    "title": "Categories",
+                    "path": "de/user-guide/products/categories",
+                    "icon": "folder-tree"
+                  },
+                  {
+                    "title": "Stock locations",
+                    "path": "de/user-guide/products/stock-locations",
+                    "icon": "warehouse"
+                  },
+                  {
+                    "title": "Pricelists",
+                    "path": "de/user-guide/products/pricelists",
+                    "icon": "tags"
+                  },
+                  {
+                    "title": "Vendors",
+                    "path": "de/user-guide/products/vendors",
+                    "icon": "truck"
+                  },
+                  {
+                    "title": "Customer SKUs",
+                    "path": "de/user-guide/products/customer-skus",
+                    "icon": "barcode"
+                  }
+                ]
+              },
+              {
+                "group": "Attributes",
+                "pages": [
+                  {
+                    "title": "Attributes — Überblick",
+                    "path": "de/user-guide/attributes/overview"
+                  },
+                  {
+                    "title": "Alle Attribute",
+                    "path": "de/user-guide/attributes/all-attributes"
+                  },
+                  {
+                    "title": "Attribute Groups",
+                    "path": "de/user-guide/attributes/attribute-groups"
+                  },
+                  {
+                    "title": "Attribute Collections",
+                    "path": "de/user-guide/attributes/attribute-collections"
+                  }
+                ]
+              },
+              {
+                "group": "Integrationen",
+                "icon": "plug",
+                "pages": [
+                  {
+                    "title": "Integrationen Übersicht",
+                    "path": "de/user-guide/integrations/overview",
+                    "icon": "list"
+                  },
+                  {
+                    "title": "Integration anlegen",
+                    "path": "de/user-guide/integrations/create-integration"
+                  },
+                  {
+                    "title": "Zuordnung und Filter",
+                    "path": "de/user-guide/integrations/mapping-and-filters"
+                  },
+                  {
+                    "title": "Sync-Läufe",
+                    "path": "de/user-guide/integrations/sync-runs"
+                  },
+                  {
+                    "title": "Datei-Feed und Response Relay",
+                    "path": "de/user-guide/integrations/file-feed-and-relay"
+                  }
+                ]
+              },
+              {
+                "group": "Customers",
+                "icon": "users",
+                "pages": [
+                  {
+                    "title": "Customers — Überblick",
+                    "path": "de/user-guide/customers/overview",
+                    "icon": "list"
+                  },
+                  {
+                    "title": "Companies",
+                    "path": "de/user-guide/customers/companies"
+                  },
+                  {
+                    "title": "Contacts",
+                    "path": "de/user-guide/customers/contacts"
+                  },
+                  {
+                    "title": "Roles",
+                    "path": "de/user-guide/customers/roles"
+                  },
+                  {
+                    "title": "Segmentation",
+                    "path": "de/user-guide/customers/segmentation"
+                  }
+                ]
+              },
+              {
+                "group": "Orders",
+                "pages": [
+                  {
+                    "title": "Orders — Überblick",
+                    "path": "de/user-guide/orders/overview"
+                  },
+                  {
+                    "title": "Proposals",
+                    "path": "de/user-guide/orders/proposals"
+                  },
+                  {
+                    "title": "Order-Lifecycle",
+                    "path": "de/user-guide/orders/lifecycle"
+                  },
+                  {
+                    "title": "Order-bezogene Settings",
+                    "path": "de/user-guide/orders/related-settings"
+                  }
+                ]
+              },
+              {
+                "group": "Rules",
+                "icon": "percent",
+                "pages": [
+                  {
+                    "title": "Rules — Überblick",
+                    "path": "de/user-guide/rules/overview",
+                    "icon": "layout-grid"
+                  },
+                  {
+                    "title": "Catalog Price Rules",
+                    "path": "de/user-guide/rules/catalog-price-rules"
+                  },
+                  {
+                    "title": "Cart Price Rules",
+                    "path": "de/user-guide/rules/cart-price-rules"
+                  },
+                  {
+                    "title": "Coupons",
+                    "path": "de/user-guide/rules/coupons"
+                  },
+                  {
+                    "title": "Cart Validation",
+                    "path": "de/user-guide/rules/cart-validation"
+                  },
+                  {
+                    "title": "Shipping Rates",
+                    "path": "de/user-guide/rules/shipping-rates"
+                  },
+                  {
+                    "title": "Usage Logs",
+                    "path": "de/user-guide/rules/usage-logs"
+                  }
+                ]
+              },
+              {
+                "group": "Media",
+                "icon": "image",
+                "pages": [
+                  {
+                    "title": "Media — Überblick",
+                    "path": "de/user-guide/media/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Notifications",
+                "icon": "bell",
+                "pages": [
+                  {
+                    "title": "Notifications — Überblick",
+                    "path": "de/user-guide/notifications/overview"
+                  },
+                  {
+                    "title": "Delivery Logs",
+                    "path": "de/user-guide/notifications/delivery-logs"
+                  }
+                ]
+              },
+              {
+                "group": "Tax",
+                "icon": "percent",
+                "pages": [
+                  {
+                    "title": "Tax — Überblick",
+                    "path": "de/user-guide/tax/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Invoices",
+                "icon": "file-text",
+                "pages": [
+                  {
+                    "title": "Invoices — Überblick",
+                    "path": "de/user-guide/invoices/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Loyalty",
+                "icon": "gift",
+                "pages": [
+                  {
+                    "title": "Loyalty — Überblick",
+                    "path": "de/user-guide/loyalty/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Licenses",
+                "icon": "key",
+                "pages": [
+                  {
+                    "title": "Licenses — Überblick",
+                    "path": "de/user-guide/licenses/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Procurement",
+                "icon": "truck",
+                "pages": [
+                  {
+                    "title": "Procurement — Überblick",
+                    "path": "de/user-guide/procurement/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Accounting",
+                "icon": "landmark",
+                "pages": [
+                  {
+                    "title": "Accounting — Überblick",
+                    "path": "de/user-guide/accounting/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Stock Movements",
+                "icon": "warehouse",
+                "pages": [
+                  {
+                    "title": "Stock Movements — Überblick",
+                    "path": "de/user-guide/stock-movements/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Storefront Builder",
+                "icon": "layout-template",
+                "pages": [
+                  {
+                    "title": "Storefront Builder — Überblick",
+                    "path": "de/user-guide/storefront-builder/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Automation",
+                "icon": "zap",
+                "pages": [
+                  {
+                    "title": "Automation Hub — Überblick",
+                    "path": "de/user-guide/automation/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Events",
+                "icon": "webhook",
+                "pages": [
+                  {
+                    "title": "Event Hub — Überblick",
+                    "path": "de/user-guide/events/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Store Setup",
+                "icon": "store",
+                "pages": [
+                  {
+                    "title": "Store Setup — Überblick",
+                    "path": "de/user-guide/store-setup/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Mobile App",
+                "icon": "smartphone",
+                "pages": [
+                  {
+                    "title": "Mobile App — Überblick",
+                    "path": "de/user-guide/mobile-app/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Import / Export",
+                "icon": "arrow-up-down",
+                "pages": [
+                  {
+                    "title": "Import / Export — Überblick",
+                    "path": "de/user-guide/import-export/overview"
+                  }
+                ]
+              },
+              {
+                "group": "Settings",
+                "icon": "settings",
+                "pages": [
+                  {
+                    "title": "Einstellungen — Überblick",
+                    "path": "de/user-guide/settings/overview"
                   }
                 ]
               }
             ]
           }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "icon": "code",
-        "groups": [
-          {
-            "group": "AuthHub",
-            "icon": "lock",
-            "openapi": "api-reference/auth-hub/openapi.yaml",
-            "pages": []
-          },
-          {
-            "group": "ProductHub",
-            "icon": "box",
-            "openapi": "api-reference/product-hub/openapi.yaml",
-            "pages": []
-          },
-          {
-            "group": "OrderHub",
-            "icon": "shopping-cart",
-            "openapi": "api-reference/order-hub/openapi.yaml",
-            "pages": []
-          },
-          {
-            "group": "CustomerHub",
-            "icon": "users",
-            "openapi": "api-reference/customer-hub/openapi.yaml",
-            "pages": []
-          },
-          {
-            "group": "MediaHub",
-            "icon": "image",
-            "openapi": "api-reference/media-hub/openapi.yaml",
-            "pages": []
-          },
-          {
-            "group": "TaxHub",
-            "icon": "percent",
-            "openapi": "api-reference/tax-hub/openapi.yaml",
-            "pages": []
-          },
-          {
-            "group": "AttributesHub",
-            "icon": "sliders",
-            "openapi": "api-reference/attributes-hub/openapi.yaml",
-            "pages": []
-          },
-          {
-            "group": "NotificationHub",
-            "icon": "bell",
-            "openapi": "api-reference/notification-hub/openapi.yaml",
-            "pages": []
-          },
-          {
-            "group": "SettingsHub",
-            "icon": "settings",
-            "openapi": "api-reference/settings-hub/openapi.yaml",
-            "pages": []
-          },
-          {
-            "group": "LicenseHub",
-            "icon": "key",
-            "openapi": "api-reference/license-hub/openapi.yaml",
-            "pages": []
-          },
-          {
-            "group": "EventHub",
-            "icon": "rss",
-            "openapi": "api-reference/event-hub/openapi.yaml",
-            "pages": []
-          },
-          {
-            "group": "RuleHub",
-            "icon": "gavel",
-            "openapi": "api-reference/rule-hub/openapi.yaml",
-            "pages": []
-          },
-          {
-            "group": "AutomationHub",
-            "icon": "bolt",
-            "openapi": "api-reference/automation-hub/openapi.yaml",
-            "pages": []
-          },
-          {
-            "group": "DashboardHub",
-            "icon": "gauge",
-            "openapi": "api-reference/dashboard-hub/openapi.yaml",
-            "pages": []
-          }
-        ]
-      },
-      {
-        "tab": "Help Center",
-        "icon": "help-circle",
-        "pages": [
-          {
-            "title": "Help Center",
-            "path": "help-center",
-            "icon": "home"
-          },
-          {
-            "group": "FAQs",
-            "icon": "help-circle",
-            "expandable": false,
-            "pages": [
-              {
-                "title": "Authentication FAQ",
-                "path": "help-center/faq/datahub-authentication"
-              },
-              {
-                "title": "Filtering FAQ",
-                "path": "help-center/faq/filtering"
-              },
-              {
-                "title": "Pricing & Plans",
-                "path": "help-center/faq/pricing"
-              }
-            ]
-          },
-          {
-            "group": "Troubleshooting",
-            "icon": "alert-triangle",
-            "expandable": false,
-            "pages": [
-              {
-                "title": "Sync Failures",
-                "path": "help-center/troubleshooting/datahub-sync-failures"
-              },
-              {
-                "title": "Authentication Errors",
-                "path": "help-center/troubleshooting/authentication-errors"
-              },
-              {
-                "title": "Rate Limiting",
-                "path": "help-center/troubleshooting/rate-limiting"
-              }
-            ]
-          },
-          {
-            "group": "Guides",
-            "icon": "book-open",
-            "expandable": false,
-            "pages": [
-              {
-                "title": "SyncSpider Integration",
-                "path": "help-center/guides/datahub-integration-setup"
-              },
-              {
-                "title": "ERP Sync Setup",
-                "path": "help-center/guides/erp-sync-setup"
-              },
-              {
-                "title": "Product Import Guide",
-                "path": "help-center/guides/product-import"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "AI Tools & MCP",
-        "icon": "cpu",
-        "groups": [
-          {
-            "group": "Overview",
-            "icon": "sparkles",
-            "pages": [
-              {
-                "title": "Download AI Skill",
-                "path": "ai-tools/download-skill",
-                "icon": "download"
-              },
-              {
-                "title": "AI Tools & Skills",
-                "path": "ai-tools/overview",
-                "icon": "cpu"
-              },
-              {
-                "title": "MCP Server",
-                "path": "ai-tools/mcp-server",
-                "icon": "server"
-              }
-            ]
-          },
-          {
-            "group": "AI Coding Assistants",
-            "icon": "code",
-            "pages": [
-              {
-                "title": "Claude Code",
-                "path": "ai-tools/claude-code",
-                "icon": "terminal"
-              },
-              {
-                "title": "Cursor",
-                "path": "ai-tools/cursor",
-                "icon": "mouse-pointer"
-              },
-              {
-                "title": "GitHub Copilot",
-                "path": "ai-tools/github-copilot",
-                "icon": "github"
-              },
-              {
-                "title": "Windsurf",
-                "path": "ai-tools/windsurf",
-                "icon": "wind"
-              },
-              {
-                "title": "Other Tools",
-                "path": "ai-tools/other-tools",
-                "icon": "plus-circle"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Changelog",
-        "icon": "clock",
-        "pages": [
-          {
-            "title": "Release History",
-            "path": "changelog",
-            "icon": "history"
-          }
-        ]
+        ],
+        "path": "de/user-guide/getting-started"
       }
     ]
   }

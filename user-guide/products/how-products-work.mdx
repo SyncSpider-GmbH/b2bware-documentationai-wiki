@@ -1,0 +1,77 @@
+---
+title: How Products work
+description: Why Product Hub exists — catalog, pricing system, pricelist deploy, dependencies, install and permissions — not a click tour.
+---
+
+**Products** owns the sellable catalog in B2Bware Admin: products (including configurable variations), categories, multi-warehouse stock, multi-type pricing and deployable pricelists, vendors, and related media/translations.
+
+Use this page to understand the system. Day-to-day screens are covered in the existing Products how-tos linked at the end.
+
+## What Products owns (sidebar)
+
+When Products is installed and you can view it, the sidebar typically includes:
+
+| Area | What it is for |
+| --- | --- |
+| **All Products** | Create and maintain products — types, variants, attributes, stock/price tabs, SEO, cross-sell/upsell, and more |
+| **Categories** | Hierarchical catalog structure |
+| **Stock locations** | Warehouses and stock per product/location |
+| **Pricelists** | **Staged** price sets — live catalog prices change when you **deploy** |
+| **Vendors** | Supplier / vendor records and product links |
+| **Customer SKUs** | Buyer-specific part numbers — only fully active when the optional Customer SKU module is installed |
+
+Products is a **core** hub (part of the commerce spine with Orders, Customers, Auth, and Settings). See [How B2Bware fits together](/user-guide/how-b2bware-fits-together).
+
+## Dependencies
+
+| Related hub / module | Why it matters |
+| --- | --- |
+| **Attributes** | Dynamic product attributes and variation attributes for configurables |
+| **Customers** | Group prices (customer groups / Segmentation); product permission tabs when those modules are installed |
+| **Orders** | Cart and checkout consume products and resolved prices |
+| **Rules** (optional) | Catalog/cart promotions stack on top of base / provider prices |
+| **Media** | Product and category media |
+| **Tax** (optional) | Tax class on products when Tax is installed |
+| **Customer SKU module** (optional) | Buyer SKUs and order-line snapshots — do not treat as always-on core |
+| **Integrations / Import-Export** | Catalog sync and bulk upsert — separate UI from Product Hub |
+
+## Install and permissions
+
+- **Install:** Product Hub must be installed on the tenant.
+- **Sidebar:** Visible when installed **and** your role can view Product Hub modules.
+- **Fine-grained admin permissions** cover products, categories, warehouses/stock, prices, pricelists (including **deploy**), vendors, media, translations, attributes, and related actions (import/export, bulk update, own-record views where configured).
+
+<Callout kind="alert" collapsed="false">
+Shop-facing catalog permission labels (for example “view prices” / “view stock”) may exist in the permission model but are **not fully enforced** in all shop journeys today. Buyer visibility is often driven by **tenant settings** (such as requiring login for prices). Do not document those shop keys as a guaranteed ACL yet.
+</Callout>
+
+## How pricing is meant to work
+
+Operators should distinguish three layers:
+
+1. **Live product prices** — regular, special (with dates), tier (quantity), group (customer group), and cost.
+2. **Final price cascade (base)** — typically tier → group → special → regular, unless a server-side **customer price provider** (from integrations) supplies a trusted unit price first.
+3. **Pricelists** — prepare many price rows offline, then **deploy** onto live Price records. Editing a pricelist alone does not change what buyers pay until deploy.
+
+Rules (if installed) can still adjust outcomes on top of that base. Themes and clients must never invent charged prices — resolution is **server-authoritative**.
+
+## Product types (supported model)
+
+Documented product types include **simple**, **configurable** (variations), **virtual**, and **downloadable**. Do not invent additional types in the User Guide without product confirmation.
+
+## Where to go next
+
+- [Products overview](/user-guide/products/overview)
+- [Manage products](/user-guide/products/manage-products)
+- [Edit a product](/user-guide/products/edit-product)
+- [Categories](/user-guide/products/categories)
+- [Pricelists](/user-guide/products/pricelists)
+- [Stock locations](/user-guide/products/stock-locations)
+- [Orders overview](/user-guide/orders/overview) — how prices become charges
+- [Customers overview](/user-guide/customers/overview) — groups and access
+
+## Do not claim
+
+- Customer SKUs always work without the Customer SKU module installed.
+- Optional detail tabs (for example licensing or top-up related UIs) are required Product Hub features — they appear when those optional apps are in scope.
+- Shop catalog permission keys are fully enforced for every storefront journey.

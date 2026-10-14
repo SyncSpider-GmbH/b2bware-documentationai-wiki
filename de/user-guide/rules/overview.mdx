@@ -1,0 +1,109 @@
+---
+title: Rules — Überblick
+description: Optionaler Rule Hub in B2Bware — wie Catalog-, Cart-, Coupon-, Validierungs- und Shipping-Rate-Rules auf Pricelists und Price Providers stapeln, inkl. Install-Hinweis, Abhängigkeiten und Fallstricken.
+---
+
+**Rules** in B2Bware Admin ist die UI für den optionalen **Rule Hub** — eine bedingungsbasierte Engine für **Catalog-Preis-Anpassungen**, **Cart-Rabatte und Promotions**, **Coupons**, **Cart-Constraint-Validierung**, **Table-Rate-Shipping-Preise** und **Usage-Audit-Logs**.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Rule Hub** | Optional installiertes Package. Wenn vorhanden und der Operator es sehen darf, zeigt Admin **Rules** mit sechs Kindern. |
+| **Catalog Price Rules** | Passen Product-Stückpreise an, bevor / während sie Kataloganzeige und Cart-Zeilen erreichen (auf Provider- oder Product-`finalPrice`-Basis). |
+| **Cart Price Rules** | Cart-Level-Rabatte, Free Shipping, gestaffelte und Buy-X-Get-Y-Aktionen, ausgewertet gegen Cart + Conditions. |
+| **Coupons** | Code-basierte Aktivierung einer **Cart Price Rule** (Limits, Ablauf). |
+| **Cart Validation** | Soft/Hard-**Constraint**-Rules (gegenseitiger Ausschluss, Requires, Min/Max Qty) — keine Rabatte. |
+| **Shipping Rates** | Table-Rate-**Preis**-Zeilen, verknüpft mit einer Shipping-**Method** (nach Zone/Land/PLZ + Gewicht/Subtotal/Qty/Attribute). |
+| **Usage Logs** | Audit der Rule-Anwendungen beim Checkout (und verwandte Counter). |
+
+**Mentales Modell:** Pricelists **stagen und deployen** live Product-`Price`-Zeilen. Customer Price Providers (wenn konfiguriert) können diese Basis für einen Buyer **überschreiben**. Rule-Hub-**Promotions und Constraints** stapeln dann **darüber** (Catalog) und beim **Checkout** (Cart / Coupons / Shipping Rates / Validation).
+
+<Callout kind="alert" collapsed="false">
+Rule Hub ist **optional** (`hasRuleHub`). Wenn der Tenant ihn nicht installiert hat, fehlt die Sidebar-Gruppe **Rules**. Core Commerce (Products, Orders, Customers) läuft weiter — Operatoren haben lediglich keine Promotion-/Constraint-Engine-UI. Demo-Store-Präsenz bedeutet **nicht**, dass jeder Tenant Rules hat.
+</Callout>
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Pricelists / live Price / finalPrice** | Product-Hub-Katalogpreise |
+| **Settings → Shipping Methods** | Order-Hub-Checkout-Method-Stammdaten (Existenz, Sichtbarkeit, Basis-Method-Preis) |
+| **Tax Rules** | Tax Hub (optional) |
+| **License Rules** | License Hub (optional) |
+| **Segmentation (= Customer Groups)** | Customer-Hub-Labels, die Preise und manche Rule-Conditions **targeten** — nicht die Rule-Engine selbst |
+
+## Warum Teams Rules nutzen
+
+1. **Promotions ohne Listenpreise umzuschreiben** — %-off- / Fixed- / Free-Shipping-Kampagnen fahren, während Pricelists und Customer Price Providers die Vertragsbasis halten.
+2. **Catalog- vs Cart-Timing** — Catalog Rules ändern den **gesehenen Stückpreis**; Cart Rules ändern **Totals / Shipping / Multi-Buy** beim Checkout.
+3. **Coupon-Kampagnen** — Codes teilen, die an Cart Rules mit Usage-Limits gebunden sind.
+4. **Kommerzielle Guardrails** — Cart Validation stoppt illegale Mixes oder Qty-Verstöße vor der Order.
+5. **Table-Rate Shipping** — Shipping nach Geografie und Cart-Metriken bepreisen, über einen Flat-Method-Preis hinaus.
+6. **Dispute-Triage** — Usage Logs und Order-Applied-Rules-Metadata erklären, *welche* Rule gefeuert hat.
+
+Nutzen Sie **[Pricelists](/de/user-guide/products/pricelists)**, wenn die Änderung der neue **live Price** werden soll. Nutzen Sie **Rules**, wenn das Ergebnis bedingt, temporär, code-gated oder cart-förmig ist. Nutzen Sie **[Segmentation](/de/user-guide/customers/segmentation)**, um zu definieren, *wer* Group Prices und gruppen-targetete Rules betrifft.
+
+## Wie der Pricing-Stack zusammenspielt
+
+Commerce-Spine-Operatoren sollten diese Reihenfolge im Kopf behalten:
+
+1. **Live Product Prices** (regular / special / tier / group / cost) — oft befüllt über **Pricelist Deploy** oder Product Edit.
+2. **`finalPrice`** löst einen effektiven Product-Hub-Sell-Kandidaten auf (tier → group → special → regular; cost ausgeschlossen).
+3. Optionaler **CustomerPriceProvider** (Order-Hub-Registry): erster non-null **überschreibt** diese Product-Hub-Basis für Kataloganzeige **und** Cart-Line-Stückpreis (server-authoritative).
+4. Optionale **Rule-Hub Catalog Price Rules** stapeln **auf** diesem Provider-/Basis-Stückpreis.
+5. Beim Cart/Checkout: **Cart Price Rules** + **Coupons**, **Shipping Rate Rules**, **Cart Validation**; Anwendungen können geloggt werden.
+
+**Pricelists umgehen Rules nicht.** Deploy schreibt live Price; Rules greifen danach trotzdem, wenn installiert und aktiv.
+
+<Callout kind="info" collapsed="false">
+Themes dürfen berechnete Preise nicht erfinden. Vertrauen Sie server-authoritative Price Views, die Provider- und Catalog-Rule-Overlays bereits enthalten, wo konfiguriert.
+</Callout>
+
+## So nutzen Sie den Hub
+
+1. Bestätigen Sie, dass Rule Hub installiert ist (**Rules** sichtbar) und die Role die nötigen `rule-hub.*` View/Create/Update-Rechte hat.
+2. Entscheiden Sie die **Layer**: Catalog (Stückpreis) vs Cart (Totals/Shipping/Promo) vs Validation (Block) vs Shipping Rates (Method-Preis-Tabelle).
+3. Targeten Sie Buyer mit Conditions und/oder **Customer-Group**-Feldern — Group-IDs mit [Segmentation](/de/user-guide/customers/segmentation) abstimmen.
+4. Setzen Sie **Status**, **Priority**, Datumsfenster und **stop further rules** bewusst, wenn mehrere Rules matchen können.
+5. Für Coupons: zuerst die **Cart Price Rule** anlegen, dann Coupon-Codes anhängen.
+6. Nach Go-Live mit einem repräsentativen Buyer-Cart verifizieren; Überraschungen über Usage Logs und Order-Applied-Rules-Metadata triageen.
+7. Settings-**Shipping Methods** definieren, bevor Sie sich auf Shipping-Rate-Rules stützen, die eine Shipping Method verknüpfen.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Rule Hub installiert** | Sidebar + APIs; optional in der Hub-Registry |
+| **Product Hub** | Catalog Rules passen Product Prices an; Conditions nutzen oft Product-Felder |
+| **Order Hub** | Cart/Checkout wendet Cart Rules, Shipping Rates, Validation an; Usage wird an der Order geloggt; Price Providers sitzen unter Rules im Stack |
+| **Customer Hub** | Customer-/Group-Targeting; Permission-Registry hostet `rule-hub.*`-Keys |
+| **Segmentation (Customer Groups)** | Group Prices *und* viele Rule-Targets teilen dieselben Group-IDs |
+| **Pricelists / live Price** | Liefern die Basis, auf die Rules nach Deploy / Provider stapeln |
+| **Settings → Shipping** | Shipping-Rate-Rules verknüpfen Shipping-**Methods** |
+| **Attributes Hub** (optional) | Custom Attributes in Conditions / Per-Unit-Attribute-Actions |
+| **Auth + Admin Access** | Admin-Writes; Shop-Read-Paths für Rules in der Preisbildung |
+
+**Permissions (typisch):** CRUD auf Catalog Price Rules, Cart Price Rules, Cart Validation Rules, Coupons und Shipping Rate Rules; **nur View** auf Rule Usage Logs.
+
+**Keine Voraussetzungen:** Tax Hub, License Hub, Media, Loyalty — benachbarte optionale Hubs mit eigenen „Rules“-Labels.
+
+## Häufige Fehler
+
+| Fehler | Warum es wehtut | Bessere Praxis |
+| --- | --- | --- |
+| Rules auf jedem Tenant erwarten | Optionaler Install | `hasRuleHub` bestätigen; Demo ≠ alle Tenants |
+| Pricelists für einen Coupon-Rabatt verantwortlich machen | Andere Layer | Stack verfolgen: live/Provider → Catalog Rules → Cart/Coupon |
+| Eine Pricelist editieren, um eine Promotion „auszuschalten“ | Deploy ≠ Rules deaktivieren | Rule deaktivieren oder neu priorisieren |
+| Shipping Rates mit Shipping Methods verwechseln | Methods = Checkout-Optionen; Rates = Preistabelle | Method in Settings anlegen, dann Rate Rules unter Rules |
+| Rules mit Tax-/License-Rules verwechseln | Andere Hubs | Naming in Links präzise halten |
+| Priority / stop further rules ignorieren | Unerwartetes Stacking oder nur First-Match | Priority-Bänder planen; mit zwei aktiven Rules testen |
+| Themes erfinden berechnete Preise | Vertrauen vs Server-Stack bricht | Nur server-authoritative Price Views |
+| Leeres Customer-Group-Targeting | Rule matcht die intendierte Kohorte nie | Mit Segmentation-Assignments abstimmen |
+
+## Related
+
+- [Pricelists](/de/user-guide/products/pricelists)
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Order-Lifecycle](/de/user-guide/orders/lifecycle)
+- [Order-bezogene Settings](/de/user-guide/orders/related-settings)
+- [Segmentation](/de/user-guide/customers/segmentation)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

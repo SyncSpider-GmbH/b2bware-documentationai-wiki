@@ -1,0 +1,121 @@
+openapi: 3.0.0
+info:
+  title: CustomerProductPermissionModule API
+  description: >-
+    Complete API collection for CustomerProductPermissionModule — per-product
+    visibility restriction (allow / deny / all) for customers, companies and
+    customer groups.
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Restrictions
+paths:
+  /api/v1/apps/customer-product-permission/restrictions:
+    get:
+      tags:
+        - Restrictions
+      summary: List Restrictions by Mode
+      parameters:
+        - name: filter[mode]
+          in: query
+          schema:
+            type: string
+          example: '[{"condition":"=","value":"allow"}]'
+        - name: filter[is_restricted]
+          in: query
+          schema:
+            type: string
+          example: '[{"condition":"=","value":true}]'
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: product
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Restrictions
+      summary: Upsert Restriction (hide from all)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                product_id: 125
+                is_restricted: true
+                mode: all
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-product-permission/restrictions/by-product/123:
+    get:
+      tags:
+        - Restrictions
+      summary: Get Restriction by Product
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/customer-product-permission/restrictions/1:
+    get:
+      tags:
+        - Restrictions
+      summary: Get Restriction by ID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Restrictions
+      summary: Update Restriction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                is_restricted: false
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Restrictions
+      summary: Delete Restriction
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

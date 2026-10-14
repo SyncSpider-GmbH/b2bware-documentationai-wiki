@@ -1,0 +1,155 @@
+---
+title: Proposals
+description: B2B proposals (quotes) in Order Hub — private vs public share, orderable prerequisites, price authority from quote lines, and handoff to orders.
+---
+
+A **Proposal** is a **B2B quote** prepared before (or instead of) a firm sales order: a negotiated commercial offer with line items, totals, and optional checkout prerequisites (customer, shipping/billing addresses and methods).
+
+| Concept | Role |
+| --- | --- |
+| **Proposal (Admin)** | Sidebar **Orders → Proposals**. Operator-facing name. |
+| **Quote (model)** | Backend entity with quote line items (and optional line groups). Permission resource key is still `quotes`. |
+| **Order** | Durable sales record after checkout / placement. Admin: **All Orders**. |
+| **Cart** | Transient shopping session used by storefront checkout — and reused internally when a **public** proposal is placed as an order. |
+
+**Mental model:** Proposal = *negotiated offer (quote)*. Order = *committed commercial record*. Cart = *checkout vehicle*. Public share = *token-authenticated buyer acceptance path*, not a login-required cart browse.
+
+**Types:**
+
+| Type | Meaning |
+| --- | --- |
+| **private** | Default internal / sales quote. Not resolvable by public token. |
+| **public** | Shareable via an unguessable public token. Anonymous preview / order path resolves only `type=public` with a matching token. |
+
+<Callout kind="info" collapsed="false">
+Admin label is **Proposals**; the data model and many permission keys say **quotes**. Same product — do not treat them as two hubs.
+</Callout>
+
+**What Proposals do *not* include:**
+
+- A productized multi-stage quote CRM (draft → sent → accepted → expired) with a long status vocabulary like Orders.
+- Automatic mutation of the proposal when a buyer places an order from a public share — the proposal itself is **not** rewritten; a new order is created.
+- Buyer-editable unit prices on public place — **item prices stay authoritative from the proposal lines**.
+- A guaranteed one-click “convert private proposal → order” Admin path documented as complete for every tenant.
+
+## Why teams use Proposals
+
+1. **Quote before commitment** — Sales needs a priced offer the buyer can review before a firm order.
+2. **Negotiated line prices** — Agents set unit prices on quote lines; public placement trusts those amounts (base currency), so “what we quoted” is what gets charged on that path.
+3. **Share without forcing login first** — Public proposals use a public token as bearer of authority; the order is created for the **customer already assigned on the proposal**.
+4. **Agent-centric selling** — Default **agent** role permissions focus on proposals (quotes) plus the read access needed to build them.
+5. **Handoff into ops** — Once placed, fulfilment / payment / status lives on **Orders**, not on the quote document.
+
+Use **Proposals** when the motion is offer → accept. Use **All Orders** when the sale is already placed (storefront checkout, integration, or public proposal placement). Use **Pricelists / live prices / providers** for catalog list pricing — proposals are a **separate negotiated snapshot**, not a pricelist deploy.
+
+## How proposals work
+
+### Commercial payload
+
+| Area | Notes |
+| --- | --- |
+| **Identity** | Type (`private` \| `public`), optional public token, description, media, active flag |
+| **Buyer** | Customer — required for public orderability |
+| **Checkout prerequisites** | Shipping address, billing address, shipping method, billing method |
+| **Money** | Surcharge, discount, subtotal, shipping, tax, total |
+| **Lines** | Product, quantity, **price**, meta; optional line groups |
+
+### Public share → order (critical path)
+
+1. Caller resolves the quote by **token** (`type=public` only — private quotes never leak via token lookup).
+2. **Orderable** only when customer **and** all of shipping/billing **method** and **address** IDs are present on the proposal.
+3. Buyer may change **quantities** or **drop** items for the resulting order; those edits apply **only to the order**. Proposal lines are not rewritten.
+4. Unit **prices** come from proposal items (admin-set), pinned to store **base currency** so a buyer currency preference cannot relabel negotiated amounts.
+5. Checkout reuses the normal cart → checkout pipeline (tax, shipping, discounts, payment) with trusted methods so admin-curated methods are honoured even if storefront visibility would hide them.
+6. The customer’s **company** is carried onto the order when present (B2B linkage).
+
+**Blockers for placement:**
+
+| Missing | Effect |
+| --- | --- |
+| No customer | Not orderable |
+| Missing shipping/billing method or address | Not orderable (“missing required checkout information”) |
+| Requested product not on proposal | Rejected |
+| Quantity below 1 / empty selection | Rejected |
+
+### Price provenance (proposals vs catalog)
+
+| Path | What sets unit price |
+| --- | --- |
+| Catalog display + normal cart | Live Product prices → optional customer price provider (first non-null) → optional Rules stack — see [Pricelists](/user-guide/products/pricelists) and [Orders overview](/user-guide/orders/overview) |
+| **Public proposal place** | **Proposal line price** is authoritative; catalog/providers are not re-consulted to replace those amounts |
+
+Do not tell operators that deploying a pricelist “updates open proposals.” Proposal lines are their own snapshot until an agent edits them.
+
+### Permissions
+
+- **Install:** Order Hub (core). Sidebar with view permission.
+- CRUD on proposals via quote/proposal permissions; scoped **view-own** for agents where granted.
+- Agent role types seed a proposal-centric admin permission set.
+
+## Typical workflows
+
+### Build a private proposal (internal / sales)
+
+1. Open **Orders → Proposals**.
+2. Create a quote; assign the **customer**.
+3. Add line items (products + negotiated unit prices / quantities).
+4. Optionally attach addresses and shipping/billing methods early if the offer should be order-ready later.
+5. Keep **private** while negotiating internally.
+
+### Make it shareable and orderable
+
+1. Set type **public** (token issued/managed by the platform share flow).
+2. Ensure **customer**, **shipping + billing addresses**, and **shipping + billing methods** are all set.
+3. Confirm line prices and currency intent (base currency).
+4. Share the public link; verify the order action appears only when orderable conditions hold.
+
+### After the buyer places
+
+1. Find the new record under **All Orders** (do not expect the proposal row to disappear or change status).
+2. Continue fulfilment / payment / status on the **order** lifecycle — see [Order lifecycle](/user-guide/orders/lifecycle).
+3. Leave the proposal as the historical offer document unless sales explicitly revises it for a new round.
+
+### Agent role
+
+Assign **agent**-type roles when the operator’s primary job is quoting. Warehouse / finance operators centre on **All Orders** and status actions instead.
+
+## Dependencies
+
+| Dependency | Why it matters |
+| --- | --- |
+| **Order Hub** | Owns quotes/proposals, public place service, checkout reuse |
+| **Customers** | Proposal customer, addresses; company carried to order; agent roles |
+| **Products** | Quote lines reference products |
+| **Settings → Shipping / Billing** | Method IDs required for orderable public proposals — see [Order-related settings](/user-guide/orders/related-settings) |
+| **Carriers** | Fulfilment/tracking after order — not a proposal prerequisite |
+| **Pricelists / live Price** | Catalog baseline; **not** what public place re-reads for unit price |
+| **Customer price providers** (integrations) | Trusted catalog/cart prices; superseded by proposal lines on public place |
+| **Rules** (optional) | Can still affect checkout pipeline aspects; do not claim they rewrite proposal unit prices on public place |
+| **Auth / Storefront** | Public token path vs registered checkout |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Treat Admin “Proposals” and API “quotes” as different products | Same resource; docs/support get confused | One concept: Proposal = Quote |
+| Share a private quote expecting a public link to work | Token lookup requires `type=public` | Mark/share as public and verify the token path |
+| Public share without customer + methods + addresses | Buyer cannot place | Complete prerequisites before sending |
+| Expect buyer to pick shipping/billing on public place | Anonymous path takes methods/addresses **from the proposal** | Pre-fill on the quote |
+| Expect live catalog / provider price on public place | Proposal line price wins | Edit quote lines if the offer must change |
+| Expect the proposal record to flip to “ordered” automatically | Proposal is not mutated on place | Track the resulting **order** under All Orders |
+| Fix “wrong price on share” by redeploying a pricelist | Proposal lines unchanged | Edit the proposal line prices |
+| Train agents only on All Orders | Quote motion invisible | Proposals + agent permissions |
+| Theme/client invents charged prices on proposal UI | Breaks trust | Server-authoritative proposal amounts |
+
+## Related
+
+- [Orders overview](/user-guide/orders/overview)
+- [Order lifecycle](/user-guide/orders/lifecycle)
+- [Order-related settings](/user-guide/orders/related-settings)
+- [Customers overview](/user-guide/customers/overview)
+- [Companies](/user-guide/customers/companies)
+- [Roles](/user-guide/customers/roles)
+- [Pricelists](/user-guide/products/pricelists)
+- [How Products work](/user-guide/products/how-products-work)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)
