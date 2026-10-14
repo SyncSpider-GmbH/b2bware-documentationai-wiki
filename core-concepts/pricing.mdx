@@ -197,6 +197,34 @@ the cart's currency. Carts created before multi-currency support are treated
 as base-currency carts. To switch currencies mid-session, empty the cart (or
 start a new one) and continue in the new currency.
 
+### Shipping, Add-ons and Rule Amounts
+
+Amounts you configure — shipping method prices, table rates, shipping add-ons,
+and the fixed amounts and price thresholds of cart and catalog price rules —
+are always entered in the **base currency**. The platform converts them with
+the currency's exchange rate:
+
+- **Charged amounts** (shipping price, add-on price, fixed discounts) are
+  converted into the cart or order currency and rounded to 2 decimals.
+  Checkout lists shipping methods with prices in the cart currency.
+- **Thresholds** (table-rate subtotal brackets, shipping-rule price conditions,
+  cart rule conditions on subtotal or product prices) are compared in the base
+  currency, so a "free shipping from €100" rule triggers at the equivalent of
+  €100 in every currency.
+- **Percentage** discounts are unaffected.
+- **Rule progress** (`GET /carts/{cart}/rule-progress`) reports current,
+  target and remaining values in the cart currency.
+
+Admin-created orders (API and MCP) charge the shipping method in the order
+currency, and changing the shipping method on an existing order re-prices it
+in that order's currency.
+
+<Note>
+If a currency is removed from the supported list while carts or orders still
+use it, its amounts are converted at 1:1 until the cart is emptied or a new
+one is started. LoyaltyHub point redemption values are not converted yet.
+</Note>
+
 ## Coupons and Cart Rules
 
 Coupon discounts are **not** part of `finalPrice` — they apply at the cart level. Render coupon savings on the cart/checkout page, not the PDP:
