@@ -1,0 +1,105 @@
+---
+title: Stock Movements overview
+description: Optional Stock Movements ledger in B2Bware versus Stock Locations — append-only reasons, Demo install gating, soft-coupled goods receipts, and default-off write-through to live stock.
+---
+
+**Stock Movements** in B2Bware Admin is the UI for the optional **Stock Movements** module — an **append-only ledger** of quantity deltas with canonical **reasons**. It is **not** the same as **Products → Stock Locations**.
+
+| Concept | Role |
+| --- | --- |
+| **Stock Movements module** | Optional installed package. When present and the operator can view it, Admin shows a **Stock** group with **Movements**. |
+| **Stock Movement** | One immutable-style ledger row: product, qty delta, warehouse (when set), reason, references. |
+| **Reasons** | `receipt`, `adjustment`, `sale`, `return`, `transfer`. |
+| **Movements Admin** | Flat child **Movements** under Stock. |
+| **Stock Location (Warehouse)** | Product Hub master of *where* stock can live — **Products → Stock Locations**. |
+| **Stock row** | Live on-hand qty for **product × warehouse** on the product Stock tab. |
+| **Default warehouse** | The warehouse commerce (storefront availability / default order deduction) uses. |
+
+**Mental model:**
+
+- **Stock Locations + Stock rows** = *current balances the catalog/commerce reads* (especially the **default** warehouse).
+- **Stock Movements** = *history of why balances changed* (ledger).
+- Soft couple: ledger does **not** automatically rewrite Product Hub Stock unless write-through is explicitly enabled for the deployment (**default off**).
+
+<Callout kind="alert" collapsed="false">
+Stock Movements is **optional** (`hasStockMovements`). Production Admin can show **Stock → Movements** when installed. **B2B Portal Demo Store does not list Stock** — operators on Demo will only see **Stock Locations** under Products. Demo Store presence of other hubs does **not** mean every tenant (or Demo) has Movements.
+</Callout>
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Products → Stock Locations** | Warehouse masters + live qty — see [Stock Locations](/user-guide/products/stock-locations) |
+| **License pools** | Key inventory |
+| **Procurement GR** | Purchasing receipt document (may *emit* a movement) |
+| **Import/Export files** | Bulk tools — not the ledger UI |
+
+## Why teams use Stock Movements
+
+1. **Audit trail** — Explain receipts, sales, adjustments, returns, transfers over time.
+2. **Purchasing handoff** — Goods receipts can append `receipt` movements when Procurement + Stock Movements are both installed.
+3. **Ops discipline** — Prefer ledgered adjustments over silent qty edits when the module is part of SOP.
+4. **Multi-step inventory** — Separate “document happened” (GR/order) from “ledger recorded it.”
+5. **Safe default** — With write-through off, experimenting with Movements will not corrupt live storefront stock by surprise.
+
+Use **[Stock Locations](/user-guide/products/stock-locations)** to define sites and maintain live qty for commerce. Use **Stock Movements** when you need a **ledger** (and optionally wire GR → receipt).
+
+## How it couples
+
+```
+Procurement Goods Receipt  --(optional listener)-->  Stock Movement (reason: receipt)
+Manual / API adjustment    ----------------------->  Stock Movement (reason: adjustment|…)
+Stock Movement ledger      --(write-through OFF)-->  no Product Hub Stock change (default)
+Stock Movement ledger      --(write-through ON) -->  may mirror balance via ProductStockGateway
+Product Stock row (default warehouse)  <----------  Order Hub deduction / storefront assess
+```
+
+1. Creating a movement **records history**.
+2. **Default:** live Product Hub `Stock` is **not** updated by the gateway (write-through to product stock is **off by default** → soft no-op).
+3. Order Hub / storefront continue to honour **default-warehouse** Stock rows (see Stock Locations).
+4. Procurement GR subscriber is soft-coupled: only listens if Procurement event classes exist.
+
+**Do not assume** automatic sale movements for every order until a tenant’s coupling is confirmed — Order Hub stock adjustment to product stock is a **separate** Product Hub path from this ledger.
+
+## How to use the hub
+
+1. Check whether **Stock** / Movements appears — if not, the module is not installed (common on Demo).
+2. Keep **[Stock Locations](/user-guide/products/stock-locations)** correct first; Movements without warehouses/products is noise.
+3. Prefer **receipt** movements from **[Goods Receipts](/user-guide/procurement/overview)** when Procurement is in play.
+4. Use **adjustment** deliberately for cycle counts; document who/why in operational notes outside the ledger if fields are sparse.
+5. Before enabling write-through, understand you are linking ledger truth to live commerce qty — default is safer off.
+6. For “why is PLP saying OOS?” debug **default warehouse Stock row** first, not the Movements list alone.
+7. Cross-train: [Licenses](/user-guide/licenses/overview) pools ≠ stock movements.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Stock Movements installed** | Sidebar + APIs (`hasStockMovements`) |
+| **Product Hub** | Products + warehouses the ledger refers to |
+| **Customer Hub** | Package require / permission hosting patterns |
+| **Procurement Hub (optional)** | GR → receipt movements |
+| **Order Hub (adjacent)** | Commerce qty paths — confirm coupling before claiming auto `sale` rows |
+| **Auth + admin access** | Admin writes |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Teaching from Demo only | Movements hidden there | Call out Demo absence |
+| Confusing Movements with Stock Locations | Wrong screen / wrong fix | Locations = masters+qty; Movements = ledger |
+| Expecting ledger to fix OOS automatically | Write-through off by default | Edit Stock row / enable write-through knowingly |
+| Ignoring default warehouse | Multi-site qty illusions | Commerce uses default |
+| Assuming GR always posts movements | Needs Stock Movements installed | Check both hubs |
+| Using Movements as WMS bins/ATP | Not evidenced | Stay within reasons + ledger |
+
+## Related
+
+- [Stock Locations](/user-guide/products/stock-locations) — warehouses + live Stock; primary contrast page
+- [Edit a product](/user-guide/products/edit-product) — Stock tab qty
+- [Procurement overview](/user-guide/procurement/overview) — GR → receipt
+- [Order lifecycle](/user-guide/orders/lifecycle) — commerce deduction path
+- [Manage products](/user-guide/products/manage-products)
+- [Vendors](/user-guide/products/vendors) — supply link ≠ movements
+- [Licenses overview](/user-guide/licenses/overview) — keys ≠ qty ledger
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

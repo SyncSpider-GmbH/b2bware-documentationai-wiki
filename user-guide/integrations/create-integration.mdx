@@ -9,6 +9,22 @@ description: Walk through the Integration Hub wizard — connector, authenticati
 - Decide **import** vs **export** for each entity you will sync.
 - For ERP iframe installs, use [Embed Integration Hub](/help-center/guides/embed-integration-hub) instead of (or in addition to) the full admin wizard.
 
+### Pre-flight checklist
+
+Complete these decisions before you open the wizard:
+
+1. **Identify the source of truth** for each entity: product catalog, order status, customer/account data, or the external system.
+2. **Confirm the external identifier** and the B2Bware identifier that will be matched (for example, SKU or an agreed customer/order key).
+3. **Decide direction and write ownership** before enabling a bidirectional connection; otherwise two systems can overwrite each other.
+4. **Confirm permissions, credentials, and the connector’s supported entities/operations.**
+5. **Start with a narrow scope or test set** where the connector supports it.
+
+Treat [How products work](/user-guide/products/how-products-work), [Orders overview](/user-guide/orders/overview), and [Customers overview](/user-guide/customers/overview) as **concept pages** for the records you will sync — not as alternate setup paths. For a one-off file transfer, use [Import / Export](/user-guide/import-export/overview) instead: a bulk file job is a different operating model from an ongoing connector.
+
+<Callout kind="info" collapsed="false">
+Choose **Integrations** for a continuing connector and its mappings/runs. Choose **Import / Export** when the intended result is a downloadable file or Download history artifact — not a live sync connection.
+</Callout>
+
 From **Integrations → Create**, the wizard has six steps. You can **Save draft** and return later; **Back to integrations** returns to the list without discarding a saved draft.
 
 ## Wizard steps
@@ -24,7 +40,7 @@ From **Integrations → Create**, the wizard has six steps. You can **Save draft
     For each entity the connector supports, set direction (Import / Export), enable or disable the entity, and answer blueprint **decision** questions (sync policies, media, variations, and connector-specific defaults).
   </Step>
   <Step title="Field mapping" icon="git-branch">
-    Map source fields to DataHub (or the reverse on export). Use Core fields, Attributes, and Dynamic fields; apply transforms; mark variation axes with **Use as variant**. See [Mapping and filters](/user-guide/integrations/mapping-and-filters).
+    Map source fields to B2Bware (or the reverse on export). Use Core fields, Attributes, and Dynamic fields; apply transforms; mark variation axes with **Use as variant**. See [Mapping and filters](/user-guide/integrations/mapping-and-filters).
   </Step>
   <Step title="Preview" icon="eye">
     Inspect a sample mapped payload before going live. Fix gaps in mapping or decisions if the preview looks wrong.
@@ -56,3 +72,4 @@ In the full B2Bware admin you always get the full wizard.
 
 - [Mapping and filters](/user-guide/integrations/mapping-and-filters)
 - [Sync runs](/user-guide/integrations/sync-runs)
+- [Integrations overview](/user-guide/integrations/overview)

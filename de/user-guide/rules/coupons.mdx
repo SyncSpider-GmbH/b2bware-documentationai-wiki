@@ -1,0 +1,102 @@
+---
+title: Coupons
+description: Coupons im B2Bware Rule Hub — Codes, die Cart Price Rules aktivieren, Usage Limits, Ablauf und wie Redemptions beim Checkout gezählt werden.
+---
+
+Ein **Coupon** bindet einen **Code** an eine **Cart Price Rule**. Die Eingabe des Codes (Storefront / API) fordert Rule Hub auf, den Coupon zu validieren und — wenn gültig — die Economics dieser Cart Rule auf den Cart anzuwenden.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Coupon** | Code, Type, Limits, Ablauf, Link zur Cart Rule, optionaler Primary-Flag |
+| **Cart Price Rule** | Definiert, *welche* Discount- / Free-Shipping- / Tier-Logik läuft |
+| **Validation** | Prüft Code, Ablauf, Usage Caps, Rule-Applicability |
+| **Redemption Accounting** | Usage Log + Coupon Times-Used werden aktualisiert, wenn der Order-Pfad Usage erfasst |
+| **Admin** | **Rules → Coupons**, wenn Rule Hub installiert ist |
+
+**Coupon Types:** specific (manueller Code) und auto-generated (Bulk-Generierung).
+
+**Mentales Modell:** *Rule = Angebotsdefinition; Coupon = Schlüsselzugang zu diesem Angebot.*
+
+<Callout kind="alert" collapsed="false">
+Rule Hub ist optional. Ein Coupon ist **keine** eigenständige Discount-Formel — ohne eine tragfähige [Cart Price Rule](/de/user-guide/rules/cart-price-rules) hat der Code nichts Nützliches anzuwenden.
+</Callout>
+
+## Warum Teams Coupons nutzen
+
+1. **Kampagnen-Distribution** — Codes teilen, ohne dass die Cart Rule automatisch für alle gilt.
+2. **Usage Control** — Gesamt- und Per-Customer-Caps.
+3. **Ablauf** — Codes zeitlich begrenzen, unabhängig von breiterem Rule-Scheduling (Rule-Daten/Status weiterhin beachten).
+4. **Viele Codes, ein Angebot** — Auto-generierte Packs für Partner oder Single-Use-Mailings.
+5. **Support-Triage** — Ablehnungsgründe liefern konkrete Messages (zum Beispiel Per-Customer-Max) statt eines generischen Fehlers.
+
+## Wie es funktioniert
+
+### Schlüsselfelder
+
+| Feld | Notes |
+| --- | --- |
+| **Rule** | Pflicht-Link zu einer **Cart** Price Rule |
+| **Code** | Was der Buyer eingibt |
+| **Coupon Type** | Specific oder auto-generated |
+| **Usage Limit** | Erlaubte Gesamt-Redemptions (enforced vs Times Used) |
+| **Usage per Customer** | Per-Customer-Cap über vorherige Usage-Log-Counts |
+| **Times Used** | Zähler, der erhöht wird, wenn Usage committed wird |
+| **Primary** | Primary-Coupon-Marker für eine Rule |
+| **Expiration Date** | Code-Ablauf |
+
+### Apply und Limits
+
+1. Buyer wendet Code an → Coupon-Validation + Cart-Rule-Engine-Apply.
+2. Ungültig → Errors zurück (Storefront sollte den ersten konkreten Grund zeigen).
+3. Gültig → Cart-Discount- / Free-Shipping-Ergebnis aus der verknüpften Rule.
+4. Bei erfolgreichem Checkout-Usage-Logging: Usage Log schreiben (mit Customer, wenn bekannt) und Coupon **Times Used** erhöhen, wenn der Payment-Pfad Usage committed.
+
+### Verzögertes Counting (async External Payment)
+
+Wenn Payment **asynchron** bestätigt wird, können Platforms ein Usage Log mit **pending payment** schreiben und das Erhöhen von Times Used **verzögern**, bis Payment gelingt. Per-Customer-Counts **schließen** Pending-Rows **aus**, damit abgebrochene Payments Buyer nicht aussperren.
+
+<Callout kind="info" collapsed="false">
+Dieses Design erlaubt ein schmales **Double-Redeem-Fenster**, wenn zwei parallele Checkouts denselben Coupon anwenden, während beide noch pending sind, und beide dann zahlen. Seltene Over-Redemption in diesem Muster ist ein bekannter Trade-off — kein zufälliger Bug.
+</Callout>
+
+### Guests
+
+Per-Customer-Limit-Checks brauchen einen authentifizierten Customer; Guest-Checkouts überspringen diese Dimension — auf Total Usage Limit und operative Policy setzen.
+
+## So nutzen Sie es
+
+1. Die **Cart Price Rule** anlegen und aktivieren (Economics, Conditions, Priority).
+2. Coupon(s) mit Rule-Link, Code oder Auto-Generate-Batch, Limits, Ablauf anlegen.
+3. Smoke-Test: gültiger Code, abgelaufener Code, erschöpftes Usage Limit, Zweitnutzung wenn Usage per Customer = 1.
+4. Support zu Rejection Messages und Pending-Payment-Verhalten bei Async Pay briefen.
+5. **Usage Logs** und Coupon Times Used während der Kampagne monitoren.
+6. Kampagne früh beenden: Codes ablaufen lassen und/oder die Cart Rule deaktivieren (expliziten Status dem Löschen von History vorziehen).
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Rule Hub** | Optional |
+| **Cart Price Rules** | Coupon ohne tragfähige Rule ist nutzlos |
+| **Order Hub** | Apply am Cart; Log beim Checkout / Payment Settlement |
+| **Customer Hub** | Per-Customer-Usage-Identität |
+| **Catalog Rules / Pricelists** | Vorherige Price-Schichten; Coupons ersetzen sie nicht |
+
+## Häufige Fehler
+
+| Fehler | Warum es wehtut | Bessere Praxis |
+| --- | --- | --- |
+| Coupon zeigt auf inactive/mismatched Rule | Code validiert schlecht oder Discount ist null | Rule aktiv und Conditions erfüllbar halten |
+| Erwarten, dass Per-Customer-Limits Guests binden | Check bei Guests übersprungen | Total Usage Limit nutzen oder Login verlangen |
+| Coupons löschen, um History zu „resetten“ | Verliert Audit Trail | Bewusst ablaufen lassen / Limits erhöhen; Logs nutzen |
+| Annehmen, Pending Payment habe das Allowance schon verbraucht | Pending aus Per-Customer-Count ausgeschlossen | Async Settlement dem Support erklären |
+| Unit-Price-PDP-Promos nur als Coupons bauen | Coupons sind Cart-Layer | [Catalog Rules](/de/user-guide/rules/catalog-price-rules) für Stückpreis-Anzeige nutzen |
+| Coupon Usage Logs mit License Hub Usage verwechseln | Unterschiedliche Hubs | Nur auf Rule **Usage Logs** verweisen |
+
+## Related
+
+- [Rules — Überblick](/de/user-guide/rules/overview)
+- [Cart Price Rules](/de/user-guide/rules/cart-price-rules)
+- Usage Logs
+- [Order-Lifecycle](/de/user-guide/orders/lifecycle)
+- [Pricelists](/de/user-guide/products/pricelists)

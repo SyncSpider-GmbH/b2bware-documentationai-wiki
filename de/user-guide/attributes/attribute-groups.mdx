@@ -1,0 +1,102 @@
+---
+title: Attribute Groups
+description: Typisierte Attribut-Buckets im B2Bware Attributes-Hub — product, category, order, customer und andere hub-beitragene Typen — und warum der Gruppentyp Checkout- und Storefront-Flags steuert.
+---
+
+Eine **Attribute Group** ist ein benannter Container, der:
+
+1. verwandte **Attribute**-Definitionen über `group_id` hält,
+2. einen **Typ** deklariert, der angibt, zu welcher Datensatzklasse die Attribute gehören (`product`, `order`, `category`, …),
+3. optional Gruppen über `display_order` für Admin- / Storefront-Gruppierungs-UIs ordnet.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Attribute Group** | Admin: **Attributes → Attribute Groups**. Felder: `name`, `type`, `display_order`. |
+| **type** | Diskriminator für Flag-Validierung, Checkout-Filter, Collections, Automation-Attribut-Picker. |
+| **Mitgliedsattribute** | Attribute, die auf diese Gruppe zeigen; verwaist (`group_id` null), wenn die Gruppe gelöscht wird. |
+| **Kein Attribute-Set an der Kategorie** | Ein Produkt in eine Kategorie zu legen hängt **nicht** automatisch die Attribute einer Gruppe an dieses Produkt. |
+
+**Mentales Modell:** Groups = *für wen / wofür diese Feld-Familie gedacht ist*. Collections = *wie wir ein Bündel auf einer Oberfläche präsentieren*. Attributes = *die Felder selbst*.
+
+Das Speichern einer Gruppe ist **live**. Es gibt **keinen** Draft-→-Deploy-Lebenszyklus für Attribute Groups.
+
+## Warum Teams Groups nutzen
+
+1. **Belange trennen** — Produktspecs, Checkout-Felder und Kundenprofilfelder bleiben in unterschiedlich typisierten Gruppen, damit Flags nicht falsch angewendet werden.
+2. **Checkout-Sicherheit** — Der Order-Hub zeigt nur Attribute aus **order**-Gruppen mit `use_in_checkout`.
+3. **Admin-Klarheit** — Operatoren browsen „Technische Specs“ vs. „Checkout-Notizen“ statt einer flachen Liste.
+4. **Automation-Targeting** — Attributable Targets filtern den Attribut-Picker nach Gruppentypen (z. B. Product-Target → product-typisierte Attribute).
+5. **Collection-Kompatibilität** — Der `group_type` einer Collection muss zum Gruppentyp jedes Mitgliedsattributs passen.
+
+Legen Sie eine Gruppe **an**, bevor Sie Attribute mit gated Flags anlegen. Preferieren Sie wenige, stabile Gruppen statt einer Gruppe pro Attribut.
+
+## Wie Typen und Lebenszyklus funktionieren
+
+### Verfügbare Typen
+
+Typen sind **nicht nur im Attributes-Hub hardcodiert**. Jeder Hub merged Typen beim Boot. Operatoren sehen die Union für den Tenant.
+
+| Wenn Product + Order + Customer installiert sind (typische Demo) | Bedeutung |
+| --- | --- |
+| `product` | Specs / Variation / PDP / Warenkorb / Such-Flags |
+| `category` | Werte **am Kategorie-Datensatz**; Collections für die Kategorie-Seite |
+| `order` | Checkout- + Bestellübersichts-Attribute |
+| `order_line` | Zeilenbezogene Order-Attribute (Automation / advanced; nicht der Haupt-Checkout-Listenvertrag) |
+| `customer` / `company` / `contact` | Konto- / CRM-Anreicherung; My-Account-Collections für customer / company |
+
+Weitere Typen erscheinen, wenn Invoice-, License-, Rule- und ähnliche Hubs installiert sind. Template-Seed-Tags können hinterherhinken — **vertrauen Sie der Live-Gruppen-Typenliste** in Admin / API.
+
+### Anlegen / Aktualisieren / Löschen
+
+| Aktion | Verhalten |
+| --- | --- |
+| **Anlegen** | Name + Typ (+ optional display_order). Speichert **live**. |
+| **Aktualisieren** | Typwechsel an einer Gruppe, die bereits Attribute hat, kann zuvor legale Flags an diesen Attributen invalidieren — Typänderungen sorgfältig planen (preferieren: neue Gruppe + Attribute migrieren). |
+| **Löschen** | Attribute werden **nicht** gelöscht; ihr `group_id` wird auf **null** gesetzt. Waisen in eine neue Gruppe einsammeln oder ungruppiert lassen (Flags, die einen Gruppentyp brauchen, scheitern bis zur Neuzuweisung).
+
+### Zusammenspiel mit Attributes und Collections
+
+- Die Attribut-Schreibvalidierung lädt die Gruppe, um Checkout-, PDP- und verwandte Flags zu erlauben / abzulehnen.
+- Checkout-Discovery: Gruppentyp `order` **und** `use_in_checkout`.
+- Collection-Attach: Gruppentyp des Attributs muss dem Collection-`group_type` entsprechen.
+- Storefront- / Admin-UIs gruppieren angezeigte Felder oft nach Attribute Group für Lesbarkeit.
+
+### Hinweis zu Categories
+
+Eine **category**-typisierte Gruppe speichert Attribute **über die Kategorie**. Sie definiert **nicht**, welche **Produkt**-Attribute eine SKU nutzen darf, wenn sie in dieser Kategorie liegt. Siehe [Categories](/de/user-guide/products/categories).
+
+## Typische Workflows
+
+1. **Katalog** — Gruppen wie „Allgemeine Specs“ und „Technisch“ mit `type=product`.
+2. **Checkout** — Eine einzelne `type=order`-Gruppe „Checkout-Felder“.
+3. **Kategorie-Chrome** — `type=category`-Gruppe nur, wenn Kategorie-Attribute / Collections genutzt werden.
+4. **B2B-Konto** — `customer`- / `company`-Gruppen für Profil-Extras.
+
+## Abhängigkeiten
+
+| Related | Warum |
+| --- | --- |
+| **Alle Attribute** | Mitglieder leben hier. Siehe [Alle Attribute](/de/user-guide/attributes/all-attributes). |
+| **Attribute Collections** | Gleiche `group_type`-Einschränkung. Siehe [Attribute Collections](/de/user-guide/attributes/attribute-collections). |
+| **Product- / Order- / Customer-Hubs** | Beitragen Typen + attributable Models |
+| **Roles** | Attributes-Hub-Berechtigungen für Attribute Groups |
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Eine Mega-Gruppe „Alle“ als product typisieren | Kann keine Checkout-Felder hosten; Flag-Verwirrung | Nach Typ splitten; klar benennen |
+| Gruppe löschen und erwarten, dass Attribute verschwinden | Attribute bleiben, ungruppiert | Bewusst neu zuweisen oder Attribute löschen |
+| Gruppentyp beiläufig ändern | Flags / Collections / Checkout brechen | Neue Gruppe + Attribute verschieben |
+| Erwarten, dass eine Kategorie-Gruppe Produktformulare gated | So funktioniert B2Bware nicht | Product-Gruppen für SKU-Specs nutzen |
+| Order-Attribute in einer Product-Gruppe anlegen | Checkout sieht sie nie | `type=order` + `use_in_checkout` |
+| Annehmen, jeder Typ-Tag im Template existiert auf jedem Tenant | Typen folgen installierten Hubs | Gruppen-Typenliste auf dem Tenant prüfen |
+
+## Related
+
+- [Attributes — Überblick](/de/user-guide/attributes/overview)
+- [Alle Attribute](/de/user-guide/attributes/all-attributes)
+- [Attribute Collections](/de/user-guide/attributes/attribute-collections)
+- [Categories](/de/user-guide/products/categories)
+- [Orders overview](/user-guide/orders/overview) (EN)
+- [Customers overview](/user-guide/customers/overview) (EN)

@@ -1,0 +1,114 @@
+---
+title: Storefront Builder — Überblick
+description: Wie Storefront Builder Hub in B2Bware Live-Pages, Documents und Theme Pages erstellt — Compile-Modell, Soon-Oberflächen, Abhängigkeiten und Fallstricke.
+---
+
+**Storefront Builder** in B2Bware Admin ist die UI für das optionale **Storefront Builder Hub** — eine visuelle Authoring-Oberfläche, die ein `content_json`-Canvas-Dokument speichert und es in Ausgaben **kompiliert**, die der Shop oder Worker konsumieren.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Storefront Builder Hub** | Optional installiertes Package. Wenn vorhanden und der Operator es sehen darf, zeigt Admin **Storefront Builder** mit Live- und **Soon**-Children. |
+| **Builder-Dokument** | Grid-Canvas + Bindings + Show-when-Gates + Design Tokens, gespeichert als `content_json` |
+| **Pages** | Storefront-Seiten (SEO-Meta, Zugriffsregeln, Status), kompiliert Richtung theme-safe Blade für den Shop |
+| **Documents** | Druck-/PDF-Templates; PDF-Export über die Queue → Media-Hub-Anhang an generierten PDF-Zeilen |
+| **Theme Pages** | Theme- bzw. slot-orientierte Seiten, bearbeitet für das Live-Storefront |
+| **Blocks / Versions / Fonts** (Backend) | Wiederverwendbare Blocks, Versions-Snapshots, Schriftbibliothek — stützen den Builder; nicht jede Entität hat heute ein eigenes Demo-Sidebar-Child |
+| **Soon-Children** | Section Library, Emails, Form Submissions — gelistet, in Admin aber **deaktiviert** |
+
+**Mentales Modell:** Storefront Builder erstellt **strukturierte Content-Dokumente**. Storefront Hub / Themes **rendern** veröffentlichte Pages und Slots. Media Hub kann **generierte PDF-Bytes** halten. Es ist **kein** separates „Content Hub“-Produkt in der Admin-Sidebar und **kein** Social Publishing.
+
+<Callout kind="alert" collapsed="false">
+Storefront Builder Hub ist **optional** (`storefront-builder-hub`). Die Gruppe erscheint nur, wenn der Hub installiert ist und der Operator das Modul sehen darf. Präsenz im Demo Store bedeutet **nicht**, dass jeder Tenant Storefront Builder hat.
+</Callout>
+
+### Live vs Soon (Demo / Production Admin)
+
+| Child | Status für das Benutzerhandbuch |
+| --- | --- |
+| **Pages** | **Live** — dokumentieren |
+| **Documents** | **Live** — dokumentieren |
+| **Theme Pages** | **Live** — dokumentieren |
+| **Section Library** | **Soon** — nur erwähnen; kein How-to |
+| **Emails** | **Soon** — nur erwähnen; kein How-to |
+| **Form Submissions** | **Soon** — nur erwähnen; kein How-to |
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Content Hub** | Kein aktuelles Admin-Sidebar-Produkt — parken; Storefront Builder nutzen |
+| **Store Setup** | Tenant-Shop-Konfiguration (Branding, Features, Social-**Links**, Themes) |
+| **Notifications** | Event-getriebene Kunden-E-Mails — nicht das Soon-Child Emails |
+| **Media** | Asset-Bibliothek / Speicher generierter PDF-Dateien — keine Seitenkomposition |
+| **Integrations** | Daten-Sync-Connectoren — kein Page-Authoring |
+
+## Warum Teams Storefront Builder nutzen
+
+1. **CMS-artige Seiten ohne paralleles CMS-Produkt** — Marketing-, Landing- und Content-Seiten erstellen, die in den Storefront-Theme-Pfad kompilieren.
+2. **Typisierte PDF- und Druckdokumente** — Katalogblätter, Angebotsmappen, druckbare Dokumente über einen festgelegten Template-Typ, mit Generierung über die Queue.
+3. **Steuerung von Theme-Slots und Theme Pages** — Theme-nahe Seiten anpassen, während der Shop auf Storefront-Hub-Themes bleibt.
+4. **Ein Canvas-Modell** — Dieselbe Builder-Sprache für Pages und Documents; Operatoren lernen Bindings einmal.
+5. **Betriebskontinuität** — Versionshistorie und PDF-Job-Status beantworten „warum ist dieses PDF falsch?“, ohne Media zu einem CMS zu machen.
+
+Nutzen Sie **[Store Setup](/de/user-guide/store-setup/overview)** für Tenant-Branding, Feature-Flags, die Konfiguration rechtlicher Seiten und **Social-Profil-URL-Links**. Nutzen Sie **[Notifications](/de/user-guide/notifications/overview)** für event-getriebene Kunden-E-Mails. Nutzen Sie **[Media](/de/user-guide/media/overview)** zum Anhängen aus der Asset-Bibliothek — nicht für die Seitenkomposition.
+
+## Wie Live-Oberflächen zum Storefront passen
+
+```
+Authoring in Storefront Builder (Pages / Documents / Theme Pages)
+  → content_json persistiert (tenant-scoped)
+  → Compile:
+       Pages / Theme Pages → theme-safe Blade (Konsum durch Storefront Hub)
+       Documents → Print-HTML → Worker → PDF (Media Hub an GeneratedPdf)
+  → Shop / Download / Theme-Slots konsumieren die veröffentlichte Ausgabe
+```
+
+**Für Operatoren relevant:**
+
+- PDF-Zeilen durchlaufen Queue-Zustände (`queued` → `processing` → `completed` | `failed`; während der Verarbeitung abbrechbar).
+- Für den Owner sichtbare PDF-Fehler sind generisch und tragen einen Referenzcode; tiefe Stack-Traces bleiben in den Platform-Logs.
+- Vom Shop lesbare APIs lösen **veröffentlichte** Pages und Blocks auf; Admin-CRUD braucht Admin-Zugriff plus Hub-Berechtigungen.
+- E-Mail-MJML-Compile und Form-Submission-Tabellen können im Package existieren, die Admin-Children für Emails, Form Submissions und Section Library sind aber **Soon** — nicht als Live-UI lehren.
+
+## So nutzen Sie Storefront Builder
+
+1. Prüfen, dass **Storefront Builder** sichtbar ist (Hub installiert und Modul sichtbar).
+2. Mit **Pages** beginnen, wenn der Shop den Storefront-Content auflösen soll; Status, Zugriff und SEO bewusst setzen, bevor öffentliches Rendering erwartet wird.
+3. **Theme Pages** nutzen, wenn die Aufgabe Theme- oder Slot-Content ist und keine freistehende CMS-Seite.
+4. **Documents** nutzen, wenn die Aufgabe druckbare oder PDF-Ausgabe ist; nach der Queue die generierte Datei (über Media) prüfen statt anzunehmen, dass „Speichern = PDF fertig“ gilt.
+5. **Soon**-Badges als nicht verfügbar behandeln — deaktivierte Routen nicht als unterstützte Abläufe öffnen.
+6. Mit **Store Setup** (Shop-URL, Erscheinungsbild, Features) und Storefront-Hub-Themes abstimmen, wenn Themes installiert sind — der Builder ersetzt das Tenant-Store-Setup nicht.
+7. Für transaktionale Käufer-E-Mail Types und Channels unter **Notifications** prüfen — nicht das Soon-Child Emails.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Storefront Builder Hub installiert** | Sidebar-Gruppe und Builder-APIs |
+| **Berechtigungen** | `storefront-builder-hub.*` (Pages, Documents, Generated-PDFs wie vergeben) |
+| **Storefront Hub** (optional, aber üblich) | Theme- und Blade-Konsum; Themes-Tab unter Store Setup, wenn installiert |
+| **Media Hub** | Generierte PDF-Dateien über polymorphes Media-Attach |
+| **Queue / Render-Worker** | PDF-Export-Jobs |
+| **Auth und Admin-Zugriff** | Schreibzugriff in Admin |
+
+**Keine Voraussetzungen:** Shipping und Billing unter Settings; Integrations-Sync; Notification-E-Mails; Event-Hub-Webhooks.
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- |
+| Content Hub als Top-Level dokumentieren | Nicht das Label in Demo- und Production-Admin | Nur **Storefront Builder** nutzen |
+| Soon-Children als Live lehren | Deaktivierte UI; nicht unterstützte Abläufe | Als Soon markieren; How-tos bis zum Release auslassen |
+| Builder-Emails (Soon) mit Notifications verwechseln | Andere Produkte | Notifications für Event-Mail |
+| Speichern eines Documents = sofortiges PDF erwarten | Worker in der Queue plus Media-Attach | Generierungsstatus und Download prüfen |
+| Shop-Chrome nur im Builder ändern | Branding und Features leben in Store Setup | Content und Tenant-Setup trennen |
+| Annehmen, jeder Tenant hat den Builder | Optionale Installation | Installation und Berechtigungen prüfen |
+| Theme Pages mit dem Authoring des ganzen Theme-Packages gleichsetzen | Themes bleiben Storefront Hub | Der Builder bearbeitet Slots und Pages; das Themes-Package besitzt die Theme-Laufzeit |
+
+## Verwandtes
+
+- [Store Setup](/de/user-guide/store-setup/overview) — Tenant-Shop-Konfiguration; Social-**Links** sind kein Social-Publishing-Produkt
+- [Media — Überblick](/de/user-guide/media/overview) — Assets und PDF-Dateispeicher
+- [Notifications — Überblick](/de/user-guide/notifications/overview) — an Menschen gerichtete E-Mail-Kanäle
+- [Integrationen (Übersicht)](/de/user-guide/integrations/overview) — Daten-Sync, kein Page-Authoring
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

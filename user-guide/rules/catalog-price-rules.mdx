@@ -1,0 +1,106 @@
+---
+title: Catalog Price Rules
+description: How B2Bware catalog price rules adjust unit prices on top of live/provider bases — actions, priority, groups, and how they differ from pricelists and cart promotions.
+---
+
+A **catalog price rule** is a condition-based adjustment to a product’s **sell unit price** as resolved for a buyer (and customer group context). It runs in the **catalog / line-price** layer — affecting what the shop shows as the effective price and what cart lines use as unit price after the provider/base step.
+
+| Concept | Role |
+| --- | --- |
+| **Base unit price** | Product Hub `finalPrice` cascade, **or** first non-null **CustomerPriceProvider** price (provider wins over Product Hub base). |
+| **Catalog rule overlay** | Matching active rules adjust that base (percent-off, fixed-off, to-percent, to-fixed) by priority. |
+| **Effective sell price** | Base after catalog rules — used by price accessors for display and cart line unit price; **regular** strikethrough base can remain unadjusted for compare-at display. |
+| **Admin** | **Rules → Catalog Price Rules** when Rule Hub is installed. |
+
+**Mental model:** *List/contract price first (pricelist deploy + optional provider), then promotional catalog overlay.* Catalog rules are not a second pricelist and do not require deploy.
+
+<Callout kind="alert" collapsed="false">
+Rule Hub is optional. If **Rules** is absent on the tenant, catalog price rules are not available. Catalog rules do **not** edit staged pricelist rows or replace `finalPrice` type selection.
+</Callout>
+
+**What it is not**
+
+- Not a cart-total coupon (that is [Cart Price Rules](/user-guide/rules/cart-price-rules) + [Coupons](/user-guide/rules/coupons)).
+- Not a rewrite of staged **PricelistItem** rows.
+- Not Tax / License “rules”.
+
+## Why teams use catalog price rules
+
+1. **Category / brand / SKU promotions** visible on PDP and listing without changing every live Price row.
+2. **Group-scoped offers** via customer group targeting aligned with [Segmentation](/user-guide/customers/segmentation).
+3. **Scheduled windows** without a pricelist deploy on the start date.
+4. **Stack control** with **priority** (lower = higher priority) and **stop further rules**.
+5. **Consistent seen = charged unit price** when the same resolution feeds catalog display and cart line pricing.
+
+Prefer **[pricelist deploy](/user-guide/products/pricelists)** when the new amount should become the permanent live Price. Prefer **catalog rules** when the adjustment is promotional, conditional, or temporary on top of an unchanged base.
+
+## How it works
+
+### Key fields
+
+| Field | Notes |
+| --- | --- |
+| **Name** | Operator label |
+| **Status** | Active / inactive / scheduled |
+| **Priority** | Lower number runs first |
+| **Conditions** | Condition tree (product / customer targets) |
+| **Action type** | Percent-off, fixed-off, to-percent, to-fixed |
+| **Action amount** | Magnitude of the action |
+| **Customer group IDs** | Optional group targeting |
+| **Stop further rules** | If true, lower-priority catalog rules do not apply after a match |
+| **Uses count** | Incremented when usage is logged at checkout |
+
+### Resolution order
+
+1. Resolve **unit base**: provider price if any, else Product Hub finalPrice-style base.
+2. Evaluate **active** catalog rules against product + customer context.
+3. Apply matching actions in **priority** order until done or **stop further rules**.
+4. Cart add/update paths that apply catalog rules may store applied rule refs on the line.
+5. At checkout, catalog applications participate in order applied-rules metadata and [Usage Logs](/user-guide/rules/usage-logs).
+
+### Conditions
+
+Conditions combine with **all / any**, and compare product or customer attributes (and custom attributes when Attributes Hub is present). Design *who/what matches* — the full operator list lives in the condition schema, not in this guide.
+
+## How to use
+
+1. Confirm Rule Hub + permission to manage catalog price rules.
+2. Define the **base** story first (live prices / groups / provider) so a %-off has a known denominator.
+3. Create the rule: action type/amount, groups if needed, conditions, priority, stop flag, schedule/status.
+4. Activate and verify as a buyer in the target group — check listing, PDP, and cart line unit price.
+5. If overlapping rules fight, adjust priority or enable stop further rules; do not “fix” by redeploying an unrelated pricelist.
+6. For permanent list changes, use [Pricelists](/user-guide/products/pricelists) or product price edit instead.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Rule Hub** | Optional; page absent otherwise |
+| **Product Hub** | Product context + base prices |
+| **Order Hub** | Provider registry; cart line paths that apply catalog rules; checkout logging |
+| **Customer Hub / Segmentation** | Group targeting and buyer identity |
+| **Attributes Hub** (optional) | Custom attribute conditions |
+| **Pricelists** | Feed live Price that often *is* the base under Rules |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Expecting inactive/scheduled rules to change prices | Only matching active (in window) rules apply | Check status and dates |
+| Assuming deploy turned the promo on | Pricelist ≠ catalog rule | Activate the rule |
+| Wrong customer group IDs | Offer invisible to intended buyers | Match Segmentation group IDs |
+| Stacking many %-offs without stop/priority | Surprising compounding | Design priority bands; test |
+| Blaming catalog rules when a provider returns null unexpectedly | Base changed under the rule | Triage provider first, then rules |
+| Editing cost price expecting promo effect | Cost is not sell cascade | Adjust sell base or rule action |
+| Documenting only Admin form fields | Misses stack position | Always state “on top of provider/base” |
+
+## Related
+
+- [Rules overview](/user-guide/rules/overview)
+- [Cart Price Rules](/user-guide/rules/cart-price-rules)
+- [Coupons](/user-guide/rules/coupons)
+- [Pricelists](/user-guide/products/pricelists)
+- [How Products work](/user-guide/products/how-products-work)
+- [Segmentation](/user-guide/customers/segmentation)
+- [Order lifecycle](/user-guide/orders/lifecycle)
+- [Usage Logs](/user-guide/rules/usage-logs)

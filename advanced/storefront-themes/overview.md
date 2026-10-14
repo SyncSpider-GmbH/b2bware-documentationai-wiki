@@ -52,7 +52,7 @@ here.
 | [View data](view-data.md) | Globals, `$store`, feature flags, pricing, variants |
 | [AJAX & runtime](ajax-and-runtime.md) | Sections, events, `window.Storefront` |
 | [Catalog](catalog.md) | Facets, sorting, filters, pagination |
-| [SEO & images](seo-and-images.md) | `@storefrontSeo`, `@storefrontImage` |
+| [SEO & images](seo-and-images.md) | `@storefrontSeo`, `@storefrontImage` (hard rule for every `media_url`; Bunny Dynamic Images API) |
 | [Server data & auth](fetch-and-auth.md) | `@fetch`, `@storefrontAuthToken`, API reference |
 | [Analytics & slots](analytics-and-slots.md) | Consent analytics, `@storefrontSlot` |
 | [Page recipes](page-recipes.md) | Per-page view-data contracts |

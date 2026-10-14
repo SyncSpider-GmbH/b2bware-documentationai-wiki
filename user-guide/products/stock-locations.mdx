@@ -1,31 +1,134 @@
 ---
 title: Stock locations
-description: Define warehouses or sites that hold inventory for products.
+description: Warehouses in B2Bware — how Stock Locations differ from product stock quantities, why the default warehouse matters for cart and orders, and how optional Stock Movements relates.
 ---
 
-Create locations before you assign stock on products.
+**Stock Locations** is the Products-hub name for **warehouses**: master records that identify *where* inventory can be held. The screen is intentionally small — a location is not the quantity itself.
 
-<Image
-  src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404841938-3ntut5gmw82-stock-locations.png?fm=auto&auto=compress%2Cformat"
-  alt="Stock Locations list"
-/>
+Quantities live on **Stock rows**: one row per **product × warehouse**, edited on the product’s **Stock** tab (or via stock APIs, bulk upsert, or integrations).
 
-## Open the module
+| Concept | Role |
+| --- | --- |
+| **Stock Location (Warehouse)** | Named place (`name` + free-text `location`) with an optional **Default** flag. Admin: **Products → Stock Locations**. |
+| **Stock row** | Inventory for one product at one warehouse: on-hand quantity, availability, backorders, optional cart min/max, upcoming qty, and related fields. |
+| **Default warehouse** | The warehouse marked as default. Product Hub’s default stock relation and Order / storefront availability resolve **this** warehouse’s row unless a flow explicitly targets another warehouse. |
+| **stock_sum / all locations** | All per-warehouse rows for a product (lists can show a sum). Useful for multi-site visibility; **not** what Order Hub deducts by default. |
+| **manage_stock (product)** | Product-level flag for stocked goods. Distinct from “has a Stock row.” |
+| **Stock Movements (optional)** | Separate append-only **ledger** of quantity deltas. **Not** the same screen as Stock Locations, and **not** installed on every tenant (including the Demo Store used for docs). |
 
-<Steps>
-  <Step title="Expand Products">
-    In the left sidebar, expand **Products**.
-  </Step>
-  <Step title="Open Stock locations">
-    Select **Stock locations**.
-  </Step>
-</Steps>
+**Mental model:** Stock Locations = *sites*. Product Stock tab = *how much is at each site*. Commerce (cart availability and order deduction) = *the default site’s row*, unless you deliberately operate on another warehouse.
 
-<Callout kind="info" title="Used on product Stock">
-  Product Stock tabs list these locations. Add a location here first if it is missing on a product.
+Saving a warehouse or a stock quantity is **live**. There is **no** pricelist-style deploy for inventory masters or quantities.
+
+<Callout kind="info" collapsed="false">
+The Warehouse master does **not** include bins, aisle maps, transfers UI, reservations, or ATP calendars. Depth belongs in the **default-warehouse** rule and Stock-row behaviour — not in inventing WMS features.
 </Callout>
 
-## Next steps
+## Why teams use Stock Locations
 
+1. **Multi-site catalog** — Separate physical or logical sites (main DC, city warehouse, web / virtual pool) and attach quantity per site on each product.
+2. **One primary for online commerce** — Mark a **default** warehouse so storefront availability and order-line stock adjustments have a single, predictable balance.
+3. **Prep before stock entry** — The product Stock UI lists warehouses in a selector; create the location first if it is missing.
+4. **Bulk / integration targets** — Stock APIs and stock imports key off a warehouse id; locations must exist as masters.
+5. **Ops clarity** — The free-text `location` field (city, “Physical location”, “Web”) is for humans; it is not a geocoded address object.
+
+Use a **single default location** when the tenant is effectively one pool. Add more locations when quantity must be tracked separately — and train ops that **non-default** balances do **not** automatically feed cart or order deduction.
+
+## How warehouses and stock resolve
+
+### Warehouse fields
+
+| Field | Required on create | Meaning |
+| --- | --- | --- |
+| **name** | yes | Display name (for example “Default location”, “City Warehouse”) |
+| **location** | yes | Free-text label — not a structured address entity |
+| **default_warehouse** | optional | Marks the primary warehouse for online deduction and the product’s default stock relation |
+
+Warehouses are ordinary create / update / delete records. There is **no** draft → deploy lifecycle.
+
+**Default uniqueness:** keep **exactly one** default. The product and services assume a primary warehouse; multiple defaults make default-stock resolution ambiguous.
+
+### Stock rows (product × warehouse)
+
+Create or update rows from the product **Stock** tab, or via Product Hub stock create / bulk upsert APIs. Typical fields:
+
+| Field | Role |
+| --- | --- |
+| Warehouse | Which Stock Location |
+| Stock quantity | On-hand quantity |
+| Stock availability | Operator/API availability flag |
+| Backorders | No backorders, allow below zero, or allow pre-orders — otherwise the tenant Product Hub stock default applies |
+| Cart min / max | Per-row purchase bounds when set |
+| Upcoming quantity | Optional future receipts (informational — not a full MRP engine) |
+
+Physical simple products typically use `manage_stock` and Stock rows. **Virtual / downloadable** products often skip physical stock — not every product type needs warehouses.
+
+### Commerce resolution (critical)
+
+1. **Storefront availability** loads the product’s **default-warehouse** stock relation.
+   - **No default-warehouse stock row** → inventory is treated as **unmanaged** → **orderable** (does not block add-to-cart).
+   - **With a row** → compare requested quantity to on-hand; if over quantity, allow only when the backorder policy is not “no backorders” (row policy, else tenant default).
+2. **Order Hub stock adjustment** (when Order Hub’s stock-adjustment setting is on) mutates the product’s **default warehouse** row on line create/update/delete and status-driven restore / re-decrement. Non-default warehouse quantities are **not** auto-decremented on this path.
+3. **List sum across warehouses** is ops visibility — not the deduction target.
+
+## Typical workflows
+
+### Create a Stock Location
+
+1. Under **Products → Stock Locations**, create a warehouse with **name** and **location**.
+2. Set **Default** only if this should be the online primary (usually the first or only site).
+3. Save — the location is immediately available in product Stock warehouse selectors.
+
+### Put quantity on a product
+
+1. Open the product → **Stock** tab.
+2. Choose a warehouse (create it under Stock Locations first if missing).
+3. Set quantity, availability, and backorder policy as needed.
+4. Save. Spot-check list stock / sum if you use multiple warehouses.
+5. For online sell-through, confirm sellable quantity sits on the **default** warehouse when Order stock adjustment and storefront checks matter.
+
+### Multi-warehouse tenant
+
+1. Keep one clear **default** for commerce.
+2. Add secondary locations for other sites; maintain their Stock rows for ops visibility.
+3. Do **not** assume order lines drain secondary locations.
+4. If the business needs a true movement ledger or goods-receipt posting, that is **Stock Movements** (and related Procurement events) — optional, separate docs when that hub is in scope.
+
+### Permissions
+
+Operators need Product Hub access with **warehouses** and **stock** create/update/delete as granted by role. Buyer-facing stock visibility is typically settings-driven; do not assume a storefront “view stock” permission key is enforced.
+
+## Dependencies
+
+| Dependency | Why it matters |
+| --- | --- |
+| **Product Hub** | Owns Warehouse + Stock; Stock Locations is a Products sidebar child. |
+| **Products (All Products)** | Quantity and policies are edited per product; `manage_stock` and product type matter. See [How Products work](/user-guide/products/how-products-work). |
+| **Order Hub** | Optional but usual: stock adjustment decrements/restores **default** warehouse stock on line and status events. See [Orders overview](/user-guide/orders/overview). |
+| **Storefront** | Availability for cart/catalog uses default-warehouse stock (or unmanaged if no row). |
+| **Product Hub stock settings** | Tenant default backorders when a row policy is empty. |
+| **Integrations / Import-Export** | Often upsert stock by warehouse id — locations must exist. |
+| **Stock Movements** (optional) | Ledger + optional coupling; **not** required for Stock Locations; may be absent on a tenant. |
+| **Procurement** (optional) | Goods receipts can feed Stock Movements only when that stack is installed. |
+
+Pricelists, Rules, Attributes, Media, Customer SKUs, and Tax are adjacent catalog/commerce features — not prerequisites for Stock Locations.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Expect the Stock Locations screen to hold quantities | Warehouse master has no quantity fields | Enter quantity on the **product Stock** tab (or stock API / integration) per warehouse |
+| Put all sellable quantity on a **non-default** warehouse only | Cart/order paths that use default stock ignore non-default rows | Keep sellable online quantity on the **default** warehouse; use other locations for secondary pools / reporting |
+| Multiple warehouses flagged default | Ambiguous default-stock resolution | One default only; clear others |
+| Delete a warehouse still referenced by Stock rows | Orphan / broken selectors | Reassign or remove stock rows first; confirm integrations do not hard-code the id |
+| Assume Stock Movements is always present | Optional module; missing on some tenants (including Demo Store) | Treat Product Hub Stock as the live quantity surface unless the ledger hub is installed |
+| Assume Stock Movements always updates Product Hub quantity | Coupling is optional and often off by default | Treat ledger and Product Hub Stock as separate until a deployment explicitly couples them |
+| Confuse with Pricelist “save ≠ live” | Stock and warehouse saves **are** live | No deploy step for inventory masters or quantities — see [Pricelists](/user-guide/products/pricelists) for the contrast |
+
+## Related
+
+- [How Products work](/user-guide/products/how-products-work)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)
 - [Products overview](/user-guide/products/overview)
-- [Manage products](/user-guide/products/manage-products)
+- [Pricelists](/user-guide/products/pricelists)
+- [Orders overview](/user-guide/orders/overview)

@@ -46,6 +46,7 @@ It emits a small config object (`window.__STOREFRONT__`) and the runtime, loaded
 | `cart-rewards`     | `partials/cart-rewards.blade.php`     | cart page — reward progress bars                |
 | `checkout-summary` | `partials/checkout-summary.blade.php` | checkout page — coupon + totals                 |
 | `product-details`  | `partials/product-details.blade.php`  | product page — the whole product detail, re-rendered for a chosen variant (see *Configurable products*) |
+| `product-cross-sells` | `partials/product-cross-sell-items.blade.php` | product page — the next page of related-product cards. The Load more button fetches this fragment (`?product` + `?offset`) and appends the cards. It is not wrapped in `@storefrontSection`, so a cart refresh does not replace cards already shown. |
 | `catalog-export-preview` | `partials/catalog-export-preview.blade.php` | account catalog-export page — live preview table of the first rows the current column/filter selection would export (refreshed as the form changes) |
 
 The runtime refreshes **exactly the sections present on the current page** (plus `mini-cart`). On a product page only `mini-cart` exists, so add-to-cart just updates the header; on the cart page all cart sections refresh. No per-form wiring.

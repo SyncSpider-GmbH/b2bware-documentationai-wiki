@@ -20,6 +20,10 @@ For request/response schemas, see the [StorefrontHub API Reference](/api-referen
 
 ## Endpoints
 
+<Callout kind="info" title="Theme uploads need a README">
+Every theme `.zip` must include a root `README.md` with the four sections described in [Theme README and CHANGELOG](/advanced/storefront-themes/theme-readme); an optional `CHANGELOG.md` is kept too. Uploads without a complete README are rejected, and the upload's `error_message` names the missing sections. Theme versions return the stored text as `readme` and `changelog`.
+</Callout>
+
 <Tabs>
   <Tab title="Themes" icon="palette">
 
@@ -30,6 +34,7 @@ For request/response schemas, see the [StorefrontHub API Reference](/api-referen
 | GET | `/themes` | List themes |
 | POST | `/themes` | Upload a theme (rate-limited) |
 | GET | `/themes/{theme}` | Get theme details |
+| POST | `/themes/{theme}/versions` | Upload the next version of this theme (rate-limited; the `theme.json` name must match the theme) |
 | GET | `/themes/{theme}/download` | Download a theme archive |
 | DELETE | `/themes/{theme}` | Delete a theme |
 | POST | `/themes/reset-default` | Reset to the platform default theme |

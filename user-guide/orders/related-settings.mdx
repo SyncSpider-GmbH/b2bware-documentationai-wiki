@@ -1,0 +1,95 @@
+---
+title: Order-related settings
+description: Short map of Order Hub settings under Shipping, Carriers, and Billing — what each is for, how they affect checkout and proposals, and where not to look.
+---
+
+When **Order Hub** is installed, Admin **Settings** gains three commerce children that **checkout and fulfilment** depend on:
+
+| Settings child | Owns |
+| --- | --- |
+| **Shipping** | Shipping **methods** offered at checkout (name, price, enabled, visibility) |
+| **Carriers** | Carrier masters for tracking URL templates (name, code, enabled) |
+| **Billing** | Billing / payment **methods** (enabled, visibility, new-order status, provider config) |
+
+**Orders sidebar** itself stays **All Orders** + **Proposals**. These three live under **Settings**, but they are **Order Hub resources**.
+
+**Mental model:** Shipping / Billing methods = *checkout options buyers (or agents) attach to carts and quotes*. Carriers = *post-ship tracking templates*. Rules **Shipping Rates** (optional) = *a different Rules feature* — not this page.
+
+<Callout kind="info" collapsed="false">
+This page is a **pointer map**. It is not a full Settings Hub rewrite, not a payment-provider setup guide, and not Rules Shipping Rates.
+</Callout>
+
+**Out of scope here:**
+
+- Full Settings Hub (General, Translations, Configuration, Import/Export, System, …)
+- Rule Hub **Shipping Rates**
+- Deep payment-provider onboarding for a specific brand
+- Order Hub stock management / state machine toggles — see [Order lifecycle](/user-guide/orders/lifecycle)
+- Company/customer checkout-method allow/block UI detail — see [Customers overview](/user-guide/customers/overview) and [Companies](/user-guide/customers/companies)
+
+## Why these settings matter for Orders
+
+1. **Checkout cannot complete** without selectable shipping + billing method IDs (API and storefront).
+2. **Public proposals** must already carry method (and address) IDs to be orderable — methods must exist here first.
+3. **Billing method new-order status** influences the order’s **initial status** after placement.
+4. **Visibility** controls who sees which methods (public vs restricted; guest vs registered; company/customer overrides).
+5. **Carriers** support post-ship **tracking URL** composition (tracking number placeholder in the template) — fulfilment communication, not checkout selection itself.
+
+## How to use each pointer
+
+### Shipping methods
+
+- Create methods buyers (or agents on proposals) can attach to carts / quotes.
+- Key knobs: enabled, visible in checkout, default visibility (`public` \| `restricted`), price, optional config.
+- Restricted methods rely on allow-list context (company / customer checkout-method settings) — guests only see **public**.
+- Disabled or invisible methods disappear from normal checkout lists (public proposal placement can still honour admin-picked method IDs via trusted methods).
+
+### Billing methods
+
+- Same visibility / enabled pattern as shipping.
+- Set **new-order status** deliberately — it seeds where the order starts in the lifecycle vocabulary.
+- Provider-specific config belongs with the chosen payment integration; do not treat one brand as mandatory.
+
+### Carriers
+
+- Maintain carrier **code** / **name** and optional tracking URL template.
+- Enable only carriers you actually use for tracking links on shipped orders.
+- Carriers are **not** a substitute for shipping **methods** at checkout.
+
+### Cross-check with Customers
+
+Companies (and related customer checkout-method fields) can **allow/block** methods. A method that is “on” globally can still be hidden for a given account — triage both Settings and the company/customer record.
+
+## Dependencies
+
+| Dependency | Why |
+| --- | --- |
+| **Order Hub** installed | Contributes these Settings children |
+| **Settings Hub** | Hosts the pages in the Admin shell |
+| **Orders / Proposals / Checkout** | Consume method IDs |
+| **Customers / Companies** | Optional allow/block overlays on visibility |
+| **Order lifecycle** | Initial status + later transitions; stock/state-machine settings live with Order Hub settings, documented on the lifecycle page |
+| **Rules** (optional) | Shipping **rate rules** are separate |
+
+**Permissions:** operators need Order Hub rights on shipping methods / billing methods / carriers (and settings view/update as granted).
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Looking for Shipping under Orders sidebar | Children are under **Settings** | Settings → Shipping / Carriers / Billing |
+| Confusing Carriers with Shipping methods | Different jobs (tracking vs checkout option) | Methods for checkout; carriers for tracking templates |
+| Confusing Shipping methods with Rules Shipping Rates | Rates rules are Rule Hub | Keep them separate; do not merge |
+| All methods restricted + guest checkout | Guests see nothing public | Keep at least one public method if guests shop |
+| Proposal share without methods created | Proposal not orderable | Create methods, then attach IDs on the quote |
+| Ignoring new-order status | Ops confused by starting status | Align billing methods with lifecycle expectations |
+| Writing a full payment-provider runbook here | Scope creep | Short pointer + link out when payment docs exist |
+
+## Related
+
+- [Orders overview](/user-guide/orders/overview)
+- [Proposals](/user-guide/orders/proposals)
+- [Order lifecycle](/user-guide/orders/lifecycle)
+- [Customers overview](/user-guide/customers/overview)
+- [Companies](/user-guide/customers/companies)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

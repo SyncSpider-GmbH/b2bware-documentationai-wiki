@@ -41,7 +41,7 @@ The catalog pages — `products.blade.php` (the All Products index) and `categor
 | `$showChildren` | bool | Render the subcategory grid when true. |
 | `$showProducts` | bool | Run/render the product listing when true. |
 
-**Branch display mode.** Store default `$store['branch_display_mode']` (tenant `categories.branch_display_mode`, default `children`) plus optional per-category `branch_display_mode` override. Themes must branch on `$showChildren` / `$showProducts` (or `$branchDisplayMode`), not `$isLeaf` alone — otherwise parent categories will never show products even when the merchant enables them. When `$showProducts` is true on a branch, the platform filters with ProductHub `anchor_category_id` (this category **and all descendants**).
+**Branch display mode.** Store default `$store['branch_display_mode']` (tenant `categories.branch_display_mode`, default `children`) plus optional per-category `branch_display_mode` override. Themes must branch on `$showChildren` / `$showProducts` (or `$branchDisplayMode`), not `$isLeaf` alone — otherwise parent categories will never show products even when the merchant enables them. When `$showProducts` is true on a branch, the platform filters with ProductHub `anchor_category_id` (this category **and all descendants**, plus configurable parent products whose variations are assigned to any category in the subtree).
 
 ### Query parameters (the URL is the state)
 
@@ -53,9 +53,11 @@ Catalog filters are **plain `GET` forms** — never `@storefrontForm` (no route 
 | `sort`           | `relevance\|newest\|oldest\|name_asc\|name_desc\|<attribute_code>\|-<attribute_code>` | Native keys + any `$sortOptions` key. Unknown keys fall back to natural order. Omitted `sort` applies the store's default sorting attribute in its configured direction when one is set; a present `sort` always wins. |
 | `attr[<id>][]`   | repeated                               | Selected attribute-value labels per filterable attribute id.                |
 | `price_min` / `price_max` | number                        | Price range (only honored when `$priceFilterEnabled`).                      |
-| `in_stock`       | `1`                                    | In-stock only (only honored when `$inStockAvailable`).                       |
+| `in_stock`       | `1`                                    | In-stock only — ProductHub `stock.buyable_qty > 0` (only honored when `$inStockAvailable`). |
 | `view`           | `grid\|list`                           | Listing layout. Submit it as a button `name="view"` so it preserves filters. |
 | `page`           | int                                    | Pagination (the windowed `components/pagination` keeps the rest of the query). |
+
+The bundled default theme submits checkbox filters immediately and debounces price input by 400 ms. Its clear action appears at the top of the filter card. A submit button is rendered only as a no-JavaScript fallback.
 
 ### Product card
 

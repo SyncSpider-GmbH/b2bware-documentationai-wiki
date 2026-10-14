@@ -192,7 +192,20 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 |-------|-------|
 | `attribute_id` | required, numeric |
 | `value` | required |
-| `meta_data.definition_values` | sometimes, array |
+| `swatch_value` | sometimes, nullable string — hex colour or media URL (persisted on create and update) |
+| `meta_data.definition_values` | sometimes, object — map of attribute definition column name → cell value; merged on update |
+
+</Expandable>
+
+<Expandable title="Update Attribute Value — PUT /attributeValues/{id}" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `value` | sometimes, required when present — omit to keep the current label |
+| `swatch_value` | sometimes, nullable string |
+| `meta_data.definition_values` | sometimes, object — merged into existing definition_values; sibling `meta_data` keys are preserved |
+
+At least one of `value`, `swatch_value`, or `meta_data` is required.
 
 </Expandable>
 

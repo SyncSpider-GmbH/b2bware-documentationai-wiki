@@ -1,0 +1,97 @@
+---
+title: Shipping Rates
+description: Table-Rate-Versandregeln im B2Bware Rule Hub — wie Rate-Rows an Shipping Methods hängen, Geografie und Cart-Metriken matchen und sich von Settings-Shipping-Methods sowie Free-Shipping-Promotions unterscheiden.
+---
+
+**Shipping-Rate-Rules** sind Rule-Hub-**Table-Rate-Preiszeilen**, die an eine Order-Hub-**Shipping Method** gebunden sind. Sie sind **nicht** die Settings → Shipping Method-Masterliste, nicht Carriers (Tracking) und nicht Cart-Rule-**Free-Shipping**-Actions (die Versand als Promotion auf null setzen können).
+
+| Konzept | Hub / Ort | Besitzt |
+| --- | --- | --- |
+| **Shipping Method** | Order Hub → **Settings → Shipping** | Method-Master: enabled, Visibility, optionaler Base Price, Checkout-Auswahlidentität |
+| **Shipping-Rate-Rule** | Rule Hub → **Rules → Shipping Rates** | Table-Rate-**Preis**, wenn Country/Zone/ZIP + Cart-Metriken matchen; verknüpft eine Shipping Method |
+| **Carrier** | Settings → Carriers | Tracking-URL-Templates — keine Checkout-Preistabellen |
+| **Cart-Rule Free Shipping** | Rules → Cart Price Rules | Promotionelles Erlassen/Discount von Shipping — keine Rate-Tabelle |
+
+**Admin:** **Rules → Shipping Rates**, wenn Rule Hub installiert ist.
+
+**Mentales Modell:** *Method = „Standardpaket“ als Checkout-Option; Rate-Rules = „wie viel diese Option für dieses Ziel und diese Cart-Form kostet.“*
+
+<Callout kind="alert" collapsed="false">
+Rule Hub ist optional. Legen Sie die Shipping-**Method** unter Settings an und aktivieren Sie sie, bevor Sie sich auf Rate-Rows verlassen. Siehe [Order-related settings](/de/user-guide/orders/related-settings).
+</Callout>
+
+## Warum Teams Shipping Rates nutzen
+
+1. **Geografiebasierte Preise** — Country, Zone, ZIP-Ranges.
+2. **Metrikbasierte Bänder** — Weight-, Subtotal-, Quantity- oder Custom-Attribute-Schwellen (Min-/Max-Value).
+3. **Per-Method-Tabellen** — Verschiedene Methods können unterschiedliche Rate-Matrizen haben.
+4. **Priority** unter überlappenden Rows.
+5. **Audit** — Gematchte Rate kann wie andere Rule-Hub-Anwendungen mit der Order gespeichert/geloggt werden.
+
+Nutzen Sie einen **Flat Method Price** auf der Shipping Method, wenn ein Preis ausreicht. Nutzen Sie **Rate-Rules**, wenn der Preis nach Destination oder Cart-Metriken variiert. Nutzen Sie **Cart Free Shipping**, wenn die Story eine Promotion ist, kein Tarif.
+
+## Wie es funktioniert
+
+### Schlüsselfelder
+
+| Feld | Notes |
+| --- | --- |
+| **Name** | Operator-Label |
+| **Status** | Active / inactive |
+| **Shipping Method** | Link zur Order-Hub-Shipping-Method |
+| **Country / Zone** | Geografische Selektoren |
+| **ZIP from / to** | ZIP-Range |
+| **Condition Type** | Weight, Subtotal, Quantity oder Custom Attribute |
+| **Condition Attribute** | Attribute Code, wenn Type Custom Attribute ist |
+| **Min / Max Value** | Band für die Condition-Metrik |
+| **Price** | Shipping-Preis bei Match |
+| **Priority** | Welche matching Row gewinnt, wenn mehrere qualifizieren |
+| **Uses Count** | Usage-Zähler |
+
+### Engine
+
+- Berechnung nach Address (Country, ZIP, Cart-Metriken) oder nach Zone.
+- Liefert gematchten Preis + Rule-Metadata.
+- Checkout integriert die gematchte Shipping Rate in Applied Rules und Usage Logs.
+
+### Custom Attributes
+
+Bei Custom-Attribute-Conditions müssen Attributes Hub (oder Product-Attribute-Daten) tatsächlich Werte liefern — leere Attributes → kein sinnvoller Band-Match.
+
+## So nutzen Sie es
+
+1. Shipping-**Method** unter Settings anlegen/aktivieren (Visibility, enabled).
+2. Rule Hub und Permission zur Verwaltung von Shipping-Rate-Rules bestätigen.
+3. Rate-Rows hinzufügen: Method-Link, Geo, Condition Type/Bänder, Price, Priority.
+4. Addresses innerhalb/außerhalb von ZIP-Ranges und Carts unter/über Thresholds testen.
+5. Cart-**Free-Shipping**-Promotions getrennt dokumentieren, damit Support Tarif vs. Promo kennt.
+6. Company-/Customer-Method-Allow-Lists abstimmen, damit die Method für den Buyer sichtbar ist, der die Rates sehen soll.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Rule Hub** | Optional; Rates-UI sonst abwesend |
+| **Order Hub** | Shipping Methods + Checkout-Berechnungspfad |
+| **Settings → Shipping** | Method-Master müssen existieren |
+| **Attributes Hub** (optional) | Custom-Attribute Condition Type |
+| **Cart Price Rules** | Können Free Shipping zusätzlich zu / statt Zahlung der Rate gewähren |
+| **Customers / Companies** | Method-Visibility-Overlays |
+
+## Häufige Fehler
+
+| Fehler | Warum es wehtut | Bessere Praxis |
+| --- | --- | --- |
+| Rate-Tabellen unter Settings → Shipping suchen | Rates liegen unter Rules | Settings = Methods; Rules = Rate-Rows |
+| Rate-Rules ohne Shipping-Method-Link / fehlende Method | Keine kohärente Checkout-Option | Zuerst Method anlegen |
+| Überlappende Bänder ohne Priority | Falscher Preis gewinnt | Bänder partitionieren; Priority setzen |
+| Carriers mit Rates verwechseln | Tracking ≠ Preis | Concerns trennen |
+| Erwarten, dass Rate-Rules die Method-Liste erzeugen | Methods sind Order-Hub-Settings | [Order-related settings](/de/user-guide/orders/related-settings) verlinken |
+| Free-Shipping-Cart-Rules ignorieren | Buyer zahlt 0 trotz Tarif | Promotions vs. Rates triage |
+
+## Related
+
+- [Rules — Überblick](/de/user-guide/rules/overview)
+- [Cart Price Rules](/de/user-guide/rules/cart-price-rules)
+- [Order-related settings](/de/user-guide/orders/related-settings)
+- [Order-Lifecycle](/de/user-guide/orders/lifecycle)

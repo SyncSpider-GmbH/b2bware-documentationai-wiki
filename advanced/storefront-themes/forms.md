@@ -28,10 +28,12 @@ This is the same contract Shopify uses for `{% form 'customer_login' %}`: the **
 | `cart-clear`           | `store.cart.clear.post`        | _(none)_                                                             |
 | `cart-coupon-apply`    | `store.cart.coupon.apply.post` | `coupon_code` (only rendered when `checkout.enable_coupons` is on)   |
 | `cart-coupon-remove`   | `store.cart.coupon.remove.post`| _(none)_                                                             |
-| `profile-delete`       | `store.account.profile.delete.post` | `current_password` — permanently closes the signed-in account (confirmation modal) |
+| `profile-delete`       | `store.account.profile.delete.post` | `current_password` — requests account deletion; a 6-digit confirmation code is emailed |
+| `profile-delete-confirm` | `store.account.profile.delete.confirm.post` | `token` (6 digits) — confirms the request; the account is scheduled for deletion after a grace period |
+| `profile-delete-cancel`  | `store.account.profile.delete.cancel.post` | cancels the pending or scheduled deletion request |
 | `quick-order-upload`   | `store.account.quick-order.upload` | `file` (CSV, `SKU,Quantity`) — multipart; pass `'enctype' => 'multipart/form-data'`. With JS the theme posts it as JSON and merges the returned rows into the shared review table; with JS off it re-renders the page with the server-seeded review table. Only reachable when `$store['quick_order_enabled']`. |
 | `quick-order-add`      | `store.account.quick-order.add`  | `sku[]`, `quantity[]` (parallel arrays) — confirms the reviewed rows into the cart (SKUs are re-resolved server-side under the customer's visibility scope). Used by both the CSV review table and the client-side typeahead order review. Only reachable when `$store['quick_order_enabled']`. |
-| `catalog-export`       | `store.account.catalog-export.post` | `columns[]` (product field keys, submitted in display order), `format` (`csv`/`xlsx`/`pdf`/`xml`), plus the shared native product filters `q` (search), `category`, `price_min`, `price_max`, `in_stock`, `sort` — generates the customer's single stored export (a frozen snapshot) and redirects back to the page, replacing any previous file. Only rendered when `$store['catalog_export_enabled']`. When the `customer-sku-module` app is installed for the tenant, an extra `customer_ref` ("Customer SKU") column is offered right after `sku`, pre-checked by default, filled with the signed-in customer's own reference (never another customer's) |
+| `catalog-export`       | `store.account.catalog-export.post` | `columns[]` (product field keys, submitted in display order), `format` (`csv`/`xlsx`/`pdf`/`xml`), plus the shared native product filters `q` (search), `category`, `price_min`, `price_max`, `in_stock`, `sort` — generates the customer's single stored export (a frozen snapshot) and redirects back to the page, replacing any previous file. Only rendered when `$store['catalog_export_enabled']`. When the `customer-sku-module` app is installed for the tenant, an extra `customer_ref` ("Customer SKU") column is offered right after `sku`, pre-checked by default, filled with the signed-in customer's own reference (never another customer's). The tenant's AttributesHub product attributes are offered too, as `attr_<code>` columns — the tenant's EAN attribute is pinned right after `sku`/`customer_ref` and pre-checked by default. Only attributes flagged `visible_on_the_product_page` are offered (the EAN attribute being the exemption) — tenant-hidden attributes never become selectable. The theme needs no special handling — attribute columns arrive through the same `$exportFields` list as native ones |
 | `catalog-export-rotate` | `store.account.catalog-export.rotate.post` | _(none)_ — regenerates the share token, moving the stored file under a fresh URL so the previously copied link returns 404. Keeps the file |
 | `catalog-export-delete` | `store.account.catalog-export.delete.post` | _(none)_ — deletes the stored file and its share link (public URL returns 404) so the customer can start fresh |
 | `api-key-create`        | `store.account.api-keys.post` | `name` (required), `expires_at` (optional, date-only, must be after today) — creates a new API key and flashes its one-time plaintext token to the session for a single render on the api-keys page |
@@ -135,7 +137,16 @@ The Register page renders extra `company_*` inputs only when the installation re
             <input type="text" name="company_street"   value="{{ old('company_street') }}" required>
             <input type="text" name="company_postal"   value="{{ old('company_postal') }}" required>
             <input type="text" name="company_city"     value="{{ old('company_city') }}" required>
-            <input type="text" name="company_country"  value="{{ old('company_country') }}" required>
+            {{-- Country is a <select> of the valid country list; the same
+                 ValidCountry rule guards it server-side (see below). --}}
+            @foreach ([storefront_country_name(old('company_country'))] as $selectedCountry)
+                <select name="company_country" required>
+                    <option value="">@t('Select country')</option>
+                    @foreach (storefront_countries() as $country)
+                        <option value="{{ $country['name'] }}" @selected($selectedCountry === $country['name'])>{{ $country['name'] }}</option>
+                    @endforeach
+                </select>
+            @endforeach
         </fieldset>
     @endif
 
@@ -157,6 +168,15 @@ Within the company block, **which fields are required** is driven by the Custome
 ```
 
 The `address` key requires the whole block — apply it to `address_line_1`, `zip`, `city`, and `country` together.
+
+> **Country is always a `<select>`.** Every address `country` field (account
+> address form, checkout billing/shipping, registration company block) is a
+> dropdown built from `storefront_countries()`, with the current value
+> preselected via `storefront_country_name(old(...))` (see §9 helper table).
+> The server backs this with the `ValidCountry` rule, which accepts a country
+> **name, ISO2 or ISO3** — so the submitted option value always validates. The
+> stored value is the canonical country **name**. Never render `country` as a
+> free-text input.
 
 ### Reorder entry-point pattern
 

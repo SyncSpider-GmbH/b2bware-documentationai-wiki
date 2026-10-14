@@ -1,18 +1,88 @@
 ---
-title: Orders (admin)
-description: Manage carts, checkout, and orders in the B2Bware admin — overview and links to the OrderHub API.
+title: Orders overview
+description: How Order Hub works — carts, checkout, orders, proposals, trusted pricing, settings, permissions, and dependencies on Products and Customers.
 ---
 
-## Overview
+**Orders** owns commercial transactions in B2Bware Admin: carts and checkout (guest and registered), sales orders and line items, B2B **proposals** (quotes), and the shipping / billing / carrier settings used at checkout.
 
-Orders, carts, quotes, and checkout settings are managed through **OrderHub** in the admin and via the HTTP API.
+Admin often lands here first — it is the operational centre for day-to-day commerce.
 
-<Callout kind="info">
-This User Guide section is a short entry point. For endpoint details, filters, state-machine settings, abandoned-cart and no-order alerts, see [OrderHub](/hubs/order-hub) and the [OrderHub OpenAPI](/api-reference/order-hub).
+<Callout kind="info" collapsed="false">
+This overview explains intent and dependencies. It replaces the old thin stub that only pointed at technical API docs.
 </Callout>
 
-## Related
+## What Orders owns (sidebar)
 
-- [OrderHub](/hubs/order-hub)
-- [CustomerHub](/hubs/customer-hub)
-- [Hub Settings](/core-concepts/hub-settings)
+| Area | What it is for |
+| --- | --- |
+| **All Orders** | Sales orders, line items, comments, status changes, refunds/cancels where permitted |
+| **Proposals** | Quotes / proposals before a firm order (permissions may say “proposals”; data model is quotes) |
+
+When Orders is installed, **Settings** also gains commerce children such as **Shipping**, **Carriers**, and **Billing** methods.
+
+Orders is a **core** hub in the [storefront spine](/user-guide/how-b2bware-fits-together).
+
+## Cart → checkout → order
+
+1. A **cart** collects lines with server-resolved unit prices.
+2. **Checkout** completes addresses, shipping/billing choices, optional checkout attributes, and payment provider flow.
+3. An **order** is the durable commercial record with statuses for ops and integrations.
+
+**Guest vs registered (intent):**
+
+- Guest checkout uses a session cart; the platform can create or find a customer under the configured guest role and typically creates new addresses.
+- Registered checkout uses existing customer and address IDs.
+- Optional **checkout attributes** come from Attributes when that hub defines order/checkout attribute groups.
+
+## Proposals vs orders
+
+Use **Proposals** when the sales motion needs a quote before commitment. Use **Orders** when the sale is placed (or converted). Agent-oriented roles often centre on proposals; warehouse and finance roles centre on orders and status.
+
+## Trusted pricing (why buyers see what they pay)
+
+Order Hub hosts the server-side contract that resolves unit prices for catalog display and cart lines together — so “seen price = charged price.”
+
+- Product Hub supplies base prices (and pricelist deploys).
+- Integration **price providers** can supply trusted per-customer prices (fail-soft; first non-null wins).
+- **Rules** (if installed) can still stack catalog/cart promotions on top.
+
+Never document client-side or theme-hardcoded charged prices as valid.
+
+See [How Products work](/user-guide/products/how-products-work).
+
+## Dependencies
+
+| Related | Why |
+| --- | --- |
+| **Products** | Line items and catalog prices |
+| **Customers** | Registered checkout, guest customer creation, addresses, agent/proposal roles |
+| **Auth** | Shop and Admin identity |
+| **Attributes** (optional) | Custom checkout / order attributes |
+| **Rules** (optional) | Promotions and cart validation |
+| **Notifications / Automation / Events** (optional) | Order lifecycle messaging and workflows |
+| **Invoices / Tax / Loyalty** (optional) | Downstream of orders when installed |
+| **Settings** | Hosts shipping, carriers, billing method pages |
+
+## Install and permissions
+
+- **Install:** Order Hub must be installed.
+- **Sidebar:** Visible with install + view permission for Order Hub.
+- Admin permissions cover orders, line items, comments, quotes/proposals, shipping/billing/carriers, and actions such as refund, cancel, change status, export, and settings.
+
+<Callout kind="alert" collapsed="false">
+Shop-facing order permission labels (create order, view history, reorder, cancel) may exist without full enforcement. Buyer journeys are often gated by guest-checkout settings, customer scope, and feature flags such as reorder enabled — document settings, not an unfinished ACL matrix.
+</Callout>
+
+## Related pages
+
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)
+- [How Products work](/user-guide/products/how-products-work)
+- [Customers overview](/user-guide/customers/overview)
+- [Integrations overview](/user-guide/integrations/overview)
+
+## Do not claim
+
+- Every template status label is a guaranteed end-user workflow without product confirmation of the UX state machine.
+- A single payment provider is “the” B2Bware payment product — payments are configurable providers.
+- Automatic stock deduction always happens — confirm Stock Movements / inventory coupling for your tenant before documenting it.
+- Optional soft UI cards (for example license keys on an order) appear for every tenant.

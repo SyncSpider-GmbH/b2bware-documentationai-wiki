@@ -1,0 +1,114 @@
+---
+title: Storefront Builder overview
+description: How Storefront Builder Hub authors live Pages, Documents, and Theme Pages in B2Bware — compile model, Soon surfaces, dependencies, and pitfalls.
+---
+
+**Storefront Builder** in B2Bware Admin is the UI for optional **Storefront Builder Hub** — a visual authoring surface that stores one `content_json` canvas document and **compiles** it into outputs the shop or workers consume.
+
+| Concept | Role |
+| --- | --- |
+| **Storefront Builder Hub** | Optional installed package. When present and the operator can view it, Admin shows **Storefront Builder** with live and **Soon** children. |
+| **Builder document** | Grid canvas + bindings + show-when gates + design tokens, stored as `content_json` |
+| **Pages** | Storefront pages (SEO meta, access rules, status) compiled toward theme-safe Blade for the shop |
+| **Documents** | Print/PDF templates; queued PDF export → Media Hub attachment on generated PDF rows |
+| **Theme Pages** | Theme / slot-oriented pages edited for the live storefront |
+| **Blocks / versions / fonts** (backend) | Reusable blocks, version snapshots, font library — support the builder; not every entity has its own Demo sidebar child today |
+| **Soon children** | Section Library, Emails, Form Submissions — listed but **disabled** in Admin |
+
+**Mental model:** Storefront Builder authors **structured content documents**. Storefront Hub / themes **render** published pages and slots. Media Hub may hold **generated PDF bytes**. It is **not** a separate “Content Hub” product in the Admin sidebar, and it is **not** social publishing.
+
+<Callout kind="alert" collapsed="false">
+Storefront Builder Hub is **optional** (`storefront-builder-hub`). The group appears only when the hub is installed and the operator can view the module. Demo Store presence does **not** mean every tenant has Storefront Builder.
+</Callout>
+
+### Live vs Soon (Demo / Production Admin)
+
+| Child | Status for User Guide |
+| --- | --- |
+| **Pages** | **Live** — document |
+| **Documents** | **Live** — document |
+| **Theme Pages** | **Live** — document |
+| **Section Library** | **Soon** — mention only; no how-to |
+| **Emails** | **Soon** — mention only; no how-to |
+| **Form Submissions** | **Soon** — mention only; no how-to |
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Content Hub** | Not a current Admin sidebar product — park it; use Storefront Builder |
+| **Store Setup** | Tenant shop config (branding, features, social **links**, themes) |
+| **Notifications** | Event-driven customer emails — not the Soon Emails child |
+| **Media** | Asset library / generated PDF file storage — not page composition |
+| **Integrations** | Data sync connectors — not page authoring |
+
+## Why teams use Storefront Builder
+
+1. **CMS-style pages without a parallel CMS product** — Author marketing/landing/content pages that compile into the storefront theme path.
+2. **Typed PDF / print documents** — Catalog sheets, quote packs, printable docs over a locked template type, with queued generation.
+3. **Theme slot / theme page control** — Adjust theme-facing pages while the shop stays on Storefront Hub themes.
+4. **One canvas model** — Same builder language for pages and documents; operators learn bindings once.
+5. **Ops continuity** — Version history and PDF job status support “why is this PDF wrong?” without reinventing Media as a CMS.
+
+Use **[Store Setup](/user-guide/store-setup/overview)** for tenant branding, feature flags, legal pages config, and **social profile URL links**. Use **[Notifications](/user-guide/notifications/overview)** for event-driven customer emails. Use **[Media](/user-guide/media/overview)** for asset library attach — not for page composition.
+
+## How live surfaces fit the storefront
+
+```
+Author in Storefront Builder (Pages / Documents / Theme Pages)
+  → content_json persisted (tenant-scoped)
+  → compile:
+       Pages / Theme Pages → theme-safe Blade (Storefront Hub consumption)
+       Documents → Print HTML → worker → PDF (Media Hub on GeneratedPdf)
+  → shop / download / theme slots consume published output
+```
+
+**Operator-relevant truths:**
+
+- PDF rows move through queue states (`queued` → `processing` → `completed` | `failed`; cancellable in flight).
+- Owner-facing PDF errors are generic with a reference code; deep stack traces stay in platform logs.
+- Shop-readable APIs resolve **published** pages/blocks; Admin CRUD needs admin access + hub permissions.
+- Email MJML compile and form-submission tables may exist in the package, but Admin children for Emails / Form Submissions / Section Library are **Soon** — do not teach them as live UI.
+
+## How to use Storefront Builder
+
+1. Confirm **Storefront Builder** is visible (hub installed + module view).
+2. Start with **Pages** for storefront content the shop should resolve; set status / access / SEO intentionally before expecting public render.
+3. Use **Theme Pages** when the job is theme/slot content rather than a freestanding CMS page.
+4. Use **Documents** when the job is printable/PDF output; after queue, verify the generated file (Media-backed) rather than assuming “Save = PDF ready”.
+5. Treat **Soon** badges as unavailable — do not open disabled routes as supported workflows.
+6. Coordinate with **Store Setup** (shop URL, appearance, features) and Storefront Hub Themes when themes are installed — Builder does not replace tenant store setup.
+7. For buyer-facing transactional email, check **Notifications** types/channels — not the Soon Emails child.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Storefront Builder Hub installed** | Sidebar group + builder APIs |
+| **Permissions** | `storefront-builder-hub.*` (pages / documents / generated-PDFs as granted) |
+| **Storefront Hub** (optional but common) | Theme / Blade consumption; Themes tab under Store Setup when installed |
+| **Media Hub** | Generated PDF files via polymorphic media attach |
+| **Queue / render worker** | PDF export jobs |
+| **Auth + admin access** | Admin writes |
+
+**Not prerequisites:** Shipping/Billing under Settings; Integrations sync; Notification emails; Event Hub webhooks.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Documenting Content Hub as top-level | Not the Demo/Production Admin label | Use **Storefront Builder** only |
+| Teaching Soon children as live | Disabled UI; unsupported ops | Mark Soon; skip how-tos until released |
+| Confusing Builder Emails (Soon) with Notifications | Different products | Notifications for event mail |
+| Expecting Save Document = instant PDF | Queued worker + Media attach | Check generation status / download |
+| Fixing shop chrome only in Builder | Branding/features live in Store Setup | Split content vs tenant setup |
+| Assuming every tenant has Builder | Optional install | Check install + permissions |
+| Equating Theme Pages with full theme package authoring | Themes still Storefront Hub | Builder edits slots/pages; themes package owns theme runtime |
+
+## Related
+
+- [Store Setup](/user-guide/store-setup/overview) — tenant shop config; social **links** ≠ social publishing product
+- [Media overview](/user-guide/media/overview) — assets / PDF file storage
+- [Notifications overview](/user-guide/notifications/overview) — human-facing email channels
+- [Integrations overview](/user-guide/integrations/overview) — data sync, not page authoring
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

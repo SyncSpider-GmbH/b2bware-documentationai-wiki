@@ -1,0 +1,88 @@
+---
+title: Cart Validation
+description: Cart-Validation-Rules in B2Bware — gegenseitiger Ausschluss, Requires und Mengenlimits, die Carts steuern, ohne Preise zu ändern.
+---
+
+**Cart-Validation**-Rules kodieren **Business-Constraints** dazu, was im Cart zusammen vorkommen darf und wie viel bestellt werden darf. Die Engine liefert gültig plus **Violations** (Rule-ID + Message), wenn Constraints scheitern.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Cart-Validation-Rule** | Benannter active/inactive Constraint mit Type, Product Groups, Limits, Error Message |
+| **Constraint Type** | Wie der Cart bewertet wird |
+| **Group A / Group B** | Product Sets für Exclusion- / Dependency-Stile |
+| **Limit Value** | Mengenbound für Min-/Max-Types |
+| **Error Message** | Buyer-/Operator-seitige Erklärung bei Violation |
+| **Admin** | **Rules → Cart Validation**, wenn Rule Hub installiert ist |
+
+**Mentales Modell:** *Price Rules ändern Geld; Validation Rules ändern, ob Checkout mit dieser Mix/Menge fortfahren darf.*
+
+<Callout kind="alert" collapsed="false">
+Rule Hub ist optional. Cart-Validation-Rules sind **Constraints** — keine Discounts, Coupons oder Catalog-Price-Anpassungen. Sie erfinden weder Fraud-Scoring noch Inventory-Reservation.
+</Callout>
+
+## Warum Teams Cart Validation nutzen
+
+1. **Gegenseitiger Ausschluss** — Unvereinbare Lines verhindern (zum Beispiel Bulk- vs. Standard-Varianten desselben Programms).
+2. **Requires / Accessory-Rules** — Product Set A braucht mindestens eines aus Set B.
+3. **Mengenpolitik** — Min- oder Max-Mengen als kommerzielle Limits jenseits von einfachem Stock.
+4. **Klare Messaging** — Custom Error Messages reduzieren Support-Last gegenüber generischen Cart-Fehlern.
+5. **Policy ohne Theme-Hacks** — Server-seitige Validation statt rein storefront-seitiger Checks.
+
+Nutzen Sie **Stock / Warehouses** für Verfügbarkeit. Nutzen Sie **Roles / Permissions** dafür, wer kaufen darf. Nutzen Sie **Cart Validation** für *Assortment- und Mengenpolitik* innerhalb eines sonst erlaubten Carts.
+
+## Wie es funktioniert
+
+### Constraint Types
+
+| Type | Intent | Beispiel |
+| --- | --- | --- |
+| Mutual exclusion | Items aus Group A dürfen nicht zusammen mit Group B vorkommen | Bulk- und Standard-Lines nicht mischen |
+| Requires | Group A braucht ≥1 aus Group B | Device braucht eine Service-SKU |
+| Max quantity | Menge deckeln | Max. 10 pro Product / scoped Set |
+| Min quantity | Mengenuntergrenze | Mindestbestellung von 5 |
+
+### Engine-Verhalten
+
+- Cart validieren → `{ valid, violations[] }`.
+- Violations tragen Rule-ID und Message für die UI.
+- Fehlgeschlagene Validation kann Domain Events für Automation/Observability emittieren — dieses Guide erfindet kein vollständiges Event-Bus-Runbook.
+
+### Status
+
+Rules beachten **Status** (active/inactive). Inactive Rules constrainen nicht.
+
+## So nutzen Sie es
+
+1. Rule Hub und Permission zur Verwaltung von Cart-Validation-Rules bestätigen.
+2. Constraint Type wählen; Product-Membership in Groups sorgfältig definieren (falsche Membership = False Positives).
+3. Eine **handlungsfähige** Error Message schreiben (was entfernen/hinzufügen).
+4. Aktivieren und testen: verletzender Cart, korrigierter Cart, Mengen-Grenzfälle.
+5. Mit Catalog Ops abstimmen, damit neue SKUs den richtigen Validation Groups beitreten.
+6. Validation nicht überladen, um Catalog Assortments oder Company Allow-Lists zu ersetzen — das sind benachbarte Customer-/Product-Controls.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Rule Hub** | Optional |
+| **Order Hub** | Carts / Checkout müssen Validation aufrufen |
+| **Product Hub** | Product-Identität in Groups |
+| **Cart- / Catalog- / Coupon-Rules** | Getrennte Schichten — Validation diskontiert nicht |
+
+## Häufige Fehler
+
+| Fehler | Warum es wehtut | Bessere Praxis |
+| --- | --- | --- |
+| Validation als „verstecktes Discount-Gate“ nutzen | Falsches Tool | Cart-/Catalog-Rules für Geld nutzen |
+| Vage Error Message | Buyers stecken fest | Sagen, welche Products kollidieren / was fehlt |
+| Veraltete Product Groups nach Catalog-Änderungen | Falsche Blocks oder verpasste Blocks | Group-Membership mit Assortment-Änderungen pflegen |
+| Erwarten, dass Validation Stock managt | Anderes System | Stock Locations / Movements |
+| Verwechslung mit Company Checkout-Method Allow-Lists | Anderer Hub | [Companies](/de/user-guide/customers/companies) für Method Visibility |
+
+## Related
+
+- [Rules — Überblick](/de/user-guide/rules/overview)
+- [Cart Price Rules](/de/user-guide/rules/cart-price-rules)
+- [Order-Lifecycle](/de/user-guide/orders/lifecycle)
+- [Produkte verwalten](/de/user-guide/products/manage-products)
+- [Companies](/de/user-guide/customers/companies)

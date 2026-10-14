@@ -1,31 +1,149 @@
 ---
 title: Pricelists
-description: Manage price lists that drive portal and contract pricing.
+description: Staged catalog pricing in B2Bware — how pricelists differ from live product prices, how deploy works, how price types and finalPrice relate, and what depends on customer groups.
 ---
 
-Use pricelists when buyers should see contract or tier prices instead of a single list price.
+A **pricelist** is a managed container of **staged** price rows for a set of products. You prepare those rows under the pricelist; buyers do **not** pay from that document until you **explicitly deploy** it.
 
-<Image
-  src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404835670-ucd8lmgtzoh-pricelists.png?fm=auto&auto=compress%2Cformat"
-  alt="Pricelists list"
-/>
+**Live product prices** are the price records on each product (regular, special, tier, group, cost, and related fields). The storefront and cart resolve what a buyer is charged from those live rows — plus any server-side customer price providers and Rules on top.
 
-## Open the module
+| Concept | Role |
+| --- | --- |
+| **Live price** | Authoritative catalog price rows on the product. Editing a product’s price tabs (or price upsert APIs) changes live data immediately for that product. |
+| **Pricelist + items** | Staging copy that mirrors the live price shape so all five price types can be prepared offline. |
+| **Deploy** | Writes staged items onto live price records for the products in the list. |
+| **Pricelist deployment** | One deploy run (queued batch) with progress and outcome history. |
 
-<Steps>
-  <Step title="Expand Products">
-    In the left sidebar, expand **Products**.
-  </Step>
-  <Step title="Open Pricelists">
-    Select **Pricelists**.
-  </Step>
-</Steps>
+**Mental model:** treat a pricelist like a change set for catalog pricing — draft, fill, review, then deploy — not like a separate “price catalog” the shop reads directly.
 
-<Callout kind="warning" title="Deploy carefully">
-  Changing an active pricelist can affect live buyer prices. Confirm with ops before large edits.
+<Callout kind="info" collapsed="false">
+Saving a pricelist or its items does **not** change what buyers see or pay. Only a successful **deploy** writes onto live price records.
 </Callout>
 
-## Next steps
+## Why teams use pricelists
 
+B2B pricing is rarely one list price forever. Pricelists exist so teams can:
+
+1. **Contract / channel pricing** — Prepare group- or channel-specific amounts (and optional start/end windows) without touching live prices until the go-live date.
+2. **Staged changes** — Build a large update, review it, and go live in one deploy instead of editing product-by-product under time pressure.
+3. **Bulk / campaign updates** — Apply many product rows (and multiple price types per product) in one deploy batch.
+4. **Controlled overrides** — Deploy updates **only the price types present** on the pricelist; other live types on those products stay untouched (last-writer-wins **per type**).
+5. **Relative (percentage) staging** — Items can be fixed amounts or percentage-off a base resolved **at deploy time** from current live prices.
+
+Use **direct product price editing** when you need an immediate, single-SKU fix. Use a **pricelist** when the change is multi-SKU, scheduled, reviewed, or shared across a channel or customer-group set.
+
+## Price types and finalPrice
+
+Product Hub supports five live price types:
+
+| Type | Purpose | Notes |
+| --- | --- | --- |
+| **regular** | Base / fallback sell price | Always available as the last resort in the cascade |
+| **special** | Promotional / sale window | Uses start/end dates when set |
+| **tier** | Quantity breaks | Uses minimum quantity; may be group-scoped |
+| **group** | Price for a **customer group** | Needs a valid customer group (Segmentation) |
+| **cost** | Internal cost for margin / reporting | **Not** part of the buyer final-price cascade |
+
+Pricelist items can stage any of these types, including optional **fixed** vs **percentage** values (percentage bases are resolved at deploy time).
+
+### What finalPrice means
+
+`finalPrice` resolves **one** effective sell price from live candidates. Typical priority:
+
+1. **Tier** for the buyer’s customer group when quantity qualifies  
+2. **Group** price for that customer group  
+3. **Special** if currently valid (date window)  
+4. **Regular** as fallback  
+
+**Cost** never wins finalPrice.
+
+**Above finalPrice (commerce spine):**
+
+- **Order Hub** customer price providers can supply a trusted per-customer unit price that supersedes Product Hub base for catalog display and cart (server-authoritative).
+- **Rules** (optional) can stack catalog/cart promotions on top of provider or base price.
+
+Pricelists **feed** the live price layer that finalPrice reads; they do not bypass providers or Rules.
+
+## Deploy model: draft vs live
+
+| Status | Meaning |
+| --- | --- |
+| **draft** | Staging; not applied (or not yet re-applied after edits) |
+| **deploying** | Deploy batch in flight — a second deploy is refused until it finishes |
+| **deployed** | Last deploy completed |
+| **failed** | Deploy could not complete cleanly |
+
+### What deploy does
+
+- Walks products with items on that list and upserts live prices.
+- Writes **only price types present** on the pricelist for each product; other live types remain.
+- Resolves **percentage** items against live bases at deploy time.
+- Supports single deploy, **Deploy Selected**, and **Deploy All** (ineligible lists are skipped with a reason without failing the whole request).
+
+### What deploy does not do
+
+- It does not make the shop “read the pricelist document” as a live price book.
+- It does not remove unrepresented live price types.
+- It does not guarantee that Rules or customer price providers leave the deployed amount unchanged at checkout — those layers still apply after deploy.
+
+After changing items, you must **deploy again** for buyers to see the change. After deploy, spot-check critical SKUs on the product (live prices / finalPrice) and in storefront or cart for a representative customer group.
+
+## Typical workflows
+
+### Create → fill → deploy
+
+1. Create a pricelist with a clear **name** and **currency** (required).
+2. Optionally set description and date bounds when the business case needs them.
+3. Add items — one staging row per product × price type (and group / min quantity / dates as needed). Prefer fixed amounts for absolute contracts; percentage when the rule is relative to a live base.
+4. Review coverage. Empty lists cannot deploy.
+5. **Deploy** that list. Prefer **Deploy Selected** / single-list deploy over **Deploy All**.
+6. Wait until status is **deployed**, then spot-check sample products and a buyer in the target customer group.
+
+### Update an existing list
+
+1. Edit items while the list is **not** mid-deploy.
+2. Treat the list as staging again until you deploy — a prior deploy does not auto-replay edits.
+3. Deploy when ready. If status is **deploying**, wait or investigate failure.
+4. If another list also targets the same product × price type, **last successful deploy wins** for that type.
+
+### Bulk / multi-list campaigns
+
+- Use **Deploy Selected** when only a subset should go live.
+- Use **Deploy All** only when every list on the tenant is intentionally ready.
+- Prefer smaller, named lists (channel, contract, or campaign) over one mega-list so rollback and redeploy scope stay clear.
+
+### Permissions
+
+Operators need Product Hub access to manage pricelists and items, and a separate **deploy** permission for go-live. Roles without deploy can prepare staging but cannot publish.
+
+## Dependencies
+
+| Dependency | Why it matters |
+| --- | --- |
+| **Products** | Owns products, live prices, pricelists, and deploy. Core hub in the [commerce spine](/user-guide/how-b2bware-fits-together). |
+| **Customers (Segmentation = customer groups)** | **Group** (and group-scoped tier) prices need valid customer groups. Without correct group assignment on the buyer, group rows never win finalPrice. See [Customers overview](/user-guide/customers/overview). |
+| **Orders** | Buyers and carts consume **resolved** prices (finalPrice + providers), not the pricelist document. Charged price stays server-authoritative. See [Orders overview](/user-guide/orders/overview). |
+| **Rules** (optional) | Promotions can still change the outcome after deploy. |
+| **Integrations / Import-Export** | External sync may also write live prices; last writer per type wins versus a later pricelist deploy. |
+
+Attributes, Media, Tax, and Customer SKUs are adjacent catalog features — not prerequisites for pricelist deploy.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Fill items, skip deploy | Buyers still see old live prices | Deploy and verify status + sample SKUs |
+| Expect deploy to wipe all prices on a product | Only staged types are written | Explicitly stage each type you need to change |
+| Wrong or missing customer group on group rows | Group never wins finalPrice | Align with Segmentation groups used by buyers |
+| Percentage item with no resolvable base | Item skipped (or zeroed) at deploy | Choose base/fallback deliberately; ensure live bases exist |
+| Second deploy while status is deploying | Rejected | Wait for completion or handle failure |
+| Overlapping lists on same product × type | Last deploy wins; surprise overwrites | Partition by channel/contract; document ownership |
+| Fixing one SKU only via Deploy All | Unnecessary blast radius | Edit the live price on the product, or deploy one focused list |
+
+## Related
+
+- [How Products work](/user-guide/products/how-products-work)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)
 - [Products overview](/user-guide/products/overview)
-- [Manage products](/user-guide/products/manage-products)
+- [Customers overview](/user-guide/customers/overview)
+- [Orders overview](/user-guide/orders/overview)

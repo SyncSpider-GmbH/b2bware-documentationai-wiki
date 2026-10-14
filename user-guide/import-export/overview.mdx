@@ -1,0 +1,59 @@
+---
+title: Import / Export
+description: Short map of B2Bware file import/export — download history, Settings config, vs Integrations sync.
+---
+
+**Import / Export** covers **file-based bulk transfer** of hub entities (products, customers, and others as each screen allows). Top-level **Import / Export** exposes **Download history**; **Settings → Import / Export** configures behaviour when Settings Hub is present; many entity list screens offer **per-entity import/export** actions that write jobs into the same transfer machinery.
+
+| Surface | Role |
+| --- | --- |
+| **Import / Export → Download history** | Find and download completed export (and related) job files |
+| **Settings → Import / Export** | Tenant/system configuration for import-export behaviour |
+| **Entity list menus** (Products, etc.) | Start import/export jobs in context |
+
+**Mental model:** Import/Export = **files and job history**. Integrations = **ongoing connectors / sync runs / mapping**. Event Hub = **webhooks**. Do not merge them.
+
+<Callout kind="info" collapsed="false">
+Top-level Import / Export (Download history) appears in the Admin sidebar without a hub-specific gate. Settings → Import / Export appears when Settings Hub is present. Entity-level import/export still needs permissions on that entity.
+</Callout>
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Integrations** | Connectors, sync runs, mapping |
+| **Event Hub** | Outbound webhooks |
+| **Storefront Builder Documents** | Print/PDF templates — not spreadsheet entity export |
+
+## Why / how to use
+
+1. Prefer entity-screen import/export when updating one object type (e.g. products).
+2. After export completes, open **Download history** for the file — do not assume the browser always kept the first download.
+3. Use **Settings → Import / Export** when operators need defaults/limits/profile behaviour (as exposed) — not for connector OAuth.
+4. For continuous ERP/shop sync, use **[Integrations](/user-guide/integrations/overview)** instead of one-off files.
+5. Validate a sample row after import (SKU, price, stock) rather than trusting job “success” alone.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Permissions on the entity** | Hub-specific import/export keys |
+| **Settings Hub** | Settings → Import / Export child |
+| **Queue / storage** | Jobs and downloadable artifacts |
+| **Correct file shape** | Profile/format expectations per entity |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Using Import/Export for realtime sync | Wrong tool | Use Integrations |
+| Looking only under Settings for downloads | Files live under Download history | Use top-level Download history |
+| Confusing with Storefront Builder Documents | PDFs ≠ spreadsheet entity export | Use Documents for print templates |
+| Ignoring partial row failures | Silent bad data | Read job errors; re-import fixes only |
+
+## Related
+
+- [Integrations overview](/user-guide/integrations/overview)
+- [Settings overview](/user-guide/settings/overview)
+- [Manage products](/user-guide/products/manage-products)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

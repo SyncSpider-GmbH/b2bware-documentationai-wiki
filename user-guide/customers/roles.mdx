@@ -1,0 +1,164 @@
+---
+title: Roles
+description: How Customer Hub roles grant Admin and storefront permissions, why admin.access and role type matter for empty menus, and how type sync interacts with installed hubs.
+---
+
+A **Role** is a named bundle of permission keys stored as two lists:
+
+- **`admin_permissions`** — back-office / Admin API capabilities (including whether the person may enter Admin at all).
+- **`storefront_permissions`** — shop-facing keys contributed by installed hubs.
+
+Every **Customer** who should act in Admin or the shop carries a **`role_id`**. Hubs register their keys into Customer Hub’s **PermissionRegistry** when installed; missing Customer Hub means those registrations no-op safely.
+
+| Concept | Role |
+| --- | --- |
+| **Role** | `code`, `name`, `type`, `description`, `admin_permissions[]`, `storefront_permissions[]`. Admin: **Customers → Roles**. |
+| **Role type** (Admin UI / Roles API) | `admin` \| `agent` \| `user` \| `guest` — drives default sync sets and whether Admin scope is allowed. |
+| **`admin.access`** | Synthetic key under handler `admin`. Required for a customer-operator to enter the back-office. Platform administrators may bypass via Gate — say “platform administrator” vs “store admin operator”. |
+| **Customer** | Holds `role_id`. Effective keys resolve for Auth `/me` (UI hide) while **Gate / `permission:` middleware** remain source of truth. |
+| **Company `default_role_id`** | Suggests/sets default membership role (e.g. Vendor flows set seeded **vendor** role on the owned company). |
+| **Sidebar visibility** | Install + `canViewModule` / view keys — **UX only**. Hiding a nav item does not replace permission checks. |
+
+**Mental model:** Roles = *what this login is allowed to do*. Installing a hub adds keys to the registry; assigning a role grants a subset to a customer. Empty Admin menu ≈ missing `admin.access` or missing hub `*.view` keys — not “hubs vanished.”
+
+Saving a role is **live**. Ordinary CRUD; bulk update exists for role arrays.
+
+<Callout kind="info" collapsed="false">
+Most “permission bugs” are **wrong role type** or **missing `admin.access`**, not missing product features. Start diagnosis on the operator’s customer → role, not by reinstalling hubs.
+</Callout>
+
+**What Roles do *not* include:**
+
+- Per-row record ACLs beyond evidenced `*-own` keys (e.g. products.view-own for vendors).
+- Enforced storefront `storefront.account.manage-users` / `manage-addresses` (registered with **`enforced: false`**).
+- A Roles UI type option for **vendor** (marketplace vendor permissions are seeded/synced; Product Hub Vendors guide covers operator scoping).
+- Claiming platform-administrator Gate bypass as a customer-facing feature.
+
+## Why teams use Roles
+
+1. **Separate buyers from operators** — `user`/`guest` stay storefront-scoped; `admin`/`agent` can receive Admin keys.
+2. **Explain empty menus** — Operators without `admin.access` or hub view keys see almost nothing even when apps are installed.
+3. **Least privilege for sales agents** — `agent` defaults focus on proposals/quotes plus needed customer/order reads (intersected with installed hubs).
+4. **Safe sync after hub install** — Type sync refreshes Admin keys from what is installed; storefront keys are **merged** so hand-added storefront keys survive (re-running sync **restores** default storefront keys if someone unticked them — deliberate ops action).
+5. **Impersonation control** — Separate `customer-hub.customers.impersonate` action key (use sparingly).
+
+## How types, scopes, and sync work
+
+### Role fields
+
+| Field | Notes |
+| --- | --- |
+| **code** / **name** | Required |
+| **type** | `admin` \| `agent` \| `user` \| `guest` on create/update |
+| **admin_permissions** | Must be keys from registry scope `admin`; stripped if disabled |
+| **storefront_permissions** | Must be keys from registry scope `storefront` |
+| **description** | Optional |
+
+List columns (FE): ID, Code, Name, Type, permission counts, actions.
+
+### Type → scope rule (critical)
+
+| Type | Admin permissions | Storefront permissions (defaults) |
+| --- | --- | --- |
+| **admin** | All installed hubs’ admin keys (on type sync) | Not the focus; sync policy still defined in syncer |
+| **agent** | Intersect of agent admin defaults with installed keys (`admin.access`, customer view, order/quote keys, …) | Storefront keys for storefront-capable types |
+| **user** | **Forced empty** on write — cannot hold `admin.access` | Storefront keys |
+| **guest** | **Forced empty** | Empty defaults (guests gated by tenant guest settings, not keys) |
+
+FE hides Admin permission editor for `user`/`guest` and clears admin lists to match the API.
+
+### Customer Hub–registered keys (non-exhaustive)
+
+CRUD families: `customers`, `companies`, `contacts`, `contact-affiliations`, `customer-groups`, `roles`.
+
+Extra: `customers.view-own`, `customers.impersonate`, `roles.assign-permissions`, `settings.view|update`, `dashboard.view`.
+
+Storefront (Customer Hub): `storefront.account.manage-users`, `manage-addresses` — **not enforced**.
+
+Cross-cutting: `admin.access`.
+
+Other hubs append their own keys when installed (Products, Orders, …).
+
+### Sync asymmetry (ops)
+
+| Scope | Sync behaviour |
+| --- | --- |
+| **Admin keys** | **Replaced** from installed universe / type defaults — uninstalling a hub should drop its Admin keys on sync |
+| **Storefront keys** | **Union** with existing — hand-added keys kept; unticked **defaults** come back on sync |
+
+Run sync from install seeder or explicit artisan commands — **not** on unrelated events.
+
+### Assignment surfaces
+
+- Customer detail: **`role_id`**.
+- Company: **`default_role_id`** (membership / vendor-operator prep).
+- Checkout / registration: guest role codes from Customer Hub settings (`guest_role_codes`).
+
+Shop customers must not self-escalate: customer self-update paths strip `role_id`, `company_id`, `customer_group_id`, `status`, and token fields.
+
+## Typical workflows
+
+### Diagnose empty Admin menu
+
+1. Confirm Customer Hub + target hubs installed.
+2. Open the operator’s **customer** → **role**.
+3. Ensure type is `admin` or `agent` (not user/guest).
+4. Ensure **`admin.access`** plus the relevant hub **view** keys.
+5. Re-login / refresh session so `/me` picks up grants.
+
+### Create a least-privilege agent role
+
+1. **Customers → Roles** → create type **agent**.
+2. Start from defaults (or sync), then trim quote/order keys as needed — stay within registry keys.
+3. Assign to sales customers via `role_id`.
+4. Verify they see Orders/Proposals surfaces you intend — not full Settings.
+
+### Keep buyers storefront-only
+
+1. Use type **user** (or guest for true guests).
+2. Do not fight the Admin-scope clear — storefront only.
+3. Align guest role codes in Customer Hub settings with Order Hub guest checkout.
+
+### After installing a new hub
+
+1. Install hub.
+2. Run / rely on role permission sync so **admin** roles gain new Admin keys.
+3. Spot-check custom roles that should also see the new hub — grant view keys explicitly if they are not full admin.
+
+## Dependencies
+
+| Dependency | Why it matters |
+| --- | --- |
+| **Customer Hub** (core) | Owns Roles + PermissionRegistry |
+| **Auth Hub** | Login; `/me` permission resolver soft-coupled |
+| **All Customers** | `role_id` assignment; security tab / password flows ([Customers overview](/user-guide/customers/overview)) |
+| **Companies** | `default_role_id`; vendor default role side effects |
+| **Every other hub** | Registers permissions here; menus/actions depend on keys |
+| **Product Hub Vendors** | Seeded vendor role / view-own scoping (cross-link) |
+| **Order Hub** | Agent quote permissions; guest checkout role codes |
+
+Roles appear with Customer Hub. The Demo Store shows Roles under Customers.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| “Hubs installed but menu empty” | Missing `admin.access` or `*.view` | Grant Admin-capable role type + needed view keys; confirm `/me` permissions |
+| Put Admin keys on `user`/`guest` | API/FE clear them | Use `admin` or `agent` for operators |
+| Equate sidebar hide with security | UX only | Gate remains SoT; never rely on hidden nav |
+| Document manage-users/addresses as live ACL | `enforced: false` | Say “registered for future / not enforced” |
+| Invent Roles UI “vendor” type | Not in Roles create validation / picker | Point to Product Hub Vendors + seeded vendor role behaviour |
+| Untick storefront defaults then re-sync | Keys return | Treat sync as deliberate; re-check after hub installs |
+| Delete a role still assigned | Customers may lose effective access | Reassign customers first |
+| Impersonate without process | Sensitive action key | Restrict `customers.impersonate`; document lightly with caution |
+
+## Related
+
+- [Customers overview](/user-guide/customers/overview)
+- [Companies](/user-guide/customers/companies)
+- [Contacts](/user-guide/customers/contacts)
+- [Segmentation](/user-guide/customers/segmentation)
+- [Getting started with B2Bware Admin](/user-guide/getting-started)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)
+- [Vendors](/user-guide/products/vendors)
+- [Orders overview](/user-guide/orders/overview)
