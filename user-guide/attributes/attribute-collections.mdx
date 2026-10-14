@@ -1,0 +1,122 @@
+---
+title: Attribute Collections
+description: How B2Bware Attribute Collections bundle attributes for storefront surfaces (PDP, cart, checkout, category page, My Account), including group_type locks and flag rules.
+---
+
+An **Attribute Collection** is a **named, reusable set of attributes** that share one **`group_type`**, with flags that tell storefront (and related APIs) **where to render that set as a block**.
+
+| Concept | Role |
+| --- | --- |
+| **Attribute Collection** | Admin: **Attributes → Attribute Collections**. Identity: `name`, optional `description`, auto `code`, required `group_type`, `is_active`, surface flags, `collapsed_by_default`, `position`. |
+| **Members** | Pivot rows binding attributes into the collection (orderable membership). First attach effectively **locks** `group_type` to matching attributes only. |
+| **Attribute Group** | Types the **definition**; collections do not replace groups — members still belong to groups of the same type. |
+| **Attribute** | The field definition; collections reference existing attributes. |
+| **Values on records** | Still entered on Product / Category / Order / Customer — collections only control **bundled display**. |
+
+**Mental model:** Groups decide *kind*. Attributes decide *fields*. Collections decide *“show these fields together under one heading on this surface.”*
+
+Saving a collection is **live** (no deploy). Flipping PDP / cart / checkout surface flags or `is_active` can change storefront rendering immediately once themes consume collections.
+
+## Why teams use collections
+
+1. **PDP sections** — For example “Technical data” vs “Logistics” instead of one long attribute list (`group_type=product`, detail-page flag).
+2. **Cart line clarity** — Show a curated subset under the line item (cart flag, product).
+3. **Checkout field blocks** — Group custom order fields into a titled block (`group_type=order`, checkout flag).
+4. **Order confirmation / history** — Order-summary flag (order).
+5. **My Account profile sections** — Customer-account flag for `customer` or `company`.
+6. **Category page chrome** — Category-page flag for `category` (banner / filter sidebar).
+7. **Accordion UX** — `collapsed_by_default` + `position` across multiple visible collections on one surface.
+
+Use collections when **presentation** matters. Skip them when a single attribute with its own flags is enough (many tenants start with flags on the attribute alone, then introduce collections as the catalogue grows).
+
+## How group_type, members, and surface flags work
+
+### group_type
+
+- Required on create; must be one of the tenant’s registered attribute group types.
+- **Locked once the collection has members** — changing `group_type` while members exist is rejected.
+- While empty, type may change; gated flags that no longer match the new type are cleared.
+
+### Members (attach rules)
+
+- Attribute’s **group type** must equal the collection’s `group_type`.
+- Same attribute cannot be attached twice.
+- Deleting a collection deletes its **member** pivots (not the attributes themselves).
+- Deleting an attribute removes its collection memberships.
+
+### Surface flags (group-gated)
+
+Flags set `true` only when `group_type` is in the whitelist (validation rejects otherwise):
+
+| Flag | Allowed `group_type` | Intended surface |
+| --- | --- | --- |
+| `show_on_detail_page` | `product` | Product detail page — members under one heading |
+| `show_in_cart` | `product` | Cart line — members below the product |
+| `show_in_checkout` | `order` | Checkout form — grouped custom-fields block |
+| `show_in_order_summary` | `order` | Order confirmation / My Orders history |
+| `show_in_customer_account` | `customer`, `company` | Storefront My Account profile section |
+| `show_on_category_page` | `category` | Category banner / filter sidebar |
+
+**Group-agnostic:** `is_active`, `position`, `collapsed_by_default`.
+
+Inactive (`is_active=false`) collections are soft-disabled — storefront and API consumers **ignore** them.
+
+### Relationship to attribute-level flags
+
+Collections and attribute flags **complement** each other:
+
+- Checkout still requires attribute `use_in_checkout` + order group for the field to be **available / writable** at checkout. A collection’s checkout flag organises **rendering** of such fields.
+- Product PDP / cart flags on the attribute vs collection detail-page / cart flags — themes may honour one or both; keep them **consistent** for the fields you expect to show, and verify on the tenant theme.
+- Collections alone do **not** make a non-checkout attribute appear in checkout.
+
+### Resource-scoped includes
+
+Attributable models declare which collection `group_type` applies (`product`, `category`, `order`, …) so APIs can include the relevant active collections for that resource. Themes that group by collections depend on this.
+
+### Categories honesty
+
+A category collection with the category-page flag affects **category-page presentation**. It does **not** select which product attribute definitions appear when editing a product in that category. See [Categories](/user-guide/products/categories).
+
+## Typical workflows
+
+1. **PDP “Technical data”** — Ensure product-typed attributes exist → collection `group_type=product` → attach members → detail-page flag (+ optional `collapsed_by_default`) → `is_active`.
+2. **Checkout block “Order references”** — Order-typed attributes with `use_in_checkout` → collection `group_type=order` → checkout flag (+ order-summary flag if confirmation should repeat them).
+3. **Category sidebar bundle** — Category-typed attributes → collection `group_type=category` → category-page flag.
+4. **Account “Company extras”** — Company-typed attributes → collection `group_type=company` → customer-account flag.
+
+Order collections with `position` when multiple blocks share a surface.
+
+## Dependencies
+
+| Related | Why |
+| --- | --- |
+| **All Attributes / Groups** | Members and type alignment. See [All Attributes](/user-guide/attributes/all-attributes) and [Attribute Groups](/user-guide/attributes/attribute-groups). |
+| **Product Hub** | PDP / cart surfaces; product & category attributable includes. See [How Products work](/user-guide/products/how-products-work). |
+| **Order Hub** | Checkout / order summary; attribute-level `use_in_checkout`. See [Orders overview](/user-guide/orders/overview). |
+| **Customer Hub** | My Account collections for customer / company. See [Customers overview](/user-guide/customers/overview). |
+| **Storefront / themes** | Actual rendering of collection blocks |
+| **Permissions** | Attributes Hub attribute-collections permissions |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Mix product and order attributes in one collection | Attach rejected / type lock | One collection per `group_type` |
+| Set category-page flag on a product collection | Validation reject | Use `group_type=category` |
+| Expect collection to create or fill values | Only bundling | Define attributes + assign values on records |
+| Leave `is_active` off and wonder why storefront is empty | Inactive ignored | Activate after review |
+| Rely on collection checkout flag without `use_in_checkout` on attributes | Fields missing from checkout API | Enable attribute-level checkout flag first |
+| Delete collection thinking attributes are gone | Only memberships removed | Attributes remain in All Attributes |
+| Change `group_type` after members added | Locked | Empty members first or create a new collection |
+| Assume every theme implements every flag | Theme-dependent | Verify Demo / storefront theme behaviour |
+| Use collections as Magento attribute sets | Wrong tool | See Groups + [Categories](/user-guide/products/categories) honesty |
+
+## Related
+
+- [Attributes overview](/user-guide/attributes/overview)
+- [All Attributes](/user-guide/attributes/all-attributes)
+- [Attribute Groups](/user-guide/attributes/attribute-groups)
+- [Categories](/user-guide/products/categories)
+- [How Products work](/user-guide/products/how-products-work)
+- [Orders overview](/user-guide/orders/overview)
+- [Customers overview](/user-guide/customers/overview)

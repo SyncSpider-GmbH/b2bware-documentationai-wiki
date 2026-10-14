@@ -3,6 +3,22 @@ title: Sync runs
 description: Run full or incremental syncs, inspect payloads, lock entities, and read sync logs and diagnostics.
 ---
 
+## What a run tells you
+
+A **sync run** is the execution record for an integration. Use it to identify the connector, direction, time, scope, counts, and errors; then inspect a representative record in the relevant hub (Products, Orders, or Customers).
+
+A run is **not** the same as:
+
+- an [Import / Export](/user-guide/import-export/overview) download job,
+- an [Event Hub](/user-guide/events/overview) delivery attempt, or
+- an [Automation Hub](/user-guide/automation/overview) flow run.
+
+Available run fields, retry controls, and entity support vary by connector — treat the screens below as the common operator path, not a universal field list.
+
+<Callout kind="info" collapsed="false">
+A completed (green) run means the connector finished its work. It does not by itself prove business correctness — validate identifiers, required fields, status ownership, and a sample record in the destination hub.
+</Callout>
+
 ## Starting a sync
 
 From **Integration detail** (or entity cards):
@@ -51,7 +67,19 @@ Sync Run Detail shows:
 
 Failed rows show error messages on the log; fix mapping, credentials, or filters, then re-run.
 
+## Triage by symptom
+
+| Symptom | Where to look next |
+| --- | --- |
+| **Product mismatch** | Inspect the product identifier, mapping, filter, and destination product — [How products work](/user-guide/products/how-products-work), [Manage products](/user-guide/products/manage-products). |
+| **Order mismatch** | Inspect order ownership / status mapping and the [Order lifecycle](/user-guide/orders/lifecycle). |
+| **Customer mismatch** | Inspect account / contact matching and the external key — [Customers overview](/user-guide/customers/overview). |
+| **File job or downloaded artifact** | Go to [Import / Export](/user-guide/import-export/overview), not Sync runs. |
+| **Webhook delivery problem** | Go to [Event Hub overview](/user-guide/events/overview). |
+| **Multi-step reaction problem** | Go to [Automation Hub overview](/user-guide/automation/overview). |
+
 ## Next steps
 
 - [File feed and Response Relay](/user-guide/integrations/file-feed-and-relay)
 - [Mapping and filters](/user-guide/integrations/mapping-and-filters)
+- [Integrations overview](/user-guide/integrations/overview)

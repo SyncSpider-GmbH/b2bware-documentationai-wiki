@@ -1,0 +1,103 @@
+---
+title: Catalog Price Rules
+description: Wie B2Bware Catalog Price Rules Stückpreise auf live-/Provider-Basis anpassen — Actions, Priority, Groups und Abgrenzung zu Pricelists und Cart-Promotions.
+---
+
+Eine **Catalog Price Rule** ist eine bedingungsbasierte Anpassung des **Sell-Stückpreises** eines Products, aufgelöst für einen Buyer (und Customer-Group-Kontext). Sie läuft in der **Catalog- / Line-Price**-Schicht — und beeinflusst, welchen effektiven Preis der Shop zeigt und welchen Stückpreis Cart-Lines nach dem Provider-/Basis-Schritt verwenden.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Basis-Stückpreis** | Product-Hub-`finalPrice`-Cascade **oder** erster non-null **CustomerPriceProvider**-Preis (Provider gewinnt über Product-Hub-Basis). |
+| **Catalog-Rule-Overlay** | Matching aktive Rules passen diese Basis an (percent-off, fixed-off, to-percent, to-fixed) nach Priority. |
+| **Effektiver Sell-Preis** | Basis nach Catalog Rules — genutzt von Price-Accessors für Anzeige und Cart-Line-Stückpreis; die **regular**-Strikethrough-Basis kann für Compare-at unangepasst bleiben. |
+| **Admin** | **Rules → Catalog Price Rules**, wenn Rule Hub installiert ist. |
+
+**Mentales Modell:** *Zuerst Listen-/Vertragspreis (Pricelist-Deploy + optionaler Provider), dann promotionaler Catalog-Overlay.* Catalog Rules sind keine zweite Pricelist und brauchen kein Deploy.
+
+<Callout kind="alert" collapsed="false">
+Rule Hub ist optional. Wenn **Rules** auf dem Tenant fehlt, sind Catalog Price Rules nicht verfügbar. Catalog Rules editieren **keine** gestagten Pricelist-Zeilen und ersetzen **keine** `finalPrice`-Typauswahl.
+</Callout>
+
+**Nicht dasselbe**
+
+- Kein Cart-Total-Coupon (das sind **Cart Price Rules** + **Coupons**).
+- Kein Rewrite gestagter **PricelistItem**-Zeilen.
+- Keine Tax- / License-„Rules“.
+
+## Warum Teams Catalog Price Rules nutzen
+
+1. **Category- / Brand- / SKU-Promotions**, sichtbar auf PDP und Listing, ohne jede live-Price-Zeile zu ändern.
+2. **Group-gescopte Angebote** über Customer-Group-Targeting, abgestimmt mit [Segmentation](/de/user-guide/customers/segmentation).
+3. **Geplante Zeitfenster** ohne Pricelist-Deploy am Startdatum.
+4. **Stack-Kontrolle** mit **Priority** (niedriger = höhere Priority) und **stop further rules**.
+5. **Konsistent gesehen = berechneter Stückpreis**, wenn dieselbe Auflösung Catalog-Anzeige und Cart-Line-Pricing speist.
+
+Bevorzugen Sie **[Pricelist-Deploy](/de/user-guide/products/pricelists)**, wenn der neue Betrag der permanente live Price werden soll. Bevorzugen Sie **Catalog Rules**, wenn die Anpassung promotional, bedingt oder temporär **auf** einer unveränderten Basis liegt.
+
+## Wie es funktioniert
+
+### Schlüsselfelder
+
+| Feld | Hinweise |
+| --- | --- |
+| **Name** | Operator-Label |
+| **Status** | Active / inactive / scheduled |
+| **Priority** | Niedrigere Zahl läuft zuerst |
+| **Conditions** | Condition-Tree (Product- / Customer-Targets) |
+| **Action type** | Percent-off, fixed-off, to-percent, to-fixed |
+| **Action amount** | Magnitude der Action |
+| **Customer group IDs** | Optionales Group-Targeting |
+| **Stop further rules** | Wenn true, greifen niedriger priorisierte Catalog Rules nach einem Match nicht mehr |
+| **Uses count** | Wird erhöht, wenn Usage beim Checkout geloggt wird |
+
+### Auflösungsreihenfolge
+
+1. **Stückpreis-Basis** auflösen: Provider-Preis falls vorhanden, sonst Product-Hub-finalPrice-artige Basis.
+2. **Aktive** Catalog Rules gegen Product- + Customer-Kontext auswerten.
+3. Matching Actions in **Priority**-Reihenfolge anwenden, bis fertig oder **stop further rules**.
+4. Cart-Add-/Update-Pfade, die Catalog Rules anwenden, können Applied-Rule-Refs auf der Line speichern.
+5. Beim Checkout fließen Catalog-Anwendungen in Order-Applied-Rules-Metadata und **Usage Logs** ein.
+
+### Conditions
+
+Conditions kombinieren mit **all / any** und vergleichen Product- oder Customer-Attribute (und Custom Attributes, wenn Attributes Hub vorhanden ist). Designen Sie *wer/was matcht* — die volle Operator-Liste lebt im Condition-Schema, nicht in diesem Guide.
+
+## So nutzen Sie es
+
+1. Rule Hub + Permission zum Verwalten von Catalog Price Rules bestätigen.
+2. Zuerst die **Basis**-Story klären (live Prices / Groups / Provider), damit ein %-off einen bekannten Nenner hat.
+3. Rule anlegen: Action type/amount, Groups falls nötig, Conditions, Priority, Stop-Flag, Schedule/Status.
+4. Aktivieren und als Buyer in der Ziel-Group verifizieren — Listing, PDP und Cart-Line-Stückpreis prüfen.
+5. Wenn überlappende Rules kämpfen: Priority anpassen oder stop further rules aktivieren; nicht „fix“ durch Redeploy einer unrelated Pricelist.
+6. Für permanente Listenänderungen [Pricelists](/de/user-guide/products/pricelists) oder Product-Price-Edit nutzen statt Rules.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Rule Hub** | Optional; Seite sonst abwesend |
+| **Product Hub** | Product-Kontext + Basispreise |
+| **Order Hub** | Provider-Registry; Cart-Line-Pfade, die Catalog Rules anwenden; Checkout-Logging |
+| **Customer Hub / Segmentation** | Group-Targeting und Buyer-Identität |
+| **Attributes Hub** (optional) | Custom-Attribute-Conditions |
+| **Pricelists** | Speisen live Price, der oft *die* Basis unter Rules ist |
+
+## Häufige Fehler
+
+| Fehler | Warum es wehtut | Bessere Praxis |
+| --- | --- | --- |
+| Erwarten, dass inactive/scheduled Rules Preise ändern | Nur matching aktive (im Fenster) Rules greifen | Status und Daten prüfen |
+| Annehmen, Deploy habe die Promo eingeschaltet | Pricelist ≠ Catalog Rule | Die Rule aktivieren |
+| Falsche Customer-Group-IDs | Angebot für intendierte Buyer unsichtbar | Mit Segmentation-Group-IDs abstimmen |
+| Viele %-offs ohne Stop/Priority stapeln | Überraschendes Compounding | Priority-Bänder planen; testen |
+| Catalog Rules beschuldigen, wenn ein Provider unerwartet null liefert | Basis unter der Rule hat sich geändert | Zuerst Provider triageen, dann Rules |
+| Cost Price editieren und Promo-Effekt erwarten | Cost ist nicht die Sell-Cascade | Sell-Basis oder Rule-Action anpassen |
+| Nur Admin-Formfelder dokumentieren | Stack-Position fehlt | Immer „auf Provider-/Basis-Stückpreis“ sagen |
+
+## Related
+
+- [Rules — Überblick](/de/user-guide/rules/overview)
+- [Pricelists](/de/user-guide/products/pricelists)
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Segmentation](/de/user-guide/customers/segmentation)
+- [Order-Lifecycle](/de/user-guide/orders/lifecycle)

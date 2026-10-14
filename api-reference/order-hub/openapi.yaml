@@ -834,6 +834,71 @@ paths:
           description: Successful response
           content:
             application/json: {}
+  /api/v1/apps/order-hub/orders/bulk/delete:
+    delete:
+      tags:
+        - Orders
+      summary: Bulk Delete Orders
+      description: Deletes selected orders as an all-or-nothing batch. Missing, historically locked, or unauthorized order IDs cause a 422 response and no selected orders are deleted.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: integer
+            example:
+              ids:
+                - 101
+                - 102
+      responses:
+        '200':
+          description: All selected orders were deleted or moved to Trash.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  deleted_count:
+                    type: integer
+                  deleted_ids:
+                    type: array
+                    items:
+                      type: integer
+        '403':
+          description: The operator does not have permission to delete orders.
+        '422':
+          description: Invalid IDs or at least one selected order is missing, historically locked, or unauthorized; no orders are deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  missing:
+                    type: array
+                    items:
+                      type: integer
+                  locked:
+                    type: array
+                    items:
+                      type: integer
+                  forbidden:
+                    type: array
+                    items:
+                      type: integer
+                  deleted_count:
+                    type: integer
   /api/v1/apps/order-hub/orders/statuses/list:
     get:
       tags:

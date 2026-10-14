@@ -1,61 +1,195 @@
 ---
 title: Edit a product
-description: Update General, Price, and Stock tabs on a product in B2Bware Admin.
+description: How Edit Product works — which tabs matter for variants, live prices (tier/group), stock and categories, how that differs from pricelist deploy, and common stock/price pitfalls.
 ---
 
-Open a product from **All Products**, then use the tabs to maintain identity, pricing, and inventory.
+**Edit Product** is the **detail** workspace for one catalog item: identity, variations, attributes, **live** prices (including tier/group), stock per warehouse, media, SEO/shipping, merchandising links, and optional module tabs.
 
-## General
+Open it from **[All Products](/user-guide/products/manage-products)** (or after **Add New Product**). Landing tab is usually **General**.
 
-<Image
-  src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404825814-w0bijm3rty-detail-general.png?fm=auto&auto=compress%2Cformat"
-  alt="Edit Product — General tab"
-/>
+| Concept | Role |
+| --- | --- |
+| **Edit Product** | Per-product operations surface (tabbed). Saves are **live**. |
+| **All Products** | List / bulk / import — see [Manage products](/user-guide/products/manage-products). |
+| **Live Price** | Regular / special / tier / group / cost on this product. Editing Price (or API upsert) updates live rows **immediately**. |
+| **Pricelist** | Staging container; buyers change only after **deploy** onto live Price. |
+| **Stock row** | Qty + policies for **product × warehouse**. Commerce default path uses the **default** warehouse. |
+| **Stock Locations** | Warehouse masters used by the Stock tab selector. |
 
-Typical General fields include name, SKU, description, categories, and media.
+**Mental model:** Edit Product = *make this SKU (or configurable parent) sellable and correct*. Use Pricelists when many SKUs need a reviewed price change set. Use Stock Locations only to define *where*; set *how much* here.
 
-<Steps>
-  <Step title="Open the product">
-    From **All Products**, select the product row.
-  </Step>
-  <Step title="Edit General">
-    Update name, description, and other identity fields.
-  </Step>
-  <Step title="Add or reorder photos">
-    Upload images and set the primary photo when your tenant supports it.
-  </Step>
-  <Step title="Save">
-    Save before switching tabs if your UI requires an explicit save.
-  </Step>
-</Steps>
+For the Product Hub spine and full pricing-layer essay, see [How Products work](/user-guide/products/how-products-work) — do not treat this page as that system guide.
 
-<Callout kind="info" title="Reorder photos">
-  Drag thumbnails when the UI allows it so the first image is the one buyers see first.
+<Callout kind="info" collapsed="false">
+Saving the **Price** tab updates live catalog prices for **this product now**. Editing a **pricelist** does **not** change buyers until **deploy**. Stock saves are also live — there is no pricelist-style deploy for inventory.
 </Callout>
 
-## Price
+## Why the tabs exist
 
-<Image
-  src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404829280-g3qw7ceri8r-detail-price.png?fm=auto&auto=compress%2Cformat"
-  alt="Edit Product — Price tab"
-/>
+Commerce-critical tabs first; the rest support discovery, logistics, or optional modules.
 
-Use the Price tab for base price and any list- or contract-related fields your tenant shows.
+| Tab | Why it matters |
+| --- | --- |
+| **General** | Identity: name, SKU, type, status, categories, tax class (if Tax installed), descriptions, **media gallery**. Categories assignment lives here. |
+| **Variants** | Configurable parents: variation axes + child products. **Hidden** when the opened product is already a child. |
+| **Attributes** | Product-typed attribute **values** (specs / filters). Variation attributes also underpin configurables. |
+| **Price** | **Live** regular, sales/special (dates), cost; entry to **tier** and **group** price UIs. This is *not* a pricelist. |
+| **Stock** | Per-warehouse Stock rows. Often hidden for **configurable** parents — stock usually on **simple / variation** children. |
+| **SEO** | Catalog discovery metadata / previews. |
+| **Shipping** | Physical ship dimensions/weight-style product data. |
+| **Cross Sell / Upsell** | Merchandising links to other products. |
+| **Licensing** | **Only if** License hub installed. |
+| **DTOne** | **Only if** DTOne hub installed (not on new-product create). |
+| **Permissions** | **Only if** customer-product-permission module installed. |
+| **Customer SKUs** | **Only if** Customer SKU module installed (buyer part numbers). |
 
-<Callout kind="warning" title="Variants prices label">
-  Some tenants show a label such as **Vatiants Prices** (spelling as in the UI). Use that section for variant-level prices when products have variants.
-</Callout>
+Depth priorities: **Variants, Price (+ tier/group), Stock, General (categories + media), Attributes**. Keep SEO / Shipping / Cross-Sell / Upsell light. Gate optional tabs honestly — they do not always appear.
 
-## Stock
+## How commerce tabs work
 
-<Image
-  src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404832291-noqwqvkbe5-detail-stock.png?fm=auto&auto=compress%2Cformat"
-  alt="Edit Product — Stock tab"
-/>
+### General — identity, categories, media
 
-Assign quantities per stock location. Create locations first under **Stock Locations** if the list is empty.
+- Set **product type** early (simple / configurable / virtual / downloadable). Type drives Variants/Stock expectations.
+- **SKU** is the stable upsert key for imports/integrations.
+- **Categories**: multi-select assignment on the product. Tree structure is maintained under **[Categories](/user-guide/products/categories)** — do not invent attribute-set gating by category.
+- **Media**: gallery on General. Primary image drives list/storefront defaults.
+- General may show a summary Price / Stock field — authoritative multi-type prices and per-warehouse qty still live on **Price** / **Stock** tabs.
+- **Tax class**: meaningful when Tax hub is installed; optional.
 
-## Next steps
+### Variants — configurable parents
 
-- [Stock locations](/user-guide/products/stock-locations)
+- Use for **configurable** parents: choose variation **attributes**, create/assign **child** products (each child is its own sellable SKU with own prices/stock).
+- Children typically carry physical stock and sell prices; parent is the chooser UI.
+- Opening a **child** hides the Variants tab (cannot nest).
+- Do not use Variants to fake “options” on a simple product without the configurable model — use attributes or true configurables.
+
+### Attributes — values vs definitions
+
+- This tab edits **values on the product** for attributes defined in Attributes Hub (product group type).
+- Variation axes for configurables are attribute-based — define attributes before building Variants.
+- Category-typed attributes belong on **[Categories](/user-guide/products/categories)**, not here.
+
+### Price — live types, tier, group
+
+Admin **Price** tab edits **live** price records for this product.
+
+| UI / type | Meaning |
+| --- | --- |
+| **Price** | **regular** — base / fallback sell price |
+| **Sales Price** + start/end | **special** — promotional window |
+| **Cost Price** | **cost** — margin/reporting; **not** in buyer finalPrice cascade |
+| **See Tier Prices** | **tier** — quantity breaks (`min_quantity`); may be group-scoped |
+| **See Group Prices** | **group** — amount for a **customer group** (Segmentation) |
+
+**finalPrice (base cascade — summary only):** tier (qty qualifies) → group → special (in date window) → regular. **Cost never wins.** Customer price providers (Order Hub / integrations) can **supersede** this base; Rules can stack after. Full essay: [How Products work](/user-guide/products/how-products-work) and [Pricelists](/user-guide/products/pricelists).
+
+**Live vs pricelist (non-negotiable):**
+
+- Saving the Price tab updates live catalog prices for **this product now**.
+- Editing a **pricelist** does **not** change buyers until **deploy**.
+- After a pricelist deploy, re-open Price (or finalPrice include) to verify — last writer per price type wins.
+
+Use the **Price tab** for one-SKU fixes and for setting the baselines percentage pricelists resolve against. Use **[Pricelists](/user-guide/products/pricelists)** for multi-SKU / scheduled / reviewed campaigns.
+
+Keep cost/regular/special coherent per currency the tenant sells in.
+
+### Stock — warehouses, default, manage_stock
+
+| Rule | Operator meaning |
+| --- | --- |
+| **Stock Locations first** | Warehouse masters under Products → Stock Locations; selector needs them. |
+| **One row per product × warehouse** | Qty, availability flag, backorders (`no_backorders` / `allow_qty_below_0` / `allow_pre_orders`), optional cart min/max, upcoming qty. |
+| **Default warehouse** | Storefront availability and Order Hub stock adjustment (when enabled) use the **default** warehouse Stock relation. Non-default rows are ops/visibility unless a flow targets them explicitly. |
+| **No default row** | Availability treats inventory as **unmanaged → orderable**. Easy to oversell if operators forgot stock. |
+| **`manage_stock`** | Product-level flag expected **true** for physical stocked goods. Distinct from “has a Stock row.” Virtual/downloadable often skip physical stock. |
+| **Configurable parents** | Stock tab often **not shown** on parent; maintain qty on **variation** children. |
+| **No deploy** | Stock saves are live (unlike pricelists). |
+
+Full warehouse resolution: [Stock locations](/user-guide/products/stock-locations).
+
+### Light and optional tabs
+
+- **SEO** — titles/descriptions/previews for storefront discovery.
+- **Shipping** — ship-relevant product fields for physical goods.
+- **Cross Sell / Upsell** — related product links for merchandising.
+- **Optional gated tabs** (Licensing, DTOne, Permissions, Customer SKUs) — present only when their modules are installed; deep how-tos belong on those modules’ pages (see [Customer SKUs](/user-guide/products/customer-skus)).
+
+## Typical workflows
+
+### Simple physical SKU (sell-ready)
+
+1. General: type **simple**, name, SKU, status active, categories, primary image.
+2. Price: set **regular**; optional special window; cost if margin tracking.
+3. Stock: select **default** warehouse; qty; backorder policy; ensure `manage_stock` appropriate.
+4. Attributes: fill required specs for filters/PDP.
+5. Verify as a buyer in the right customer group (group price / finalPrice) and confirm add-to-cart respects stock.
+
+### Configurable with variations
+
+1. Ensure variation attributes exist (Attributes Hub).
+2. General: type **configurable**.
+3. Variants: select axes; create/assign children with unique SKUs.
+4. On **each child**: Price + Stock (default warehouse).
+5. Parent: media/SEO/categories for the chooser page.
+
+### B2B group / tier pricing on one SKU
+
+1. Confirm customer groups in Segmentation.
+2. Price → **See Group Prices** / **See Tier Prices**; set amounts and min qty / group ids.
+3. Spot-check finalPrice for that group and a qty that should hit a tier.
+4. If the same structure applies to hundreds of SKUs → build a **pricelist** and deploy instead.
+
+### After a pricelist deploy
+
+1. Open a sample product → Price; confirm types you staged.
+2. Confirm types you did **not** stage were left intact.
+3. Cart check for target group — providers/Rules may still alter charged price.
+
+### Permissions
+
+Need `products` update (or update-own). Price/stock also imply `prices` / `stock` rights as granted. Optional tabs need their module + permissions.
+
+## Dependencies
+
+| Dependency | Why it matters |
+| --- | --- |
+| **Product Hub** | Product detail, Price, Stock, Variants. Core hub in the [commerce spine](/user-guide/how-b2bware-fits-together). |
+| **Manage products (list)** | Entry, create, bulk, import. See [Manage products](/user-guide/products/manage-products). |
+| **How Products work** | Spine, layers, do-not-claim. See [How Products work](/user-guide/products/how-products-work). |
+| **Attributes Hub** | Attribute definitions; variation axes. |
+| **Categories** | Tree masters; assignment on General. See [Categories](/user-guide/products/categories). |
+| **Stock locations** | Warehouse masters for Stock tab. See [Stock locations](/user-guide/products/stock-locations). |
+| **Pricelists** | Staged multi-SKU live Price writes via deploy. See [Pricelists](/user-guide/products/pricelists). |
+| **Customer Hub / Segmentation** | Group prices; identity for finalPrice. |
+| **Order Hub + Storefront** | Charged price + availability consume live data. |
+| **Media** | Gallery pattern on General. |
+| **Vendors** | Supplier identity / optional vendor-operator scoping. See [Vendors](/user-guide/products/vendors). |
+| **Tax / License / DTOne / Customer SKU / product-permission modules** | Optional tabs only when installed. |
+| **Rule Hub** (optional) | Can change outcomes after base/provider price. |
+| **Integrations** | May upsert live Price/Stock/product — last writer wins vs Admin edits. |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- |
+| Confusing Price tab with pricelist | Ops think “saved list = live” or vice versa | Live edit = immediate; pricelist = deploy required — see [Pricelists](/user-guide/products/pricelists) |
+| Setting special/group/tier but never regular | Cascade/fallback broken for some buyers | Always keep a coherent **regular** |
+| Group rows with wrong/missing customer group | Group never wins finalPrice | Align with Segmentation groups buyers actually have |
+| Stock only on non-default warehouse | Cart/order paths ignore it by default | Put sellable online qty on **default** warehouse |
+| No Stock row + physical product | Unmanaged ⇒ always orderable | Create default-warehouse row; set `manage_stock` |
+| Expecting configurable parent Stock to drive sell-through | Children hold sellable stock | Stock the variations |
+| Editing cost expecting buyer price change | Cost excluded from finalPrice | Change regular/special/tier/group (or deploy pricelist) |
+| Themes hardcoding displayed prices | Breaks server-authoritative charging | Trust server resolution |
+| Documenting Licensing/DTOne/Customer SKUs as core | Soft-coupled optionals | Gate with install; link sibling pages |
+
+## Related
+
+- [How Products work](/user-guide/products/how-products-work)
+- [Manage products](/user-guide/products/manage-products)
 - [Pricelists](/user-guide/products/pricelists)
+- [Stock locations](/user-guide/products/stock-locations)
+- [Categories](/user-guide/products/categories)
+- [Vendors](/user-guide/products/vendors)
+- [Customer SKUs](/user-guide/products/customer-skus)
+- [Products overview](/user-guide/products/overview)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

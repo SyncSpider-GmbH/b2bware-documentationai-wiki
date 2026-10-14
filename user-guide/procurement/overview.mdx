@@ -1,0 +1,100 @@
+---
+title: Procurement overview
+description: Optional Procurement Hub in B2Bware — purchase orders, goods receipts, and vendor bills; how buy-side documents differ from Product Vendors, sales invoices, and stock, with dependencies and pitfalls.
+---
+
+**Procurement** in B2Bware Admin is the UI for optional **Procurement Hub** — inbound purchasing documents: **purchase orders (POs)**, **goods receipts (GR)**, and **vendor bills** (supplier payables), using a Procurement **Supplier** counterparty model.
+
+| Concept | Role |
+| --- | --- |
+| **Procurement Hub** | Optional installed package. When present and the operator can view it, Admin shows **Procurement** with three children. |
+| **Purchase Order** | Intent to buy from a supplier (lines → products/qty). |
+| **Goods Receipt** | Record of goods received against purchasing activity. |
+| **Vendor Bill** | Supplier invoice / payable document (AP) — **not** sales Invoice Hub. |
+| **Supplier** (Procurement) | Purchasing counterparty facet (contact, terms, currency, …) — **≠ Product Hub Vendor**. |
+
+**Mental model:** Procurement is *buy-side*. Sales Orders / Invoices are *sell-side*. Product Hub Vendors link *who supplies a catalog SKU* for marketplace/catalog ownership; Procurement Suppliers are *who you raise POs and AP bills against*.
+
+<Callout kind="alert" collapsed="false">
+Procurement Hub is **optional** (`hasProcurementHub`). If the tenant has not installed it, the **Procurement** sidebar group is absent. Demo Store presence does **not** mean every tenant has Procurement.
+</Callout>
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Products → Vendors** | Catalog supplier master + VendorProduct supply price — see [Vendors](/user-guide/products/vendors) |
+| **Invoices (Invoice Hub)** | Customer AR sales documents |
+| **Stock Locations** | Warehouse masters + live Stock qty rows |
+| **Stock Movements** | Optional append-only qty ledger (may listen to GR) |
+
+## Why teams use Procurement
+
+1. **Formalise purchasing** — POs instead of informal email-only buys.
+2. **Receive into inventory process** — GRs document what arrived; optionally feed Stock Movements.
+3. **Track payables** — Vendor bills separate from customer invoices.
+4. **Separate buy vs sell ledgers** — Avoid overloading Order Hub with supplier documents.
+5. **Operational handoff** — Purchasing ↔ warehouse ↔ AP with distinct document types.
+
+## Document flow
+
+```
+Supplier → Purchase Order → Goods Receipt → (optional) Stock Movement (receipt)
+                         ↘ Vendor Bill (AP)
+```
+
+1. Maintain **Supplier** counterparties (Procurement model).
+2. Raise **Purchase Orders** with product lines / quantities.
+3. Post **Goods Receipts** when stock arrives.
+4. If **Stock Movements** is installed, GR creation can append **receipt** movements (soft-coupled listener — Stock Movements stays installable without Procurement, and vice versa).
+5. Record **Vendor Bills** for supplier charges.
+6. Live Product Hub **Stock** qty still lives on product × warehouse rows — do **not** assume GR alone updates `product.stock` unless a configured write-through / ops process does.
+
+**Demo children**
+
+| Child | Intent |
+| --- | --- |
+| Purchase Orders | Buy intent |
+| Goods Receipts | Receive |
+| Vendor Bills | AP bills |
+
+## How to use the hub
+
+1. Confirm **Procurement** is visible (`hasProcurementHub`) and the role can manage purchasing docs.
+2. Create Procurement **Suppliers** (do not assume Product → Vendors are the same records — see [Vendors](/user-guide/products/vendors)).
+3. Ensure **products** and **[stock locations](/user-guide/products/stock-locations)** exist for lines you will receive.
+4. Raise PO → receive GR → bill vendor in the order your finance policy requires (bill before/after receipt varies by tenant — document policy, not a single forced chrome path).
+5. If using [Stock Movements](/user-guide/stock-movements/overview), verify a GR creates the expected **receipt** ledger rows; still reconcile **default warehouse** live qty for storefront.
+6. Keep sales **[Invoices](/user-guide/invoices/overview)** and **Vendor Bills** in separate mental buckets for support.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Procurement Hub installed** | Sidebar + APIs |
+| **Product Hub** | PO/GR lines reference products; warehouses for landing qty |
+| **Customer Hub / contacts** | Supplier counterparty linkage patterns |
+| **Stock Movements (optional)** | Ledger from GR events |
+| **Auth + admin access** | Admin writes |
+| **Accounting / Invoices (optional)** | Adjacent finance — not automatic mirrors |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Using Product Vendors as PO supplier | Wrong entity | Procurement Supplier |
+| Expecting GR to fix storefront stock alone | Live Stock / default warehouse rules | Check Stock Locations + optional Movements write-through |
+| Confusing Vendor Bills with Invoices | AP vs AR | Correct hub |
+| Assuming Stock Movements always present | Demo may hide Stock | Optional module |
+| Treating Procurement as sales returns | Wrong flow | Sales credits → Invoice Hub / orders |
+
+## Related
+
+- [Vendors](/user-guide/products/vendors) — catalog supplier ≠ Procurement Supplier
+- [Stock Locations](/user-guide/products/stock-locations) — where live qty sits
+- [Stock Movements overview](/user-guide/stock-movements/overview) — optional ledger from GR
+- [Manage products](/user-guide/products/manage-products)
+- [Invoices overview](/user-guide/invoices/overview) — AR contrast
+- [Accounting overview](/user-guide/accounting/overview) — bank / AP adjacency
+- [Orders overview](/user-guide/orders/overview) — sell-side contrast
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

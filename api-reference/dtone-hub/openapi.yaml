@@ -1,0 +1,649 @@
+openapi: 3.0.0
+info:
+  title: DTOneHub API
+  description: >-
+    Complete API collection for DTOneHub package - Mobile Top-up Integration
+    with DT One
+  version: 1.0.0
+servers:
+  - url: https://api.datahub.syncspider.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Configurations
+    description: DT One product configuration management
+  - name: Customer Flow
+    description: Customer-facing endpoints for purchasing DT One products
+  - name: Transactions
+    description: Transaction management and monitoring
+  - name: API Logs
+    description: API interaction logging and monitoring
+  - name: Settings
+    description: DT One API settings and configuration
+  - name: Webhooks
+    description: Webhook endpoints (public, no auth required)
+paths:
+  /api/v1/apps/dtone-hub/configurations:
+    get:
+      tags:
+        - Configurations
+      summary: List Configurations
+      description: Get paginated list of DT One configurations
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          description: Page number
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          description: Items per page
+          example: '25'
+        - name: filter[product_id]
+          in: query
+          schema:
+            type: string
+          description: Filter by product ID
+        - name: filter[status]
+          in: query
+          schema:
+            type: string
+          description: Filter by status (active/inactive/testing)
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Configurations
+      summary: Create Configuration
+      description: Create new DT One configuration for a product
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                product_id: 1
+                service_types:
+                  - airtime
+                  - data
+                enabled_countries:
+                  - PAK
+                  - IND
+                  - BGD
+                default_country_code: PAK
+                pricing_config:
+                  pricing_mode: markup
+                  markup_percentage: 10
+                  commission_percentage: 2
+                  round_prices: true
+                  round_to_decimal: 2
+                validation_rules:
+                  require_mobile_lookup: true
+                  allow_operator_override: true
+                  min_amount: 10
+                  max_amount: 1000
+                transaction_mode: async
+                auto_confirm_timeout: 300
+                stock_mode: dt_one_balance
+                display_settings:
+                  show_benefits: true
+                  show_validity: true
+                  show_wholesale_price: false
+                status: active
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/configurations/1:
+    get:
+      tags:
+        - Configurations
+      summary: Get Configuration
+      description: Get single configuration by ID
+      parameters:
+        - name: include
+          in: query
+          schema:
+            type: string
+          description: Include relationships
+          example: product
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Configurations
+      summary: Update Configuration
+      description: Update existing configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                service_types:
+                  - airtime
+                  - data
+                  - bundles
+                pricing_config:
+                  pricing_mode: margin
+                  margin_percentage: 15
+                  round_prices: true
+                status: active
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Configurations
+      summary: Delete Configuration
+      description: Delete configuration
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/configurations/service-types/list:
+    get:
+      tags:
+        - Configurations
+      summary: Get Service Types
+      description: Get available service types (airtime, data, bundles, etc.)
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/configurations/transaction-modes/list:
+    get:
+      tags:
+        - Configurations
+      summary: Get Transaction Modes
+      description: Get transaction modes (one_step, two_step, async)
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/configurations/stock-modes/list:
+    get:
+      tags:
+        - Configurations
+      summary: Get Stock Modes
+      description: Get stock modes (unlimited, dt_one_balance, custom_limit)
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/configurations/statuses/list:
+    get:
+      tags:
+        - Configurations
+      summary: Get Statuses
+      description: Get configuration statuses (active, inactive, testing)
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/lookup:
+    post:
+      tags:
+        - Customer Flow
+      summary: Mobile Lookup
+      description: Lookup mobile number to detect operator and country
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                product_id: 1
+                mobile_number: +92 300 1234567
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/services:
+    post:
+      tags:
+        - Customer Flow
+      summary: Get Services
+      description: Get available service types for operator
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                product_id: 1
+                operator_id: 486
+                mobile_number: +92 300 1234567
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/products:
+    post:
+      tags:
+        - Customer Flow
+      summary: Get Products
+      description: Get available products/denominations for service type
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                product_id: 1
+                operator_id: 486
+                service_type: airtime
+                mobile_number: +92 300 1234567
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/calculate-price:
+    post:
+      tags:
+        - Customer Flow
+      summary: Calculate Price
+      description: Calculate retail price for custom amount (ranged products)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                product_id: 1
+                dt_one_product_id: 45678
+                custom_amount: 50
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/transactions:
+    get:
+      tags:
+        - Transactions
+      summary: List Transactions
+      description: Get paginated list of transactions
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+        - name: filter[status]
+          in: query
+          schema:
+            type: string
+          description: Filter by status
+        - name: filter[mobile_number]
+          in: query
+          schema:
+            type: string
+          description: Filter by mobile number
+        - name: filter[external_id]
+          in: query
+          schema:
+            type: string
+          description: Filter by external ID
+        - name: filter[order_id]
+          in: query
+          schema:
+            type: string
+          description: Filter by order ID
+        - name: include
+          in: query
+          schema:
+            type: string
+          description: Include relationships
+          example: order,product,apiLogs
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Sort by field
+          example: '-created_at'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/transactions/1:
+    get:
+      tags:
+        - Transactions
+      summary: Get Transaction
+      description: Get single transaction by ID
+      parameters:
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: order,product,apiLogs
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/transactions/1/retry:
+    post:
+      tags:
+        - Transactions
+      summary: Retry Transaction
+      description: Retry failed transaction
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/transactions/1/cancel:
+    post:
+      tags:
+        - Transactions
+      summary: Cancel Transaction
+      description: Cancel pending transaction
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/transactions/statuses/list:
+    get:
+      tags:
+        - Transactions
+      summary: Get Transaction Statuses
+      description: Get available transaction statuses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/api-logs:
+    get:
+      tags:
+        - API Logs
+      summary: List API Logs
+      description: Get paginated list of API logs
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+        - name: filter[action]
+          in: query
+          schema:
+            type: string
+          description: Filter by action
+        - name: filter[status]
+          in: query
+          schema:
+            type: string
+          description: Filter by status
+        - name: filter[transaction_id]
+          in: query
+          schema:
+            type: string
+          description: Filter by transaction ID
+        - name: sort
+          in: query
+          schema:
+            type: string
+          example: '-created_at'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/api-logs/1:
+    get:
+      tags:
+        - API Logs
+      summary: Get API Log
+      description: Get single API log by ID
+      parameters:
+        - name: include
+          in: query
+          schema:
+            type: string
+          example: transaction,product
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/api-logs/health-metrics:
+    get:
+      tags:
+        - API Logs
+      summary: Get Health Metrics
+      description: Get API health metrics (success rate, avg duration, etc.)
+      parameters:
+        - name: hours
+          in: query
+          schema:
+            type: integer
+          description: 'Time period in hours (default: 24)'
+          example: '24'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/api-logs/actions/list:
+    get:
+      tags:
+        - API Logs
+      summary: Get Actions List
+      description: Get available API actions
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/api-logs/methods/list:
+    get:
+      tags:
+        - API Logs
+      summary: Get Methods List
+      description: Get HTTP methods
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/api-logs/statuses/list:
+    get:
+      tags:
+        - API Logs
+      summary: Get Log Statuses
+      description: Get log statuses
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/settings/api:
+    get:
+      tags:
+        - Settings
+      summary: Get API Settings
+      description: Get DT One API credentials and configuration
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Settings
+      summary: Update API Settings
+      description: Update API settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                api_url: https://dvs-api.dtone.com/v1
+                preprod_url: https://dvs-api-uat.dtone.com/v1
+                test_mode: true
+                api_key: your_api_key
+                api_secret: your_api_secret
+                preprod_api_key: your_preprod_api_key
+                preprod_api_secret: your_preprod_api_secret
+                oauth_enabled: false
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/settings/test-connection:
+    post:
+      tags:
+        - Settings
+      summary: Test Connection
+      description: Test DT One API connection
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/dtone-hub/settings/balance:
+    get:
+      tags:
+        - Settings
+      summary: Get Balance
+      description: Get DT One account balance
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/webhooks/dtone/{installation_key}:
+    post:
+      tags:
+        - Webhooks
+      summary: DT One Webhook
+      description: DT One webhook callback endpoint (public, includes installation_key)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                id: 789456
+                external_id: ORDER-123-ITEM-1-1735163040
+                status:
+                  message: COMPLETED
+                  class_id: 1
+                product:
+                  id: 45678
+                  name: Ufone 25 PKR Airtime
+                pin_code: '1234567890123456'
+                creation_date: '2025-12-26T10:00:00Z'
+                confirmation_date: '2025-12-26T10:00:15Z'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: X-DT-Signature
+          in: header
+          schema:
+            type: string
+          description: HMAC SHA256 signature
+          example: webhook_signature_here
+        - name: installation_key
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}

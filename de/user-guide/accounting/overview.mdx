@@ -1,0 +1,102 @@
+---
+title: Accounting — Überblick
+description: Optionaler Accounting Hub in B2Bware — Departments, Bank Accounts, Transactions und Reconciliation; wie bankseitige Ops zu Invoices und Procurement stehen, ohne sie zu ersetzen.
+---
+
+**Accounting** in B2Bware Admin ist die UI für den optionalen **Accounting Hub** — operatives **Treasury- / Bank- / Reconciliation**-Tooling mit **Department**-Scoping und einer **Overview- & Reports**-Oberfläche.
+
+| Konzept | Rolle |
+| --- | --- |
+| **Accounting Hub** | Optional installiertes Package. Wenn vorhanden und der Operator es sehen darf, zeigt Admin **Accounting** mit Bank- und Reconciliation-Children. |
+| **Overview and Reports** | Hub-Landing / Reporting-Widgets und Report-Endpunkte. |
+| **Departments** | Organisatorische Scopes für Filter/Reporting. |
+| **Bank Accounts** | Konten, die Sie überwachen (Connections / Masters). |
+| **Transactions** | Bankzeilen (importiert oder erfasst). |
+| **Reconciliation** | Matching- / Clearing-Prozesse gegen offene Posten. |
+| **Settings** | Hub-Konfiguration (im Production-FE vorhanden; je Tenant-UI bestätigen). |
+
+**Mentales Modell:** Invoice Hub und Procurement besitzen **Geschäftsdokumente** (AR/AP). Accounting Hub besitzt die **bankseitige Realität** und die Arbeit, Geldflüsse mit diesen Dokumenten zu **reconcilen** — plus departmentale Reporting-Linsen.
+
+<Callout kind="alert" collapsed="false">
+Accounting Hub ist **optional** (`hasAccountingHub`). Wenn der Tenant ihn nicht installiert hat, fehlt die Sidebar-Gruppe **Accounting**. Demo-Store-Präsenz bedeutet **nicht**, dass jeder Tenant Accounting hat.
+</Callout>
+
+**Nicht dasselbe (nicht vermischen):**
+
+| Ähnlicher Name | Anderes System |
+| --- | --- |
+| **Invoice Hub** | Sales Invoices, Credit Notes, Dunning |
+| **Procurement Vendor Bills** | Supplier-Payables-Dokumente |
+| **Tax Hub** | Rate Engine |
+| **Loyalty Wallets** | Punkte-/Credit-Programme — kein Bank-Cash |
+| **Settings → Billing** | Order-Hub-Checkout-Billing-Method-Masters |
+
+## Warum Teams Accounting nutzen
+
+1. **Bankaktivität in Admin sehen** — Importierte oder verwaltete Transactions neben Commerce-Hubs.
+2. **Reconcilen** — Bankzeilen mit erwarteten Dokumentenflüssen matchen.
+3. **Department-Reporting** — Finance-Ops-Views nach Department-Scope schneiden.
+4. **Cash von Dokumenten trennen** — Invoices können in AR „bezahlt“ sein, während Bank-Clearing noch offen ist — Accounting ist, wo Cash-Clearing bearbeitet wird.
+5. **Finance-Ops ohne B2Bware zu verlassen** — Leichte Treasury-Oberfläche für Teams, die nicht täglich auf einem vollständigen externen GL arbeiten.
+
+Nutzen Sie **[Invoices](/de/user-guide/invoices/overview)**, um Customer-Salden zu verwalten. Nutzen Sie **Accounting**, um Bank Accounts und Reconciliation zu verwalten. Nutzen Sie **[Procurement](/de/user-guide/procurement/overview)** für Supplier Bills.
+
+## Wie die Teile zusammenpassen
+
+```
+Bank provider / import → Bank Accounts + Transactions
+                              ↓
+                     Reconciliation work
+                              ↓
+            Informed by Invoices / Vendor Bills / Orders (adjacent docs)
+```
+
+1. **Settings** und **Bank Accounts** konfigurieren (Provider-Gateway kann je Tenant real oder null/no-op sein — keine bestimmte Bankenmarke versprechen).
+2. **Transactions** erscheinen über Import/Events.
+3. **Reconciliation** verknüpft/cleart, wenn Operatoren Matches bearbeiten.
+4. **Departments** begrenzen oder labeln den Reporting-Scope.
+5. **Overview and Reports** fassen zusammen — sie ersetzen keine Invoice-Register.
+
+Ehrlichkeit: Bank-**Provider**-Implementierungen sind austauschbar (einschließlich Null-Provider). Behandeln Sie die Capability als *Bank-Account- + Transaction- + Reconciliation-Modul*, nicht als „mit jeder Bank weltweit verbunden.“
+
+## So nutzen Sie den Hub
+
+1. Bestätigen Sie, dass **Accounting** sichtbar ist (`hasAccountingHub`) und die Rolle Finance-Ops verwalten darf.
+2. Legen Sie **Departments** an, wenn Sie scoped Reporting brauchen.
+3. Registrieren Sie **Bank Accounts**, bevor Sie Transaction-Imports erwarten.
+4. **Transactions** importieren / refreshen; Duplikate über Hub-Practices triageen (kein erfundenes Delete-all).
+5. **Reconciliation** gegen offene Invoices/Bills laut Ihrer Finance-SOP ausführen.
+6. Halten Sie AR-Payment-Posting im **Invoice Hub** kohärent mit Bank-Clearing hier — zwei Schritte, kein Magie-Button, es sei denn Ihre Tenant-Automation sagt etwas anderes.
+7. Reports für Snapshots nutzen; tiefes statutory Buchwerk kann weiterhin in einem externen GL liegen.
+
+## Abhängigkeiten
+
+| Hängt ab von / integriert mit | Warum |
+| --- | --- |
+| **Accounting Hub installiert** | Sidebar + APIs |
+| **Auth + Admin Access** | Admin Finance-Ops |
+| **Invoice Hub (optional, aber üblich)** | AR-Dokumente zum Reconcilen |
+| **Procurement (optional)** | Vendor-Bills-Nachbarschaft |
+| **Customer- / Order-Hubs** | Kommerzieller Kontext |
+| **Bank-Provider-Konfiguration** | Import-Pfad-Qualität — tenant-spezifisch |
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Accounting auf jedem Tenant erwarten | Optionale Installation | Install-Caveat; Demo ≠ alle Tenants |
+| Sales-Invoice-CRUD hier suchen | Falscher Hub | Invoices |
+| Annehmen, Reconciliation markiert Invoice automatisch als paid | Kann getrennte Schritte sein | Tenant-Automation bestätigen |
+| Departments ignorieren und sich über Filter wundern | Scope-Mismatch | Departments bewusst setzen |
+| Eine bestimmte Open-Banking-Marke versprechen | Provider-gated | Accounts/Transactions/Reconcile beschreiben |
+| Loyalty-Credit mit Bank-Credit verwechseln | Unterschiedliche Ledgers | Terminologie präzise halten |
+
+## Verwandt
+
+- [Invoices — Überblick](/de/user-guide/invoices/overview) — AR-Dokumente / Payments
+- [Procurement — Überblick](/de/user-guide/procurement/overview) — Vendor Bills
+- [Tax — Überblick](/de/user-guide/tax/overview) — Rates, kein Cash
+- [Order-Lifecycle](/de/user-guide/orders/lifecycle) — kommerziell upstream
+- [Companies](/de/user-guide/customers/companies) — Bill-to-Parteien
+- [Order-bezogene Settings](/de/user-guide/orders/related-settings) — Billing Methods ≠ Accounting Banks
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)

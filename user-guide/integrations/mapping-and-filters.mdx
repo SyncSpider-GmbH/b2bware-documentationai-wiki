@@ -1,7 +1,28 @@
 ---
 title: Mapping and filters
-description: Map connector fields to DataHub, apply transforms, set variation axes, entity filters, and matching rules.
+description: Map connector fields to B2Bware, apply transforms, set variation axes, entity filters, and matching rules.
 ---
+
+## Mapping vs filtering
+
+Use this mental model before you change a row:
+
+- **Mapping** answers “which source field becomes which destination field, and how is it transformed?”
+- **Filtering** answers “which records are eligible for this sync?” It does not repair bad source data or replace product, customer, or order rules.
+
+Map **stable identifiers first**, then required business fields. Document defaults, empty-value behaviour, and conflict / overwrite behaviour where the connector exposes them.
+
+Where the connector supports them:
+
+- **Products** — check SKU / variant, price, stock, category, and customer-specific identifiers as applicable. See [How products work](/user-guide/products/how-products-work).
+- **Orders** — check the external key, status / type, and ownership of updates. See [Order lifecycle](/user-guide/orders/lifecycle).
+- **Customers** — check account / contact matching and the external key. See [Customers overview](/user-guide/customers/overview).
+
+Test a representative record from each entity type before broadening the filter. Entity and direction support are **connector-specific** — do not assume every connector exposes every hub entity.
+
+<Callout kind="tip" collapsed="false">
+Filters limit eligibility; they do not fix bad source data. If a green sync still lands wrong values, inspect mapping, identifiers, and write ownership — not only the filter tree.
+</Callout>
 
 ## Field mapping workspace
 
@@ -39,16 +60,17 @@ On create, edit, or integration detail (**Filters** on an entity card), you can 
 | Kind | When it runs |
 |---|---|
 | **API / push-down** | Sent to the connector when it supports remote filters (fewer rows fetched). |
-| **After-fetch (core)** | Applied in DataHub after the connector returns rows. |
+| **After-fetch (core)** | Applied in B2Bware after the connector returns rows. |
 | **Mixed** | Some leaves push down; others run after fetch. |
 
 Filter templates can be saved and applied across entities. Use **Preview plan** to see how the engine will execute the tree.
 
 ## Matching rules
 
-Matching rules decide how an inbound row finds an existing DataHub record (and related export match behaviour). They project onto the entity's `match_strategy` / sync config. Open them from the entity configuration when you need custom match fields beyond blueprint defaults.
+Matching rules decide how an inbound row finds an existing B2Bware record (and related export match behaviour). They project onto the entity's `match_strategy` / sync config. Open them from the entity configuration when you need custom match fields beyond blueprint defaults.
 
 ## Next steps
 
 - [Sync runs](/user-guide/integrations/sync-runs)
 - [Create an integration](/user-guide/integrations/create-integration)
+- [Integrations overview](/user-guide/integrations/overview)

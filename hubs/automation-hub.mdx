@@ -43,6 +43,24 @@ All endpoints follow the canonical pagination contract — request uses
 
 ## Settings
 
-The **Settings** tab on this page is rendered from
-`packages/Apps/AutomationHub/resources/hub-settings/*.php`. Update that file
-to drive the form schema; this MDX page does not duplicate the field list.
+AutomationHub settings are edited in the admin under **AutomationHub → Settings** (also available via the `/settings` endpoints). See also [Hub Settings](/core-concepts/hub-settings).
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings` | Get all settings |
+| POST | `/settings` | Update settings |
+| POST | `/settings/reset` | Reset to defaults |
+
+<Expandable title="general — Settings Reference" default-open="true">
+
+**general** — Automation defaults and retention (flat schema; no named groups)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `default_step_max_retries` | number | `3` | Fallback retry budget per action step when the flow does not override it (1–20). |
+| `flow_run_retention_days` | number | `90` | Days to keep completed/cancelled/failed flow runs before pruning. |
+| `flow_execution_log_retention_days` | number | `90` | Days to keep flow execution log rows before pruning. |
+| `failure_notification_enabled` | boolean | `true` | Notify admins after N consecutive failed runs of the same flow. |
+| `failure_notification_threshold` | number | `5` | Consecutive failed runs that trigger the notification. |
+
+</Expandable>

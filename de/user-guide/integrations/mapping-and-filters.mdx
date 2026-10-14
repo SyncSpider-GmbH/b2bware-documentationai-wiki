@@ -1,0 +1,76 @@
+---
+title: Zuordnung und Filter
+description: Connector-Felder B2Bware zuordnen, Transformationen anwenden, Variantenachsen, Entitätsfilter und Abgleichregeln festlegen.
+---
+
+## Zuordnung und Filterung
+
+Nutzen Sie dieses Denkmodell, bevor Sie eine Zeile ändern:
+
+- **Zuordnung** beantwortet: „Welches Quellfeld wird zu welchem Zielfeld, und wie wird es transformiert?“
+- **Filtern** beantwortet: „Welche Datensätze sind für diesen Sync zulässig?“ Es repariert keine fehlerhaften Quelldaten und ersetzt keine Produkt-, Kunden- oder Bestellregeln.
+
+Ordnen Sie **zuerst stabile Kennungen** zu, danach die erforderlichen Geschäftsfelder. Dokumentieren Sie Standardwerte, das Verhalten bei leeren Werten sowie das Konflikt- und Überschreibverhalten, soweit der Connector sie bereitstellt.
+
+Soweit der Connector sie unterstützt:
+
+- **Produkte** — prüfen Sie SKU / Variante, Preis, Bestand, Kategorie und kundenspezifische Kennungen, soweit zutreffend. Siehe [So funktionieren Produkte](/de/user-guide/products/how-products-work).
+- **Bestellungen** — prüfen Sie den externen Schlüssel, Status / Typ und die Zuständigkeit für Aktualisierungen. Siehe [Lebenszyklus einer Bestellung](/de/user-guide/orders/lifecycle).
+- **Kunden** — prüfen Sie den Abgleich von Konto / Kontakt und den externen Schlüssel. Siehe [Übersicht Kunden](/de/user-guide/customers/overview).
+
+Testen Sie einen repräsentativen Datensatz je Entitätstyp, bevor Sie den Filter erweitern. Unterstützung für Entität und Richtung ist **connector-spezifisch** — gehen Sie nicht davon aus, dass jeder Connector jede Hub-Entität bereitstellt.
+
+<Callout kind="tip" collapsed="false">
+Filter begrenzen die Zulässigkeit; sie beheben keine fehlerhaften Quelldaten. Wenn ein grüner Sync weiterhin falsche Werte schreibt, prüfen Sie Zuordnung, Kennungen und die Zuständigkeit für Schreibvorgänge — nicht nur den Filterbaum.
+</Callout>
+
+## Arbeitsbereich Feldzuordnung
+
+Im Schritt **Feldzuordnung** des Assistenten (oder Bearbeiten → Zuordnung) hat jede aktivierte Entität einen Zuordnungs-Arbeitsbereich:
+
+| Bereich | Zweck |
+| --- | --- |
+| **Kern** | Eingebaute Hub-Felder (SKU, Name, Preis, …) aus dem Blueprint / Schema. |
+| **Attribute** | Katalogattribute, die vom Connector oder aus dem AttributesHub ermittelt wurden. |
+| **Dynamische Felder** | Zusätzliche Quellschlüssel, die nicht im statischen Schema stehen. |
+
+Suche und Auswahllisten helfen bei großen Katalogen. Unvollständige Zeilen mit leerem Ziel werden beim Speichern übersprungen, statt die gesamte Zuordnung scheitern zu lassen.
+
+### Transformationen
+
+Jede Zuordnungszeile kann Transformationen verketten (direkt, Cast, Map, Format, Klein- / Großschreibung, Präfix / Suffix und weitere). Nutzen Sie das Seitenpanel oder den Konfigurationsdialog der Transformation für Optionen wie Wertezuordnungen und Vorlagen.
+
+### Varianten — Als Variante verwenden
+
+Ermittelte Attribute, die als Variantenachsen dienen können, zeigen die Steuerung **Als Variante verwenden**:
+
+- **Ein** — das Attribut wird zur Variantenachse; das Produkt wird als konfigurierbares Produkt mit Kind-Datensätzen je Wert importiert (entspricht einem Attribut vom Typ **select**).
+- **Aus** — wird als normales Attribut behandelt. Sind alle ermittelten Achsen aus, importieren viele Connectoren jede Variante als eigenes einfaches Produkt.
+
+Verwechseln Sie die Ermittlungsberechtigung nicht mit der Nutzerentscheidung: Nur **Als Variante verwenden** wird als Entscheidung des Betreibers gespeichert.
+
+### KI-Vorschläge für Zuordnungen
+
+Wo die Funktion aktiviert ist, schlägt **Zuordnungen vorschlagen** Feldpaare aus den Schemas vor; prüfen Sie sie immer, bevor Sie aktivieren.
+
+## Entitätsfilter
+
+Beim Anlegen, Bearbeiten oder im Integrationsdetail (**Filter** auf einer Entitätskarte) können Sie begrenzen, welche Datensätze synchronisiert werden:
+
+| Art | Wann sie läuft |
+| --- | --- |
+| **API / Push-down** | Wird an den Connector gesendet, wenn er Remote-Filter unterstützt (weniger abgerufene Zeilen). |
+| **Nach dem Abruf (Kern)** | Wird in B2Bware angewendet, nachdem der Connector Zeilen zurückgibt. |
+| **Gemischt** | Einige Blätter werden per Push-down gesendet; andere laufen nach dem Abruf. |
+
+Filtervorlagen lassen sich speichern und entitätsübergreifend anwenden. Nutzen Sie **Planvorschau**, um zu sehen, wie die Engine den Baum ausführt.
+
+## Abgleichregeln
+
+Abgleichregeln legen fest, wie eine eingehende Zeile einen vorhandenen B2Bware-Datensatz findet (und das zugehörige Abgleichverhalten beim Export). Sie werden auf die `match_strategy` bzw. die Sync-Konfiguration der Entität abgebildet. Öffnen Sie sie in der Entitätskonfiguration, wenn Sie benutzerdefinierte Abgleichfelder über die Blueprint-Standardwerte hinaus benötigen.
+
+## Nächste Schritte
+
+- [Sync-Läufe](/de/user-guide/integrations/sync-runs)
+- [Integration anlegen](/de/user-guide/integrations/create-integration)
+- [Übersicht Integrationen](/de/user-guide/integrations/overview)

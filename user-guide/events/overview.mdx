@@ -1,0 +1,74 @@
+---
+title: Event Hub overview
+description: Short map of Event Hub outbound webhook subscriptions and delivery logs in B2Bware — vs Notifications and Automation.
+---
+
+**Events** in B2Bware Admin is the UI for optional **Event Hub** — subscribe to curated framework events from installed hubs (orders, products, customers, …) and **POST** them to external HTTPS endpoints with retries, signing, optional rule conditions, and delivery audit.
+
+| Concept | Role |
+| --- | --- |
+| **Event Hub** | Optional installed package. When present, Admin shows **Event Hub** with Subscriptions and Delivery Logs. |
+| **Subscription** | Which event slug(s), target URL, method, secret, filters, pause/resume |
+| **Delivery log** | Per-attempt webhook delivery outcome for triage |
+| **Available events** | Dropdown filtered to hubs **installed on this tenant** |
+
+**Mental model:** Event Hub = **machine-to-machine outbound webhooks**. Notifications = **people**. Automation = **multi-step orchestration** that may *also* fire webhooks as an action.
+
+<Callout kind="alert" collapsed="false">
+Event Hub is **optional** (`event-hub`). Without it, the group is absent. Demo Store presence does **not** mean every tenant has Event Hub.
+</Callout>
+
+**Demo children:** Subscriptions; Delivery Logs.
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Notifications Delivery Logs** | Human message delivery attempts |
+| **Automation Runs** | Multi-step flow execution |
+| **Integrations sync jobs** | Connector import/export runs |
+
+## Why teams use Event Hub
+
+1. Push order/product/customer changes to ERP, iPaaS, or custom middleware.
+2. Filter with conditions so noisy events never leave the tenant.
+3. Prove delivery (or failure) in **Event Hub → Delivery Logs**.
+4. Pause failing endpoints before they burn retries; resume after fix.
+5. Test a subscription without counting against auto-pause (when test action is used).
+
+## How to use Event Hub
+
+1. Confirm Event Hub installed + visible.
+2. Create a **Subscription** for an event that exists for **installed** hubs.
+3. Configure URL, signing secret, retry/backoff within platform caps.
+4. Add conditions only when the destination should see a subset.
+5. Send a **test** if available; then cause a real event.
+6. Triage in **Delivery Logs** — not in Notifications Delivery Logs.
+7. If auto-paused: fix endpoint, resume, confirm next delivery.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Event Hub installed** | Sidebar + APIs |
+| **Contributing hubs installed** | Event appears in dropdown |
+| **Webhooks worker** | Deliveries leave the queue |
+| **Settings (hub defaults)** | Global retry/timeout defaults; hard caps still apply |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Looking in Notifications Delivery Logs | Wrong surface | Use Event Hub Delivery Logs |
+| Expecting events from uninstalled hubs | Event missing from picker | Install source hub first |
+| Confusing with Automation Runs | Webhook transport ≠ flow orchestration | Use Automation for multi-step flows |
+| Confusing with Integrations sync | Different product | Use Integrations for connectors |
+| Ignoring pause after consecutive failures | Endpoint keeps failing | Fix receiver, then resume |
+
+## Related
+
+- [Automation Hub overview](/user-guide/automation/overview)
+- [Notifications overview](/user-guide/notifications/overview) — Delivery Logs for human channels
+- [Integrations overview](/user-guide/integrations/overview)
+- [Order lifecycle](/user-guide/orders/lifecycle)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

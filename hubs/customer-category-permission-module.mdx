@@ -1,0 +1,51 @@
+---
+title: Customer category permission module
+description: Category assignments and branding overrides for customers, companies, or groups.
+---
+
+## Overview
+
+The Customer category permission module assigns catalog categories to customers (or companies/groups) and supports category branding overrides.
+
+**Base URL:** `api/v1/apps/customer-category-permission/`
+
+<Callout kind="info">
+All endpoints require Bearer token authentication and admin access. See [Authentication](/authentication).
+For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
+</Callout>
+
+<Callout kind="info" title="Full API reference">
+For request/response schemas, see the [Customer category permission module API Reference](/api-reference/customer-category-permission-module).
+</Callout>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Assignments" icon="folder">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/assignments` | List category assignments |
+| POST | `/assignments` | Create an assignment |
+| GET | `/assignments/{id}` | Get assignment details |
+| PUT | `/assignments/{id}` | Update an assignment |
+| DELETE | `/assignments/{id}` | Delete an assignment |
+| POST | `/assignments/bulk` | Bulk-create assignments |
+
+  </Tab>
+  <Tab title="Branding" icon="palette">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/branding` | List category branding records |
+| POST | `/branding` | Create branding |
+| GET | `/branding/{id}` | Get branding details |
+| PUT | `/branding/{id}` | Update branding |
+| DELETE | `/branding/{id}` | Delete branding |
+
+  </Tab>
+</Tabs>
+
+## App Settings
+
+This module has no FormGenerator App Settings routes. See [Hub Settings](/core-concepts/hub-settings) for hubs that do.

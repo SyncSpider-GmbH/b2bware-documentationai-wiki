@@ -1,0 +1,125 @@
+---
+title: Media overview
+description: How Media Hub stores polymorphic product and category assets in B2Bware — primary vs gallery, Admin Media vs Edit Product, dependencies, and pitfalls.
+---
+
+**Media** in B2Bware Admin is the UI for **Media Hub** — the shared package that stores **media records** (images, videos, documents, audio) and attaches them to other records through a **polymorphic** link (`mediable_type` + `mediable_id`), not a product-only foreign key.
+
+| Concept | Role |
+| --- | --- |
+| **Media Hub** (`media-hub`) | Installed package that owns the Media model, APIs, events, and Admin **Media** item |
+| **Media record** | One attachable asset: type, URL / file reference, alt text, primary flag, sort order |
+| **Mediable** | Any model that uses `HasMedia` — evidenced for **Product** and **Category** |
+| **Primary / main media** | `is_primary` row (or first by sort) used as the default hero / `mainMedia` include |
+| **Sort order** | Display sequence within one mediable's gallery |
+| **Top-level Media** | Flat Admin item (`/admin/media`) — library-style list/create/update/delete and attach-to-model helpers |
+
+**Mental model:** Media Hub is the **attachment layer** for catalog (and other) objects. Product **Edit → General** still exposes a **media gallery** on the product because products *use* Media Hub; the sidebar **Media** screen is the hub-wide place to manage and find those attachments — not a parallel “image catalog” the storefront reads instead of the product.
+
+<Callout kind="info" collapsed="false">
+Media Hub is **core-listed** in the Admin hub registry (not marked `isOptional` like Tax or Rule), but the **Media** sidebar item still appears only when the hub is **installed** and the operator can view the module. Demo Store presence does **not** mean every tenant shows Media.
+</Callout>
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Full DAM / brand portal** | Media Hub is an attachment library, not a folder-rights DAM suite |
+| **Product Edit → General gallery** | Day-to-day per-SKU UX that *uses* Media Hub — not a second store |
+| **Notifications attachments / Event Hub payloads** | Message and event systems; they do not own catalog media rows |
+| **Import / Export file feeds** | Bulk file transfer — not the polymorphic Media model |
+
+## Why teams use Media
+
+1. **One media system for products and categories** — Same attach / primary / sort model instead of siloed per-entity file tables.
+2. **Storefront merchandising** — Primary image and ordered galleries drive PLP/PDP presentation when themes consume `media` / `mainMedia`.
+3. **Ops triage** — Find orphaned or wrong attachments, fix alt text, re-mark primary, reorder without hunting only inside one product form.
+4. **Bulk / import continuity** — Product create/update payloads can carry `media` arrays (and legacy `image` → media conversion in Product Hub); Media Hub is the durable store behind that.
+5. **Events for downstream work** — Create/update/delete media events exist for listeners (resize, CDN sync, and similar) — possible side effects, not a guaranteed image-pipeline product.
+
+Use **[Edit a product](/user-guide/products/edit-product)** for day-to-day gallery work on one SKU. Use **Media** when the job is hub-wide discovery, reattachment, or cleaning assets across many mediables.
+
+## How media attaches and surfaces
+
+### Polymorphic attach
+
+```
+Media.mediable_type + Media.mediable_id  →  Product | Category | (any HasMedia model)
+```
+
+Operators should think in **“this file belongs to this record”**, not “this file sits in a freestanding DAM folder tree” (no evidenced folder taxonomy as the primary model).
+
+### Record shape (operator-relevant fields)
+
+| Field | Meaning |
+| --- | --- |
+| **media_type** | `image` / `video` / `document` / `audio` |
+| **media_url** | Public/CDN URL used for display when available |
+| **file** | Storage reference when uploaded through the platform |
+| **alt_text** | Accessibility / SEO alternative text |
+| **is_primary** | Marks the primary media for that mediable |
+| **sort_order** | Order within the mediable's set (auto on create; updatable) |
+
+**Allowed types (config):** `image`, `video`, `document`, `audio` — with extension and max-size limits from hub config (default max size is on the order of **50MB**; treat as tenant/config-dependent, not a universal User Guide promise).
+
+### Product / category paths
+
+| Path | What it does |
+| --- | --- |
+| **Product Edit → General (media gallery)** | Day-to-day attach / reorder / primary on that product |
+| **Category** (`HasMedia`) | Category imagery using the same trait |
+| **API includes** | `media`, `mainMedia` on product queries |
+| **Admin Media** (`/admin/media`) | Hub list + CRUD + get-for-model / set-primary / sort-order helpers |
+
+**Legacy note (Product Hub):** an older single `image` field can be converted into `media` records — prefer explicit media arrays going forward.
+
+Runtime helpers operators should expect conceptually: primary-or-first for main media; filter gallery by type; setting primary replaces primary semantics for that mediable.
+
+## How to use Media
+
+1. Confirm **Media** is visible (hub installed + `media-hub.media.view`).
+2. Prefer attaching media **to the product or category** that should own it — gallery on Edit Product for single-SKU work.
+3. Set **one primary** image per product buyers should see first; keep **sort_order** intentional for gallery carousels.
+4. Fill **alt_text** for accessibility and search snippets.
+5. Prefer durable **CDN / stable URLs** when themes load `media_url` at scale.
+6. After import/sync, verify **media** on a sample product (`include=media,mainMedia`) rather than assuming file presence equals storefront display.
+7. Use the Media library when you must find an asset without knowing the SKU, re-point attachment, or delete bad rows.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Media Hub installed** | Sidebar + Media APIs |
+| **Permissions** | `media-hub.media.view` / `.create` / `.update` / `.delete` |
+| **Product Hub** | Products (and categories) are the primary mediables; gallery UX lives on Edit Product |
+| **Customer Hub PermissionRegistry** | Hosts `media-hub.*` keys when Customer Hub is present (same pattern as other hubs) |
+| **Auth + admin access** | Admin writes |
+| **Storage / CDN configuration** | Uploads and `media_url` resolution depend on platform storage — not Media Hub alone |
+| **Themes / Storefront** | Display is theme-driven; Media Hub stores attachments, it does not guarantee a specific PDP layout |
+
+**Not prerequisites:** Notifications, Event Hub, Import/Export file feeds, or third-party social scheduling.
+
+Product edit still needs product update rights to change a product's gallery; Media Hub keys govern the dedicated library surface.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Expecting Media on every tenant UI | Install + permission gated | Check hub install / role keys; Demo ≠ all tenants |
+| Treating Media as a separate sellable catalog | Buyers resolve products, not media rows | Always attach to Product / Category |
+| Multiple “primary” assumptions | Themes take one main image | Explicitly set `is_primary`; verify `mainMedia` |
+| Wrong `media_type` / extension | Asset rejected or not rendered | Match config allowed types / extensions |
+| Fixing PDP layout inside Media Hub | Layout is theme / storefront | Fix theme consumption of `media` / `mainMedia` |
+| Deleting media still referenced in caches / CDNs | Broken images until cache expiry | Replace URL or purge CDN after delete |
+| Confusing Media with Notifications | Unrelated hubs | Media owns assets; Notifications owns messages |
+| Ignoring category media | Category tiles empty while products look fine | Categories also `HasMedia` |
+
+## Related
+
+- [Edit a product](/user-guide/products/edit-product) — General tab media gallery
+- [Manage products](/user-guide/products/manage-products) — list / search before opening gallery
+- [Categories](/user-guide/products/categories) — category-level media
+- [How Products work](/user-guide/products/how-products-work)
+- [Notifications overview](/user-guide/notifications/overview) — separate ops hub (do not conflate)
+- [Orders overview](/user-guide/orders/overview)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

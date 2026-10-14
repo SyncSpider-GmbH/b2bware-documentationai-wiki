@@ -1,31 +1,165 @@
 ---
 title: Categories
-description: Build and maintain the category tree for the catalog.
+description: Catalog trees in B2Bware — how categories differ from products and attributes, how hierarchy and multi-assignment work, how storefront branch display and nav flags behave, and how Attributes Hub / optional category permissions relate.
 ---
 
-Organize products so buyers can browse by category.
+A **category** is a **named node in a catalog tree**. Operators use categories to organize where products sit for browsing, navigation, SEO, and (optionally) buyer-scoped catalog access.
 
-<Image
-  src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404819291-xurdkp6hos-categories.png?fm=auto&auto=compress%2Cformat"
-  alt="Categories list"
-/>
+A category is **not** the product, and it is **not** a product attribute definition.
 
-## Open the module
+| Concept | Role |
+| --- | --- |
+| **Category** | Tree node: name, slug, optional description, parent, computed depth, media, SEO, storefront layout / nav flags, optional category-typed attributes and metadata. Admin: **Products → Categories**. |
+| **Product–category link** | Junction: one product linked to one category. A product may belong to **many** categories. |
+| **Product** | Sellable catalog item. Category assignment is maintained on the product (tree select on General / bulk edit) — not by editing quantity or price on the category list. |
+| **Product attributes** | Specs / variation axes / filters on **products**. Owned by Attributes Hub; separate from category membership. |
+| **Category attributes** | Attribute **values on the category record** itself (Attributes tab). Same Attributes Hub machinery, different group type. |
+| **Category metadata** | Per-category custom field definitions and values for category-page chrome — not product SKU fields. |
 
-<Steps>
-  <Step title="Expand Products">
-    In the left sidebar, expand **Products**.
-  </Step>
-  <Step title="Open Categories">
-    Select **Categories**.
-  </Step>
-</Steps>
+**Mental model:** Categories = *where the catalog is filed*. Products = *what is sold*. Product attributes = *what the SKU is like*. Category attributes / metadata = *how this branch of the tree presents itself*. Optional customer category permissions = *which root branches a buyer may enter*.
 
-<Callout kind="info" title="Product Count">
-  The product count on a category reflects how many products are assigned. Reassign products on the product General tab if a count looks wrong.
+Saving a category or a product’s category list is **live**. There is **no** pricelist-style deploy for the tree or for assignments.
+
+<Callout kind="info" collapsed="false">
+Selecting a category does **not**, by itself, change which **product** attribute definitions are available on the product form. Category enrichment and category-page surfaces are separate from product attribute-set design.
 </Callout>
 
-## Next steps
+## Why teams use categories
 
+1. **Catalog navigation** — Build a browsable tree (root → children → leaves) for storefront menus and category pages.
+2. **Multi-placement** — Put one SKU in several categories when assortments overlap.
+3. **Storefront layout control** — Per-branch **branch display mode** (children / products / both, or inherit the store default) and hide-from-menu / hide-from-layer-navigation flags.
+4. **SEO & media** — Slug and SEO fields; category images (also usable as product image fallback when the product has no own media).
+5. **Category-level enrichment** — Category-typed attributes, metadata, and (when attribute collections are set for category pages) category-page surfaces.
+6. **Buyer-scoped catalogs (optional module)** — Restrict which **root** categories a customer may access, with optional per-category branding — only when the customer category permission module is installed.
+
+Use a **shallow, stable tree** for navigation clarity. Use **product assignment** (not category delete/recreate) to move assortments. Use **product attributes** for specs — do not overload categories as a substitute for attribute definitions.
+
+## How hierarchy and assignment work
+
+### Hierarchy
+
+| Mechanism | Behaviour |
+| --- | --- |
+| **Parent** | Empty = root. A child points at a parent. |
+| **Depth** | Computed on **save** by walking parents. Root = 0. |
+| **Update depths** | Re-saves all categories so stored depth matches the tree after major restructuring. |
+| **Depth policy** | Unlimited depth is supported; keep **3–4 levels** in practice. |
+| **Self-parent** | Rejected — a category cannot be its own parent. |
+| **Name uniqueness** | Duplicate **name under the same parent** (or at root) is refused. |
+| **Slug** | Required in the data model; if empty on create, generated from name. Uniqueness is enforced. Path lookup walks parent → child. |
+
+Categories are ordinary create / update / delete records. There is **no** draft → deploy lifecycle.
+
+### Product assignment
+
+| Mechanism | Behaviour |
+| --- | --- |
+| **Write path** | On the product, choose one or more categories → junction rows sync (ids not in the list are removed; an empty selection clears all). |
+| **Validation** | Every selected category id must exist. |
+| **Cardinality** | Many categories per product; many products per category. |
+| **Listings** | Storefront / API listings keyed by an **anchor category** include products linked to that node **or any descendant**, plus **configurable parent** products when a **variation** is linked in that subtree (even if the parent itself has no junction row). An empty subtree yields an empty listing — not “all products.” |
+| **Product count** | Tree count includes products linked in this node or descendants, counting **parent-level** products only — variations are not double-counted as separate catalog parents. |
+| **Delete category** | Related product–category links are removed. **Products remain.** |
+
+Prefer documenting assignment via the product’s **categories** selection (the Admin / Product Hub path), not inventing a separate “assign through attributes” workflow as the primary operator path.
+
+### Storefront presentation
+
+| Field / setting | Meaning |
+| --- | --- |
+| **Hide in Main Menu** | Omit from the main menu when set. |
+| **Hide in Layer Navigation** | Omit from layer navigation when set. |
+| **Branch display mode** | `children`, `products`, `both`, or empty to **inherit** the store default (typically **children**). **Leaf** categories always show products. |
+
+Themes must honour the resolved show-children / show-products flags — not leaf-ness alone — otherwise parents never show products when merchants enable them.
+
+### Attributes on categories (accurate scope)
+
+**What exists:**
+
+1. Categories can carry **category-typed** attribute values (Attributes tab).
+2. Attribute **collections** may surface on the category page when configured for the category group type.
+3. **Metadata** definitions and values support category-page fields (including visibility on the category page).
+
+**What does not exist as core Product Hub behaviour:** category membership does not automatically unlock or constrain which **product** attribute definitions appear on the product form. Specs stay in product attributes; category attributes stay on the branch.
+
+### Optional: customer category permissions
+
+When the customer category permission module is installed:
+
+- Assign **root** categories a customer may access (plus a landing).
+- Category reads / product reads can be ACL-filtered.
+- A **Branding** tab (logo, colors, fonts, and related storefront palette) appears on the category.
+
+Without the module, Categories still work for catalog structure. Do not document Branding or buyer category ACL as core Product Hub.
+
+## Typical workflows
+
+### Design the tree
+
+1. Create **root** categories (name required; slug auto if omitted).
+2. Create **children** under a parent; confirm nesting in the tree list.
+3. Set **Hide in Main Menu** / **Hide in Layer Navigation** only when the node should exist for placement or SEO but not appear in that nav chrome.
+4. For parent nodes, set **branch display mode** or leave empty to inherit the store default.
+5. After large moves, run **update depths** so stored depth matches the tree.
+
+### Place products
+
+1. Open the product (or bulk edit) → choose one or more categories in the tree select.
+2. Save the product — junction rows update live.
+3. Spot-check category **Product Count** and a storefront or API listing for a representative branch.
+4. For configurables: decide whether parents, variations, or both carry membership; remember parents can appear when any variation is in the subtree.
+
+### Enrich a category (presentation)
+
+1. **General** — name, description, media, parent, hide flags, branch mode.
+2. **SEO** — title / description / keywords (and slug discipline for paths).
+3. **Metadata** — definitions and values for category-page fields when used.
+4. **Attributes** — category-typed attribute values (create the category first).
+5. **Branding** — only if the customer category permission module is installed.
+
+### Permissions
+
+Operators need Product Hub access with **categories** create/update/delete, and **products** rights to assign. Optional permission-module UIs manage buyer access elsewhere — they are not a substitute for Product Hub category CRUD.
+
+## Dependencies
+
+| Dependency | Why it matters |
+| --- | --- |
+| **Product Hub** | Owns Category and product–category links; Categories is a Products sidebar child. |
+| **Products (All Products)** | Assignment happens on the product; empty categories do not sell anything. See [How Products work](/user-guide/products/how-products-work). |
+| **Attributes Hub** | Category-typed attributes, collections for category pages, hydration on category reads. Product specs remain separate. |
+| **Media** | Category (and product) media; product image may fall back to the first linked category. |
+| **Storefront** | Category pages, menus, branch display resolution, anchor-category listings. |
+| **Settings / Auth** | Tenant branch-display default; storefront access. |
+| **Customers** | Buyers and companies; optional category permission assignments hang off customers when that module is installed. |
+| **Customer category permission module** (optional) | Root-category ACL + branding. **Not** required for basic Categories. |
+| **Integrations / Import-Export** | Often upsert products with category ids — tree masters must exist first. |
+
+Pricelists, Stock Locations, Rules, Tax, and Customer SKUs are adjacent catalog/commerce features — not prerequisites. See [Pricelists](/user-guide/products/pricelists) and [Stock locations](/user-guide/products/stock-locations) for sibling Product Hub depth.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Expect saving a category to “deploy” like a pricelist | Category and assignment saves are **live** | Treat create/update as immediately visible to APIs and storefront consumers |
+| Build categories but never assign products | Empty trees and empty category listings | Assign on the product; verify Product Count and a sample category page |
+| Assign only variations, expect parents never to appear | Configurable parents can surface when a variation is in the subtree | Know the variation→parent rule; assign deliberately |
+| Assume Product Count = every linked row including variations | Count is tree + **parent products only** | Use count as catalog-parent coverage, not raw junction rows |
+| Very deep trees | Harder navigation, SEO paths, and ops | Prefer 3–4 levels; clear names |
+| Rename / move parents without refreshing depths | Stale depth after bulk restructure | Use **update depths** after major restructures |
+| Duplicate names under the same parent | Create rejected | Unique name per sibling set |
+| Hide flags vs delete | Hidden still exists and stays assignable | Use hide for nav chrome; delete only when link cleanup is intended |
+| Confuse category attributes with product attributes | Wrong place to store SKU specs | Specs → product attributes; category attributes → branch presentation |
+| Claim categories constrain product attribute sets | Not evidenced as Product Hub behaviour | Document enrichment + collections; keep product attribute design in Attributes Hub |
+| Assume Branding / buyer category ACL always present | Optional module | Gate those topics on install |
+| Delete a category expecting products to delete | Only links cascade | Reassign products first if the assortment must move |
+
+## Related
+
+- [How Products work](/user-guide/products/how-products-work)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)
 - [Products overview](/user-guide/products/overview)
-- [Manage products](/user-guide/products/manage-products)
+- [Pricelists](/user-guide/products/pricelists)
+- [Stock locations](/user-guide/products/stock-locations)

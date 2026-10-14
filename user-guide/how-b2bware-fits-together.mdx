@@ -1,0 +1,67 @@
+---
+title: How B2Bware fits together
+description: How Products, Orders, Customers, Auth, and Settings form the commerce core — install gating, permissions, hub dependencies, and how the hubs depend on each other.
+---
+
+B2Bware Admin is not a list of unrelated menus. **Products**, **Orders**, and **Customers** — together with **Auth** and **Settings** — form the commerce core that powers catalog, pricing, who can buy, and how orders are placed.
+
+<Callout kind="info" collapsed="false">
+This page explains *why* the hubs exist and how they connect. For day-to-day clicks in Products, see the Products how-tos. For Orders and Customers, start with their overview pages linked below.
+</Callout>
+
+## The storefront spine
+
+In the platform, a tenant is treated as ready for storefront-style commerce when these apps are installed together:
+
+| Piece | Role in the spine |
+| --- | --- |
+| **Products** | What can be sold — catalog, stock locations, prices and pricelists, vendors |
+| **Orders** | How money moves — carts, checkout, sales orders, proposals/quotes |
+| **Customers** | Who can buy and who can operate Admin — customers, companies, contacts, roles, segmentation (customer groups) |
+| **Auth** | Identity for shop users and Admin operators (no separate sidebar label) |
+| **Settings** | Tenant configuration — general, system, translations, and related setup |
+
+Optional hubs (Attributes, Rules, Tax, Media, Loyalty, Invoices, and others) **stack on top** of this spine. They enrich the core; they are not required for every tenant.
+
+## How the pieces depend on each other
+
+1. **Customers** define *who* may buy and *who* may open Admin (roles and permissions). **Segmentation** in the sidebar is the UI name for **customer groups** — used for group prices, permissions, and checkout behaviour.
+2. **Products** define *what* can be sold. Live prices can include regular, special, tier (quantity), group (customer group), and cost. **Pricelists** stage bulk price changes and only become live when you **deploy** them.
+3. **Orders** turn catalog + identity into transactions: cart → checkout → order. **Proposals** (quotes) support B2B quoting before a firm order. Trusted unit prices are resolved **on the server** so the price a buyer sees matches what is charged.
+4. Optional hubs adjust or gate outcomes: **Attributes** extend products and checkout fields; **Rules** apply catalog/cart promotions on top of base prices; Tax, Invoices, Loyalty, and similar hubs attach when installed.
+
+Admin often opens on **Orders** as the operational home for daily commerce work.
+
+## Why a hub might be missing from the sidebar
+
+A sidebar item appears only when roughly all of these are true:
+
+- The hub (app) is **installed** for the tenant
+- The signed-in operator has a matching **view** permission for that hub
+- For Store Setup / Mobile App specifically, the full storefront spine combination is installed
+
+<Callout kind="tip" collapsed="false">
+If a colleague sees a hub you do not, compare **installed apps** for the tenant and **role permissions** — not only the menu layout.
+</Callout>
+
+## Core vs optional (for documentation and training)
+
+| Core commerce spine | Common optionals (install-gated) |
+| --- | --- |
+| Products, Orders, Customers, Auth, Settings | Attributes, Rules, Tax, Media, Notifications, Loyalty, Invoices, Procurement, Accounting, Storefront Builder, Automation, Integrations, … |
+
+Do **not** document optional modules as always present. Say “if this hub is installed for your tenant.”
+
+## Related User Guide pages
+
+- [Getting started with B2Bware Admin](/user-guide/getting-started)
+- [How Products work](/user-guide/products/how-products-work)
+- [Products overview](/user-guide/products/overview)
+- [Orders overview](/user-guide/orders/overview)
+- [Customers overview](/user-guide/customers/overview)
+
+## Do not assume
+
+- Sidebar visibility alone is not security — permissions still gate actions.
+- Shop-facing permission labels may exist in the platform without being fully enforced yet; many buyer journeys are still driven by **tenant settings** (for example login required for prices, guest checkout flags).
+- Social or marketing hubs are **not** part of this spine and are out of scope for this guide until they ship on Production for your tenant.

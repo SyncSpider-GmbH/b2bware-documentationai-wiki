@@ -5,7 +5,7 @@ description: Manage customers, companies, addresses, roles, customer groups, and
 
 ## Overview
 
-The CustomerHub manages customers, companies, addresses, roles, customer groups, and notes. It integrates with AttributesHub for custom customer and company attributes and provides a settings system via HubSettingsTrait.
+The CustomerHub manages customers, companies, addresses, roles, customer groups, and notes. It integrates with AttributesHub for custom customer, company, billing address, and shipping address attributes and provides a settings system via HubSettingsTrait.
 
 **Base URL:** `api/v1/apps/customer-hub/`
 
@@ -28,6 +28,19 @@ For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts
 | DELETE | `/customers/{id}` | Delete a customer |
 | PUT | `/customers/bulk/update` | Bulk update customers |
 
+<Callout kind="info" title="Deleting customers that have orders">
+Customer deletion is **not** blocked by existing orders (single, bulk and
+bulk-all delete). Before the customer record is removed, a full identity
+snapshot (name, email, phone, company, group, language, billing/shipping
+addresses) is written to `meta_data.deleted_customer` on every order of the
+customer, and each order exposes a computed `customer_deleted: true` flag. If
+the snapshot cannot be persisted on every order, the deletion is aborted.
+Orders of deleted customers in a terminal status (`completed`, `canceled`,
+`refunded`) become read-only and reject mutations with `409 order_locked`.
+Restoring the customer from trash clears the snapshots and lifts the lock.
+See [Deleted-Customer Orders](/hubs/order-hub#deleted-customer-orders-historical-orders).
+</Callout>
+
   </Tab>
   <Tab title="Companies" icon="building">
 
@@ -44,10 +57,10 @@ For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/shippingAddresses` | List all shipping addresses |
-| POST | `/shippingAddresses` | Create a shipping address |
+| GET | `/shippingAddresses` | List all shipping addresses (paginated, filterable, sortable) |
+| POST | `/shippingAddresses` | Create a shipping address with optional custom attributes |
 | GET | `/shippingAddresses/{id}` | Get a single shipping address |
-| PUT | `/shippingAddresses/{id}` | Update a shipping address |
+| PUT | `/shippingAddresses/{id}` | Update a shipping address with optional custom attributes |
 | DELETE | `/shippingAddresses/{id}` | Delete a shipping address |
 
   </Tab>
@@ -55,10 +68,10 @@ For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/billingAddresses` | List all billing addresses |
-| POST | `/billingAddresses` | Create a billing address |
+| GET | `/billingAddresses` | List all billing addresses (paginated, filterable, sortable) |
+| POST | `/billingAddresses` | Create a billing address with optional custom attributes |
 | GET | `/billingAddresses/{id}` | Get a single billing address |
-| PUT | `/billingAddresses/{id}` | Update a billing address |
+| PUT | `/billingAddresses/{id}` | Update a billing address with optional custom attributes |
 | DELETE | `/billingAddresses/{id}` | Delete a billing address |
 
   </Tab>
@@ -265,6 +278,9 @@ For filter syntax and operators, see [Filtering](/core-concepts/filtering).
 |--------------|------|-------|
 | `id` | number | |
 | `name` | text | |
+| `company_name` | text | |
+| `first_name` | text | |
+| `last_name` | text | |
 | `address_line_1` | text | |
 | `address_line_2` | text | |
 | `city` | text | |
@@ -276,6 +292,8 @@ For filter syntax and operators, see [Filtering](/core-concepts/filtering).
 | `company_id` | number | |
 | `_created_at` | date | |
 | `_updated_at` | date | |
+
+Shipping and billing address list endpoints also accept `?filter[<attribute_code>]` for custom AttributesHub attributes flagged `use_for_admin_filtering=true` in the matching attribute group type: `shipping_address` or `billing_address`.
 
 </Expandable>
 
@@ -292,6 +310,19 @@ For filter syntax and operators, see [Filtering](/core-concepts/filtering).
 
 </Expandable>
 
+## Sorting
+
+For sort syntax, see [Common Patterns](/core-concepts/common-patterns#sorting).
+
+Shipping and billing address lists accept `?sort=` on native fields: `id`, `name`, `city`, `zip`, `country`, `_created_at`, `_updated_at`. Prefix with `-` for descending order, for example `?sort=-_updated_at`.
+
+They also accept custom attribute codes flagged `use_for_sorting=true` in the matching AttributesHub group type:
+
+| Endpoint | Attribute group type | Example |
+|----------|----------------------|---------|
+| `GET /shippingAddresses` | `shipping_address` | `?sort=delivery_zone` |
+| `GET /billingAddresses` | `billing_address` | `?sort=-tax_region` |
+
 ## Includes
 
 For include syntax, see [Includes & Relations](/core-concepts/includes).
@@ -300,8 +331,8 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 |----------|--------------------|
 | **Customers** | `company`, `company.companyGroup`, `company.shippingAddresses`, `company.billingAddresses`, `role`, `shippingAddresses`, `billingAddresses`, `customerGroup`, `defaultCustomerShippingAddress`, `defaultCompanyShippingAddress`, `defaultCustomerBillingAddress`, `defaultCompanyBillingAddress`, `attributeValues`, `attributeValues.value`, `attributeValues.value.translation`, `attributeValues.value.attribute.translation`, `attributeValues.value.attribute.group` |
 | **Companies** | `customers`, `customers.shippingAddresses`, `customers.billingAddresses`, `shippingAddresses`, `billingAddresses`, `attributeValues`, `attributeValues.value`, `attributeValues.value.translation`, `attributeValues.value.attribute.translation`, `attributeValues.value.attribute.group` |
-| **Shipping Addresses** | `customer` |
-| **Billing Addresses** | `customer` |
+| **Shipping Addresses** | `customer`, `attributeValues`, `attributeValues.value`, `attributeValues.value.translation`, `attributeValues.value.attribute`, `attributeValues.value.attribute.translation`, `attributeValues.value.attribute.group`, `attributeCollections` |
+| **Billing Addresses** | `customer`, `attributeValues`, `attributeValues.value`, `attributeValues.value.translation`, `attributeValues.value.attribute`, `attributeValues.value.attribute.translation`, `attributeValues.value.attribute.group`, `attributeCollections` |
 
 ## Validation Rules
 
@@ -465,6 +496,29 @@ curl -s -X POST \
 ```
     </Request>
   </Step>
+  <Step title="Create a shipping address with custom attributes">
+    <Request tabs="cURL">
+```bash
+curl -s -X POST \
+  'https://api.datahub.syncspider.com/api/v1/apps/customer-hub/shippingAddresses' \
+  -H 'Authorization: ******' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "name": "Warehouse delivery",
+    "address_line_1": "Main Street 1",
+    "city": "Berlin",
+    "zip": "10115",
+    "country": "DE",
+    "customer_id": 123,
+    "type": "customer",
+    "attributes": [
+      {"attribute_id": 42, "value": "Dock 3", "auto_create_value": true}
+    ]
+  }'
+```
+    </Request>
+  </Step>
   <Step title="Filter companies with VAT number">
     <Request tabs="cURL">
 ```bash
@@ -610,6 +664,6 @@ CustomerHub App Settings cover registration defaults, segmentation, address vali
     Orders reference customers and companies for billing and shipping information.
   </Card>
   <Card title="AttributesHub" icon="sliders" href="/hubs/attributes-hub">
-    Custom customer and company attributes are managed through the attributable system.
+    Custom customer, company, and address attributes are managed through the attributable system.
   </Card>
 </Columns>

@@ -1,31 +1,170 @@
 ---
-title: Categories
-description: Kategoriebaum für den Katalog aufbauen und pflegen.
+title: Kategorien
+description: Katalogbäume in B2Bware — wie Kategorien sich von Produkten und Attributen unterscheiden, wie Hierarchie und Mehrfachzuweisung funktionieren, wie Storefront-Branch-Display und Nav-Flags wirken und wie Attributes Hub sowie optionale Kategorie-Berechtigungen zusammenhängen.
 ---
 
-Organisieren Sie Produkte so, dass Käufer nach Kategorie browsen können.
+Eine **Kategorie** ist ein **benannter Knoten in einem Katalogbaum**. Operatoren nutzen Kategorien, um zu organisieren, wo Produkte für Browsing, Navigation, SEO und (optional) käuferbezogene Katalogzugriffe liegen.
+
+Eine Kategorie ist **nicht** das Produkt und **nicht** eine Produkt-Attributdefinition.
 
 <Image
   src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404819291-xurdkp6hos-categories.png?fm=auto&auto=compress%2Cformat"
-  alt="Categories-Liste"
+  alt="Categories-Liste (EN-Screenshot — DE-Screenshot folgt)"
 />
 
-## Modul öffnen
+| Konzept | Rolle |
+| --- | --- |
+| **Category** | Baumknoten: Name, Slug, optionale Beschreibung, Parent, berechnete Tiefe, Medien, SEO, Storefront-Layout-/Nav-Flags, optionale kategorie-typisierte Attribute und Metadata. Admin: **Products → Categories**. |
+| **Product–Category-Link** | Junction: ein Produkt mit einer Kategorie verknüpft. Ein Produkt kann zu **vielen** Kategorien gehören. |
+| **Product** | Verkaufbarer Katalogartikel. Die Kategoriezuweisung wird am Produkt gepflegt (Tree-Select auf General / Bulk-Edit) — nicht durch Mengen- oder Preisänderungen auf der Categories-Liste. |
+| **Product attributes** | Specs / Variationsachsen / Filter auf **Produkten**. Gehört zum Attributes Hub; getrennt von der Kategoriezugehörigkeit. |
+| **Category attributes** | Attribut-**Werte am Kategorie-Datensatz** selbst (Tab Attributes). Dieselbe Attributes-Hub-Technik, anderer Gruppentyp. |
+| **Category metadata** | Pro Kategorie Custom-Field-Definitionen und -Werte für Category-Page-Chrome — keine Produkt-SKU-Felder. |
 
-<Steps>
-  <Step title="Products aufklappen">
-    Klappen Sie in der linken Sidebar **Products** auf.
-  </Step>
-  <Step title="Categories öffnen">
-    Wählen Sie **Categories**.
-  </Step>
-</Steps>
+**Mentales Modell:** Categories = *wo der Katalog abgelegt ist*. Products = *was verkauft wird*. Product attributes = *wie die SKU beschaffen ist*. Category attributes / Metadata = *wie sich dieser Ast des Baums präsentiert*. Optionale Customer-Category-Permissions = *welche Root-Äste ein Käufer betreten darf*.
 
-<Callout kind="info" title="Product Count">
-  Die Produktanzahl einer Kategorie zeigt, wie viele Produkte zugewiesen sind. Weisen Sie Produkte auf dem Tab General neu zu, wenn eine Anzahl falsch wirkt.
+Das Speichern einer Kategorie oder der Kategorie-Liste eines Produkts ist **live**. Es gibt **kein** Pricelist-ähnliches Deploy für den Baum oder für Zuweisungen.
+
+<Callout kind="info" collapsed="false">
+Eine Kategorie auszuwählen ändert **nicht** von selbst, welche **Produkt**-Attributdefinitionen auf dem Produktformular verfügbar sind. Category-Enrichment und Category-Page-Oberflächen sind getrennt vom Produkt-Attribute-Set-Design.
 </Callout>
 
-## Nächste Schritte
+## Warum Teams Categories nutzen
 
+1. **Katalognavigation** — Einen browsbaren Baum (Root → Children → Leaves) für Storefront-Menüs und Category-Pages aufbauen.
+2. **Mehrfachplatzierung** — Eine SKU in mehrere Kategorien legen, wenn Sortimente überlappen.
+3. **Storefront-Layout-Steuerung** — Pro Ast **Branch display mode** (children / products / both, oder Store-Default erben) sowie Hide-from-Menu- / Hide-from-Layer-Navigation-Flags.
+4. **SEO & Medien** — Slug und SEO-Felder; Kategoriebilder (auch als Produktbild-Fallback nutzbar, wenn das Produkt keine eigenen Medien hat).
+5. **Category-Level-Enrichment** — Kategorie-typisierte Attribute, Metadata und (wenn Attribute Collections für Category Pages gesetzt sind) Category-Page-Oberflächen.
+6. **Käuferbezogene Kataloge (optionales Modul)** — Einschränken, welche **Root**-Kategorien ein Kunde betreten darf, optional mit Branding pro Kategorie — nur wenn das Customer-Category-Permission-Modul installiert ist.
+
+Nutzen Sie einen **flachen, stabilen Baum** für klare Navigation. Nutzen Sie **Produktzuweisung** (nicht Kategorie löschen/neu anlegen), um Sortimente zu verschieben. Nutzen Sie **Product attributes** für Specs — überladen Sie Kategorien nicht als Ersatz für Attributdefinitionen.
+
+## Wie Hierarchie und Zuweisung funktionieren
+
+### Hierarchie
+
+| Mechanismus | Verhalten |
+| --- | --- |
+| **Parent** | Leer = Root. Ein Child zeigt auf einen Parent. |
+| **Depth** | Wird beim **Speichern** berechnet, indem Parents entlanggelaufen werden. Root = 0. |
+| **Update depths** | Speichert alle Kategorien erneut, damit die gespeicherte Tiefe nach großen Umstrukturierungen dem Baum entspricht. |
+| **Depth policy** | Unbegrenzte Tiefe ist unterstützt; in der Praxis **3–4 Ebenen** halten. |
+| **Self-parent** | Abgelehnt — eine Kategorie kann nicht ihr eigener Parent sein. |
+| **Name uniqueness** | Doppelter **Name unter demselben Parent** (oder am Root) wird abgelehnt. |
+| **Slug** | Im Datenmodell erforderlich; wenn beim Anlegen leer, aus dem Namen generiert. Einzigartigkeit wird erzwungen. Path-Lookup läuft Parent → Child. |
+
+Kategorien sind gewöhnliche Create-/Update-/Delete-Datensätze. Es gibt **keinen** Draft → Deploy-Lebenszyklus.
+
+### Produktzuweisung
+
+| Mechanismus | Verhalten |
+| --- | --- |
+| **Write path** | Am Produkt eine oder mehrere Kategorien wählen → Junction-Zeilen synchronisieren (IDs, die nicht in der Liste stehen, werden entfernt; leere Auswahl löscht alle). |
+| **Validation** | Jede gewählte Kategorie-ID muss existieren. |
+| **Cardinality** | Viele Kategorien pro Produkt; viele Produkte pro Kategorie. |
+| **Listings** | Storefront-/API-Listings mit **Anchor-Kategorie** enthalten Produkte, die mit diesem Knoten **oder einem Nachfahren** verknüpft sind, plus **configurable Parent**-Produkte, wenn eine **Variation** in diesem Teilbaum verknüpft ist (auch wenn der Parent selbst keine Junction-Zeile hat). Ein leerer Teilbaum liefert ein leeres Listing — nicht „alle Produkte“. |
+| **Product count** | Die Baum-Anzahl zählt Produkte, die in diesem Knoten oder Nachfahren verknüpft sind, und zählt nur **Parent-Level**-Produkte — Variationen werden nicht als separate Katalog-Parents doppelt gezählt. |
+| **Delete category** | Zugehörige Product–Category-Links werden entfernt. **Produkte bleiben.** |
+
+Dokumentieren Sie die Zuweisung bevorzugt über die **categories**-Auswahl am Produkt (Admin-/Product-Hub-Pfad) — erfinden Sie keinen separaten „über Attribute zuweisen“-Workflow als primären Operator-Pfad.
+
+### Storefront-Präsentation
+
+| Feld / Einstellung | Bedeutung |
+| --- | --- |
+| **Hide in Main Menu** | Aus dem Hauptmenü auslassen, wenn gesetzt. |
+| **Hide in Layer Navigation** | Aus der Layer Navigation auslassen, wenn gesetzt. |
+| **Branch display mode** | `children`, `products`, `both`, oder leer, um den Store-Default zu **erben** (typischerweise **children**). **Leaf**-Kategorien zeigen immer Produkte. |
+
+Themes müssen die aufgelösten Show-Children- / Show-Products-Flags ehren — nicht nur Leaf-ness —, sonst zeigen Parents nie Produkte, wenn Merchants sie aktivieren.
+
+### Attribute an Kategorien (genauer Scope)
+
+**Was existiert:**
+
+1. Kategorien können **kategorie-typisierte** Attributwerte tragen (Tab Attributes).
+2. Attribute-**Collections** können auf der Category Page erscheinen, wenn für den Category-Gruppentyp konfiguriert.
+3. **Metadata**-Definitionen und -Werte unterstützen Category-Page-Felder (einschließlich Sichtbarkeit auf der Category Page).
+
+**Was als Kern-Product-Hub-Verhalten nicht existiert:** Kategoriezugehörigkeit schaltet nicht automatisch frei oder ein, welche **Produkt**-Attributdefinitionen auf dem Produktformular erscheinen. Specs bleiben in Product attributes; Category attributes bleiben am Ast.
+
+### Optional: Customer Category Permissions
+
+Wenn das Customer-Category-Permission-Modul installiert ist:
+
+- **Root**-Kategorien zuweisen, die ein Kunde betreten darf (plus Landing).
+- Category-Reads / Product-Reads können ACL-gefiltert werden.
+- Ein Tab **Branding** (Logo, Farben, Fonts und verwandte Storefront-Palette) erscheint an der Kategorie.
+
+Ohne Modul funktionieren Categories weiterhin für die Katalogstruktur. Dokumentieren Sie Branding oder Buyer-Category-ACL nicht als Kern-Product-Hub.
+
+## Typische Workflows
+
+### Den Baum entwerfen
+
+1. **Root**-Kategorien anlegen (Name erforderlich; Slug automatisch, wenn weggelassen).
+2. **Children** unter einem Parent anlegen; Nesting in der Baumliste bestätigen.
+3. **Hide in Main Menu** / **Hide in Layer Navigation** nur setzen, wenn der Knoten für Platzierung oder SEO existieren, aber nicht in diesem Nav-Chrome erscheinen soll.
+4. Für Parent-Knoten **Branch display mode** setzen oder leer lassen, um den Store-Default zu erben.
+5. Nach großen Verschiebungen **Update depths** ausführen, damit die gespeicherte Tiefe dem Baum entspricht.
+
+### Produkte platzieren
+
+1. Produkt öffnen (oder Bulk-Edit) → eine oder mehrere Kategorien im Tree-Select wählen.
+2. Produkt speichern — Junction-Zeilen aktualisieren live.
+3. Category-**Product Count** und ein Storefront- oder API-Listing für einen repräsentativen Ast stichprobenartig prüfen.
+4. Bei Configurables: entscheiden, ob Parents, Variationen oder beide die Zugehörigkeit tragen; bedenken, dass Parents erscheinen können, wenn eine Variation im Teilbaum liegt.
+
+### Eine Kategorie anreichern (Präsentation)
+
+1. **General** — Name, Beschreibung, Medien, Parent, Hide-Flags, Branch mode.
+2. **SEO** — Title / Description / Keywords (und Slug-Disziplin für Pfade).
+3. **Metadata** — Definitionen und Werte für Category-Page-Felder, wenn genutzt.
+4. **Attributes** — kategorie-typisierte Attributwerte (Kategorie zuerst anlegen).
+5. **Branding** — nur wenn das Customer-Category-Permission-Modul installiert ist.
+
+### Berechtigungen
+
+Operatoren brauchen Product-Hub-Zugang mit **categories** Create/Update/Delete und **products**-Rechte zum Zuweisen. Optionale Permission-Modul-UIs verwalten Käuferzugriff woanders — sie ersetzen kein Product-Hub-Category-CRUD.
+
+## Abhängigkeiten
+
+| Abhängigkeit | Warum sie zählt |
+| --- | --- |
+| **Product Hub** | Besitzt Category und Product–Category-Links; Categories ist ein Products-Sidebar-Child. |
+| **Products (All Products)** | Zuweisung geschieht am Produkt; leere Kategorien verkaufen nichts. Siehe [Wie Produkte funktionieren](/de/user-guide/products/how-products-work). |
+| **Attributes Hub** | Kategorie-typisierte Attribute, Collections für Category Pages, Hydration bei Category-Reads. Product Specs bleiben getrennt. |
+| **Media** | Kategorie- (und Produkt-)Medien; Produktbild kann auf die erste verknüpfte Kategorie zurückfallen. |
+| **Storefront** | Category Pages, Menüs, Branch-Display-Auflösung, Anchor-Category-Listings. |
+| **Settings / Auth** | Tenant-Branch-Display-Default; Storefront-Zugang. |
+| **Customers** | Käufer und Companies; optionale Category-Permission-Zuweisungen hängen an Customers, wenn dieses Modul installiert ist. |
+| **Customer-Category-Permission-Modul** (optional) | Root-Category-ACL + Branding. **Nicht** erforderlich für grundlegende Categories. |
+| **Integrations / Import-Export** | Upserten oft Produkte mit Category-IDs — Baum-Master müssen zuerst existieren. |
+
+Pricelists, Stock Locations, Rules, Tax und Customer SKUs sind benachbarte Katalog-/Commerce-Features — keine Voraussetzungen. Siehe [Pricelists](/de/user-guide/products/pricelists) und [Stock locations](/de/user-guide/products/stock-locations) für Geschwister-Tiefe im Product Hub.
+
+## Häufige Fehler
+
+| Fehler | Warum es schadet | Bessere Praxis |
+| --- | --- | --- |
+| Erwarten, dass das Speichern einer Kategorie wie eine Pricelist „deployt“ | Kategorie- und Zuweisungs-Saves sind **live** | Create/Update als sofort sichtbar für APIs und Storefront-Consumer behandeln |
+| Kategorien bauen, aber nie Produkte zuweisen | Leere Bäume und leere Category-Listings | Am Produkt zuweisen; Product Count und eine Beispiel-Category-Page prüfen |
+| Nur Variationen zuweisen und erwarten, dass Parents nie erscheinen | Configurable Parents können auftauchen, wenn eine Variation im Teilbaum liegt | Die Variation→Parent-Regel kennen; bewusst zuweisen |
+| Annehmen, Product Count = jede verknüpfte Zeile inklusive Variationen | Count ist Baum + **nur Parent-Produkte** | Count als Katalog-Parent-Abdeckung nutzen, nicht als rohe Junction-Zeilen |
+| Sehr tiefe Bäume | Schwerere Navigation, SEO-Pfade und Ops | 3–4 Ebenen bevorzugen; klare Namen |
+| Parents umbenennen/verschieben ohne Depths zu aktualisieren | Veraltete Depth nach Bulk-Restructure | Nach großen Umstrukturierungen **Update depths** nutzen |
+| Doppelte Namen unter demselben Parent | Create abgelehnt | Eindeutiger Name pro Sibling-Set |
+| Hide-Flags vs. Löschen | Hidden existiert weiter und bleibt zuweisbar | Hide für Nav-Chrome; löschen nur, wenn Link-Cleanup beabsichtigt ist |
+| Category attributes mit Product attributes verwechseln | Falscher Ort für SKU-Specs | Specs → Product attributes; Category attributes → Ast-Präsentation |
+| Behaupten, Kategorien schränken Produkt-Attribute-Sets ein | Nicht als Product-Hub-Verhalten belegt | Enrichment + Collections dokumentieren; Produkt-Attribute-Design im Attributes Hub belassen |
+| Annehmen, Branding / Buyer-Category-ACL sei immer vorhanden | Optionales Modul | Diese Themen an die Installation knüpfen |
+| Eine Kategorie löschen und erwarten, dass Produkte gelöscht werden | Nur Links kaskadieren | Produkte zuerst neu zuweisen, wenn das Sortiment umziehen muss |
+
+## Verwandte Seiten
+
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
 - [Products — Überblick](/de/user-guide/products/overview)
-- [Produkte verwalten](/de/user-guide/products/manage-products)
+- [Pricelists](/de/user-guide/products/pricelists)
+- [Stock locations](/de/user-guide/products/stock-locations)

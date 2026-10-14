@@ -1,0 +1,95 @@
+---
+title: Customers overview
+description: How Customer Hub works — customers, companies, contacts, roles, segmentation (customer groups), registration settings, and permissions.
+---
+
+**Customers** owns B2B party master data and access control: customers, companies, contacts, **roles** (and the permission registry), **segmentation** (customer groups), addresses, and registration/company settings that gate storefront and Admin operator behaviour.
+
+<Callout kind="info" collapsed="false">
+If someone’s Admin menu looks empty, start here: roles and `admin` access decide which hubs appear — not only whether apps are installed.
+</Callout>
+
+## What Customers owns (sidebar)
+
+| Area | What it is for |
+| --- | --- |
+| **All Customers** | People/accounts that buy or operate — profile, addresses, notes, orders, security, attributes, related tabs |
+| **Companies** | Multi-customer B2B accounts |
+| **Contacts** | Contact records and affiliations |
+| **Roles** | Admin and storefront permission sets assigned to operators/buyers |
+| **Segmentation** | UI name for **customer groups** — pricing, permissions, checkout-method overrides, and related targeting |
+
+Customers is a **core** hub in the [storefront spine](/user-guide/how-b2bware-fits-together).
+
+## Customers vs companies vs contacts
+
+- **Customer** — the account that logs in, holds roles, places orders, and may belong to a company and groups.
+- **Company** — the B2B organisation container for multiple customers/contacts and shared commercial context.
+- **Contact** — person records linked through affiliations; useful for CRM-style data without always being a login.
+
+## Segmentation = customer groups
+
+**Segmentation** is not a separate analytics product. It is the Admin label for **customer groups**. Groups commonly drive:
+
+- **Group prices** in Products
+- Category / product permission modules (when installed)
+- Checkout method overrides
+- Customer SKU ownership (when that module is installed)
+
+Cross-link: [How Products work](/user-guide/products/how-products-work).
+
+## Roles and why hubs appear
+
+Customer Hub hosts the **permission registry** other hubs register into.
+
+- Operators need Admin access (platform admin entry) plus hub **view** permissions to see sidebar groups.
+- Typical role shapes include admin-style (broad Admin keys for installed hubs), agent-style (proposal-centric), user (storefront), and guest (minimal).
+- Hiding a sidebar item is UX; **Gate / permission checks** remain the source of truth for actions.
+
+## Registration and company settings (intent)
+
+Customer Hub settings steer:
+
+- Default registration status, email/phone verification, admin approval
+- Customer number generation and password rules
+- Address validation options
+- Company requirements
+- Guest role behaviour and whether guest registration notifies operators
+
+These settings explain many “why can’t this buyer check out?” tickets better than a click tour.
+
+## Dependencies
+
+| Related | Why |
+| --- | --- |
+| **Auth** | Shop login; Admin operators are customers with Admin access; `/me` carries granted permissions |
+| **Products** | Group prices; optional permission modules; customer SKUs |
+| **Orders** | Checkout creates/links customers; order history on customer detail; guest role codes |
+| **Notifications** (optional) | Registration and account events |
+| **Attributes** (optional) | Custom fields on customers/companies |
+| **Loyalty** (optional) | Extra company tabs when installed |
+| **All hubs** | Safe no-op if Customer Hub absent — but roles/permissions live here when it is present |
+
+## Install and permissions
+
+- **Install:** Customer Hub must be installed (core).
+- **Sidebar:** Install + view permission.
+- Admin resources include customers, companies, contacts, affiliations, customer groups, roles, impersonation (gated), assign-permissions, settings, and dashboard views where configured.
+
+<Callout kind="alert" collapsed="false">
+Shop-facing account permission labels (manage users / manage addresses) may not be fully enforced yet. Prefer documenting registration settings and roles over an unfinished storefront ACL.
+</Callout>
+
+## Related pages
+
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)
+- [How Products work](/user-guide/products/how-products-work)
+- [Orders overview](/user-guide/orders/overview)
+- [Getting started with B2Bware Admin](/user-guide/getting-started)
+
+## Do not claim
+
+- Segmentation is a standalone analytics suite.
+- Internal platform-administrator tooling brand names belong in the customer User Guide.
+- Geocoding or every optional company tab is a default user-facing feature without install/config confirmation.
+- Storefront account permission keys are fully enforced everywhere.

@@ -1,0 +1,110 @@
+---
+title: Settings overview
+description: Selective map of B2Bware Settings — Settings Hub children, Order Hub commerce methods, and pointers to Order-related settings, Import/Export, and Store Setup.
+---
+
+**Settings** is the Admin group for **tenant / platform configuration** hosted primarily by **Settings Hub**, plus **commerce method** pages contributed by **Order Hub**.
+
+| Child | Owner | User Guide depth here |
+| --- | --- | --- |
+| **General** | Settings Hub | Overview note — tenant general config |
+| **Shipping** | **Order Hub** | **Pointer** → [Order-related settings](/user-guide/orders/related-settings) |
+| **Carriers** | **Order Hub** | **Pointer** → Order-related settings |
+| **Billing** | **Order Hub** | **Pointer** → Order-related settings |
+| **Translations** | Settings Hub | Overview note — locale string management |
+| **Configuration** | Settings Hub | Overview note — installed-app settings entry |
+| **Import / Export** | Settings Hub | **Pointer** → [Import / Export](/user-guide/import-export/overview) |
+| **System** | Settings Hub | Overview note — system-level switches (treat carefully) |
+
+**Also elsewhere (not Settings sidebar children, but “settings” named):**
+
+| Place | Role |
+| --- | --- |
+| **Store Setup** | Shop tenant branding/features/social **links**/themes — separate top-level when storefront combo is present |
+| **Notifications → Settings** | Channel credentials for Notification Hub |
+| **Automation Hub → Settings** | Flow engine settings |
+| **Integrations → Settings** | Integration Hub settings |
+| **Tax / Invoices / Loyalty / … → Settings** | Optional hub settings when those hubs are installed |
+
+**Mental model:** Settings sidebar = **shell configuration + Order commerce methods**. Hub-owned “Settings” children under other groups = **that hub’s knobs**. Store Setup = **shop experience** config.
+
+<Callout kind="info" collapsed="false">
+Settings Hub is **core**. Shipping, Carriers, and Billing appear under Settings only when **Order Hub** is installed. This page is a **selective map** — deep commerce method intent stays on Order-related settings.
+</Callout>
+
+**Not the same as (do not conflate):**
+
+| Nearby name | Different system |
+| --- | --- |
+| **Store Setup** | Shop tenant branding / features / social **links** / themes |
+| **Rule Hub Shipping Rates** | Promotional shipping price rules — not Settings → Shipping methods |
+| **Integrations** | Connectors / sync — not Settings → Import / Export file config |
+
+## Why teams use Settings
+
+1. Central place for general, translations, system, and import/export config.
+2. Checkout cannot complete without Shipping + Billing methods (Order Hub pages under Settings).
+3. Carriers support tracking URL templates after ship.
+4. Configuration is the gateway to many per-app setting groups without hunting every hub.
+5. Keeps dangerous system toggles in one permission-gated area.
+
+## Selective how-to
+
+### Order commerce methods
+
+When Order Hub is installed, configure **Shipping**, **Carriers**, and **Billing** under Settings. Full intent (visibility, `new_order_status`, guests vs restricted, proposals) lives on:
+
+→ **[Order-related settings](/user-guide/orders/related-settings)**
+
+### General / Translations / System
+
+- **General** — tenant-wide defaults operators expect in Admin (keep changes reviewed).
+- **Translations** — manage translatable strings for Admin/shop locales as exposed.
+- **System** — high-impact platform switches; change only with a clear operational reason and rollback plan.
+
+### Configuration (apps)
+
+- Open **Configuration** to reach FormGenerator-style setting groups for installed apps.
+- Prefer a hub’s own **Settings** child when one exists (Notifications, Automation, Integrations, Tax, …) for day-to-day channel/engine work — Configuration is the catalogue/entry pattern.
+
+### Import / Export
+
+- Settings child configures behaviour; downloads live under top-level Import / Export.
+→ **[Import / Export](/user-guide/import-export/overview)**
+
+### Do not confuse with Store Setup
+
+Shop logo, feature flags, legal, social **profile URLs**, themes → **[Store Setup](/user-guide/store-setup/overview)**.
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Settings Hub** | Hosts General, Translations, Configuration, Import/Export, System |
+| **Order Hub** | Adds Shipping, Carriers, Billing children |
+| **Permissions** | Settings view/update plus Order Hub method permissions for commerce children |
+| **Customer / company method allow-lists** | Overlay visibility for shipping/billing — see Customers |
+| **Optional hubs** | Extra Settings children under their own sidebar groups |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Looking for Shipping under Orders sidebar | Children live under Settings | Settings → Shipping / Carriers / Billing |
+| Writing full payment-provider runbooks here | Scope creep | Order-related settings + payment docs later |
+| Confusing Settings Import/Export with Integrations | Different jobs | Files vs connectors |
+| Editing Store Setup concerns inside Settings | Split brain | Store Setup for shop; Settings for platform/commerce methods |
+| Mixing Notification vs Event vs Automation settings | Wrong credentials page | Use each hub’s Settings child |
+| Calling Store Setup Social a social publishing settings page | False product | Social **links** only |
+
+## Related
+
+- [Order-related settings](/user-guide/orders/related-settings) — Shipping / Carriers / Billing depth
+- [Orders overview](/user-guide/orders/overview)
+- [Order lifecycle](/user-guide/orders/lifecycle)
+- [Import / Export](/user-guide/import-export/overview)
+- [Store Setup](/user-guide/store-setup/overview)
+- [Notifications overview](/user-guide/notifications/overview)
+- [Automation Hub overview](/user-guide/automation/overview)
+- [Integrations overview](/user-guide/integrations/overview)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

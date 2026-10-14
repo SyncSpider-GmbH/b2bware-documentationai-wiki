@@ -5,15 +5,15 @@ description: Archive layout, canonical file surface, and the forbidden Blade/PHP
 
 ## 1. Archive layout
 
-A theme zip must contain **`theme.json` at the root**. A single top-level wrapper folder is unwrapped automatically, and OS/editor junk (`__MACOSX/`, `.DS_Store`, AppleDouble `._*`, `.git/`, …) is stripped — so a zip made with macOS Finder "Compress" uploads as-is.
+A theme zip must contain **`theme.json` and `README.md` at the root**. A single top-level wrapper folder is unwrapped automatically, and OS/editor junk (`__MACOSX/`, `.DS_Store`, AppleDouble `._*`, `.git/`, …) is stripped — so a zip made with macOS Finder "Compress" uploads as-is.
 
 Theme top-level entries (everything else is ignored, not rejected):
 
 ```
 theme.json        (required)
+README.md         (required — what the theme does, see theme-readme.md)
+CHANGELOG.md      (optional — what changed per version, see theme-readme.md)
 preview.png       (optional)
-README.md         (optional)
-readme.md         (optional)
 rules.md          (optional, thin stub — points at docs/)
 docs/             (optional, this authoring guide; *.md only)
 layouts/
@@ -27,6 +27,13 @@ assets/
 > `docs/` ships **with** the default theme and is kept when you re-upload, but it is
 > documentation only — it is never rendered. The authoritative, always-current version is
 > online (see the header of each doc page). Only `*.md` files are kept under `docs/`.
+
+> **README.md is a hard requirement.** An upload is rejected at the manifest step when the root
+> `README.md` is missing, larger than 64 KB, not UTF-8, or when any of its four required `## `
+> sections (`Purpose`, `What this theme changes`, `Scripts and libraries`, `Still on the default
+> theme`) is empty. HTML comments do not count as content. An optional `CHANGELOG.md` must meet the
+> same size and UTF-8 limits. The store admin shows `README.md` and
+> `CHANGELOG.md` on the theme's page. Full outline: [theme-readme.md](theme-readme.md).
 
 ### `theme.json` shape
 
@@ -70,7 +77,7 @@ Each blade file must either match one of the canonical paths below **or** be a c
 ### Partials (`partials/`)
 - `header.blade.php`
 - `footer.blade.php`
-- `nav.blade.php`
+- `nav.blade.php` &mdash; header category navigation. `list` links to the categories index; `mega_menu` opens `$megaMenuCategories`. Branch on `$store['category_ui_type']` (see view-data.md)
 - `mini-cart.blade.php`
 - `locale-switcher.blade.php`
 - `breadcrumbs.blade.php`
@@ -79,7 +86,7 @@ Each blade file must either match one of the canonical paths below **or** be a c
 - `cart-summary.blade.php` &mdash; cart totals (AJAX section, §9.7)
 - `cart-rewards.blade.php` &mdash; reward progress bars (AJAX section, §9.7)
 - `checkout-summary.blade.php` &mdash; checkout coupon + totals (AJAX section, §9.7)
-- `account-nav.blade.php` &mdash; account sidebar navigation; pass `active` (dashboard, profile, orders, addresses, favorites) to highlight the active item
+- `account-nav.blade.php` &mdash; account sidebar navigation; pass `active` (dashboard, profile, orders, addresses, favorites) to highlight the active item. Carries the `account.nav` slot above the sign-out separator, where optional modules add their own entries
 - `account-address-form.blade.php` &mdash; address field group (name, street, city, country, phone); included inside both the account address modals and the inline checkout address forms; pass `address` (existing object or null) and `prefix` (shipping or billing)
 - `account-addresses-page.blade.php` &mdash; full addresses page layout (address cards, add/edit modals); used by both `account/shipping-addresses` and `account/billing-addresses`; pass the form names and address collections documented at the top of the partial
 - `checkout-address-option.blade.php` &mdash; selectable address card in the checkout billing/delivery pickers; pass `address`, `field` (`billing_address_id` | `shipping_address_id`), `selectedId` and `required`
@@ -359,5 +366,19 @@ These facade static accessors are rejected:
 Auth::  DB::  Schema::  Cache::  Storage::  Hash::
 Route::  Mail::  Queue::  Event::  Log::
 ```
+
+---
+
+## 9. Images — always `@storefrontImage` (authoring hard rule)
+
+This is not an upload-scanner reject, but it **is** a hard authoring rule. Themes that
+ship raw `media_url` values in `<img src>` fail review and ship multi‑megabyte originals
+to every visitor.
+
+- Wrap **every** catalog / customer media URL with `@storefrontImage($url, $width?, $height?, $quality?, $aspectRatio?)` — products, categories, gallery, cart, orders, and custom `@fetch` tiles that render `media_url`.
+- Do **not** put a bare `media_url` (Bunny `*.b-cdn.net` **or** SpiderDesk `/media/...`) in `src`.
+- Placeholders and `@themeAsset(...)` stay unwrapped; the directive is a no-op for those hosts anyway.
+- Pick sizes for the surface (see `seo-and-images.md` §9.11). Prefer width-only (`null` height) when a square crop would zoom into the subject.
+- The platform appends Bunny Optimizer / desk resize params (`width`, `height`, `quality`, `aspect_ratio`). Full Bunny Dynamic Images capabilities (crop gravity, `format=webp`, filters, …) are documented in §9.11 — do not hand-roll those on arbitrary hosts.
 
 ---

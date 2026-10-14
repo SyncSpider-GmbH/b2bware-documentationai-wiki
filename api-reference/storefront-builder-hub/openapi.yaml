@@ -25,6 +25,7 @@ tags:
   - name: Library Sections
   - name: Pages
   - name: Product Views
+  - name: Settings
   - name: Slots
   - name: Theme Editor
   - name: Theme Slots
@@ -1085,31 +1086,6 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  /api/v1/apps/storefront-builder-hub/library-sections/{id}/thumbnail/upload:
-    post:
-      tags:
-        - Library Sections
-      summary: Upload Thumbnail
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
   /api/v1/apps/storefront-builder-hub/pages:
     get:
       tags:
@@ -1266,6 +1242,118 @@ paths:
       tags:
         - Product Views
       summary: Index
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/settings:
+    get:
+      tags:
+        - Settings
+      summary: Index
+      responses:
+        '200':
+          description: Schema, saved values, and defaults
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                pdf:
+                  filename_template: '{name}-{yyyyMMddHHmmss}-{id}'
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/settings/groups/list:
+    get:
+      tags:
+        - Settings
+      summary: Get Groups List
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/settings/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/settings/{group}:
+    get:
+      tags:
+        - Settings
+      summary: Show
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Settings
+      summary: Update
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                filename_template: '{name}-catalogue-{yyyyMMddHHmmss}-{id}'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/settings/{group}/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      parameters:
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response

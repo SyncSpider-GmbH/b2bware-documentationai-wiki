@@ -1,31 +1,158 @@
 ---
 title: Pricelists
-description: Preislisten verwalten, die Portal- und Vertragspreise steuern.
+description: Gestufte Katalogpreise in B2Bware — wie Pricelists sich von Live-Produktpreisen unterscheiden, wie Deploy funktioniert, wie Preistypen und finalPrice zusammenhängen und was von Kundengruppen abhängt.
 ---
 
-Nutzen Sie Pricelists, wenn Käufer Vertrags- oder Staffelpreise statt eines einzigen Listenpreises sehen sollen.
+Eine **Pricelist** ist ein verwalteter Container **gestufter** Preiszeilen für eine Produktmenge. Sie bereiten diese Zeilen unter der Pricelist vor; Käufer zahlen **nicht** aus diesem Dokument, bis Sie es **explizit deployen**.
+
+**Live-Produktpreise** sind die Preisdatensätze am jeweiligen Produkt (regular, special, tier, group, cost und verwandte Felder). Storefront und Warenkorb lösen, was ein Käufer zahlt, aus diesen Live-Zeilen — plus serverseitige Customer-Price-Provider und ggf. Rules darüber.
 
 <Image
   src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404835670-ucd8lmgtzoh-pricelists.png?fm=auto&auto=compress%2Cformat"
-  alt="Pricelists-Liste"
+  alt="Pricelists-Liste (EN-Screenshot — DE-Screenshot folgt)"
 />
 
-## Modul öffnen
+| Konzept | Rolle |
+| --- | --- |
+| **Live price** | Maßgebliche Katalog-Preiszeilen am Produkt. Das Editieren der Produkt-Preis-Tabs (oder Price-Upsert-APIs) ändert Live-Daten für dieses Produkt sofort. |
+| **Pricelist + Items** | Staging-Kopie, die die Live-Preisform spiegelt, damit alle fünf Preistypen offline vorbereitet werden können. |
+| **Deploy** | Schreibt gestufte Items auf Live-Preisdatensätze der Produkte in der Liste. |
+| **Pricelist deployment** | Ein Deploy-Lauf (queued Batch) mit Fortschritt und Ergebnis-Historie. |
 
-<Steps>
-  <Step title="Products aufklappen">
-    Klappen Sie in der linken Sidebar **Products** auf.
-  </Step>
-  <Step title="Pricelists öffnen">
-    Wählen Sie **Pricelists**.
-  </Step>
-</Steps>
+**Mentales Modell:** Behandeln Sie eine Pricelist wie ein Change-Set für Katalogpreise — entwerfen, befüllen, prüfen, dann deployen — nicht wie ein separates „Preisbuch“, das der Shop direkt liest.
 
-<Callout kind="warning" title="Vorsichtig deployen">
-  Änderungen an einer aktiven Preisliste können Live-Käuferpreise beeinflussen. Stimmen Sie große Edits mit dem Betrieb ab.
+<Callout kind="info" collapsed="false">
+Das Speichern einer Pricelist oder ihrer Items ändert **nicht**, was Käufer sehen oder zahlen. Nur ein erfolgreiches **Deploy** schreibt auf Live-Preisdatensätze.
 </Callout>
 
-## Nächste Schritte
+## Warum Teams Pricelists nutzen
 
+B2B-Pricing ist selten ein Listenpreis für immer. Pricelists existieren, damit Teams:
+
+1. **Vertrags- / Channel-Pricing** — Gruppen- oder channel-spezifische Beträge (und optionale Start-/Endfenster) vorbereiten, ohne Live-Preise bis zum Go-Live zu berühren.
+2. **Gestufte Änderungen** — Ein großes Update aufbauen, reviewen und in einem Deploy live schalten statt produktweise unter Zeitdruck zu editieren.
+3. **Bulk- / Kampagnen-Updates** — Viele Produktzeilen (und mehrere Preistypen pro Produkt) in einem Deploy-Batch anwenden.
+4. **Kontrollierte Overrides** — Deploy aktualisiert **nur die Preistypen, die auf der Pricelist vorhanden sind**; andere Live-Typen an diesen Produkten bleiben unberührt (Last-Writer-Wins **pro Typ**).
+5. **Relatives (Prozent-)Staging** — Items können Festbeträge oder Prozent-ab von einer Basis sein, die **beim Deploy** aus aktuellen Live-Preisen aufgelöst wird.
+
+Nutzen Sie **direktes Produktpreis-Editing**, wenn Sie einen sofortigen Single-SKU-Fix brauchen. Nutzen Sie eine **Pricelist**, wenn die Änderung multi-SKU, terminiert, reviewed oder über Channel-/Kundengruppen-Sets geteilt ist.
+
+## Preistypen und finalPrice
+
+Product Hub unterstützt fünf Live-Preistypen:
+
+| Typ | Zweck | Hinweise |
+| --- | --- | --- |
+| **regular** | Basis- / Fallback-Verkaufspreis | Immer als letzte Stufe in der Kaskade verfügbar |
+| **special** | Promo- / Sale-Fenster | Nutzt Start-/Enddaten, wenn gesetzt |
+| **tier** | Mengenstaffeln | Nutzt Mindestmenge; kann gruppenbezogen sein |
+| **group** | Preis für eine **Kundengruppe** | Braucht eine gültige Kundengruppe (Segmentation) |
+| **cost** | Interner Kostenpreis für Marge / Reporting | **Nicht** Teil der Käufer-finalPrice-Kaskade |
+
+Pricelist-Items können jeden dieser Typen stagen, inklusive optionaler **fixed**- vs **percentage**-Werte (Prozent-Basen werden beim Deploy aufgelöst).
+
+### Was finalPrice bedeutet
+
+`finalPrice` löst **einen** wirksamen Verkaufspreis aus Live-Kandidaten auf. Typische Priorität:
+
+1. **Tier** für die Kundengruppe des Käufers, wenn die Menge qualifiziert  
+2. **Group**-Preis für diese Kundengruppe  
+3. **Special**, wenn aktuell gültig (Datumsfenster)  
+4. **Regular** als Fallback  
+
+**Cost** gewinnt finalPrice nie.
+
+**Oberhalb von finalPrice (Commerce-Spine):**
+
+- **Order Hub** Customer-Price-Provider können einen vertrauenswürdigen Per-Customer-Unit-Preis liefern, der die Product-Hub-Basis für Kataloganzeige und Warenkorb überstimmt (server-autoritativ).
+- **Rules** (optional) können Katalog-/Warenkorb-Promotions über Provider- oder Basispreis legen.
+
+Pricelists **speisen** die Live-Preisschicht, die finalPrice liest; sie umgehen weder Provider noch Rules.
+
+## Deploy-Modell: Draft vs Live
+
+| Status | Bedeutung |
+| --- | --- |
+| **draft** | Staging; nicht angewendet (oder nach Edits noch nicht erneut angewendet) |
+| **deploying** | Deploy-Batch läuft — ein zweites Deploy wird abgelehnt, bis es fertig ist |
+| **deployed** | Letztes Deploy abgeschlossen |
+| **failed** | Deploy konnte nicht sauber abschließen |
+
+### Was Deploy tut
+
+- Läuft Produkte mit Items auf dieser Liste ab und upsertet Live-Preise.
+- Schreibt **nur Preistypen, die auf der Pricelist vorhanden sind**, pro Produkt; andere Live-Typen bleiben.
+- Löst **percentage**-Items gegen Live-Basen beim Deploy auf.
+- Unterstützt Einzel-Deploy, **Deploy Selected** und **Deploy All** (nicht berechtigte Listen werden mit Grund übersprungen, ohne die ganze Anfrage zu failen).
+
+### Was Deploy nicht tut
+
+- Es lässt den Shop die Pricelist **nicht** als Live-Preisbuch „lesen“.
+- Es entfernt unrepräsentierte Live-Preistypen **nicht**.
+- Es garantiert nicht, dass Rules oder Customer-Price-Provider den deployed Betrag am Checkout unverändert lassen — diese Schichten gelten nach dem Deploy weiter.
+
+Nach Item-Änderungen müssen Sie **erneut deployen**, damit Käufer die Änderung sehen. Nach dem Deploy kritische SKUs am Produkt (Live-Preise / finalPrice) und in Storefront oder Warenkorb für eine repräsentative Kundengruppe stichprobenartig prüfen.
+
+<Callout kind="alert" collapsed="false">
+Änderungen an einer aktiven Pricelist wirken erst nach erfolgreichem Deploy auf Live-Käuferpreise. Große Deploys mit dem Betrieb abstimmen und danach Sample-SKUs sowie eine Zielkundengruppe prüfen.
+</Callout>
+
+## Typische Workflows
+
+### Anlegen → befüllen → deployen
+
+1. Eine Pricelist mit klarem **Namen** und **Währung** anlegen (required).
+2. Optional Beschreibung und Datumsgrenzen setzen, wenn der Business Case sie braucht.
+3. Items hinzufügen — eine Staging-Zeile pro Produkt × Preistyp (und Gruppe / Mindestmenge / Daten nach Bedarf). Festbeträge für absolute Verträge bevorzugen; Prozent, wenn die Regel relativ zu einer Live-Basis ist.
+4. Abdeckung prüfen. Leere Listen können nicht deployen.
+5. Diese Liste **deployen**. **Deploy Selected** / Einzel-Listen-Deploy gegenüber **Deploy All** bevorzugen.
+6. Warten, bis der Status **deployed** ist, dann Sample-Produkte und einen Käufer in der Zielkundengruppe stichprobenartig prüfen.
+
+### Eine bestehende Liste aktualisieren
+
+1. Items editieren, während die Liste **nicht** mitten im Deploy ist.
+2. Die Liste bis zum Deploy wieder als Staging behandeln — ein früheres Deploy spielt Edits nicht automatisch nach.
+3. Deployen, wenn bereit. Bei Status **deploying** warten oder den Failure untersuchen.
+4. Wenn eine andere Liste dasselbe Produkt × denselben Preistyp trifft, gewinnt das **letzte erfolgreiche Deploy** für diesen Typ.
+
+### Bulk- / Multi-Listen-Kampagnen
+
+- **Deploy Selected**, wenn nur eine Teilmenge live gehen soll.
+- **Deploy All** nur, wenn jede Liste auf dem Tenant absichtlich bereit ist.
+- Kleinere, benannte Listen (Channel, Vertrag oder Kampagne) einer Mega-Liste vorziehen, damit Rollback- und Redeploy-Scope klar bleiben.
+
+### Berechtigungen
+
+Operatoren brauchen Product-Hub-Zugang, um Pricelists und Items zu verwalten, und eine separate **Deploy**-Berechtigung für Go-Live. Rollen ohne Deploy können Staging vorbereiten, aber nicht publizieren.
+
+## Abhängigkeiten
+
+| Abhängigkeit | Warum sie zählt |
+| --- | --- |
+| **Products** | Besitzt Produkte, Live-Preise, Pricelists und Deploy. Core-Hub in der [Commerce-Spine](/de/user-guide/how-b2bware-fits-together). |
+| **Customers (Segmentation = Kundengruppen)** | **Group**- (und gruppenbezogene Tier-)Preise brauchen gültige Kundengruppen. Ohne korrekte Gruppenzuweisung am Käufer gewinnen Group-Zeilen finalPrice nie. Siehe [Customers — Überblick](/de/user-guide/customers/overview). |
+| **Orders** | Käufer und Warenkörbe konsumieren **aufgelöste** Preise (finalPrice + Provider), nicht das Pricelist-Dokument. Der berechnete Preis bleibt server-autoritativ. Siehe [Orders — Überblick](/de/user-guide/orders/overview). |
+| **Rules** (optional) | Promotions können das Ergebnis nach dem Deploy noch ändern. |
+| **Integrations / Import-Export** | Externe Syncs können ebenfalls Live-Preise schreiben; Last Writer pro Typ gewinnt gegenüber einem späteren Pricelist-Deploy. |
+
+Attributes, Media, Tax und Customer SKUs sind benachbarte Katalog-Features — keine Voraussetzungen für Pricelist-Deploy.
+
+## Häufige Fehler
+
+| Fehler | Warum er schadet | Bessere Praxis |
+| --- | --- | --- |
+| Items befüllen, Deploy überspringen | Käufer sehen weiter alte Live-Preise | Deployen und Status + Sample-SKUs prüfen |
+| Erwarten, Deploy löscht alle Preise an einem Produkt | Nur gestufte Typen werden geschrieben | Jeden Typ, den Sie ändern wollen, explizit stagen |
+| Falsche oder fehlende Kundengruppe an Group-Zeilen | Group gewinnt finalPrice nie | Mit Segmentation-Gruppen der Käufer abstimmen |
+| Percentage-Item ohne auflösbare Basis | Item wird beim Deploy übersprungen (oder genullt) | Basis/Fallback bewusst wählen; sicherstellen, dass Live-Basen existieren |
+| Zweites Deploy bei Status deploying | Abgelehnt | Auf Abschluss warten oder Failure behandeln |
+| Überlappende Listen auf demselben Produkt × Typ | Letztes Deploy gewinnt; Überraschungs-Overwrites | Nach Channel/Vertrag partitionieren; Ownership dokumentieren |
+| Nur eine SKU über Deploy All fixen | Unnötiger Blast-Radius | Live-Preis am Produkt editieren oder eine fokussierte Liste deployen |
+
+## Verwandte Seiten
+
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
 - [Products — Überblick](/de/user-guide/products/overview)
-- [Produkte verwalten](/de/user-guide/products/manage-products)
+- [Customers — Überblick](/de/user-guide/customers/overview)
+- [Orders — Überblick](/de/user-guide/orders/overview)

@@ -1,31 +1,135 @@
 ---
 title: Vendors
-description: Maintain suppliers linked to products.
+description: Supplier masters in B2Bware Product Hub — how Vendors differ from products and from Procurement Suppliers, how product links and supply price work, and how company ownership powers optional vendor-operator catalogues.
 ---
 
-Add vendors when you need supplier references on products or procurement workflows.
+A **Vendor** (Product Hub) is a **supplier master** used to record who supplies catalog products and (optionally) at what **supply** price — and to bind that supplier identity to a **Customer Hub company** for marketplace-style vendor operators.
 
-<Image
-  src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404845075-wbudr57v0t-vendors.png?fm=auto&auto=compress%2Cformat"
-  alt="Vendors empty or list state"
-/>
+A Vendor is **not** the product, **not** a live sell price or pricelist, and **not** the Procurement purchasing counterparty.
 
-## Open the module
+| Concept | Role |
+| --- | --- |
+| **Vendor** | Master: name, contact fields, owning **Company**, optional status. Admin: **Products → Vendors**. |
+| **Vendor–product link** | Junction: one product linked to one vendor, with optional **supply price**. |
+| **Product** | Sellable catalog item. Link is written when create/update carries a vendor id (and optional supply price), or when a vendor-scoped operator creates a product (auto-assign). |
+| **Company (owner)** | Customer Hub company that owns this vendor. **One company ↔ at most one Vendor.** |
+| **Procurement Supplier** | **Different** entity in Procurement Hub. Powers Purchase Orders, Goods Receipts, and Vendor Bills — not Products → Vendors. |
+| **Live catalog price / Pricelist** | What buyers pay (after finalPrice, providers, Rules). Vendor supply price is **not** finalPrice. |
 
-<Steps>
-  <Step title="Expand Products">
-    In the left sidebar, expand **Products**.
-  </Step>
-  <Step title="Open Vendors">
-    Select **Vendors**.
-  </Step>
-</Steps>
+**Mental model:** Vendors = *who supplies which SKUs (and at what supply price)*, optionally *which company acts as that supplier in a vendor-operator portal*. Procurement Suppliers = *who you raise POs and vendor bills against*. Keep the two directories separate.
 
-<Callout kind="info" title="Empty list">
-  An empty Vendors list is normal on a fresh demo tenant. Create a vendor before linking it on a product.
+Saving a Vendor or a product–vendor link is **live**. There is **no** pricelist-style deploy.
+
+<Callout kind="info" collapsed="false">
+Product Hub **Vendor** is not the Procurement **Supplier**. Use Vendors for catalog / supplier identity and optional vendor-portal scoping. Use Procurement when you need purchasing documents.
 </Callout>
 
-## Next steps
+## Why teams use Vendors
 
+1. **Supplier master for the catalog** — Name and contact a supplier once; reuse across products.
+2. **Product ↔ supplier link** — Record which vendor supplies a SKU, with optional **supply price** on the link (not the shop sell price).
+3. **Company-backed vendor operators** — Bind the Vendor to a Customer Hub company; members under that company’s vendor role can be limited to **their** products and related order visibility.
+4. **Prep before product ownership** — Create the Vendor (and company link) before expecting vendor-scoped creates or vendor links to succeed.
+5. **Ops clarity** — Keep supplier identity in Product Hub even when the tenant does not run Procurement — and when it does, still treat Procurement Supplier as the purchasing record.
+
+Use **Vendors** when the catalog needs supplier identity or vendor-portal scoping. Use **Procurement** for POs, receipts, and vendor bills. Use **Pricelists / live Price** when changing what buyers pay — see [Pricelists](/user-guide/products/pricelists).
+
+## How masters, links, and scoping work
+
+### Vendor fields
+
+| Field | Meaning |
+| --- | --- |
+| **Name** | Display name (required) |
+| **Email / phone / address** | Contact (Admin form expects these) |
+| **Company** | Owning Customer Hub company (required) — unique across vendors |
+| **Status** | Model/API support includes active vs suspended (suspended blocks vendor-operator resolution). The current Admin Vendors form does **not** expose status — treat as API / advanced ops when needed. |
+
+Vendors are ordinary create / update / delete records. **No** draft → deploy lifecycle. Delete removes that vendor’s product links; **products remain**.
+
+**Company side effect:** Linking a company as owner can set that company’s default role toward the seeded **vendor** role; unlinking or deleting can revert toward a normal user role. That affects company members’ default role — not the Vendors list chrome.
+
+### Product ↔ vendor link
+
+| Mechanism | Behaviour |
+| --- | --- |
+| **Explicit link** | Product create/update with a vendor id (+ optional supply price) upserts the junction. Unknown vendor id is rejected. |
+| **Vendor-operator create** | A scoped vendor operator creating a product can auto-link ownership to **their** company vendor. |
+| **Supply price** | Optional amount at which the vendor **supplies** the product. It is **not** written into live Price / finalPrice by this link alone. |
+| **Delete product** | Related vendor–product rows are cleared. |
+| **Delete vendor** | That vendor’s links are removed; products stay. |
+
+Prefer documenting linking via product `vendor_id` / supply price (and operator auto-assign) — not inventing a separate “link through attributes” Admin path as primary.
+
+### Vendor-operator catalogue scoping (when used)
+
+1. **Resolve:** Customer → company → Vendor owned by that company. No company / no vendor / **suspended** → no vendor resolution (fail closed for scoped actors).
+2. **Who is scoped:** Actors with product **view-own** (without unrestricted product **view**). Full-view admins and ordinary shoppers are **not** row-scoped by this path.
+3. **Effect:** Product list and find-by-id / sku only return products linked to that vendor. Unresolvable vendor → empty result.
+4. **Orders:** Order Hub can separately scope order **view-own** for vendor-type actors — deep behaviour belongs in Orders docs.
+
+Normal storefront browsing for ordinary customers is **not** wholesale-restricted by this vendor catalog scope.
+
+## Typical workflows
+
+### Create a Vendor master
+
+1. Ensure the **Customer Hub company** that should own this supplier exists.
+2. Under **Products → Vendors**, create a vendor: **name**, contact fields, and **Company**.
+3. Save — live immediately; that company must not already own another vendor.
+4. Spot-check the list (name / email / phone / address).
+
+### Link products to a vendor
+
+1. Create the Vendor first.
+2. On product create/update (API, integration, or flows that send it), set the vendor id and optionally the supply price.
+3. Confirm via the product’s vendor-product include when available.
+4. For vendor-portal tenants: prefer having vendor operators create products while scoped — ownership links automatically to their company vendor.
+
+### Marketplace / vendor-operator tenant
+
+1. Keep company ↔ Vendor as **1:1**.
+2. Verify the company default role and permissions: **view-own / update-own / create**, not unrestricted product **view**, unless you intentionally want full catalog access.
+3. Treat **suspended** as intentional lockout for scoped operators.
+4. Do not grant full product **view** if the business intent is row-scoped catalogues.
+
+### Permissions
+
+Operators managing masters need Product Hub **vendor** create/update/delete (and usually **companies** visibility to pick the owner). Product linking needs **products** create/update. Vendor-portal actors use **view-own / update-own** (plus order view-own as granted).
+
+## Dependencies
+
+| Dependency | Why it matters |
+| --- | --- |
+| **Product Hub** | Owns Vendor and vendor–product links; Vendors is a Products sidebar child. |
+| **Products (All Products)** | Links and ownership attach to products; empty vendors sell nothing by themselves. See [How Products work](/user-guide/products/how-products-work). |
+| **Customers (Companies + Roles)** | Owner company; seeded vendor role / type; default-role side effect; permission keys for scoping. |
+| **Orders** (usual) | Optional vendor order scoping; commerce still consumes products/prices independently of supply price. See [Orders overview](/user-guide/orders/overview). |
+| **Procurement** (optional) | Separate Supplier + PO / GR / Vendor Bills. **Not** required for Product Hub Vendors; **not** the same record. |
+| **Integrations / Import-Export** | Often create products with a vendor id — Vendor masters must exist first. |
+| **Pricelists / live Price** | Path for staged or live **sell** prices — orthogonal to Vendor supply price. |
+
+Stock Locations, Categories, Attributes, Tax, Customer SKUs, and Rules are adjacent catalog/commerce features — not prerequisites. See [Categories](/user-guide/products/categories) and [Stock locations](/user-guide/products/stock-locations).
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Treat Product Hub Vendors as Procurement | Wrong master; POs/bills expect **Supplier** | Products → Vendors for catalog/supplier identity; Procurement for purchasing documents |
+| Expect Vendor save to change buyer prices | Supply price ≠ live Price / finalPrice / pricelist deploy | Change sell prices on product Price tabs or via [Pricelists](/user-guide/products/pricelists) → deploy |
+| Link a vendor id before the Vendor exists | Rejected / not found | Create Vendor first; then link on the product |
+| Assign the same **company** to two Vendors | Duplicate owner rejected | One company ↔ one Vendor |
+| Lose company link or suspend and expect vendor operators to keep working | Scoped lists go empty | Keep owner correct; treat suspended as intentional lockout |
+| Confuse supply price with live **cost** Price type | Different layers | Cost on live Price stays sell-side accounting; supply link is the vendor–product junction |
+| Delete Vendor expecting products to vanish | Only links cascade | Re-link products if ownership must move |
+| Expect pricelist-style deploy for vendors | Saves are **live** | No deploy step |
+
+## Related
+
+- [How Products work](/user-guide/products/how-products-work)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)
 - [Products overview](/user-guide/products/overview)
-- [Manage products](/user-guide/products/manage-products)
+- [Pricelists](/user-guide/products/pricelists)
+- [Categories](/user-guide/products/categories)
+- [Stock locations](/user-guide/products/stock-locations)
+- [Orders overview](/user-guide/orders/overview)

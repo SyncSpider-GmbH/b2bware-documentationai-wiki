@@ -1,50 +1,138 @@
 ---
 title: Manage products
-description: Open All Products, search and filter the catalog, and create a new product in B2Bware Admin.
+description: How All Products works as the catalog list — when to filter and bulk-edit vs open Edit Product, how Import/Export fits, and when to use Pricelists or Stock locations instead.
 ---
 
-Use **All Products** to find items, open an existing product, or create a new one.
+**Manage products** is the operator name for **All Products** — the catalog **list** under **Products → All Products**. It is the working surface for finding, filtering, creating, bulk-changing, importing/exporting, and opening products.
 
-<Image
-  src="https://blob-cdn.documentation.ai/org-d7f30541-cdff-445d-a83f-48be426e0029/doc-ab18cb81-c197-4682-883d-2e8d54dd7f3f/1789404816099-c6umj3903fq-all-products.png?fm=auto&auto=compress%2Cformat"
-  alt="All Products list"
-/>
+It is **not** where you fully configure sellable commerce behaviour (variants, live prices, tier/group, stock per warehouse, attributes). That belongs on **[Edit a product](/user-guide/products/edit-product)** (detail tabs).
 
-## Open All Products
+| Concept | Role |
+| --- | --- |
+| **All Products (list)** | Browse/search/filter the catalog; saved views; bulk edit/delete; Import / Export; trash; create new; open a row into Edit Product. |
+| **Edit Product (detail)** | Per-SKU (or configurable parent) operations across tabs — General, Variants, Attributes, Price (+ tier/group), Stock, SEO, Shipping, merchandising links, optional gated tabs. |
+| **How Products work** | System intent: Product Hub ownership, pricing layers, pricelist deploy vs live Price, storefront spine. Read once; do not restate here. |
+| **Pricelists** | Staged multi-SKU price change sets — **deploy** writes live Price. Prefer over mass-editing Price when the change is reviewed or channel-wide. |
+| **Stock locations** | Warehouse **masters**. Quantities still live on the product **Stock** tab (keyed by warehouse). |
 
-<Steps>
-  <Step title="Open the Products hub">
-    In the left sidebar, expand **Products**.
-  </Step>
-  <Step title="Choose All Products">
-    Select **All Products** to open the catalog list.
-  </Step>
-</Steps>
+**Mental model:** List = *find and act across many*. Detail = *make one product commerce-ready*. Sibling hub screens (Categories, Pricelists, Stock Locations, Vendors, Customer SKUs) = *masters and cross-SKU workflows* that the list and detail consume.
 
-## Find a product
+Saves on the list (bulk edit, create) and on detail tabs are **live** — there is **no** pricelist-style deploy for product masters, stock quantities, or live Price rows edited on the product. For the Product Hub spine and full pricing-layer essay, see [How Products work](/user-guide/products/how-products-work).
 
-- Use the search field for name, SKU, or other indexed fields
-- Use column filters when the list is long
-- Sort by clicking a column header when available
-
-<Callout kind="info" title="Attribute columns">
-  Extra attribute columns may appear depending on your tenant setup. Treat them as filters for your catalog, not as required fields for every product.
+<Callout kind="info" collapsed="false">
+Use the **list** for multi-SKU discovery or the same small change on many rows. Use **Edit Product** when variants, price types, stock policies, attributes, or media must be set correctly for commerce. Use a **pricelist** when many prices must be staged and reviewed before go-live.
 </Callout>
 
-## Create a product
+## Why teams use the list
 
-<Steps>
-  <Step title="Start create">
-    Click **Create** (or the equivalent primary action) on All Products.
-  </Step>
-  <Step title="Enter basics">
-    Fill in at least name and SKU (and any required fields your tenant shows).
-  </Step>
-  <Step title="Save">
-    Save the product, then continue on the product detail tabs for media, price, and stock.
-  </Step>
-</Steps>
+1. **Find work** — Filter by status, type, SKU/name, stock/price signals, or attribute columns without opening each row.
+2. **Operational triage** — Spot inactive, missing price, low stock, or variation parents that need child cleanup.
+3. **Bulk same-field changes** — Status, categories, or other shared fields across a selected set when a focused bulk edit is safer than a full import.
+4. **Create entry point** — **Add New Product** lands on Edit Product (General) for a new product.
+5. **Import / Export** — Load or download catalog sets from the list Import/Export control. Large catalog sync may also come from Integrations — still not a substitute for understanding live Price vs pricelist deploy.
+6. **Trash / recovery** — Soft-delete when trash is enabled for the Product Hub channel; restore from trash instead of recreating SKUs.
 
-## Next steps
+## How to use the list
 
-- [Edit a product](/user-guide/products/edit-product) — General, Price, and Stock tabs
+### What the list is for
+
+| Capability | Operator meaning |
+| --- | --- |
+| **Saved views / layout** | Persist filter + column layout for recurring jobs (for example “active simple”, “needs stock”). “Default” is reserved. |
+| **Filters / sort** | Narrow by product fields and (when configured) attribute columns. Prefer precise filters before bulk. |
+| **Attribute columns** | Extra headers (for example volume, scent) come from **product** attributes — not invent new product types. |
+| **Bulk edit** | Apply mapped fields to **selected** ids (`bulk-update` permission). Scope tightly; verify a sample after. |
+| **Bulk delete** | Remove selected (soft-delete / trash when enabled). Confirm variation parents and linked VendorProduct / Customer SKU implications before mass delete. |
+| **Import / Export** | Catalog file in/out from the list menu. After import, spot-check live prices, default-warehouse stock, and `manage_stock` for physical SKUs. |
+| **Add New Product** | Creates the detail session — finish identity + type on General, then Price / Stock / Variants as needed. |
+| **Open row** | Opens Edit Product on **General**. |
+
+### List vs detail decision
+
+| Job | Prefer |
+| --- | --- |
+| Find SKUs / check status / export a set | **List** |
+| Change status or shared fields on many similar SKUs | **List bulk edit** (or import) |
+| Set regular/special/tier/group/cost for one SKU | **Edit → Price** (live) |
+| Roll out channel/contract prices across many SKUs | **[Pricelists](/user-guide/products/pricelists) → deploy** |
+| Fix qty / backorders for one SKU | **Edit → Stock** (default warehouse for online) |
+| Build configurable with variations | **Edit → Variants** (+ Attributes for axes) |
+| Place SKU in catalog tree | **Edit → General (categories)** and/or [Categories](/user-guide/products/categories) |
+
+### Product types (list awareness)
+
+Supported types: **simple**, **configurable** (parent + variations), **virtual**, **downloadable**. List variation / child-product signals help operators see configurable parents. Do not invent types beyond this set.
+
+Physical sell-through typically needs `manage_stock` and a **default-warehouse** Stock row — enforced in ops practice more than by the list alone. See [Edit a product](/user-guide/products/edit-product) and [Stock locations](/user-guide/products/stock-locations).
+
+### Permissions
+
+Operators need Product Hub view plus **products** CRUD as granted. Bulk and file flows need **`bulk-update`**, **`import`**, and **`export`** where used. Vendor-scoped roles may only see **own** products (`view-own` / `update-own`) — list results can be narrower than the full catalog.
+
+## Typical workflows
+
+### Create one product end-to-end
+
+1. **Add New Product** from All Products.
+2. On **General**: name, SKU, type, status, categories, media.
+3. **Price**: regular (required for sell), optional special/cost; tier/group if B2B needs them.
+4. **Stock** (if physical): default warehouse qty + backorder policy; `manage_stock` as appropriate.
+5. **Variants** only for configurables — define axes via Attributes, then children.
+6. Spot-check storefront/cart for a sample customer group.
+
+### Triage and bulk fix
+
+1. Save a **view** with the recurring filter.
+2. Select rows → **bulk edit** only fields that are safe shared (for example status).
+3. For price campaigns → leave the list and use **[Pricelists](/user-guide/products/pricelists)**.
+4. Open outliers in Edit Product.
+
+### Import campaign
+
+1. Export a small template set first if unsure of columns.
+2. Import; wait for job completion.
+3. Filter to imported SKUs; verify Price + Stock + categories.
+4. Deploy any staged pricelist **separately** if that was part of the campaign plan.
+
+## Dependencies
+
+| Dependency | Why it matters for Manage Products |
+| --- | --- |
+| **Product Hub** | Owns All Products list + product APIs. Core hub in the [commerce spine](/user-guide/how-b2bware-fits-together). |
+| **Edit Product** | Destination for create/open; where commerce tabs live. See [Edit a product](/user-guide/products/edit-product). |
+| **How Products work** | System context — pricing layers, optional tabs, install. See [How Products work](/user-guide/products/how-products-work). |
+| **Attributes Hub** | Dynamic attribute columns on the list; variation axes. |
+| **Categories** | Placement exists on product; tree maintained under [Categories](/user-guide/products/categories). |
+| **Stock locations** | Warehouse masters must exist before meaningful Stock tab rows. See [Stock locations](/user-guide/products/stock-locations). |
+| **Pricelists** | Bulk staged pricing — not the same as list bulk edit of a price field. See [Pricelists](/user-guide/products/pricelists). |
+| **Customer Hub** | Group prices need Segmentation groups; vendor-own scoping uses company/vendor. |
+| **Order Hub / Storefront** | Buyers consume resolved prices and availability — list PRICE/STOCK are ops signals, not the charged stack alone. |
+| **Data-transfer / Integrations** | Import-Export on list; external upserts also write live products/prices/stock (last writer wins). |
+| **Media** | Gallery lives on detail General; list may show an image thumbnail. |
+| **Vendors / Customer SKUs** | Adjacent masters and buyer part numbers — see [Vendors](/user-guide/products/vendors) and [Customer SKUs](/user-guide/products/customer-skus). |
+
+Tax, Licensing, DTOne, Customer SKU module, and Rules are optional/adjacent — not prerequisites to open the list.
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- |
+| Treating list PRICE as “what every buyer pays” | finalPrice + customer price providers + Rules can supersede | Use list as triage; verify with a representative buyer/group after changes |
+| Mass-editing live prices when a pricelist was intended | No staging/review; hard to roll back cleanly | Stage in **[Pricelists](/user-guide/products/pricelists)**, then **deploy**; use detail Price for single-SKU fixes |
+| Import without checking default warehouse / `manage_stock` | Storefront may treat missing default stock as **unmanaged (orderable)** | After import, confirm Stock on the **default** location for physical SKUs |
+| Bulk-deleting configurable parents carelessly | Orphans / broken variation graphs | Filter to parents; inspect Variants first |
+| Expecting list STOCK sum to equal order deduction | Deduction uses the **default** warehouse row | Align sellable qty with the default [Stock location](/user-guide/products/stock-locations) |
+| Documenting toolbar/views as the “product system” | Chrome without commerce rules | Keep list docs short; depth on Edit + sibling intents |
+| Claiming Customer SKUs / Licensing / DTOne always appear from the list | Tabs are module-gated on detail | Link optional pages; do not imply always-on |
+
+## Related
+
+- [How Products work](/user-guide/products/how-products-work)
+- [Edit a product](/user-guide/products/edit-product)
+- [Pricelists](/user-guide/products/pricelists)
+- [Stock locations](/user-guide/products/stock-locations)
+- [Categories](/user-guide/products/categories)
+- [Vendors](/user-guide/products/vendors)
+- [Customer SKUs](/user-guide/products/customer-skus)
+- [Products overview](/user-guide/products/overview)
+- [How B2Bware fits together](/user-guide/how-b2bware-fits-together)

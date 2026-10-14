@@ -1,0 +1,109 @@
+---
+title: Cart Price Rules
+description: Cart-level promotions in B2Bware Rule Hub — action types, conditions, priority, free shipping, tiers, and how cart rules differ from catalog rules and coupons.
+---
+
+A **cart price rule** evaluates conditions against the **cart** (and items / customer) and applies a **cart-level commercial action** — discount amounts, per-item discounts, tiered breaks, buy-X-get-Y, and/or free shipping flags.
+
+| Concept | Role |
+| --- | --- |
+| **Cart price rule** | Named rule with status, priority, conditions, action type/amount, limits, dates |
+| **Action** | What happens when conditions match |
+| **Coupon link** | Optional; coupons reference a cart rule and gate activation by code |
+| **Progress** | Storefront can show how close the cart is to thresholds (aggregates / subtotals) |
+| **Admin** | **Rules → Cart Price Rules** when Rule Hub is installed |
+
+**Mental model:** Catalog rules change **unit price**; cart rules change **cart economics** after lines exist (and can grant free shipping). Both can appear in applied-rules metadata on the order.
+
+<Callout kind="alert" collapsed="false">
+Rule Hub is optional. Cart price rules are distinct from **catalog** unit-price rules and from Settings shipping **methods**. Coupons **activate** cart rules — they are not a separate discount engine.
+</Callout>
+
+## Why teams use cart price rules
+
+1. **Order-value promotions** (“10% off orders over 100”).
+2. **Volume / attribute aggregates** (for example free delivery when a summed attribute qty crosses a threshold — progress APIs support UX).
+3. **Tiered and buy-X-get-Y** structures without encoding them into every product price.
+4. **Free shipping campaigns** without deleting paid shipping methods.
+5. **Usage caps** (max uses / max uses per customer) for controlled campaigns.
+6. **Coupon-backed offers** — define economics on the rule; distribute codes under [Coupons](/user-guide/rules/coupons).
+
+## How it works
+
+### Action types
+
+| Action type | Intent |
+| --- | --- |
+| Percent-off / fixed-off | Percentage or fixed amount off (cart / qualifying context) |
+| To-percent / to-fixed | Reduce to X% of original, or set to a fixed amount |
+| Per-item fixed / percent | Per matching item |
+| Per-unit attribute fixed | Per unit of a product field or custom attribute |
+| Free shipping | Shipping promotion (with free-shipping scope options) |
+| Tiered | Quantity tiers |
+| Buy X get Y | Multi-buy free/discount pattern |
+
+Related knobs: free-shipping scope (none / matching items / whole shipment), apply-to-shipping, **stop further rules**, date windows, max uses / max uses per customer, uses count.
+
+### Apply path
+
+1. Cart exists with line prices (already reflecting provider/base + catalog rules where applicable).
+2. The cart rule engine evaluates active rules (and coupon validation when a code is present).
+3. Returns total discount, applied rule list, item discount breakdown, free-shipping flags, coupon errors if rejected.
+4. Checkout stores applied cart rules on the order and logs usage (see [Usage Logs](/user-guide/rules/usage-logs); coupon counters on [Coupons](/user-guide/rules/coupons)).
+
+### Conditions and progress
+
+- Targets include **cart**, **cart item**, **product**, **customer**.
+- Aggregates (sum / avg / count / …) can be quantity-aware and optionally filtered.
+- **Rule progress** exposes threshold progress for storefront messaging — it does **not** by itself apply the discount.
+
+### Priority
+
+Lower **priority** value = higher precedence. **Stop further rules** can halt further cart rule processing after a match — design stacking intentionally.
+
+## How to use
+
+1. Confirm Rule Hub + permission to manage cart price rules.
+2. Choose an action type that matches the commercial story (total off vs per-item vs free shipping vs tier).
+3. Build conditions that match real cart shapes; if using groups/attributes, verify data on products and Segmentation.
+4. Set priority relative to other active cart rules; decide stop behaviour.
+5. Set usage limits and date window before activating.
+6. If code-gated: create coupons pointing at this rule ([Coupons](/user-guide/rules/coupons)).
+7. Test: empty cart → qualifying cart → with/without coupon; check progress UX if used.
+8. After orders exist, confirm applications in [Usage Logs](/user-guide/rules/usage-logs).
+
+## Dependencies
+
+| Depends on / integrates with | Why |
+| --- | --- |
+| **Rule Hub** | Optional install |
+| **Order Hub** | Carts, checkout apply path, rule-progress API, shipping interaction |
+| **Product Hub** | Line products; attribute sources |
+| **Customer Hub** | Customer limits / group conditions |
+| **Coupons** | Code activation of cart rules |
+| **Shipping methods** | Free-shipping actions interact with shipping cost; methods still defined in Settings |
+| **Attributes Hub** (optional) | Aggregate / per-unit-attribute actions |
+| **Catalog price rules** | Prior unit-price layer — don’t confuse debug layers |
+
+## Common mistakes
+
+| Mistake | Why it hurts | Better practice |
+| --- | --- | --- |
+| Building a “10% off SKU” only as a cart rule when you need PDP strikethrough | Cart rules don’t rewrite catalog display the same way | Use catalog rules for unit display; cart for totals |
+| Free shipping rule but no shipping method | Checkout still needs methods | Configure Settings → Shipping first — see [Order-related settings](/user-guide/orders/related-settings) |
+| Unlimited stacking of percent rules | Margin erosion | Priority + stop further rules + caps |
+| Coupon created without active cart rule | Code does nothing useful | Rule first, then coupon |
+| Ignoring max uses per customer for guests | Per-customer check needs authenticated customer | Document guest behaviour; see Coupons |
+| Treating rule progress as proof of apply | Progress is threshold UX | Confirm apply result / order metadata |
+| Fixing cart promo by redeploying pricelist | Wrong layer | Adjust cart rule / coupon |
+
+## Related
+
+- [Rules overview](/user-guide/rules/overview)
+- [Catalog Price Rules](/user-guide/rules/catalog-price-rules)
+- [Coupons](/user-guide/rules/coupons)
+- [Cart Validation](/user-guide/rules/cart-validation)
+- [Shipping Rates](/user-guide/rules/shipping-rates)
+- [Order-related settings](/user-guide/orders/related-settings)
+- [Pricelists](/user-guide/products/pricelists)
+- [Usage Logs](/user-guide/rules/usage-logs)

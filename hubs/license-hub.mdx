@@ -298,6 +298,43 @@ curl -s -X GET \
   </Step>
 </Steps>
 
+## Settings Groups
+
+LicenseHub settings are edited in the admin under **LicenseHub → Settings** (also available via `/settings` endpoints). Groups: `fulfillment`, `stock_management`. See also [Hub Settings](/core-concepts/hub-settings).
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings` | Get all settings |
+| POST | `/settings` | Update settings |
+| GET | `/settings/{group}` | Get one group |
+| POST | `/settings/{group}` | Update one group |
+
+<Expandable title="fulfillment — Settings Reference" default-open="true">
+
+**fulfillment** — License Fulfillment
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `trigger_statuses` | multi-select | `paid`, `processing`, `completed` | Order statuses that generate/assign licenses. |
+| `trigger_on_order_created` | boolean | `false` | Also attempt fulfillment at order creation if initial status is already in `trigger_statuses`. |
+| `revoke_on_order_statuses` | multi-select | `canceled`, `cancelled`, `refunded` | Statuses that return assigned licenses to the pool. Empty disables revoke-on-status. |
+
+</Expandable>
+
+<Expandable title="stock_management — Settings Reference" default-open="false">
+
+**stock_management** — Stock Management
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `sync_stock_to_warehouse` | boolean | `true` | Update default warehouse stock as pre-generated licenses are added or assigned. |
+| `enable_stock_validation` | boolean | `true` | Block checkout if not enough licenses are available (pre-generated pools). |
+| `stock_validation_message` | text | `Not enough licenses available for product: {product_name}` | Checkout error message; supports `{product_name}`. |
+| `enable_low_stock_alert` | boolean | `true` | Admin notification when license stock drops below the threshold. |
+| `low_stock_threshold` | number | `5` | Remaining license count that triggers the low-stock alert. |
+
+</Expandable>
+
 ## Related
 
 <Columns cols={2}>

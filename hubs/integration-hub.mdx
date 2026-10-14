@@ -74,6 +74,38 @@ Paths below are relative to `/api/v1/apps/integration-hub`.
 | POST | `/settings/embed/rotate-signing-secret` | `settings.update` |
 | POST | `/settings/embed/mint-partner-token` | `settings.update` |
 
+### Settings Groups
+
+Groups: `catalog`, `embed`. See also [Hub Settings](/core-concepts/hub-settings) and the [embed guide](/help-center/guides/embed-integration-hub).
+
+<Expandable title="catalog — Settings Reference" default-open="false">
+
+**catalog** — Connector catalog
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `allowed_connectors` | multi-select | `[]` | Restricts which active connectors appear. Empty = every active connector. |
+| `max_integrations` | number | `null` | Caps non-deleted integrations including drafts. Empty or `0` = unlimited. |
+
+</Expandable>
+
+<Expandable title="embed — Settings Reference" default-open="false">
+
+**embed** — Hosted embed
+
+When embed is enabled, a public token (`ihpub_…`) and signing secret (`ihsec_…`) are ensured automatically. **GET settings never returns the raw `signing_secret`** — it is masked; the full secret is returned only from rotate-signing-secret.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enabled` | boolean | `false` | Turns the IntegrationHub embed surface on or off. |
+| `allowed_origins` | array of `{ origin }` | `[]` | Exact parent browser origins allowed to host the embed. |
+| `ui_mode` | select (`simple` / `advanced` / `both`) | `simple` | Embed UI mode. |
+| `require_partner_token` | boolean | `false` | When on, bootstrap rejects the long-lived public token; partner JWT required. |
+| `public_token` | text | auto when enabled | Long-lived embed public token (`ihpub_…`). |
+| `signing_secret` | text (masked on GET) | auto when enabled | Partner JWT signing secret (`ihsec_…`). |
+
+</Expandable>
+
 ### Connectors and OAuth
 
 | Method | Endpoint | Description |

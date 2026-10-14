@@ -1,0 +1,95 @@
+---
+title: Customers — Überblick
+description: Wie der Customer Hub funktioniert — Customers, Companies, Contacts, Roles, Segmentation (Customer Groups), Registrierungseinstellungen und Berechtigungen.
+---
+
+**Customers** besitzt die B2B-Parteien-Stammdaten und die Zugriffskontrolle: Customers, Companies, Contacts, **Roles** (und die Permission-Registry), **Segmentation** (Customer Groups), Adressen sowie Registrierungs-/Company-Einstellungen, die Storefront- und Admin-Operator-Verhalten steuern.
+
+<Callout kind="info" collapsed="false">
+Wenn das Admin-Menü jemandem leer erscheint, starten Sie hier: Roles und `admin`-Zugriff entscheiden, welche Hubs sichtbar sind — nicht nur, ob Apps installiert sind.
+</Callout>
+
+## Was Customers besitzt (Sidebar)
+
+| Bereich | Wofür |
+| --- | --- |
+| **All Customers** | Personen/Konten, die kaufen oder operieren — Profil, Adressen, Notizen, Orders, Security, Attributes, verwandte Tabs |
+| **Companies** | Multi-Customer-B2B-Konten |
+| **Contacts** | Kontakt-Datensätze und Affiliations |
+| **Roles** | Admin- und Storefront-Berechtigungssätze für Operatoren/Käufer |
+| **Segmentation** | UI-Name für **Customer Groups** — Pricing, Permissions, Checkout-Method-Overrides und verwandtes Targeting |
+
+Customers ist ein **Core**-Hub in der [Storefront-Spine](/de/user-guide/how-b2bware-fits-together).
+
+## Customers vs Companies vs Contacts
+
+- **Customer** — das Konto, das sich einloggt, Roles hält, Orders platziert und zu einer Company und Groups gehören kann.
+- **Company** — der B2B-Organisations-Container für mehrere Customers/Contacts und gemeinsamen kommerziellen Kontext.
+- **Contact** — Personen-Datensätze über Affiliations verknüpft; nützlich für CRM-artige Daten, ohne immer ein Login zu sein.
+
+## Segmentation = Customer Groups
+
+**Segmentation** ist kein separates Analytics-Produkt. Es ist das Admin-Label für **Customer Groups**. Groups steuern häufig:
+
+- **Group prices** in Products
+- Category-/Product-Permission-Module (wenn installiert)
+- Checkout-Method-Overrides
+- Customer-SKU-Ownership (wenn dieses Modul installiert ist)
+
+Cross-Link: [Wie Produkte funktionieren](/de/user-guide/products/how-products-work).
+
+## Roles und warum Hubs erscheinen
+
+Der Customer Hub hostet die **Permission-Registry**, in die andere Hubs sich eintragen.
+
+- Operatoren brauchen Admin-Zugriff (Platform-Admin-Entry) plus Hub-**view**-Permissions, um Sidebar-Gruppen zu sehen.
+- Typische Role-Formen: admin-artig (breite Admin-Keys für installierte Hubs), agent-artig (proposal-zentrisch), user (Storefront) und guest (minimal).
+- Eine Sidebar-Position auszublenden ist UX; **Gate- / Permission-Checks** bleiben die Quelle der Wahrheit für Aktionen.
+
+## Registrierungs- und Company-Einstellungen (Intent)
+
+Customer-Hub-Einstellungen steuern:
+
+- Standard-Registrierungsstatus, E-Mail-/Telefon-Verifizierung, Admin-Freigabe
+- Kundennummern-Generierung und Passwortregeln
+- Adressvalidierungsoptionen
+- Company-Anforderungen
+- Guest-Role-Verhalten und ob Guest-Registrierung Operatoren benachrichtigt
+
+Diese Einstellungen erklären viele „Warum kann dieser Käufer nicht auschecken?“-Tickets besser als eine Klick-Tour.
+
+## Abhängigkeiten
+
+| Related | Warum |
+| --- | --- |
+| **Auth** | Shop-Login; Admin-Operatoren sind Customers mit Admin-Zugriff; `/me` trägt gewährte Permissions |
+| **Products** | Group prices; optionale Permission-Module; Customer SKUs |
+| **Orders** | Checkout legt Customers an/verknüpft sie; Order-Historie am Customer-Detail; Guest-Role-Codes |
+| **Notifications** (optional) | Registrierungs- und Konto-Events |
+| **Attributes** (optional) | Custom Fields an Customers/Companies |
+| **Loyalty** (optional) | Zusätzliche Company-Tabs wenn installiert |
+| **Alle Hubs** | Sicheres No-Op, wenn Customer Hub fehlt — aber Roles/Permissions leben hier, wenn er vorhanden ist |
+
+## Install und Permissions
+
+- **Install:** Customer Hub muss installiert sein (Core).
+- **Sidebar:** Install + view-Permission.
+- Admin-Ressourcen umfassen Customers, Companies, Contacts, Affiliations, Customer Groups, Roles, Impersonation (gated), assign-permissions, Settings und Dashboard-Views wo konfiguriert.
+
+<Callout kind="alert" collapsed="false">
+Shop-seitige Account-Permission-Labels (manage users / manage addresses) sind möglicherweise noch nicht vollständig durchgesetzt. Dokumentieren Sie lieber Registrierungseinstellungen und Roles als eine unfertige Storefront-ACL.
+</Callout>
+
+## Related pages
+
+- [Wie B2Bware zusammenhängt](/de/user-guide/how-b2bware-fits-together)
+- [Wie Produkte funktionieren](/de/user-guide/products/how-products-work)
+- [Orders overview](/user-guide/orders/overview) (EN)
+- [Erste Schritte mit B2Bware Admin](/de/user-guide/getting-started)
+
+## Nicht behaupten
+
+- Segmentation sei eine eigenständige Analytics-Suite.
+- Interne Platform-Administrator-Tooling-Markennamen gehörten in den Customer User Guide.
+- Geocoding oder jeder optionale Company-Tab sei ein Standard-User-Feature ohne Install-/Config-Bestätigung.
+- Storefront-Account-Permission-Keys seien überall vollständig enforced.

@@ -1,6 +1,6 @@
 # B2Bware DataHub API — Cursor Rules
 
-You are an expert on the B2Bware DataHub API, a modular B2B commerce platform with 9 specialized Hubs.
+You are an expert on the B2Bware DataHub API, a modular B2B commerce platform with specialized Hubs and product modules. See [Hub Overview](/hubs/overview) and [Hub Settings](/core-concepts/hub-settings).
 
 ## Key Facts
 
@@ -8,22 +8,41 @@ You are an expert on the B2Bware DataHub API, a modular B2B commerce platform wi
 - Base URL pattern: `https://api.datahub.syncspider.com/api/v1/apps/{hub-slug}/{resource}`
 - Auth: Bearer token in `Authorization` header on all requests (except public CDN/webhook endpoints)
 - Required headers: `Authorization: Bearer {token}`, `Accept: application/json`, `Content-Type: application/json` (POST/PUT/PATCH)
-- All list endpoints are paginated: `?page=1&per_page=25`
+- All list endpoints are paginated: `?page=1&per_page=25` — response uses `current_page`, `total_pages`, `per_page`, `total` (not `last_page`)
 - Sorting: `?sort=-_created_at,name` (prefix `-` for descending)
 - Filtering uses MongoDB-compatible JSON syntax: `?filter[field]=[{"condition":"=","value":"active"}]`
 - Includes use comma-separated dot notation: `?include=price,mainMedia,categories.category`
+- Per-hub OpenAPI: `api-reference/<hub-slug>/openapi.yaml`
 
-## Hub Slugs
+## Hub Slugs (core)
 
 - `product-hub` — Products, categories, pricing, stock, media, variations, vendors
 - `order-hub` — Orders, carts, checkout, quotes, payments
 - `customer-hub` — Customers, companies, addresses, roles, groups
 - `attributes-hub` — Dynamic attributes, types, values, groups
 - `media-hub` — Polymorphic media with Bunny CDN proxy
-- `notification-hub` — Multi-channel notifications (120+ endpoints)
+- `notification-hub` — Multi-channel notifications
 - `tax-hub` — Tax calculation, rules, jurisdictions
 - `settings-hub` — Platform config, locales, currencies, cache
 - `license-hub` — License key lifecycle management
+- `auth-hub` — Login, register, password reset, impersonation
+- `event-hub` — Webhook subscriptions and delivery logs
+- `rule-hub` — Promotions, coupons, shipping-rate rules
+- `automation-hub` — Flow automation
+- `dashboard-hub` — Dashboard layouts and widgets
+- `integration-hub` — Connectors, sync, file feeds, embed
+- `storefront-hub` — Theme pointer + tenant_config
+- `storefront-builder-hub` — Visual pages and documents
+- `invoice-hub` — Invoices, credit notes, dunning
+- `loyalty-hub` — Programs, wallets, rewards
+- `ai-hub` — AI provider + assistants
+- `punch-out-hub` — OCI/cXML punchout
+- `accounting-hub` — Departments, bank accounts, reconciliation
+- `procurement-hub` — Suppliers, POs, bills
+
+## Modules (same URL pattern)
+
+`customer-sku-module`, `customer-product-permission-module`, `customer-category-permission-module`, `transactions-module`, `stock-movements-module`, `dtone-hub`, `a1-top-up-module`, `mesonic-dataflow-real-time-pricing`
 
 ## Filter Operators
 
@@ -78,7 +97,7 @@ Rate fallback: Matched rule → Class+jurisdiction mapping → Country rate → 
 ## Coding Guidelines
 
 1. Always use environment variables for domain and token (DATAHUB_DOMAIN=api.datahub.syncspider.com, DATAHUB_TOKEN)
-2. Handle pagination — iterate current_page to last_page
+2. Handle pagination — iterate `current_page` to `total_pages`
 3. Use upsert endpoints for sync workflows to avoid duplicates
 4. URL-encode filter JSON values properly
 5. Only retry 5xx errors with exponential backoff; fix 4xx before retrying
@@ -121,12 +140,14 @@ Rate fallback: Matched rule → Class+jurisdiction mapping → Country rate → 
 ## Documentation
 
 Detailed docs are in this repo as MDX files. Key files:
+- `hubs/overview.mdx` — Full hub index
 - `hubs/product-hub.mdx` — ProductHub (26 filters, 42+ includes, full validation rules)
 - `hubs/order-hub.mdx` — OrderHub with checkout flow
 - `hubs/customer-hub.mdx` — CustomerHub
-- `hubs/notification-hub.mdx` — NotificationHub (120+ endpoints)
+- `hubs/notification-hub.mdx` — NotificationHub
 - `core-concepts/filtering.mdx` — Filter syntax reference
+- `core-concepts/hub-settings.mdx` — App Settings index
 - `core-concepts/includes.mdx` — Include system reference
 - `advanced/checkout-flow.mdx` — Cart-to-order flow
 - `advanced/bulk-operations.mdx` — Bulk operations guide
-- `api-reference/openapi.yaml` — OpenAPI 3.0.0 spec
+- `api-reference/<hub>/openapi.yaml` — Per-hub OpenAPI 3.0 specs
