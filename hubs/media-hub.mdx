@@ -44,7 +44,70 @@ The CDN proxy endpoint is **publicly accessible** and does not require authentic
 | POST | `/media/{id}/sort-order` | Update sort order of a media record |
 
   </Tab>
+  <Tab title="Media Library" icon="folder">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/media` | List library files (paginated, filterable) |
+| GET | `/media/collections` | List collections with their file counts |
+| GET | `/media/{id}` | Get a single library file |
+| POST | `/media/create` | Upload a file (multipart `file`, optional `collection`) |
+| PUT | `/media` | Rename, change visibility, or move files to another collection |
+| DELETE | `/media/{id}` | Delete a library file |
+
+  </Tab>
 </Tabs>
+
+## Media Library
+
+The media library holds the uploaded files of your store. Each file belongs to one **collection** — a named folder such as `product-hub` or `invoice-hub`. Files uploaded by a hub land in that hub's collection; files uploaded without a collection land in `uncategorized`.
+
+<Expandable title="List query parameters — GET /media" default-open="true">
+
+| Parameter | Type | Notes |
+|-----------|------|-------|
+| `page`, `per_page` | integer | `per_page` max 500, default 25 |
+| `search` | string | Matches the file name |
+| `collection` | string | Exact collection name |
+| `type` | string | `image`, `video`, `audio`, or `document`. `document` is every file that is not an image, video, or audio file |
+| `mime_types[]` | string[] | Exact MIME types, e.g. `mime_types[]=application/pdf` |
+| `created_from` | date `Y-m-d` | Uploaded on or after this day |
+| `created_to` | date `Y-m-d` | Uploaded on or before this day (inclusive) |
+| `sort_by` | string | `created_at`. Default order is newest first |
+| `sort_dir` | string | `asc` or `desc` (default `desc`) |
+
+An unknown `type`, `sort_by`, or `sort_dir`, or a malformed date, returns `400`.
+
+</Expandable>
+
+<Expandable title="Collections — GET /media/collections">
+
+Returns every collection that holds at least one file, sorted by name. The `id` is the collection name.
+
+```json
+{
+  "data": [
+    { "id": "invoice-hub", "name": "invoice-hub", "count": 12 },
+    { "id": "product-hub", "name": "product-hub", "count": 348 }
+  ]
+}
+```
+
+</Expandable>
+
+<Expandable title="Update files — PUT /media">
+
+| Field | Rules |
+|-------|-------|
+| `media` | required, array |
+| `media.*.id` | required, integer |
+| `media.*.name` | optional, string |
+| `media.*.private` | optional, boolean |
+| `media.*.collection` | optional, non-empty string, max 255. A name that does not exist yet creates the collection |
+
+Moving a file keeps its `id` and URL. The batch is all-or-nothing: if any `id` is not a file of your store the request returns `404` and no file is changed.
+
+</Expandable>
 
 ## Filters
 
