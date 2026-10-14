@@ -194,22 +194,6 @@ session is returned.
   </Tab>
 </Tabs>
 
-## Settings Groups
-
-<Expandable title="Customer Settings Reference" default-open="false">
-
-**invitations** — Company User Invitations
-
-| Setting | Type | Description |
-|---------|------|-------------|
-| `enable_company_invitations` | boolean | Allow company administrators to invite users |
-| `invitation_expiry_days` | number | How long an invitation link stays usable (default 7) |
-| `max_pending_invitations_per_company` | number | Cap on invitations awaiting acceptance (default 50) |
-| `invitation_default_role_code` | string | Role used when the company has no default of its own |
-| `invited_users_bypass_approval` | boolean | When off, an invited user still waits for approval if **Require Admin Approval** is enabled. Defaults to off, so enabling admin approval keeps its meaning |
-
-</Expandable>
-
 ## Filters
 
 For filter syntax and operators, see [Filtering](/core-concepts/filtering).
@@ -365,6 +349,62 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 
 </Expandable>
 
+<Expandable title="Create Shipping Address — POST /shippingAddresses" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `name` | required, string |
+| `company_name` | string, nullable |
+| `first_name` | string, nullable |
+| `last_name` | string, nullable |
+| `address_line_1` | required, string |
+| `address_line_2` | string, nullable |
+| `city` | required, string |
+| `zip` | required, string |
+| `state` | string, nullable |
+| `country` | required, string, ValidCountry rule |
+| `customer_id` | numeric, nullable — required unless `type=company` |
+| `company_id` | numeric, nullable — required for company-owned addresses unless inferred from the shop customer scope |
+| `default` | boolean, nullable |
+| `type` | required, string — one of the supported address owner types |
+| `attributes` | array, nullable |
+| `attributes.*.attribute_id` | required, numeric — must reference an AttributesHub attribute in group type `shipping_address` |
+| `attributes.*.value` | nullable — `null` removes the existing custom-attribute value on update |
+| `attributes.*.auto_create_value` | boolean |
+
+</Expandable>
+
+<Expandable title="Create Billing Address — POST /billingAddresses" default-open="false">
+
+| Field | Rules |
+|-------|-------|
+| `name` | required, string |
+| `company_name` | string, nullable |
+| `first_name` | string, nullable |
+| `last_name` | string, nullable |
+| `company_number` | string, nullable |
+| `email` | email, nullable |
+| `phone` | string, nullable |
+| `website` | string, nullable |
+| `address_line_1` | required, string |
+| `address_line_2` | string, nullable |
+| `city` | required, string |
+| `zip` | required, string |
+| `state` | string, nullable |
+| `country` | required, string, ValidCountry rule |
+| `vat_number` | string, nullable |
+| `registration_number` | string, nullable |
+| `customer_id` | numeric, nullable — required unless `type=company` |
+| `company_id` | numeric, nullable — required for company-owned addresses unless inferred from the shop customer scope |
+| `default` | boolean, nullable |
+| `type` | required, string — one of the supported address owner types |
+| `attributes` | array, nullable |
+| `attributes.*.attribute_id` | required, numeric — must reference an AttributesHub attribute in group type `billing_address` |
+| `attributes.*.value` | nullable — `null` removes the existing custom-attribute value on update |
+| `attributes.*.auto_create_value` | boolean |
+
+</Expandable>
+
 <Expandable title="Create Note — POST /notes" default-open="false">
 
 | Field | Rules |
@@ -446,6 +486,119 @@ curl -s -X GET \
     </Request>
   </Step>
 </Steps>
+
+## Settings Groups
+
+CustomerHub App Settings cover registration defaults, segmentation, address validation, customer notifications, company rules, company user invitations, and permission overrides. Edit via the **Settings** tab endpoints above. See also [Hub Settings](/core-concepts/hub-settings).
+
+<Expandable title="registration — Settings Reference" default-open="false">
+
+**registration** — Customer Registration
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `default_status` | select (`active` / `pending` / `inactive`) | `pending` | Status assigned to newly registered customers. |
+| `default_role_code` | select | `user` | Role assigned to newly registered customers. |
+| `require_email_verification` | boolean | `true` | Customers must verify email before account activation. |
+| `require_phone_verification` | boolean | `false` | Customers must verify phone number before account activation. |
+| `require_admin_approval` | boolean | `false` | New registrations require manual admin approval. |
+| `auto_generate_customer_number` | boolean | `true` | Automatically generate a unique customer number on registration. |
+| `customer_number_prefix` | text | `CUST-` | Prefix for auto-generated customer numbers. |
+| `customer_number_length` | number | `5` | Digit count in the customer number (excluding prefix); range 3–10. |
+| `password_min_length` | number | `8` | Minimum password length; range 6–32. |
+| `require_strong_password` | boolean | `true` | Password must contain uppercase, lowercase, number, and special character. |
+
+</Expandable>
+
+<Expandable title="customer_groups — Settings Reference" default-open="false">
+
+**customer_groups** — Customer Groups (Segmentation)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enable_customer_groups` | boolean | `true` | Allow categorizing customers into groups. |
+| `default_group_code` | select | `general` | Group assigned to new customers by default. |
+
+</Expandable>
+
+<Expandable title="address_validation — Settings Reference" default-open="false">
+
+**address_validation** — Address Validation
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `require_shipping_address` | boolean | `false` | Customers must have at least one shipping address. |
+| `require_billing_address` | boolean | `false` | Customers must have at least one billing address. |
+| `shipping_required_fields` | select (multi) | `["street", "city", "country", "postal_code"]` | Required fields on shipping addresses. |
+| `billing_required_fields` | select (multi) | `["street", "city", "country", "postal_code"]` | Required fields on billing addresses. |
+| `validate_postal_code_format` | boolean | `true` | Validate postal code format based on country. |
+| `validate_vat_number` | boolean | `false` | Validate VAT number format and optionally via VIES. |
+| `vat_validation_service` | select (`none` / `vies`) | `none` | VAT validation backend: format-only or EU VIES. |
+| `max_shipping_addresses` | number | `10` | Maximum shipping addresses per customer (`0` = unlimited). |
+| `max_billing_addresses` | number | `5` | Maximum billing addresses per customer (`0` = unlimited). |
+| `allowed_countries` | text | `""` | Comma-separated ISO country codes. Empty = allow all. |
+
+</Expandable>
+
+<Expandable title="notifications — Settings Reference" default-open="false">
+
+**notifications** — Customer Notifications
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enable_notifications` | boolean | `true` | Master switch for all customer notifications. |
+| `notify_on_registration` | boolean | `true` | Welcome notification on registration. |
+| `notify_on_verification` | boolean | `true` | Notification when a customer is verified. |
+| `notify_on_status_change` | boolean | `true` | Notification when customer status changes. |
+| `notify_on_group_change` | boolean | `false` | Notification when customer group changes. |
+| `notify_admin_on_registration` | boolean | `false` | Notify admins on new registration. |
+| `admin_notification_emails` | text | `""` | Comma-separated admin emails for registration alerts. |
+| `guest_role_codes` | select (multi) | `["guest"]` | Role codes treated as guest. |
+| `skip_guest_registration_notification` | boolean | `true` | Skip welcome notification for guest customers. |
+
+</Expandable>
+
+<Expandable title="company — Settings Reference" default-open="false">
+
+**company** — Company Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `require_company` | boolean | `false` | Customers must be associated with a company. |
+| `allow_company_creation` | boolean | `true` | Customers can create companies during registration. |
+| `company_required_fields` | select (multi) | `["name"]` | Required fields when creating/updating a company. |
+| `default_company_type` | select | `business` | Default company type (`business`, `individual`, `non_profit`, `government`). |
+| `auto_generate_company_code` | boolean | `true` | Automatically generate a unique company code. |
+| `company_code_prefix` | text | `COMP-` | Prefix for auto-generated company codes. |
+| `allow_multiple_customers_per_company` | boolean | `true` | Multiple customers can belong to the same company. |
+| `max_customers_per_company` | number | `0` | Maximum customers per company (`0` = unlimited). |
+
+</Expandable>
+
+<Expandable title="invitations — Settings Reference" default-open="false">
+
+**invitations** — Company User Invitations
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enable_company_invitations` | boolean | `true` | Allow company administrators to invite users to their company. |
+| `invitation_expiry_days` | number | `7` | How long an invitation link stays usable; range 1–90. |
+| `max_pending_invitations_per_company` | number | `50` | Cap on invitations awaiting acceptance; range 1–500. |
+| `invitation_default_role_code` | select | `user` | Role used when the company has no default of its own. |
+| `invited_users_bypass_approval` | boolean | `false` | When off, an invited user still waits for approval if **Require Admin Approval** is enabled. |
+
+</Expandable>
+
+<Expandable title="permissions — Settings Reference" default-open="false">
+
+**permissions** — Permission Overrides
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `disabled_keys` | json | `[]` | Permission keys hidden from role editors and stripped when a role is saved. |
+| `relabeled` | json | `{}` | Map of permission key → custom label. |
+
+</Expandable>
 
 ## Related
 

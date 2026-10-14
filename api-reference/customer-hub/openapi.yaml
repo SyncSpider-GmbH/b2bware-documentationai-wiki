@@ -229,7 +229,7 @@ paths:
             schema:
               type: object
               example:
-                password: Secret123!
+                password: ChangeMe!23
                 first_name: Ada
                 last_name: Lovelace
                 phone: null
