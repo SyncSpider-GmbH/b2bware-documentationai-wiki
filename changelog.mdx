@@ -13,6 +13,15 @@ description: Release history and version updates for the B2Bware DataHub platfor
 
 </Update>
 
+<Update label="2026-10-09" description="SubscriptionHub payment confirmation and status counts" tags={["improvement"]}>
+
+## SubscriptionHub: payment confirmation and status counts
+
+- **Bank confirmation on automatic renewals** — when the bank asks the customer to confirm an automatic card charge (`authentication_required`), the renewal no longer stops with `payment_failed`. The order stays open and the customer is emailed a payment link, as in `pay_now_email` mode. The history entry `renewed` records `charge_fallback`.
+- **Status counts** — new `GET /subscriptions/statuses/counts` returns the number of subscriptions per status under the same filters as the list. A `status` filter is ignored. See [SubscriptionHub](/hubs/subscription-hub).
+
+</Update>
+
 <Update label="2026-10-08" description="@storefrontImage desk media + hard rule" tags={["improvement", "storefront"]}>
 
 ## `@storefrontImage` — desk media + authoring hard rule
@@ -22,12 +31,60 @@ description: Release history and version updates for the B2Bware DataHub platfor
 
 </Update>
 
+<Update label="2026-10-02" description="OrderHub bulk delete" tags={["feature"]}>
+
+## OrderHub bulk delete
+
+Orders can now be deleted in a single all-or-nothing request. A batch that includes a missing, locked, or unauthorized order is rejected without deleting any selected orders.
+
+</Update>
+
+<Update label="2026-10-02" description="Cart-line favorite state" tags={["improvement", "storefront"]}>
+
+## Cart-line favorite state
+
+Cart lines expose `$line['is_favorite']` for the customer's active favorites list, replacing repeated Blade lookups. The value is `false` for guests and when favorites are disabled; disabled favorites skip the lookup. See [View data](/advanced/storefront-themes/view-data).
+
+</Update>
+
 <Update label="2026-10-02" description="SearchHub cluster and embed key" tags={["fix"]}>
 
 ## SearchHub
 
 - **Cluster settings** — a store admin cannot read or save the cluster group. Index status omits the cluster host and error unless the caller is a platform super admin.
 - **Embed key** — a `customer_group` query does not change visibility. A signed-in storefront customer gets their own group, and the key does not return other groups' prices.
+
+</Update>
+
+<Update label="2026-10-01" description="SubscriptionHub webhooks, MCP tools and API reference" tags={["feature"]}>
+
+## SubscriptionHub: webhooks, AI assistant tools and API reference
+
+- **Webhook events** — ten `subscriptionhub.subscription.*` events in EventHub (`created`, `activated`, `renewed`, `renewal_paid`, `paused`, `resumed`, `cancelled`, `ended`, `payment_failed`, `updated`). Each delivery carries the subscription as `data` and the history entry as `meta` (`history_type`, `actor`, `details`). See [Webhooks](/core-concepts/webhooks).
+- **MCP tools** — `list_subscriptions`, `get_subscription`, `list_subscription_history`, `pause_subscription`, `resume_subscription`, `cancel_subscription` and `end_subscription` on both the API-key [MCP Server](/ai-tools/mcp-server) (v1.17.0) and the signed-in MCP surface; status changes follow the admin rules and are recorded with `via: mcp`.
+- **API reference** — SubscriptionHub OpenAPI spec under API Reference.
+
+</Update>
+
+<Update label="2026-10-01" description="SubscriptionHub renewals and billing settings" tags={["feature"]}>
+
+## SubscriptionHub: renewals and recurring payments
+
+- **New hub page** — [SubscriptionHub](/hubs/subscription-hub) documents product settings, interval units, subscriptions, history, checkout and the status lifecycle.
+- **Billing settings** — new `billing` settings group: `billing_collection_mode` (`auto_charge`: charge the card saved at the first checkout; `pay_now_email`: email a payment link for every renewal) and `recurring_provider` (optional single online billing method for automatic charges). Subscription checkout offers only the billing methods the mode allows.
+- **Renewal payments** — automatic Stripe / Mollie card charges with hourly retries for temporary errors; payment-link renewals stay open until the next due date (at least 3 days), after which the order is cancelled and the subscription moves to `payment_failed`.
+- **Payment link** — public signed `GET /api/v1/apps/subscription-hub/renewal-payment/{installationKey}/{order}` and a seeded NotificationHub email type `subscription_renewal_payment_link`. Never opens a second payment while one is being prepared or processed (409), and stops working once the subscription ended or no longer waits for the order (410). The page answers in the customer's language (English, German).
+- **Safer renewals** — an order cancelled in OrderHub while its charge is retried is never charged (`order_closed`); ending a subscription cancels its unpaid renewal order; pausing moves the payment deadline; a card charge still processing at the provider (e.g. SEPA) is checked before the next cycle is ordered (`charge_pending`).
+
+</Update>
+
+<Update label="2026-10-01" description="Subscription checkout on the product page" tags={["feature", "storefront"]}>
+
+## Subscribe from the product page
+
+- **Product page** — products with an enabled subscription setup show their delivery intervals and prices under the SKU. Signed-in customers open a **Subscribe** dialog, pick an interval, quantity, addresses, shipping and payment method, and place the first order directly; guests get a sign-in link. The customer's regular cart is never touched.
+- **Theme contract** — new `@storefrontForm('subscription-checkout')` form type (see [Forms](/advanced/storefront-themes/forms)). The markup is a module contribution to the `product.detail.meta` slot; themes may restyle it with `modules/subscription-hub/product-subscription.blade.php`.
+- **My subscriptions** — new account page `/account/subscriptions` (sidebar entry once the customer has a subscription) listing the customer's subscriptions with a **Cancel subscription** action that ends the subscription after the period already paid for, **Resume subscription** to undo that cancel while the period lasts, and **Pay now** for an unpaid renewal or a first order left unpaid. New `@storefrontForm('subscription-cancel')`, `@storefrontForm('subscription-resume')` and `@storefrontForm('subscription-pay')` form types; restyle via `modules/subscription-hub/account-subscriptions.blade.php`.
 
 </Update>
 
