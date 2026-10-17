@@ -1,11 +1,11 @@
 ---
 title: AiHub
-description: Shared AI wrapper — knowledge base, Platform Assist, models, usage logs, and App Settings for provider and assistants.
+description: Shared AI wrapper — knowledge base, Platform Assist, Channel Assist, models, usage logs, and App Settings.
 ---
 
 ## Overview
 
-AiHub centralizes AI credentials and defaults for the installation. Other hubs call the shared AI wrapper. This page covers knowledge CRUD, Platform Assist sessions, observability endpoints, and the **`general`** App Settings group.
+AiHub centralizes AI credentials and defaults for the installation. Other hubs call the shared AI wrapper. This page covers knowledge CRUD, Platform Assist sessions, Channel Assist admin connection, observability endpoints, and the **`general`** and **`channels`** App Settings groups.
 
 **Base URL:** `api/v1/apps/ai-hub/`
 
@@ -55,6 +55,19 @@ For request/response schemas, see the [AiHub API Reference](/api-reference/ai-hu
 | POST | `/assist/intake/uploads/{uploadId}/resolve` | Resolve an intake gap |
 
   </Tab>
+  <Tab title="Channel Assist" icon="message-circle">
+
+Admin connection endpoints. Inbound provider callbacks are not part of this admin API.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/channels/status` | Whether Channel Assist is on, and the current admin's WhatsApp connection |
+| GET | `/channels/whatsapp/connection` | WhatsApp connection for the signed-in admin |
+| POST | `/channels/whatsapp/activation` | Start a WhatsApp link. Returns 403 when Channel Assist is off |
+| DELETE | `/channels/whatsapp/connection` | Disconnect WhatsApp. Returns 404 when nothing is connected |
+| POST | `/channels/whatsapp/test` | Send a test message (`message` optional, max 500 characters) |
+
+  </Tab>
   <Tab title="Observability" icon="activity">
 
 | Method | Endpoint | Description |
@@ -71,7 +84,7 @@ For request/response schemas, see the [AiHub API Reference](/api-reference/ai-hu
 | GET | `/settings` | Get all settings |
 | POST | `/settings` | Update settings |
 | POST | `/settings/reset` | Reset all groups to defaults |
-| GET | `/settings/{group}` | Get one group (`general`) |
+| GET | `/settings/{group}` | Get one group (`general` or `channels`) |
 | POST | `/settings/{group}` | Update one group |
 | POST | `/settings/{group}/reset` | Reset one group |
 
@@ -101,5 +114,32 @@ Group: `general`. Secrets such as `api_key` are masked on read.
 | `admin_assistant_enabled` | boolean | `true` | Platform Assist for admin users (may be overridden by `PLATFORM_ASSIST_ENABLED`). |
 | `storefront_assistant_enabled` | boolean | `false` | Customer-facing storefront assistant. |
 | `chat_history_retention_days` | select (`7` / `30` / `90` / `365` / `unlimited`) | `30` | How long Platform Assist chat sessions are kept. |
+
+</Expandable>
+
+Group: `channels`. Secrets are masked on read. Channel Assist stays off until `channels_enabled` is on and the installation AI wrapper is configured.
+
+<Expandable title="channels — Settings Reference">
+
+**channels** — WhatsApp and related admin channels
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `channels_enabled` | boolean | `false` | Turns Channel Assist on for this installation. |
+| `channels_admin_base_url` | text | `""` | Public admin URL used for links sent on WhatsApp. No trailing slash. |
+| `channels_whisper_api_key` | secret (masked) | `""` | Optional key for voice-note transcription. Falls back to the AI Hub OpenAI key. |
+| `channels_easter_eggs_enabled` | boolean | `false` | Adds the configured persona to WhatsApp replies and confirm buttons. |
+| `channels_agent_name` | text | `Q` | Name the WhatsApp agent uses for itself. |
+| `channels_easter_egg_prompt` | textarea | Star Trek–inspired persona | Extra tone instructions, used only when Easter Eggs are on. |
+| `channels_confirm_yes_button` | text | `Make it so!` | WhatsApp confirm button label (max 20 characters). |
+| `channels_confirm_no_button` | text | `Abandon ship!` | WhatsApp cancel button label (max 20 characters). |
+| `channels_intake_company_address_mode` | select (`always` / `never` / `ask`) | `always` | Whether PDF or assist input may fill a company address. |
+| `channels_intake_contact_address_mode` | select (`always` / `never` / `ask`) | `never` | Whether a contact receives a company or PDF address. |
+| `whatsapp_waba_phone_number` | text | `""` | WhatsApp Business number in E.164. Can also be supplied by the platform. |
+| `whatsapp_phone_number_id` | text | `""` | Meta phone number id used to send messages. |
+| `whatsapp_access_token` | secret (masked) | `""` | Meta access token for outbound WhatsApp messages. |
+| `whatsapp_verify_token` | secret (masked) | `""` | Token Meta sends when it verifies the webhook. |
+| `whatsapp_app_secret` | secret (masked) | `""` | When set, WhatsApp webhook posts without a valid signature are rejected. |
+| `composio_api_key` | secret (masked) | `""` | Reserved for later Gmail and Slack channel support. |
 
 </Expandable>
