@@ -67,11 +67,27 @@ The `deletion_request` payload contains `id`, `status` (`awaiting_confirmation` 
   </Tab>
 </Tabs>
 
-## App Settings
+## Settings
 
-<Callout kind="info">
-This hub has no FormGenerator App Settings group. See [Hub Settings](/core-concepts/hub-settings) for hubs that do.
-</Callout>
+Group: `captcha`. Configure CAPTCHA in the admin at `/admin/settings/apps/auth-hub`. The secret key is masked on read and never appears in `GET /api/v1/apps/auth-hub/captcha-config`.
+
+<Expandable title="captcha — Settings Reference" default-open="true">
+
+**captcha** — CAPTCHA
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enabled` | boolean | `false` | Master switch. When off, protected forms behave as before. |
+| `provider` | select (`turnstile` / `recaptcha_v2` / `recaptcha_v3`) | `turnstile` | Widget provider. Turnstile is the default; Google v2 shows the checkbox; Google v3 runs on submit with no checkbox. |
+| `site_key` | text | `""` | Public key rendered in the storefront widget. |
+| `secret_key` | secret (masked) | `""` | Private key for server-side verification. Never exposed to themes or `captcha-config`. |
+| `protected_forms` | string[] | `["register"]` | Form keys to protect: `login`, `register`, `forgot-password`, `reset-password`, `verify-email`, `resend-verification`, `cms-form`. |
+| `fail_open` | boolean | `false` | When our server cannot reach the provider, `false` rejects the submission and `true` accepts it. Does not apply to a failed score or token. |
+| `score_threshold` | number | `0.5` | Minimum reCAPTCHA v3 score (0–1). Used only while `provider` is `recaptcha_v3`; the value is kept when you switch providers. |
+
+</Expandable>
+
+Public widget contract: `GET /api/v1/apps/auth-hub/captcha-config` returns `enabled`, `provider`, `site_key`, `script_url`, `token_input`, and `protected_forms`. For v3, `script_url` includes `render={siteKey}` and headless clients must call Google's execute API with an action equal to the form key with hyphens replaced by underscores (e.g. `forgot-password` → `forgot_password`), then send the token as `g-recaptcha-response`, `captcha_token`, or `X-Captcha-Token`.
 
 ## Related
 
