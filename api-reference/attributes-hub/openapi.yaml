@@ -64,6 +64,7 @@ paths:
                 required: true
                 position: 1
                 used_for_filtering: false
+                facet_display: null
                 visible_on_the_product_page: false
                 filterable_with_results: false
                 use_in_notifications: false
