@@ -156,6 +156,28 @@ See [Authentication](/authentication) for details.
 
 </Expandable>
 
+<Expandable title="409 — Order Locked (Deleted Customer)" default-open="false">
+
+**Cause:** A mutation (order update/delete, refund, order comment or order
+line item change) was attempted on a **historical order** — an order whose
+customer account was deleted and that has reached a terminal status
+(`completed`, `canceled`, `refunded`).
+
+```json
+{
+  "error": "order_locked",
+  "message": "This order is read-only: the customer account was deleted and the order is closed."
+}
+```
+
+**Solution:**
+- Treat the order as read-only history; read it via `GET` and render the
+  preserved customer details from `meta_data.deleted_customer`
+- Open (non-terminal) orders of deleted customers remain editable
+- See [Deleted-Customer Orders](/hubs/order-hub#deleted-customer-orders-historical-orders)
+
+</Expandable>
+
 ## Handling Errors in Your Integration
 
 <Steps>

@@ -12,6 +12,15 @@ description: Release history and version updates for the B2Bware DataHub platfor
 
 </Update>
 
+<Update label="2026-10-23" description="Catalog filters by attribute definition" tags={["feature", "storefront"]}>
+
+## Storefront themes — definition-cell catalog filters
+
+- **Shorter catalog filters.** When an attribute has a discrete definition (select, multiselect, radio, or swatch), the sidebar lists those definition cells instead of every member label. The query parameter is `attr_def[<attribute id>][<definition name>][]`.
+- **Theme contract.** Facets with `kind=definition` use `attribute_id` and `definition_name`. The string `id` is not an attribute id. Checked cells are in `$selectedDefinitions`. Applied-filter chips use `kind=definition`. See [Catalog](/advanced/storefront-themes/catalog).
+
+</Update>
+
 <Update label="2026-10-12" description="PDF export file names" tags={["feature", "storefront-builder"]}>
 
 ## Storefront Builder — PDF file names
@@ -40,12 +49,70 @@ description: Release history and version updates for the B2Bware DataHub platfor
 
 </Update>
 
+<Update label="2026-10-06" description="Media library filters and collections" tags={["feature"]}>
+
+## Media library filters and collections
+
+- `GET /media-hub/media` filters by `type`, exact `mime_types[]`, and upload date (`created_from` / `created_to`), and sorts by `created_at` in either direction.
+- New `GET /media-hub/media/collections` lists collections with their file counts.
+- `PUT /media-hub/media` moves files to another collection with `media.*.collection`. Files keep their id and URL.
+- Files uploaded by a hub are stored in that hub's collection instead of `uncategorized`.
+
+See [MediaHub](/hubs/media-hub#media-library).
+
+</Update>
+
 <Update label="2026-10-02" description="SearchHub cluster and embed key" tags={["fix"]}>
 
 ## SearchHub
 
 - **Cluster settings** — a store admin cannot read or save the cluster group. Index status omits the cluster host and error unless the caller is a platform super admin.
 - **Embed key** — a `customer_group` query does not change visibility. A signed-in storefront customer gets their own group, and the key does not return other groups' prices.
+
+</Update>
+
+<Update label="2026-10-02" description="OrderHub bulk delete" tags={["feature"]}>
+
+## OrderHub bulk delete
+
+Orders can now be deleted in a single all-or-nothing request. A batch that includes a missing, locked, or unauthorized order is rejected without deleting any selected orders.
+
+</Update>
+
+<Update label="2026-10-02" description="Cart-line favorite state" tags={["improvement", "storefront"]}>
+
+## Cart-line favorite state
+
+Cart lines expose `$line['is_favorite']` for the customer's active favorites list, replacing repeated Blade lookups. The value is `false` for guests and when favorites are disabled; disabled favorites skip the lookup. See [View data](/advanced/storefront-themes/view-data).
+
+</Update>
+
+<Update label="2026-10-02" description="CAPTCHA for public AuthHub endpoints" tags={["feature", "security"]}>
+
+## CAPTCHA on registration, login and storefront forms
+
+- **New AuthHub settings group `captcha`** — Admin: **Settings → Configuration → AuthHub**. Switch it on, pick the provider (Cloudflare Turnstile), paste your own site and secret key, and choose which forms to protect: `login`, `register`, `forgot-password`, `reset-password`, `verify-email`, `resend-verification`, `cms-form`. Off by default, and a missing key keeps it inert.
+- **`fail_open`** decides what happens when our server cannot reach the provider: off (default) rejects the submission, on accepts it anyway. A visitor whose browser cannot load the widget is always rejected either way.
+- **API clients** send the challenge as `captcha_token` in the body or the `X-Captcha-Token` header; a protected endpoint answers `422` with a `captcha` error without one. `GET /api/v1/apps/auth-hub/captcha-config` returns the provider and site key (never the secret) for clients that render the widget themselves.
+- **Storefront themes need no change** — the widget and its script are rendered by the platform on every protected form. Place it yourself with the new `@storefrontCaptcha`, and read `$store['captcha']` if you want your own copy around it. See [Forms](/advanced/storefront-themes/forms) and [AuthHub](/hubs/auth-hub).
+
+</Update>
+
+<Update label="2026-09-30" description="Company user invitations" tags={["feature", "breaking", "customer-hub"]}>
+
+## Company user invitations
+
+A company administrator can now invite people into their own company from the storefront. The invitee has no account: they open a one-time link, set a password, and join the inviting company with its default role, addresses and permissions.
+
+- **Admin endpoints** — `GET/POST /customer-hub/company-invitations`, `POST .../{id}/resend`, `DELETE .../{id}`. The company is always taken from the caller's shop session, never from the request.
+- **Public endpoints** — `GET /customer-hub/{installationKey}/invitations/{token}` to preview and `POST .../accept` to join. No authentication; the invitee has no account yet. Any unusable token returns `410` without saying why.
+- **New Settings group** — **Company User Invitations** on CustomerHub: link validity, a cap on pending invitations, the default role, and whether invited users skip admin approval. See [CustomerHub → Settings Groups](/hubs/customer-hub).
+- **Email** — new configurable notification types `company_user_invitation` (to the invitee) and `company_user_invitation_accepted` (to the inviter).
+- **Audit trail** — every invitation records creation, sending, acceptance, revocation and expiry.
+
+<Callout kind="warning">
+**Breaking — a permission grant is required before the feature works.** The storefront permission `storefront.account.manage-users` was previously registered but unenforced. It now gates all four administrator endpoints and **no role holds it by default**, so the endpoints return `403` for everyone until a tenant grants it to whichever role acts as company administrator (Roles → storefront permissions). Nothing else changes for tenants that do not use invitations.
+</Callout>
 
 </Update>
 
