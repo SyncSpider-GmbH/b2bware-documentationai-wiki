@@ -28,8 +28,13 @@ For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts
 | DELETE | `/attributes/{id}` | Delete an attribute |
 | PUT | `/attributes/insert/bulk` | Bulk create or update attributes |
 | GET | `/attributeTypes` | List available attribute types |
+| GET | `/relationSources` | List Linked-record source models contributed by installed hubs |
+| GET | `/attributes/{id}/relationOptions` | Paginated remote-select options for a Linked-record attribute (`search`, `page`, `perPage`) |
+| GET | `/attributes/{id}/relationOptions/resolve` | Resolve labels for known source ids (`ids=1,2`) |
 
-**Available Attribute Types:** `numeric`, `text`, `textarea`, `select`, `multiselect`, `radio`, `boolean`, `date`, `datetime`, `swatch`
+**Available Attribute Types:** `numeric`, `text`, `textarea`, `select`, `multiselect`, `radio`, `boolean`, `date`, `datetime`, `swatch`, `media`, `relation` (Linked record)
+
+**Linked record (`relation`):** configure `relation_source`, `relation_label_fields`, and optional `relation_multiple` on the attribute. Values store the source record id with a `meta_data.label` snapshot. Apply template version 7.7.0 with `php artisan template:sync-structure --handler=attributes-hub --force`. Options require `attributes-hub.attributes.view` plus the source model's view permission.
 
   </Tab>
   <Tab title="Attribute Values" icon="list">

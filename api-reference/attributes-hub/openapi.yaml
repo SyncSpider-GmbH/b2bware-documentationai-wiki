@@ -175,6 +175,100 @@ paths:
           description: Successful response
           content:
             application/json: {}
+  /api/v1/apps/attributes-hub/relationSources:
+    get:
+      tags:
+        - Attributes
+      summary: List Linked-record relation sources
+      description: >-
+        Catalogue of source models contributed by installed hubs (slug, label,
+        hub, fields, default_label_fields, permission, admin_path).
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/attributes-hub/attributes/{id}/relationOptions:
+    get:
+      tags:
+        - Attributes
+      summary: Relation options for a Linked-record attribute
+      description: >-
+        Paginated remote-select options (`value`, `label`) for the attribute's
+        configured relation_source. Requires attributes-hub.attributes.view and
+        the source model's view permission.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: perPage
+          in: query
+          schema:
+            type: integer
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '403':
+          description: Missing source permission
+        '404':
+          description: Attribute is not a Linked record attribute
+  /api/v1/apps/attributes-hub/attributes/{id}/relationOptions/resolve:
+    get:
+      tags:
+        - Attributes
+      summary: Resolve Linked-record option labels
+      description: >-
+        Hydrate `{value,label,missing}` rows for known source ids (comma-separated
+        or array). Used for SelectInput default-value hydration.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: ids
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 1,2
+        - name: Accept
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+        '403':
+          description: Missing source permission
+        '404':
+          description: Attribute is not a Linked record attribute
   /api/v1/apps/attributes-hub/attributes/insert/bulk:
     put:
       tags:
