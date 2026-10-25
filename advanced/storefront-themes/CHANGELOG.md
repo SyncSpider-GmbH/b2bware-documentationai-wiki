@@ -7,6 +7,15 @@
 This file tracks changes to the **theme authoring contract** (directives, form types, `$store`
 keys, canonical surface, tokens). It is not the platform-wide release log. Dates are UTC.
 
+## 2026-10-25 — Built-in catalog sort orders
+
+- **`$sort`** accepts `price_asc` and `price_desc` on All Products and category listings, plus newest, oldest, and name. Price order uses the product's regular price. See `catalog.md`.
+
+## 2026-10-25 — Catalog sort no longer has a relevance option
+
+- **Default theme:** All Products, category listings, and catalog export no longer list a relevance sort. Remove that `<option>` from a theme that copied it.
+- **`$sort`** is the store's default sorting attribute, or `newest` when none is configured, whenever the URL omits `sort` or sends a key the catalog does not accept. An accepted `sort` is echoed as-is. Search uses the same key. See `catalog.md`.
+
 ## 2026-10-23 — Product photos stay whole; grid cards share a height
 
 - **Default theme:** product photos on the grid card, the list thumbnail, gallery thumbnails, the cart, orders, and proposals use `object-contain`. Grid cells are `h-full` so the square image, two-line title, and bottom price block line up. Logos, flags, and sign-in backgrounds are unchanged.

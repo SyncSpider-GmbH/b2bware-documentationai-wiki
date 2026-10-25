@@ -3,6 +3,17 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-25" description="Catalog sort drops the relevance option" tags={["improvement", "storefront"]}>
+
+## Storefront — catalog sort
+
+- **Sort dropdown.** All Products and category pages offer newest, oldest, price (regular price, low to high and high to low), name, and merchant sort attributes.
+- **Store default.** Store setup → Features uses the same orders in **Default sorting attribute**. Leave it empty to keep Newest.
+- **Search.** A keyword search uses the same order as the rest of the catalog: the store's default sort, or newest when the store has none.
+- **Old links.** An address with a sort key the catalog does not accept loads with that default. It does not error. See [Catalog](/advanced/storefront-themes/catalog).
+
+</Update>
+
 <Update label="2026-10-25" description="Auth Hub Google reCAPTCHA providers" tags={["feature", "auth-hub", "storefront"]}>
 
 ## Auth Hub — Google reCAPTCHA v2 and v3
