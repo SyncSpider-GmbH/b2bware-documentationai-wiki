@@ -77,11 +77,12 @@ Protects the public endpoints against bot traffic. Admin: **Settings → Configu
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `enabled` | boolean | `false` | Master switch. While off nothing changes for customers: no widget renders and no verification runs. |
-| `provider` | string | `turnstile` | Challenge provider. Cloudflare Turnstile is currently the only option. |
+| `provider` | string | `turnstile` | Widget provider: `turnstile` (default), `recaptcha_v2` (checkbox), or `recaptcha_v3` (score on submit, no checkbox). |
 | `site_key` | string | — | The provider's public key. Rendered in the storefront widget, so it is not a secret. |
 | `secret_key` | string | — | The provider's private key, used only for server-side verification. Stored encrypted and shown masked. |
 | `protected_forms` | string[] | `["register"]` | Which forms carry the challenge: `login`, `register`, `forgot-password`, `reset-password`, `verify-email`, `resend-verification`, `cms-form`. |
-| `fail_open` | boolean | `false` | What to do when our server cannot reach the provider: off rejects the submission, on accepts it anyway. A visitor whose browser cannot load the widget is always rejected, whichever way this is set. |
+| `fail_open` | boolean | `false` | When our server cannot reach the provider, `false` rejects the submission and `true` accepts it. Does not apply to a failed v3 score or token. A visitor whose browser cannot load the widget is always rejected. |
+| `score_threshold` | number | `0.5` | Minimum reCAPTCHA v3 score (0–1). Used only while `provider` is `recaptcha_v3`; the value is kept when you switch providers. |
 
 <Callout kind="info">
 Both keys come from your own provider account. Leaving either empty keeps the feature inert even with the switch on, and the storefront renders the widget without any theme change — see [Forms](/advanced/storefront-themes/forms).
@@ -110,7 +111,9 @@ The `deletion_request` payload contains `id`, `status` (`awaiting_confirmation` 
 
 ## App Settings
 
-AuthHub exposes the **`captcha`** group via the Settings endpoints above (Admin: **Settings → Configuration → AuthHub**). See also [Hub Settings](/core-concepts/hub-settings).
+AuthHub exposes the **`captcha`** group via the Settings endpoints above (Admin: **Settings → Configuration → AuthHub**, or `/admin/settings/apps/auth-hub`). See also [Hub Settings](/core-concepts/hub-settings).
+
+`GET /api/v1/apps/auth-hub/captcha-config` returns `enabled`, `provider`, `site_key`, `script_url`, `token_input`, and `protected_forms`. The secret key and `score_threshold` are never part of that payload. For v3, `script_url` includes `render={siteKey}` and headless clients must call Google's execute API with an action equal to the form key with hyphens replaced by underscores (e.g. `forgot-password` → `forgot_password`), then send the token as `g-recaptcha-response`, `captcha_token`, or `X-Captcha-Token`.
 
 ## Related
 
