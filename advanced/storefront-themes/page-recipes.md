@@ -53,6 +53,18 @@ Wraps the `checkout` form (§9.5). Renders the address pickers via
 [`ajax-and-runtime.md`](ajax-and-runtime.md)). Coupons use `cart-coupon-apply` /
 `cart-coupon-remove`, gated on `checkout.enable_coupons` (§9.6).
 
+`$defaultBillingMethodId` is the shopper's customer, company, or group default when that
+method is visible, otherwise the store fallback (`$store['default_billing_method_id']`)
+when that method is visible for them, otherwise empty. Two render states:
+
+- `$store['hide_payment_method']` and a resolved `$defaultBillingMethodId`: no Payment
+  method block and no payment-method dialogs. Submit `<input type="hidden" name="billing_method_id">`.
+- Otherwise: the radio list, pre-checked with `$defaultBillingMethodId`. This includes
+  Hide ticked when nothing resolved — the shopper still chooses.
+
+Hide does not lock the method. Send `billing_method_id` with the checkout-summary refresh,
+including the hidden input, the same way shipping is sent.
+
 ### 10.3 `pages/guest-order.blade.php`
 
 Order confirmation for guest checkouts, reachable via a signed URL (bookmarkable without login).

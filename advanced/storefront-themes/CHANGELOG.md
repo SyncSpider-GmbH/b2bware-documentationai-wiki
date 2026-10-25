@@ -7,6 +7,11 @@
 This file tracks changes to the **theme authoring contract** (directives, form types, `$store`
 keys, canonical surface, tokens). It is not the platform-wide release log. Dates are UTC.
 
+## 2026-10-25 — Store fallback payment method
+
+- **`$store['default_billing_method_id']`** and **`$store['hide_payment_method']`** come from Settings → Configuration → Storefront. The id is the store fallback, not the method selected for this shopper. Hide is false when no fallback is saved.
+- **Checkout `$defaultBillingMethodId`** is the shopper's own default when that method is visible, else the store fallback when it is visible, else empty. Hide removes the Payment method block only when a method resolved. See `view-data.md` and `page-recipes.md` §10.2.
+
 ## 2026-10-23 — Product photos stay whole; grid cards share a height
 
 - **Default theme:** product photos on the grid card, the list thumbnail, gallery thumbnails, the cart, orders, and proposals use `object-contain`. Grid cells are `h-full` so the square image, two-line title, and bottom price block line up. Logos, flags, and sign-in backgrounds are unchanged.

@@ -3,6 +3,17 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-25" description="Store fallback payment method" tags={["feature", "storefront"]}>
+
+## Storefront — checkout payment method
+
+- **Store default.** Settings → Configuration → Storefront, Checkout, can name a fallback payment method. It is used only when the shopper has no default of their own on the customer, company, or group, and only when that method is allowed for them.
+- **Hide payment method.** When that tick is on and a method could be selected, the bundled checkout does not show the Payment method block. The order still uses the selected method. Another allowed method can still be submitted.
+- **Not allowed.** When the store method is not allowed for a shopper who has no default of their own, the payment list stays on the page. Checkout does not stop.
+- **Themes.** `$store['default_billing_method_id']` and `$store['hide_payment_method']`. See [View data](/advanced/storefront-themes/view-data) and [StorefrontHub settings](/hubs/storefront-hub).
+
+</Update>
+
 <Update label="2026-10-25" description="Auth Hub Google reCAPTCHA providers" tags={["feature", "auth-hub", "storefront"]}>
 
 ## Auth Hub — Google reCAPTCHA v2 and v3
