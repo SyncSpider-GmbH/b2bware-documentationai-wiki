@@ -7,6 +7,11 @@
 This file tracks changes to the **theme authoring contract** (directives, form types, `$store`
 keys, canonical surface, tokens). It is not the platform-wide release log. Dates are UTC.
 
+## 2026-10-23 — Product photos stay whole; grid cards share a height
+
+- **Default theme:** product photos on the grid card, the list thumbnail, gallery thumbnails, the cart, orders, and proposals use `object-contain`. Grid cells are `h-full` so the square image, two-line title, and bottom price block line up. Logos, flags, and sign-in backgrounds are unchanged.
+- **Hard rule:** do not crop a product photo with `object-cover` or with `@storefrontImage`'s `aspect_ratio` argument. Width and height together fit inside the box. Bunny Optimizer must be enabled on the pull zone or the original file is served. The URL helper is unchanged. See `seo-and-images.md` §9.11 and `hard-rules.md` §9.
+
 ## 2026-10-08 — `@storefrontImage` hard rule + desk media + Bunny API notes
 
 - **Hard rule** (also in `hard-rules.md` §9): every catalog / customer `media_url` in an

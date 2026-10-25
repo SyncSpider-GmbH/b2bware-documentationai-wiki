@@ -12,6 +12,15 @@ description: Release history and version updates for the B2Bware DataHub platfor
 
 </Update>
 
+<Update label="2026-10-23" description="Uncropped product photos and equal-height tiles" tags={["improvement", "storefront"]}>
+
+## Storefront themes — product photos and equal-height tiles
+
+- **Default theme.** Product photos on catalog cards, gallery thumbnails, the cart, orders, and proposals show the whole image. Cards in a grid row share a height, so the price and the button line up.
+- **Theme authors.** Product photos use `object-contain` inside a fixed frame. Do not pass `aspect_ratio` to `@storefrontImage` when the photo must stay whole. See [SEO & images](/advanced/storefront-themes/seo-and-images) §9.11 and [Hard rules](/advanced/storefront-themes/hard-rules) §9. Bunny Optimizer must be enabled on the pull zone or the original file is served. The directive's URL shape is unchanged.
+
+</Update>
+
 <Update label="2026-10-23" description="Catalog facets hide empty combinations" tags={["feature", "storefront"]}>
 
 ## Storefront — catalog facets
