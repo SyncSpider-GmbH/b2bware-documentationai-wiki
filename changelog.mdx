@@ -12,6 +12,15 @@ description: Release history and version updates for the B2Bware DataHub platfor
 
 </Update>
 
+<Update label="2026-10-23" description="Catalog facet display types" tags={["feature", "storefront"]}>
+
+## Catalog filters — native display types
+
+- **Attribute setting.** A select, multiselect, radio, or swatch attribute can set `facet_display` to `checkbox`, `searchable_select`, `color_swatch`, or `boolean_icon`. Empty keeps today's checkboxes or radios. See [AttributesHub](/hubs/attributes-hub).
+- **Theme contract.** Each catalog facet now includes `code`, `display`, and `swatches`. `values` is still a list of labels. A translated name does not choose the control. The default theme renders all four, and the in-stock filter uses the same icon while still submitting `in_stock=1`. See [Catalog](/advanced/storefront-themes/catalog).
+
+</Update>
+
 <Update label="2026-10-23" description="Catalog filters by attribute definition" tags={["feature", "storefront"]}>
 
 ## Storefront themes — definition-cell catalog filters
