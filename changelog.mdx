@@ -3,6 +3,16 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-26" description="Rate limit scopes for storefront actions and the embed" tags={["docs"]}>
+
+## Rate limiting
+
+- **Two more scopes documented** — `storefront_action` (10/min per shop customer or browser session) for storefront account actions such as generating, rotating or deleting a catalog export, and `embed` (20/min per IP and installation key) for the Integration Hub embed bootstrap and token refresh.
+- **Bulk scope** — covers bulk, export and import operations on the admin API.
+- **Higher limits** — ceilings are configured per environment; contact support with the scope and the expected request rate. See [Rate Limiting](/core-concepts/rate-limiting).
+
+</Update>
+
 <Update label="2026-10-26" description="Subscription-only products are no longer sold once" tags={["fix", "storefront"]}>
 
 ## SubscriptionHub: subscription-only purchase mode
