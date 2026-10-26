@@ -168,6 +168,7 @@ Never fetch customer orders or account PII through `@fetch` — use these keys.
 | `$rootCategories` | Collection | Navigable root categories with children. Footer and catalog export. Not the mega menu. |
 | `$megaMenuCategories` | Collection | Header mega-menu rows for `category_ui_type === 'mega_menu'`: parents at `mega_menu_depth_start`, each with `children` at the next depth, and `menu_path` (full slug path). Empty in list mode. |
 | `$favoriteIds` | array | Active list product ids; `[]` for guests. Prefer `collect($favoriteIds)->contains(...)`. |
+| `$cartRestrictedProductIds` | array | Product ids (parents and their variants) sold only through a module's own checkout, such as a subscription-only product. The cart refuses them server-side; hide their one-time price, quantity and add-to-cart, and link listing cards to the product page, where the module's slot offers the purchase. Check with `collect($cartRestrictedProductIds)->contains((int) $product->id)`. `[]` when no module restricts anything. |
 | `$canAccessAdmin` / `$adminUrl` | bool / string\|null | Admin hand-off; use `count(...)`. |
 | `$favoritesLists` | array | Lists + `active_list_id`; eager on the favorites page. |
 | `$cartLines` | array | Theme-ready cart line rows (see cart-line-items). |
@@ -301,6 +302,8 @@ Only render the `cart-add` form when `$canAddToCart` is true; otherwise link to 
 ```
 
 This is **UX only** — the server independently enforces the same rule: a guest POST to `store.cart.add.post` while `allow_guest_checkout` is off is redirected to login. You cannot bypass the gate by hand-crafting a request, and you don't need to re-implement that check.
+
+Products in `$cartRestrictedProductIds` (for example, [subscription-only](/hubs/subscription-hub#purchase-modes) products) can never be added to the cart. The bundled button and product card show a **View details** link to the product page for them instead of the `cart-add` form, and the product page hides the one-time price. The server refuses such a cart add even if a theme still renders the form.
 
 ### Configurable products (variants)
 
