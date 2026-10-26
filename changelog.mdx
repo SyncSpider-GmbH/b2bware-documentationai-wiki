@@ -81,6 +81,16 @@ description: Release history and version updates for the B2Bware DataHub platfor
 
 </Update>
 
+<Update label="2026-10-14" description="Shipping and rule amounts in the cart currency" tags={["improvement"]}>
+
+## Multi-currency — shipping, add-ons and rules
+
+- Shipping method prices, table rates and shipping add-ons are configured in the base currency and now charged in the cart or order currency at the configured exchange rate. Before, a non-base cart was charged the base amount unconverted.
+- Cart and catalog price rules compare price thresholds in the base currency and convert fixed discount amounts into the cart or request currency. Rule progress values are reported in the cart currency.
+- Admin and MCP-created orders charge the shipping method in the order currency, also when the shipping method is changed later. See [Shipping, Add-ons and Rule Amounts](/core-concepts/pricing#shipping-add-ons-and-rule-amounts).
+
+</Update>
+
 <Update label="2026-10-12" description="PDF export file names" tags={["feature", "storefront-builder"]}>
 
 ## Storefront Builder — PDF file names
