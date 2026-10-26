@@ -27,14 +27,20 @@ paths:
         - Carts
       summary: Checkout
       description: >-
-        Signed-in storefront customers only. Subscribe to the single line of the
-        caller's own active cart and place the first order.
+        Signed-in storefront customers only. Places the first order of a
+        subscription. With product_id (and optional quantity, default 1) that
+        product is subscribed and the cart is left untouched; this is the only
+        way to subscribe to a subscription_only product, which the cart refuses.
+        Without product_id the single line of the caller's own active cart is
+        subscribed and the cart is consumed.
       requestBody:
         content:
           application/json:
             schema:
               type: object
               example:
+                product_id: 101
+                quantity: 1
                 interval:
                   unit: month
                   count: 1
@@ -636,7 +642,9 @@ paths:
       tags:
         - Subscriptions
       summary: Status Counts
-      description: Number of subscriptions per status. Accepts the same filters as the index except `status`.
+      description: >-
+        Number of subscriptions per status. Accepts the same filters as the
+        index except `status`.
       responses:
         '200':
           description: Successful response

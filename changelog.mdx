@@ -3,6 +3,17 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-26" description="Subscription-only products are no longer sold once" tags={["fix", "storefront"]}>
+
+## SubscriptionHub: subscription-only purchase mode
+
+- **Storefront** — products with purchase mode `subscription_only` no longer show a one-time price, tier prices or **Add to cart**. Product cards link to the product page, where the customer subscribes. `one_time_and_subscription` products are unchanged. See [Purchase modes](/hubs/subscription-hub#purchase-modes).
+- **Cart and checkout** — the cart API, storefront add to cart, bulk add and quick order refuse a subscription-only product with *"This product is only available as a subscription."* (`422`, `"error": "cart_purchase_restricted"`). A cart that already holds one cannot be checked out. Reorder and accepting a proposal under **My account** skip it.
+- **API checkout** — `POST /carts/{cart}/subscription-checkout` accepts an optional `product_id` and `quantity`. The product is subscribed and the cart is left untouched. A repeated request for the same product right after the first one answers `409`, so a double submit never places two orders.
+- **Theme contract** — new view variable `$cartRestrictedProductIds`. See [View data](/advanced/storefront-themes/view-data).
+
+</Update>
+
 <Update label="2026-10-11" description="Required theme README, in-place uploads, section overrides" tags={["feature", "storefront"]}>
 
 ## Storefront themes — required README, in-place uploads, section overrides

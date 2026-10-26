@@ -17,11 +17,28 @@ Subscriptions are created only by a signed-in storefront customer at checkout (p
 
 | Entity | Purpose |
 |---|---|
-| **Product settings** | Per product: enabled flag, purchase mode (`subscription_only`, `one_time_and_subscription`), offered intervals `{unit, count, price, active}`, optional max cycles, price policy (`locked` or `current`). Variants use the setting of their configurable parent. |
+| **Product settings** | Per product: enabled flag, purchase mode (`subscription_only`, `one_time_and_subscription`), offered intervals `{unit, count, price, active}`, optional max cycles, price policy (`locked` or `current`). Variants use the setting of their configurable parent. See [Purchase modes](#purchase-modes). |
 | **Interval units** | Extendable list of units (`day`, `week`, `month`, `year`). A unit used by product settings or live subscriptions cannot be deleted, deactivated or renamed (409). |
 | **Subscriptions** | One per subscribed product. Snapshots interval, price, quantity, addresses and billing / shipping method at checkout. |
 | **History** | Append-only audit log of every lifecycle event (`created`, `renewed`, `renewal_paid`, `paused`, `resumed`, `cancelled`, `ended`, `payment_failed`, `address_updated`, `updated`, `status_changed`). |
 
+### Purchase modes
+
+| Mode | Storefront | Cart and checkout |
+|---|---|---|
+| `one_time_and_subscription` | The one-time price and **Add to cart** stay; the subscription intervals are offered next to them. | The product can be bought once through the cart or subscribed. |
+| `subscription_only` | No one-time price, tier prices or **Add to cart**. Product cards link to the product page, where the customer subscribes. | The product cannot be bought once. The cart API (`POST /carts`, `PUT /carts/{id}`, `PATCH /carts`, `POST /cart-items`) refuses it with **422** and the message *"This product is only available as a subscription."*; the storefront add to cart, bulk add and quick order show the same message. Reorder and accepting a proposal under **My account** skip the product and add the other lines. A cart that already holds the product (for example, added before the mode changed) cannot be checked out (`POST /carts/{cart}/checkout` answers 422). |
+
+The mode applies only while the setting is enabled. A disabled setting, or a product without one, is sold as usual. Variants follow the mode of their configurable parent unless they have their own setting.
+
+Cart refusals share one response shape:
+
+```json
+{
+  "error": "cart_purchase_restricted",
+  "message": "This product is only available as a subscription."
+}
+```
 ### Status lifecycle
 
 | Status | Meaning |
@@ -141,9 +158,30 @@ Signed-in storefront customers only; guests get 401.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/carts/{cart}/subscription-checkout` | Subscribe to the single line of the caller's own active cart and place the first order. |
+| POST | `/carts/{cart}/subscription-checkout` | Subscribe to one product and place the first order. |
 
-The line is copied into a dedicated cart that is checked out, so the customer's regular cart is consumed on success and restored on failure. Coupons and automatic cart price rules do not apply. Only the billing methods the [collection mode](#settings) allows are accepted.
+`{cart}` must be the caller's own active cart. The body decides what is subscribed:
+
+| Mode | Body | Cart |
+|---|---|---|
+| Product | `product_id` (and optional `quantity`, 1–9999, default 1) | Left untouched. This is the only way to subscribe to a `subscription_only` product, because the cart refuses it. |
+| Cart line | no `product_id` | Must hold exactly one product, which is subscribed with its quantity. The cart is consumed on success and restored on failure. |
+
+The other fields are the same in both modes: `interval` (`{unit, count}`), `billing_method_id`, `shipping_method_id`, `billing_address_id`, `shipping_address_id` or `shipping_address_is_same_as_billing`, optional `billing_method` (`redirect_url`, `customer_payment_method_id`, `save_payment_method`, `card_token`) and `comment`.
+
+```json
+{
+  "product_id": 101,
+  "quantity": 1,
+  "interval": { "unit": "month", "count": 1 },
+  "billing_method_id": 3,
+  "shipping_method_id": 2,
+  "billing_address_id": 11,
+  "shipping_address_is_same_as_billing": true
+}
+```
+
+The order is placed from a dedicated cart, so the customer's regular cart is never repriced or checked out itself. Coupons and automatic cart price rules do not apply. Only the billing methods the [collection mode](#settings) allows are accepted.
 
 **201** returns the placed order. With an online billing method it returns the provider's answer instead: `id` (the order id), `payment_url` and `requires_redirect` — send the customer to `payment_url` to pay the first order.
 
@@ -152,8 +190,8 @@ The line is copied into a dedicated cart that is checked out, so the customer's 
 | 401 | Not signed in as a storefront customer. |
 | 403 | The customer's company is blocked. |
 | 404 | The cart is not the caller's own active cart, or an address or saved card does not belong to the customer. |
-| 409 | The cart is already being checked out (double submit). |
-| 422 | Validation failed, the cart does not hold exactly one product, the product has no such active interval, or the collection mode does not allow the billing method. |
+| 409 | Double submit. In cart line mode the cart is already being checked out. In product mode the same customer subscribed the same product a moment ago or is doing so right now; retry after a short wait if a second subscription is really intended. |
+| 422 | Validation failed, the cart does not hold exactly one product (cart line mode), the product has no enabled subscription setting or no such active interval, the product is out of stock, or the collection mode does not allow the billing method. |
 
   </Tab>
   <Tab title="Payment Link" icon="link">
