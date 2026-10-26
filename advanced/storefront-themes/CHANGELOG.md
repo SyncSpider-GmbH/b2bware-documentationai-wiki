@@ -7,6 +7,11 @@
 This file tracks changes to the **theme authoring contract** (directives, form types, `$store`
 keys, canonical surface, tokens). It is not the platform-wide release log. Dates are UTC.
 
+## 2026-10-25 — Store fallback payment method
+
+- **`$store['default_billing_method_id']`** and **`$store['hide_payment_method']`** come from Settings → Configuration → Storefront. The id is the store fallback, not the method selected for this shopper. Hide is false when no fallback is saved.
+- **Checkout `$defaultBillingMethodId`** is the shopper's own default when that method is visible, else the store fallback when it is visible, else empty. Hide removes the Payment method block only when a method resolved. See `view-data.md` and `page-recipes.md` §10.2.
+
 ## 2026-10-25 — Built-in catalog sort orders
 
 - **`$sort`** accepts `price_asc` and `price_desc` on All Products and category listings, plus newest, oldest, and name. Price order uses the product's regular price. See `catalog.md`.
