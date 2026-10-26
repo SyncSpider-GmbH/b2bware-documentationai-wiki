@@ -10,21 +10,23 @@ Traffic is classified into scopes and each scope has its own
 request-per-minute budget **and** its own keying strategy, so one caller can
 never exhaust another caller's budget:
 
-| Scope | Default (req/min) | Keyed by |
+| Scope | Default (req/min) | Counted per |
 |---|---|---|
-| `admin` (authenticated admin API) | **300** | Authenticated user id (IP fallback) |
-| `integration` (machine-to-machine `/apiv1/*` API) | **3000** | Authenticated user id (IP fallback) |
+| `admin` (authenticated admin API) | **300** | Authenticated user (IP fallback) |
+| `integration` (machine-to-machine `/apiv1/*` API) | **3000** | Authenticated user (IP fallback) |
+| `bulk` (bulk / export / import operations) | **60** | Authenticated user (IP fallback) |
 | `storefront` (server-rendered pages) | **120** | Shop customer → session → IP |
+| `storefront_action` (account actions such as catalog export) | **10** | Shop customer → session → IP |
 | `webhook` (payment/provider callbacks) | **120** | Installation key in the URL |
-| `bulk` (export / import / AI ops) | **60** | Authenticated user id (IP fallback) |
+| `embed` (Integration Hub embed bootstrap / refresh) | **20** | IP and installation key |
 | `auth_login` | **30** | IP |
 | `auth_register` | **10** | IP |
 | `password_reset` | **5** | IP |
 | `public` (generic unauthenticated) | **60** | IP |
 
-Ceilings are defined in `config/ratelimits.php` (the single source of truth)
-and every value is env-overridable. See **[Rate Limiting](/core-concepts/rate-limiting)**
-for the full table, the env variables, and the keying rationale.
+Some endpoints carry their own, stricter limit, which applies instead of the
+scope default. See **[Rate Limiting](/core-concepts/rate-limiting)** for what
+each scope covers and how requests are counted.
 
 The window is a sliding 60-second bucket. Crossing a scope's ceiling returns
 `429 Too Many Requests` until that scope's bucket clears.
@@ -108,13 +110,12 @@ Use the bulk variants where they exist — each counts as **one** request regard
 Most server-to-server traffic against the admin API uses the **`admin`** scope
 — 300 req/min is **~5 req/s**. With 4 concurrent workers your safe throughput
 is one request per worker every ~800 ms. Note that **`bulk`** operations
-(export / import / AI) sit on a tighter 60 req/min budget, so batch them rather
+(bulk / export / import) sit on a tighter 60 req/min budget, so batch them rather
 than fanning out. Integration platforms syncing through the legacy `/apiv1/*`
 surface use the far higher **`integration`** scope (3000 req/min, bulk paths
 included) and are unaffected by the admin/bulk ceilings. If you need more
-headroom, raise the relevant `RATELIMIT_*` variable in coordination
-with the DataHub admin — the ceilings are server-configured in
-`config/ratelimits.php`.
+headroom, contact support with the scope and the expected request rate — the
+ceilings are configured per environment.
 
 ## Server-to-Server vs Storefront
 
@@ -127,9 +128,9 @@ operations behind one authenticated identity to keep the budget predictable.
 
 <Callout kind="warning" title="High-volume webhook tenants">
 Payment providers **retry webhooks on a 429**, which can delay order-status
-updates. If a tenant receives a high volume of provider webhooks, raise
-**`RATELIMIT_WEBHOOK`** for that environment so legitimate payment callbacks are
-not throttled.
+updates. If a store receives a very high volume of provider webhooks, contact
+support so the webhook ceiling can be raised and legitimate payment callbacks
+are not throttled.
 </Callout>
 
 ## Common Pitfalls
