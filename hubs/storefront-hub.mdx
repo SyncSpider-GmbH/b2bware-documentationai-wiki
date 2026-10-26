@@ -96,6 +96,17 @@ See also [Hub Settings](/core-concepts/hub-settings).
 
 ## Settings
 
+<Expandable title="checkout — Storefront checkout payment method" default-open="false">
+
+**`storefront_hub.settings.checkout`** — Fallback payment method for the new storefront. Edited under **Settings → Configuration → Storefront**. This is not `tenant_config` and does not change Nexus checkout.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `default_billing_method_id` | number \| null | `null` | Payment method used when the shopper has no visible default on the customer, company, or group, and only when that method is allowed for them. The admin select is labeled with the method name. |
+| `hide_payment_method` | boolean | `false` | Hide the Payment method block on the bundled checkout when a method could be selected. Not saved while `default_billing_method_id` is empty. Another allowed method can still be submitted. |
+
+</Expandable>
+
 <Expandable title="active_theme — Theme pointer" default-open="true">
 
 **`storefronthub.active_theme_id`** — Active theme

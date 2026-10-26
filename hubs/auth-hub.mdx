@@ -13,6 +13,10 @@ AuthHub issues and manages user sessions. It is the entry point for storefront c
 Most endpoints sit behind `auth:api`. The two public flows — `reset-password` and `verify-email` — use the installation key in the URL instead of a bearer token, because the user is not logged in yet.
 </Callout>
 
+<Callout kind="info">
+When CAPTCHA is enabled (see **Settings**), the protected endpoints expect a challenge token alongside the usual payload. Send it as `captcha_token` in the body or as the `X-Captcha-Token` header; a request without a valid token is answered with `422` and a `captcha` validation error. The storefront renders and submits the widget by itself.
+</Callout>
+
 ## Endpoints
 
 <Tabs>
@@ -47,6 +51,44 @@ Used by sales agents to act on behalf of a specific customer (cart, checkout, or
 | POST | `/impersonate/leave` | `auth:api` | Stop impersonating and return to the agent's own session. |
 
   </Tab>
+  <Tab title="CAPTCHA" icon="shield">
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/captcha-config` | public | Provider, site key and the list of protected forms, for a client that renders the widget itself. Reports `enabled: false` while the feature is off. Never returns the secret key. |
+
+  </Tab>
+  <Tab title="Settings" icon="settings">
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/settings/groups/list` | List all settings groups |
+| GET | `/settings` | Get all AuthHub settings |
+| POST | `/settings` | Update AuthHub settings |
+| POST | `/settings/reset` | Reset all to defaults |
+| GET | `/settings/{group}` | Get settings for a group |
+| POST | `/settings/{group}` | Update group settings |
+| POST | `/settings/{group}/reset` | Reset a group to defaults |
+
+### CAPTCHA (`captcha`)
+
+Protects the public endpoints against bot traffic. Admin: **Settings → Configuration → AuthHub**.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enabled` | boolean | `false` | Master switch. While off nothing changes for customers: no widget renders and no verification runs. |
+| `provider` | string | `turnstile` | Widget provider: `turnstile` (default), `recaptcha_v2` (checkbox), or `recaptcha_v3` (score on submit, no checkbox). |
+| `site_key` | string | — | The provider's public key. Rendered in the storefront widget, so it is not a secret. |
+| `secret_key` | string | — | The provider's private key, used only for server-side verification. Stored encrypted and shown masked. |
+| `protected_forms` | string[] | `["register"]` | Which forms carry the challenge: `login`, `register`, `forgot-password`, `reset-password`, `verify-email`, `resend-verification`, `cms-form`. |
+| `fail_open` | boolean | `false` | When our server cannot reach the provider, `false` rejects the submission and `true` accepts it. Does not apply to a failed v3 score or token. A visitor whose browser cannot load the widget is always rejected. |
+| `score_threshold` | number | `0.5` | Minimum reCAPTCHA v3 score (0–1). Used only while `provider` is `recaptcha_v3`; the value is kept when you switch providers. |
+
+<Callout kind="info">
+Both keys come from your own provider account. Leaving either empty keeps the feature inert even with the switch on, and the storefront renders the widget without any theme change — see [Forms](/advanced/storefront-themes/forms).
+</Callout>
+
+  </Tab>
   <Tab title="Account deletion" icon="user-xmark">
 
 GDPR self-service deletion: the customer re-authenticates with their password, confirms with an emailed 6-digit code, and the account is soft-deleted after a grace period (default 14 days). Confirming also revokes every other active session.
@@ -69,9 +111,9 @@ The `deletion_request` payload contains `id`, `status` (`awaiting_confirmation` 
 
 ## App Settings
 
-<Callout kind="info">
-This hub has no FormGenerator App Settings group. See [Hub Settings](/core-concepts/hub-settings) for hubs that do.
-</Callout>
+AuthHub exposes the **`captcha`** group via the Settings endpoints above (Admin: **Settings → Configuration → AuthHub**, or `/admin/settings/apps/auth-hub`). See also [Hub Settings](/core-concepts/hub-settings).
+
+`GET /api/v1/apps/auth-hub/captcha-config` returns `enabled`, `provider`, `site_key`, `script_url`, `token_input`, and `protected_forms`. The secret key and `score_threshold` are never part of that payload. For v3, `script_url` includes `render={siteKey}` and headless clients must call Google's execute API with an action equal to the form key with hyphens replaced by underscores (e.g. `forgot-password` → `forgot_password`), then send the token as `g-recaptcha-response`, `captcha_token`, or `X-Captcha-Token`.
 
 ## Related
 

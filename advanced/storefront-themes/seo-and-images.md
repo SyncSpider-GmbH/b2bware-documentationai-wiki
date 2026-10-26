@@ -72,7 +72,7 @@ The platform appends sizing query params only when the URL host is one of:
 
 Anything else (theme `@themeAsset`, store placeholder, unknown external host, empty string) is returned **unchanged** — so the directive is always safe to wrap. Existing query strings (signed tokens, etc.) are preserved.
 
-On Bunny, sizing only takes effect when **Bunny Optimizer + Dynamic Image API** are enabled on the pull zone; when they are off the CDN ignores the params and serves the original. Desk media always honours `width` / `height` / `quality`.
+On Bunny, sizing only takes effect when **Bunny Optimizer** is enabled on the pull zone. The params are the [Transform API](https://bunny.net/optimizer/transform-api/). When Optimizer is off the CDN ignores them and serves the original. Desk media always honours `width` / `height` / `quality`. The directive cannot turn Optimizer on.
 
 ### What `@storefrontImage` emits (platform subset)
 
@@ -85,7 +85,7 @@ The directive maps to Bunny Optimizer / desk query params:
 | `$quality` | `quality` | Compression `0`–`100` (typical storefront: `80`–`85`) |
 | `$aspectRatio` | `aspect_ratio` | Crop to `W:H` (e.g. `1:1`, `16:9`) **before** resize |
 
-When **both** `width` and `height` are set **without** `aspect_ratio`, Bunny keeps aspect ratio and picks the constraint that yields the smaller image (fit-inside). Prefer **width-only** (pass `null` for height) when the layout must not crop into the subject — category cards often do this.
+When **both** `width` and `height` are set **without** `aspect_ratio`, Bunny keeps the aspect ratio and fits the image inside that box. Do **not** pass `aspect_ratio` for a product photo — that argument crops before resize. A category tile may pass width only (`null` height) for the same reason.
 
 ### Bunny Dynamic Images API — what else is possible
 
@@ -129,25 +129,43 @@ On the **product detail** page prefer the controller's `$galleryImages` payload 
 
 **Gallery rail layout (no custom CSS).** The rail must stay exactly as tall as the main image, however many thumbnails there are. A plain flex sibling can't: its own content height feeds the flex line, so a long rail stretches the row. `components/product-gallery` instead takes the rail out of flow on tablet+ — the figure gets `tablet:relative tablet:pl-24` (only when a rail is rendered) and the rail gets `tablet:absolute tablet:top-0 tablet:bottom-0 tablet:left-0 tablet:w-20`, so the figure's height comes from the main image's `aspect-square` box alone and the rail spans it edge to edge. Inside the rail, the two `h-8` arrows and the `flex-1 min-h-0 overflow-auto` scroll track share that height, so the arrows always sit inside the image's bounds. The arrows are styled as real buttons rather than bare glyphs (`rounded-lg border border-border-subtle bg-neutral-white text-neutral-800`, hover to primary — a border, never a shadow) and take `tablet:w-full` so each one spans the thumbnail column edge to edge; on the phone strip they stay 32px squares. The white fill and `neutral-800` glyph are deliberate literals-via-token so the pair keeps its contrast in dark mode, where the rail sits on a near-black page. The rail is a horizontal strip below the main image on phones (`flex-col-reverse` figure, default `flex-row` rail), where the same two arrow buttons sit **left and right** of the strip: each button ships both glyphs and shows the one matching the current axis (`tablet:hidden` chevron-left/right, `hidden tablet:block` chevron-up/down), and the inline module measures `scrollWidth`/`scrollLeft` below 768px and `scrollHeight`/`scrollTop` above it. Arrow **presence** follows overflow only: once revealed, both arrows stay in the layout and are merely `disabled` + `opacity-40` at the ends. Hiding one at an end (the pattern the header category row uses) would hand its 36px back to the track mid-gesture, and that resize reads as a snap while trackpad-scrolling — the native scroll has to stay fluid, only the arrow clicks animate (`behavior: 'smooth'`).
 
-Recommended sizes per surface (quality 85; square crops unless noted):
+### Product photos stay whole
+
+A product photo uses `object-contain` inside a fixed frame: `aspect-square` on a grid card and the gallery, a fixed width and height on a list row, cart line, order line, and proposal line. Do not use `object-cover` for product media. Logos, language flags, and sign-in backgrounds are not product photos and may still fill their box.
+
+The frame is what keeps a wide photo and a tall photo the same size on the page. `object-contain` leaves empty space inside that frame instead of cutting the product off. `@storefrontImage` asks Bunny or desk for those display pixels. It does not crop unless you pass `aspect_ratio`.
+
+### Equal-height grid cards
+
+List rows are not equal-height cards. A grid card is:
+
+- the `<li>` is `h-full` (on favorites, `flex h-full flex-col`, with anything under the card — such as Remove — left outside the card)
+- the article is `flex h-full flex-1 flex-col`
+- the image link is `aspect-square overflow-hidden`
+- the title is `line-clamp-2 min-h-12`
+- the price and the button sit in a block with `mt-auto`
+
+`flex-1` only matters when the cell is a flex column. On a plain grid cell, `h-full` is what stretches the card so `mt-auto` can pin the price.
+
+Recommended sizes per surface (quality 85). These are fit-inside sizes, not crops:
 
 | Surface                         | Width × Height | Notes |
 | ------------------------------- | -------------- | ----- |
-| Catalog grid card               | 400 × 400      | Or width-only `400, null` to avoid crop |
-| Category / katalog tile         | 320 × null     | Width-only — no square crop |
-| Catalog list-row thumbnail      | 200 × 200      | |
-| Product gallery — main image    | 800 × 800      | |
-| Product gallery — thumbnail     | 150 × 150      | |
-| Cart / checkout line thumbnail  | 160 × 160      | |
-| Order-history line thumbnail    | 80 × 80        | |
+| Catalog grid card               | 400 × 400      | `object-contain` in an `aspect-square` frame |
+| Category tile                   | 320 × null     | Width-only. Category tiles already use `object-contain` |
+| Catalog list-row thumbnail      | 200 × 200      | `object-contain`. The row is not stretched to a shared height |
+| Product gallery — main image    | 800 × 800      | `object-contain` in an `aspect-square` frame |
+| Product gallery — thumbnail     | 150 × 150      | `object-contain` |
+| Cart / checkout line thumbnail  | 160 × 160      | `object-contain` |
+| Order-history line thumbnail    | 80 × 80        | `object-contain` |
 
-Keep the placeholder fallback exactly as before — only the real image `src` is wrapped:
+Only the real image `src` is wrapped. A tenant product placeholder stays unwrapped and still uses `object-contain` so it is not cropped:
 
 ```blade
 @if(data_get($product, 'resolved_main_media.media_url') ?? data_get($product, 'main_media.media_url'))
-    <img src="@storefrontImage(data_get($product, 'resolved_main_media.media_url') ?? data_get($product, 'main_media.media_url'), 400, 400, 85)" alt="{{ $product->name }}" class="w-full h-full object-cover" loading="lazy">
+    <img src="@storefrontImage(data_get($product, 'resolved_main_media.media_url') ?? data_get($product, 'main_media.media_url'), 400, 400, 85)" alt="{{ $product->name }}" class="w-full h-full object-contain" loading="lazy">
 @elseif(!empty($store['product_placeholder']))
-    <img src="{{ $store['product_placeholder'] }}" alt="{{ $product->name }}" class="w-full h-full object-cover" loading="lazy">
+    <img src="{{ $store['product_placeholder'] }}" alt="{{ $product->name }}" class="w-full h-full object-contain" loading="lazy">
 @else
     <img src="@themeAsset('img/placeholder.svg')" alt="{{ $product->name }}" class="w-full h-full object-contain p-6 opacity-40" loading="lazy">
 @endif

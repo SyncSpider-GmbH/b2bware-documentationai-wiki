@@ -177,6 +177,7 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 | `display_options` | sometimes, json |
 | `visible_on_the_product_page` | sometimes, boolean |
 | `used_for_filtering` | sometimes, boolean |
+| `facet_display` | sometimes, nullable string — `checkbox`, `searchable_select`, `color_swatch`, or `boolean_icon`. Allowed only when `type` is `select`, `multiselect`, `radio`, or `swatch`. Empty keeps the storefront default (checkboxes for multiselect, radios otherwise). Does not change which products a selected value matches. |
 | `filterable_with_results` | sometimes, boolean |
 | `use_in_notifications` | sometimes, boolean — exposes the attribute as a template variable in NotificationHub emails |
 | `use_in_checkout` | sometimes, boolean — exposes the attribute on the OrderHub storefront checkout. See [OrderHub → Custom Order Attributes](/hubs/order-hub#checkout). Only takes effect when the parent group has `type='order'`. |
@@ -257,6 +258,7 @@ curl -s -X POST \
     "group_id": 1,
     "visible_on_the_product_page": true,
     "used_for_filtering": true,
+    "facet_display": "searchable_select",
     "filterable_with_results": true,
     "required": false,
     "position": 5

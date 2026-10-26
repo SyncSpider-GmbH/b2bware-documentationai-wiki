@@ -7,6 +7,25 @@
 This file tracks changes to the **theme authoring contract** (directives, form types, `$store`
 keys, canonical surface, tokens). It is not the platform-wide release log. Dates are UTC.
 
+## 2026-10-25 — Store fallback payment method
+
+- **`$store['default_billing_method_id']`** and **`$store['hide_payment_method']`** come from Settings → Configuration → Storefront. The id is the store fallback, not the method selected for this shopper. Hide is false when no fallback is saved.
+- **Checkout `$defaultBillingMethodId`** is the shopper's own default when that method is visible, else the store fallback when it is visible, else empty. Hide removes the Payment method block only when a method resolved. See `view-data.md` and `page-recipes.md` §10.2.
+
+## 2026-10-25 — Built-in catalog sort orders
+
+- **`$sort`** accepts `price_asc` and `price_desc` on All Products and category listings, plus newest, oldest, and name. Price order uses the product's regular price. See `catalog.md`.
+
+## 2026-10-25 — Catalog sort no longer has a relevance option
+
+- **Default theme:** All Products, category listings, and catalog export no longer list a relevance sort. Remove that `<option>` from a theme that copied it.
+- **`$sort`** is the store's default sorting attribute, or `newest` when none is configured, whenever the URL omits `sort` or sends a key the catalog does not accept. An accepted `sort` is echoed as-is. Search uses the same key. See `catalog.md`.
+
+## 2026-10-23 — Product photos stay whole; grid cards share a height
+
+- **Default theme:** product photos on the grid card, the list thumbnail, gallery thumbnails, the cart, orders, and proposals use `object-contain`. Grid cells are `h-full` so the square image, two-line title, and bottom price block line up. Logos, flags, and sign-in backgrounds are unchanged.
+- **Hard rule:** do not crop a product photo with `object-cover` or with `@storefrontImage`'s `aspect_ratio` argument. Width and height together fit inside the box. Bunny Optimizer must be enabled on the pull zone or the original file is served. The URL helper is unchanged. See `seo-and-images.md` §9.11 and `hard-rules.md` §9.
+
 ## 2026-10-08 — `@storefrontImage` hard rule + desk media + Bunny API notes
 
 - **Hard rule** (also in `hard-rules.md` §9): every catalog / customer `media_url` in an
