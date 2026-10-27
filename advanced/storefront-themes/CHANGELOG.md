@@ -7,6 +7,17 @@
 This file tracks changes to the **theme authoring contract** (directives, form types, `$store`
 keys, canonical surface, tokens). It is not the platform-wide release log. Dates are UTC.
 
+## 2026-10-27 — Quieter impersonation banner
+
+- **Default theme:** the impersonation bar uses the page surface, body text, and outline actions. It no longer uses the warning fill. See `partials/impersonation-banner.blade.php`.
+- **Default theme:** customer selection keeps the search field and **Continue as selected user** in place. Results scroll inside a fixed-height pane, so a new search does not move the form.
+
+## 2026-10-26 — Sales agent company search
+
+- **Customer selection** opens on company search. `$searchMode` is `company` or `user`. `$companies` is the company-step paginator (empty on the user step and the drill-in). `$selectedCompany` is set while drilling into one company. `$customers` is the user list for user mode and the drill-in. On the company step it is still the flat people list for `q`, so an override that only loops `$customers` keeps showing people.
+- **Company row:** `id`, `name`, `company_number`, `email`, `user_count`, and `user` (one eligible user, or null). One user submits that `customer_id`. Several users link to `?company={id}`.
+- **Form** is unchanged: `customer-selection` posts `customer_id` and optional `redirect`. A copied `pages/customer-selection.blade.php` does not pick up the company layout until that file is updated. See `page-recipes.md` §10.4.
+
 ## 2026-10-25 — Store fallback payment method
 
 - **`$store['default_billing_method_id']`** and **`$store['hide_payment_method']`** come from Settings → Configuration → Storefront. The id is the store fallback, not the method selected for this shopper. Hide is false when no fallback is saved.

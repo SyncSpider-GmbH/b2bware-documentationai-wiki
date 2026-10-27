@@ -73,9 +73,27 @@ View data: `$order` (object or null), `$orderId` (string), `$orderItems` (Collec
 
 ### 10.4 `pages/customer-selection.blade.php`
 
-Agent/impersonation flow: renders the `customer-selection` form (fields `customer_id`, optional
-`redirect`). Only reached when the visitor is an agent; pairs with the impersonation banner
-(`$isImpersonating`, §9.6) and the `impersonation-leave` form.
+Sales agents pick who to order for. The page opens on company search. A Company / User
+switch on the same page changes the search. The `customer-selection` form still posts
+`customer_id` and optional `redirect` to `store.customer-selection.post`. There is no company session.
+
+Query string: `mode` (`company` by default, or `user`), `q`, `company` (drill into one company's
+users), and `redirect`. Switching mode drops `company` and keeps `q` and `redirect`.
+
+View data, in addition to `$agent`, `$selectedCustomer`, `$isImpersonating`, `$redirectTo`, and `$search`:
+
+| Key | Meaning |
+|-----|---------|
+| `$searchMode` | `company` or `user`. |
+| `$companies` | Paginator of company rows on the company search step. Empty on the user step and the drill-in. |
+| `$selectedCompany` | The company being drilled into, or null. |
+| `$customers` | Users for user mode and for the company drill-in. On the company search step, still the flat user list that matches `q` (including a company-name match), so a theme that overrides this page and only loops `$customers` keeps showing people. |
+
+A company row has `id`, `name`, `company_number`, `email`, `user_count`, and `user`. `user` is the one eligible person (`id`, `name`, `email`, `customer_number`) or null when the company has several. One user submits that `customer_id`. Several users link to `?company={id}` so the agent picks one.
+
+An eligible user has role type `user`, is not the agent, and is not blocked by an inactive company. A company with no eligible user is omitted. An inactive company is omitted. An agent with a `company_id` only sees that company. A global agent sees every eligible company. Users with no company stay in user search for a global agent.
+
+Override sections stay `customer-selection.search` and `customer-selection.list`. A theme that replaces the whole `pages/customer-selection.blade.php` keeps the people list from `$customers` until that copy is updated. Pairs with the impersonation banner (`$isImpersonating`, §9.6) and the `impersonation-leave` form.
 
 ### 10.5 Account pages (`pages/account/*`)
 
