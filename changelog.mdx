@@ -3,6 +3,17 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-26" description="Sales agents can search a company before choosing a user" tags={["feature", "storefront"]}>
+
+## Storefront — company search for sales agents
+
+- **Company first.** The customer-selection page opens on company search (name, company number, email, or VAT number). Each row is a company. A company with one person who can sign in shows that person's name, and continue shops as that person. A company with several people opens that list so the agent picks one.
+- **User search.** A switch on the same page searches people by name, email, or customer number, and the row shows the company name.
+- **Who is listed.** A company with nobody who can sign in is hidden. An inactive company is hidden. An agent tied to one company only sees that company.
+- **Themes.** The form still posts `customer_id`. New view data: `$searchMode`, `$companies`, `$selectedCompany`. A theme that replaces `pages/customer-selection.blade.php` keeps listing people from `$customers` until that file is updated. See [Page recipes](/advanced/storefront-themes/page-recipes) §10.4.
+
+</Update>
+
 <Update label="2026-10-26" description="Rate limit scopes for storefront actions and the embed" tags={["docs"]}>
 
 ## Rate limiting
