@@ -7,6 +7,11 @@
 This file tracks changes to the **theme authoring contract** (directives, form types, `$store`
 keys, canonical surface, tokens). It is not the platform-wide release log. Dates are UTC.
 
+## 2026-10-27 — Quieter impersonation banner
+
+- **Default theme:** the impersonation bar uses the page surface, body text, and outline actions. It no longer uses the warning fill. See `partials/impersonation-banner.blade.php`.
+- **Default theme:** customer selection keeps the search field and **Continue as selected user** in place. Results scroll inside a fixed-height pane, so a new search does not move the form.
+
 ## 2026-10-26 — Sales agent company search
 
 - **Customer selection** opens on company search. `$searchMode` is `company` or `user`. `$companies` is the company-step paginator (empty on the user step and the drill-in). `$selectedCompany` is set while drilling into one company. `$customers` is the user list for user mode and the drill-in. On the company step it is still the flat people list for `q`, so an override that only loops `$customers` keeps showing people.
