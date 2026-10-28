@@ -28,7 +28,7 @@ Most of these flags also carry a **server-side safety net** (a 404, a rejected f
 | `$canSeePrices`   | bool    | Whether prices may be shown to the current visitor.                                              |
 | `$canAddToCart`   | bool    | Whether the current visitor may put items in the cart.                                           |
 | `$cartLines`      | array   | Theme-ready cart line rows (image_url, name, sku, slug, unit_label, quantity, min/max_quantity, unit_price, original_price, has_discount, applied_catalog_rules, line_total, manage_stock, stock_quantity, stock_availability, delivery_date, attribute_collections, **plus net/gross**: unit_price_excl/incl, original_price_excl/incl, line_total_excl/incl, tax_rate, has_tax). Consumed by `cart-line-items`; refreshes on AJAX. |
-| `$freeDelivery`   | array/null | Nearest free-shipping threshold for the "X away from free delivery" banner (`remaining`, `target`, `current`, `met`, `is_currency`), or `null` when no such rule applies. Consumed by `cart-summary`. |
+| `$freeDelivery`   | array/null | Nearest free-shipping threshold (`remaining`, `target`, `current`, `met`, `is_currency`), or `null` when no such rule applies. Still passed to `cart-summary`. The default theme does not render it; free-shipping progress is the cart Rewards bar. |
 | `$store`          | array   | Store identity **and** capability flags (name, logo, support contacts, guest / registration / coupon / price rules) — read with `$store['key']`. Mirrors Shopify's `shop` object; see the keys table below. The **single** source for store info & flags. |
 | `$passwordRequirements` | array | Human-readable, config-driven password requirement strings (e.g. `"At least 8 characters"`, `"One uppercase letter"`) that mirror the server-enforced rules. Render as a checklist on the register / reset-password forms (wrap each in `@t(...)`). May be empty; guard with `@if(count($passwordRequirements))` (lazy proxies are objects — do not use `empty()`). |
 | `$passwordRules` | array | Structured variant of the same requirements for **live** client-side validation: each entry is `['rule' => 'min'|'uppercase'|'lowercase'|'number'|'special', 'label' => string, 'length' => int (min rule only)]`. Render each `<li>` with `data-password-rule="{{ $rule['rule'] }}"` (+ `data-min` for `min`) inside a `<ul data-password-checklist="<password-input-id>">`, then a small inline `<script type="module">` toggles `data-met` as the visitor types (see register / reset-password). Mirrors the server-enforced rules exactly. |
@@ -171,7 +171,7 @@ Never fetch customer orders or account PII through `@fetch` — use these keys.
 | `$canAccessAdmin` / `$adminUrl` | bool / string\|null | Admin hand-off; use `count(...)`. |
 | `$favoritesLists` | array | Lists + `active_list_id`; eager on the favorites page. |
 | `$cartLines` | array | Theme-ready cart line rows (see cart-line-items). |
-| `$freeDelivery` | array\|null | Free-shipping threshold banner payload. |
+| `$freeDelivery` | array\|null | Nearest free-shipping threshold. Still passed to `cart-summary`. The default theme shows that progress in cart Rewards instead. |
 | `$cartProgress` | array | RuleHub reward progress; eager on the cart page. |
 | `$passwordRequirements` / `$passwordRules` | array | Auth-form checklist data; eager on register. |
 | `$companyRequiredFields` | array&lt;string,bool&gt; | Company field required map; eager on register. |
@@ -504,7 +504,7 @@ Rendering rules:
 - Format `current_value` / `target_value` / `remaining` with `formatCurrency(...)` when `attribute` is a money field (`subtotal_price`, `total_price`, `price`), otherwise `formatNumber(...)`.
 - `t()` has **no interpolation** (§9.1) — build dynamic phrases from translatable fragments (`@t('Add') {value} @t('to unlock')`), never `t('Add :amount …', [...])`.
 
-The bundled `default` theme ships this as `partials/cart-rewards.blade.php`, included from `pages/cart.blade.php`:
+The bundled `default` theme ships this as `partials/cart-rewards.blade.php`, included from `pages/cart.blade.php` only. A free-shipping rule (`free_shipping` other than `no`, or `action_type` `free_shipping`) is one of these bars when it is not blocked and `show_progress_bar` is not false. Checkout does not render Rewards. The default `cart-summary` does not repeat that progress.
 
 ```blade
 @foreach($cartProgress as $reward)

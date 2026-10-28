@@ -3,6 +3,16 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-28" description="Free-shipping rules show a progress bar" tags={["fix", "storefront"]}>
+
+## Storefront — free-shipping progress
+
+- **Rewards.** A free-shipping cart price rule with its progress bar turned on appears in Rewards on the cart. The bar fills toward that rule’s threshold. A rule that only grants free shipping is labeled Free delivery. Checkout does not show Rewards.
+- **Cart summary.** Proceed to checkout is not followed by a second free-delivery note. `$freeDelivery` is still available on `cart-summary` for a theme that wants the old text.
+- **Themes.** `cart-rewards` is on `pages/cart.blade.php` only. See [View data](/advanced/storefront-themes/view-data).
+
+</Update>
+
 <Update label="2026-10-26" description="Sales agents can search a company before choosing a user" tags={["feature", "storefront"]}>
 
 ## Storefront — company search for sales agents
