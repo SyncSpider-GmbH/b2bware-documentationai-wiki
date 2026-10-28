@@ -89,6 +89,9 @@ inherits the cart's
 `currency_code`. Carts created before multi-currency support count as
 base-currency carts. See
 [Currency Negotiation](/core-concepts/common-patterns#currency-negotiation).
+Shipping method and add-on prices are configured in the base currency and
+charged in the cart or order currency — see
+[Shipping, Add-ons and Rule Amounts](/core-concepts/pricing#shipping-add-ons-and-rule-amounts).
 
 **Cart Items**
 
@@ -466,6 +469,8 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 Same rules apply to `POST /carts`, `PUT /carts/{id}` and `PATCH /carts` (upsert).
 `PATCH /carts` additionally requires a `session_uuid` (either in the body or in the `session_uuid` request header) — otherwise the request is rejected with `422`. Quantities sent to the upsert endpoint are **added** to an existing matching cart item rather than replacing it.
 
+A product that is sold only through a module's own checkout, such as a [subscription-only](/hubs/subscription-hub#purchase-modes) product, is refused by these endpoints and by `POST /cart-items` with `422` (`"error": "cart_purchase_restricted"` and a `message`). Nothing is written.
+
 | Field | Rules |
 |-------|-------|
 | `id` | prohibited on update / upsert |
@@ -497,6 +502,8 @@ Same rules apply to `POST /carts`, `PUT /carts/{id}` and `PATCH /carts` (upsert)
 | `attributes.*.attribute_id` | required, numeric — must reference an Attribute with `group.type='order'` AND `use_in_checkout=true` |
 | `attributes.*.value` | mixed — value to persist (text/number/select id or label) |
 | `attributes.*.auto_create_value` | boolean, optional — for select/multiselect, creates the option label on the fly |
+
+A cart that holds a product sold only through a module's own checkout (for example, one that became [subscription-only](/hubs/subscription-hub#purchase-modes) after it was added) is not checked out: `POST /carts/{cart}/checkout` answers `422` with `"error": "cart_purchase_restricted"`, and the cart stays active. Remove the line and check out again.
 
 **Custom Order Attributes (AttributesHub)**
 

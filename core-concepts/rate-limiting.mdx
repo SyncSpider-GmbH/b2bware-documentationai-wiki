@@ -1,89 +1,65 @@
 ---
 title: Rate Limiting
-description: Per-scope API rate limits, keying strategy, default ceilings, env overrides, and 429 behaviour for the DataHub API.
+description: Per-scope API rate limits, default ceilings, how each scope is counted, and 429 behaviour for the DataHub API.
 ---
 
 The DataHub API applies **per-scope** rate limits. Traffic is classified into
 scopes (admin, integration, storefront, webhook, auth, bulk, public) and each
-scope has its own request-per-minute ceiling and its own **keying strategy**, so
-unrelated tenants and users never share a single rate-limit bucket.
+scope has its own request-per-minute ceiling and its own way of counting
+requests, so unrelated tenants and users never share a single rate-limit bucket.
 
-All ceilings are defined once in `config/ratelimits.php` (the single source of
-truth) and are env-overridable, so limits can be tuned per environment without
-a code change.
+## Scopes
 
-## Scopes & Limiters
+Defaults are requests **per minute**.
 
-| Scope | Limiter | Applies to | Keyed by |
-|-------|---------|------------|----------|
-| `admin` | `rl_admin` | Authenticated admin API (`/api/v1/apps/*`) | Authenticated **user id** (falls back to IP, at the `public` ceiling, when unauthenticated) |
-| `integration` | `rl_integration` | Machine-to-machine integration API (`/apiv1/*`, excluding `/apiv1/internal/apps/*`) — the surface integration platforms (e.g. SyncSpider) use to sync datasets | Authenticated **user id** (falls back to IP, at the `public` ceiling, when unauthenticated) |
-| `storefront` | `rl_storefront` | Server-rendered storefront pages | Shop **customer** → browser **session** → IP |
-| `webhook` | `rl_webhook` | Public payment/provider webhooks (`/api/v1/webhooks`, routes carrying an `installationKey`) | **Installation key** in the URL (IP fallback) |
-| `bulk` | `rl_bulk` | Expensive bulk / export / import / AI operations | Authenticated **user id** (IP fallback) |
-| `auth_login` | `rl_auth_login` | Unauthenticated login | **IP** |
-| `auth_register` | `rl_auth_register` | Unauthenticated registration | **IP** |
-| `password_reset` | `rl_password_reset` | Unauthenticated password reset / forgot-password | **IP** |
-| `public` | — | Generic public (unauthenticated) endpoints | **IP** |
+| Scope | Applies to | Default | Counted per |
+|-------|------------|---------|-------------|
+| `admin` | Authenticated admin API (`/api/v1/apps/*`) | `300` | Authenticated **user** (unauthenticated requests: per IP, at the `public` ceiling) |
+| `integration` | Machine-to-machine integration API (`/apiv1/*`, excluding `/apiv1/internal/apps/*`) used by integration platforms to sync datasets | `3000` | Authenticated **user** (unauthenticated requests: per IP, at the `public` ceiling) |
+| `bulk` | Bulk, export and import operations on the admin API (paths with a `bulk`, `export` or `import` segment) | `60` | Authenticated **user** (IP fallback) |
+| `storefront` | Server-rendered storefront pages | `120` | Shop **customer** → browser **session** → IP |
+| `storefront_action` | Storefront account actions such as generating, rotating or deleting a catalog export | `10` | Shop **customer** → browser **session** → IP |
+| `webhook` | Public payment / provider webhooks (`/api/v1/webhooks`, routes carrying an installation key) | `120` | **Installation key** in the URL (IP fallback) |
+| `embed` | Integration Hub embed bootstrap and token refresh | `20` | IP **and** installation key |
+| `auth_login` | Unauthenticated login | `30` | IP |
+| `auth_register` | Unauthenticated registration | `10` | IP |
+| `password_reset` | Forgot-password and password reset | `5` | IP |
+| `public` | Generic public (unauthenticated) endpoints | `60` | IP |
 
-## Keying Strategy
+## How Requests Are Counted
 
-The bucket key is chosen per scope so that one caller cannot exhaust the budget
-for unrelated callers:
+Each scope counts requests so that one caller cannot exhaust the budget of
+unrelated callers:
 
-- **Authenticated scopes** (`admin`, `integration`, `bulk`) are keyed by the
-  **authenticated user id**. A shared office or VPN IP therefore does not
-  throttle a whole team — each user gets their own budget. When a request
-  reaches the admin or integration scope unauthenticated, it falls back to
-  being keyed by IP at the lower `public` ceiling.
-- **Unauthenticated auth scopes** (`auth_login`, `auth_register`,
-  `password_reset`) are keyed by **IP**. There is no identity yet, and IP is the
-  brute-force surface these tighter limits are designed to protect.
-- **Webhooks** are keyed by the **installation key** in the URL, so one payment
-  provider's shared IP cannot starve other tenants' webhook delivery.
-- **Storefront** traffic is keyed by the shop customer when logged in, otherwise
-  the browser session, falling back to IP — so one shopper (or one anonymous
-  browser) behind a shared NAT cannot exhaust everyone else's page budget.
+- **Authenticated scopes** (`admin`, `integration`, `bulk`) count per
+  **authenticated user**. A shared office or VPN IP therefore does not
+  throttle a whole team — each user gets their own budget.
+- **Auth scopes** (`auth_login`, `auth_register`, `password_reset`) count per
+  **IP**, because there is no identity yet.
+- **Webhooks** count per **installation key** in the URL, so one payment
+  provider calling many stores never starves another store's webhooks.
+- **Storefront** scopes count per signed-in customer, otherwise per browser
+  session, so shoppers behind one shared network do not share a budget.
 
-<Callout kind="info" title="Inline limits win">
-Routes that declare their own `throttle:` middleware keep it — an explicit,
-usually stricter, inline limit always takes precedence over the per-scope
-default. Immutable static storefront assets (`assets/*`) are excluded from the
-per-session page budget so a single page load cannot 429 its own assets.
+<Callout kind="info" title="Endpoint limits win">
+Some endpoints declare their own, usually stricter, limit (for example theme
+uploads, custom-domain verification, or storefront cart and checkout actions).
+That limit applies instead of the scope default. Static storefront assets
+(`assets/*`) are not counted against the page budget, so a page load cannot
+throttle its own assets.
 </Callout>
 
 <Callout kind="info" title="Integration traffic has its own budget">
-The legacy `/apiv1/*` surface is machine-to-machine traffic: integration
-platforms sync whole datasets through it, often at a rate no human admin would
-ever produce. It therefore has its own high-ceiling `integration` scope — bulk
-paths under it included — so a running sync never competes with (or gets
-throttled like) the human admin UI. Custom app packages under
-`/apiv1/internal/apps/*` serve admin UIs and end consumers, not dataset syncs,
-so they keep the standard admin/bulk classification.
+The `/apiv1/*` surface is machine-to-machine traffic: integration platforms
+sync whole datasets through it, often at a rate no human admin would ever
+produce. It therefore has its own high-ceiling `integration` scope — bulk
+paths under it included — so a running sync never competes with the admin UI.
+Custom app packages under `/apiv1/internal/apps/*` serve admin UIs, so they
+keep the admin / bulk classification.
 </Callout>
 
-## Default Ceilings & Env Overrides
-
-Defaults are requests **per minute**. Override any value via the environment
-variable and restart the app to apply.
-
-| Scope | Env variable | Default (req/min) |
-|-------|--------------|-------------------|
-| `admin` | `RATELIMIT_ADMIN` | `300` |
-| `integration` | `RATELIMIT_INTEGRATION` | `3000` |
-| `storefront` | `RATELIMIT_STOREFRONT` | `120` |
-| `webhook` | `RATELIMIT_WEBHOOK` | `120` |
-| `auth_login` | `RATELIMIT_AUTH_LOGIN` | `30` |
-| `auth_register` | `RATELIMIT_AUTH_REGISTER` | `10` |
-| `password_reset` | `RATELIMIT_PASSWORD_RESET` | `5` |
-| `bulk` | `RATELIMIT_BULK` | `60` |
-| `public` | `RATELIMIT_PUBLIC` | `60` |
-
-```bash
-# .env — raise the admin ceiling and relax webhook throttling
-RATELIMIT_ADMIN=600
-RATELIMIT_WEBHOOK=300
-```
+Ceilings are configured per environment. If an integration genuinely needs
+more headroom, contact support with the scope and the expected request rate.
 
 ## 429 Behaviour
 
@@ -112,17 +88,16 @@ off gracefully:
     Use exponential backoff with jitter for bulk and import workflows, and
     stay under the `bulk` ceiling by batching requests.
   </Step>
-  <Step title="Key by identity, not IP">
-    Authenticate requests so admin/bulk traffic is keyed by your user id rather
-    than sharing an IP bucket with the rest of your team.
+  <Step title="Authenticate every request">
+    Authenticated admin and bulk traffic is counted per user, so it does not
+    share an IP budget with the rest of your team.
   </Step>
 </Steps>
 
 <Callout kind="warning" title="High-volume webhook tenants">
 Payment providers **retry webhooks on a 429**, and repeated throttling can delay
-order-status updates for your customers. If a tenant receives a high volume of
-provider webhooks, raise **`RATELIMIT_WEBHOOK`** for that environment so
-legitimate payment callbacks are not throttled.
+order-status updates for your customers. If a store receives a very high volume
+of provider webhooks, contact support so the webhook ceiling can be raised.
 </Callout>
 
 For a detailed backoff loop, request-volume audit, and common pitfalls, see the
