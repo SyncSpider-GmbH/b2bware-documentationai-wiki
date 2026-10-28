@@ -13,13 +13,28 @@ The catalog pages — `products.blade.php` (the All Products index) and `categor
 | --------------------- | --------------- | ------------------------------------------------------------------------------------------------------- |
 | `$products`           | LengthAwarePaginator | The product result set (already filtered / sorted / paginated). Use `->total()`, `->firstItem()`, `->lastItem()`, and iterate for cards. Present only when `$showProducts` is true (otherwise `null`). |
 | `$filters`            | array           | `['q' => '<search>']` — the active free-text query (echoed from the header search).                     |
-| `$sort`               | string          | The active sort key. When the URL has no `sort`, this is the store's default sorting attribute (`<attribute_code>` or `-<attribute_code>`) or `'relevance'`. An explicit `sort` query, including `relevance`, is echoed as-is. |
-| `$sortOptions`        | array           | **Dynamic** sort entries `['key' => '<attribute_code>'|'-<attribute_code>', 'label' => '<name> ↑/↓']` from attributes flagged `use_for_sorting`. Append them after the five native options. |
+| `$sort`               | string          | The active sort key, and the value to mark selected. When the URL has no `sort`, or sends a key the catalog does not accept, this is the store's default sorting attribute (`<attribute_code>` or `-<attribute_code>`) or `'newest'`. An accepted `sort` query is echoed as-is. Search uses the same key. |
+| `$sortOptions`        | array           | **Dynamic** sort entries `['key' => '<attribute_code>'|'-<attribute_code>', 'label' => '<name> ↑/↓']` from attributes flagged `use_for_sorting`. Append them after the native options (newest, oldest, price low to high, price high to low, name A–Z, name Z–A). |
 | `$view`              | string          | `'grid'` or `'list'` — the active listing layout.                                                       |
-| `$facets`             | Collection      | **Contextual** facets. See **Definition facets** below. Attribute rows: `kind=attribute`, `id` (int), `name`, `multiple`, `values` (member labels). Definition rows: `kind=definition`, string `id` `"<attribute_id>:<definition name>"`, `attribute_id`, `definition_name`, `definition_type`, `name`, `multiple` true, `values` (cells). No counts. Empty when the tenant has no filterable attributes. |
+| `$facets`             | Collection      | **Contextual** facets. See **Definition facets** and **Attribute facet display** below. Attribute rows include `code`, `display`, `swatches`, and `counts` (`<label>` => product count). `values` lists only labels that match at least one product in the current context (search, category, the other selected attributes, and — when those filters are active — the price range and "In stock only"). A zero count is omitted. Empty when the tenant has no filterable attributes. |
 | `$categoryFacet`      | Collection      | Category facet rows `['id', 'name', 'slug', 'url', 'count', 'active']`. On the index these are the root categories; on a leaf they are the current category + siblings. `count` is descendant-aware; `url` is ready for `@routeUrl('store.category', ['slug' => …])`. |
-| `$selectedAttributes` | array           | Map of `attribute_id => [selected value strings]` — use to mark attribute-facet radios or checkboxes `@checked(...)`. Select and radio hold one value; multiselect may hold several. |
+| `$selectedAttributes` | array           | Map of `attribute_id => [selected value strings]` — use to mark attribute-facet radios or checkboxes `@checked(...)`. Select, radio, and swatch hold one value; multiselect may hold several. |
 | `$selectedDefinitions` | array          | Map of `attribute_id => [definition name => [cell, …]]` — use to mark definition-facet checkboxes. Empty when none are selected. |
+
+Facet attributes are product attributes flagged for filtering whose type is `select`, `multiselect`, `radio`, or `swatch`.
+
+Each attribute `$facets` row (`kind=attribute`, or a missing `kind`):
+
+| Key | Meaning |
+| --- | --- |
+| `id` | Attribute id. Use it in `attr[<id>]`. |
+| `code` | `attribute_code`. Stable when the display name or its translation changes. |
+| `name` | Translated display name. |
+| `multiple` | True only for multiselect. Select, radio, and swatch are single-value. This does not follow `display`. |
+| `display` | `null`, or one of `checkbox`, `searchable_select`, `color_swatch`, `boolean_icon`. `null` means checkboxes when `multiple` is true and radios otherwise. The merchant sets this on the attribute; do not choose a control from `name`. |
+| `values` | List of translated labels. Each label is the submitted value. |
+| `swatches` | Map of label to a safe color (`#rgb`, `#rrggbb`, `#rrggbbaa`, or numeric `rgb()` / `rgba()`). Empty when the option has no usable `swatch_value`. Paint a chip only for `color_swatch`. |
+| `counts` | Map of label to how many products that value would leave. A zero count is omitted, and that label is not in `values`. |
 | `$priceFilterEnabled` | bool            | Whether to show the price filter (true when prices are visible to the viewer).                          |
 | `$priceBounds`        | array/null      | `['min', 'max']` slider bounds from real catalog prices, or `null` (fall back to plain number inputs).  |
 | `$priceSelected`      | array           | `['min' => float|null, 'max' => float|null]` — the active price range.                                  |
@@ -52,7 +67,7 @@ Catalog filters are **plain `GET` forms** — never `@storefrontForm` (no route 
 | Param            | Shape                                  | Notes                                                                       |
 | ---------------- | -------------------------------------- | --------------------------------------------------------------------------- |
 | `q`              | string                                 | Free-text search (set by the header search form).                           |
-| `sort`           | `relevance\|newest\|oldest\|name_asc\|name_desc\|<attribute_code>\|-<attribute_code>` | Native keys + any `$sortOptions` key. Unknown keys fall back to natural order. Omitted `sort` applies the store's default sorting attribute in its configured direction when one is set; a present `sort` always wins. |
+| `sort`           | `newest\|oldest\|name_asc\|name_desc\|price_asc\|price_desc\|<attribute_code>\|-<attribute_code>` | Native keys + any `$sortOptions` key. Render `price_asc` and `price_desc` only when `$canSeePrices` is true; a visitor who cannot see prices is not sorted by price. Price order uses the product's regular price. An unknown key is treated as omitted. Omitted `sort` applies the store's default, or `newest` when none is configured. A present, accepted `sort` always wins. |
 | `attr[<id>]` / `attr[<id>][]` | scalar or repeated              | Selected attribute-value labels. Select and radio submit one `attr[<id>]` value. Multiselect repeats `attr[<id>][]`. A repeated list on a single-select attribute is collapsed to its first value. Do not use this for a facet whose `kind` is `definition`. |
 | `attr_def[<id>][<definition name>][]` | repeated | Selected definition cells. OR within one definition, AND across definitions on the same attribute, OR with `attr` on that attribute, AND across attributes. Unknown names and non-discrete definitions are ignored. Persist them with hidden inputs the same way as `attr`. |
 | `price_min` / `price_max` | number                        | Price range (only honored when `$priceFilterEnabled`).                      |
@@ -60,7 +75,9 @@ Catalog filters are **plain `GET` forms** — never `@storefrontForm` (no route 
 | `view`           | `grid\|list`                           | Listing layout. Submit it as a button `name="view"` so it preserves filters. |
 | `page`           | int                                    | Pagination (the windowed `components/pagination` keeps the rest of the query). |
 
-The bundled default theme renders select and radio facets as radios and multiselect facets as checkboxes. Definition facets are always checkboxes named `attr_def[<attribute_id>][<definition name>][]`. It submits either control immediately and debounces price input by 400 ms. Its clear action appears at the top of the filter card and again beside the applied-filter chips. A submit button is rendered only as a no-JavaScript fallback.
+The bundled default theme reads `display` on attribute facets and shows `counts` beside each attribute label. Definition facets are always checkboxes named `attr_def[<attribute_id>][<definition name>][]`. It submits either control immediately and debounces price input by 400 ms. The in-stock filter stays `in_stock=1` and uses the same icon chip. Its clear action appears at the top of the filter card and again beside the applied-filter chips. A submit button is rendered only as a no-JavaScript fallback.
+
+A catalog URL whose attribute combination matches nothing stays on that URL and shows an empty grid. The applied-filter chips stay, so the shopper can remove one constraint. The theme does not offer that empty combination as a new radio or checkbox. A theme that only prints `values` already hides those labels; read `counts` to show the number.
 
 ### Definition facets
 
@@ -78,6 +95,16 @@ When a filterable attribute has at least one discrete definition (`select`, `mul
 | `values` | Definition cells present on products in the current result set. |
 
 Checked state is `$selectedDefinitions[$facet['attribute_id']][$facet['definition_name']]`. A theme that still submits `attr[<facet id>]` for these rows sends the cell as a member label and the filter misses.
+
+### Attribute facet display
+
+| `display` | Control |
+| --- | --- |
+| `null` | Checkboxes when `multiple` is true, otherwise radios. |
+| `checkbox` | Checkboxes. A single-value attribute still posts one `attr[<id>]` value. |
+| `searchable_select` | The same radios or checkboxes, with a search box that only hides options in the browser. The box has no `name`, so it is not submitted. |
+| `color_swatch` | The same radios or checkboxes, plus a color chip from `swatches`. A missing color is a neutral chip and the label. |
+| `boolean_icon` | One generic icon chip per value. The underlying radio or checkbox still submits the label. A custom theme can pick a different glyph from `code` and the value. |
 
 ### Applied filters (`$activeFilters`)
 

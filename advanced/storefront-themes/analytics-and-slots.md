@@ -103,7 +103,7 @@ A **slot** is a named region the core theme exposes via `@storefrontSlot('key')`
 1. **Module contributions** — shipped by **optional platform modules** rather than the core storefront (for example, a module that maps a customer-specific SKU to each product). The theme doesn't hard-code any module; each installed module fills the slots it cares about.
 2. **Owner-authored content** — CMS content a shop manager assigns to the slot key in the admin block builder, resolved for the current tenant + locale.
 
-You don't create or wire slots; the core theme already places them. With no module installed and no content assigned, a slot renders **nothing**, so it can sit in the markup unconditionally.
+You don't create or wire slots; the core theme already places them. A normal slot with no module installed and no content assigned renders **nothing**, so it can sit in the markup unconditionally. A paired default slot instead renders the Blade enclosed by `@startStorefrontSlot` / `@endStorefrontSlot` until owner-authored content replaces it.
 
 ### What you get for free
 
@@ -129,7 +129,8 @@ Besides module contributions, a slot also renders any CMS content a shop manager
 
 - `content-top` / `content-bottom` — the standard top-of-content and bottom-of-content regions on **every** editable page: catalog (`products`, `product`, `categories`, `category`), `cart`, `checkout`, `favorites`, all account pages (`account/index`, `account/profile`, `account/orders`, `account/order`, `account/shipping-addresses`, `account/billing-addresses`, `account/quick-order`, `account/catalog-export`), `__custom-page`, `proposal-preview`, `guest-order`, `customer-selection`, and the auth pages (`login`, `register`, `forgot-password`, `reset-password`, `verify-email`, `logout` — top only).
 - `hero` — a **full-width** banner rendered **above the breadcrumbs** (via the layout's `@yield('hero')`, filled per page by `@section('hero')`) on the catalog pages `products`, `categories`, `category`, `product`.
-- `announcement`, `footer-note`, `footer.promo` — site-wide (the `global` page): the top announcement bar and footer zones, declared in the shared layout / footer.
+- `announcement`, `footer-note`, `footer.promo` — site-wide (the `global` page): the top announcement bar and additive footer zones, declared in the shared layout / footer.
+- `footer` — the complete site-wide footer. It is a paired default slot: the shipped footer renders until a manager saves owner-authored content, which replaces the whole default block.
 - `catalog.sidebar` (products, above the filter card) and `cart.promo` (cart) — page-specific extras. A page-specific slot must sit at a position `content-top` / `content-bottom` do not already occupy, otherwise the editor shows two indistinguishable regions.
 
 > The self-contained error pages (`not-found`, `error`) carry **no** slots on purpose — they must never touch the database.
@@ -137,6 +138,24 @@ Besides module contributions, a slot also renders any CMS content a shop manager
 These promo/banner zones are self-serve: a manager schedules (start/end) and targets (all / customer group) each widget in the builder, and images below the fold lazy-load. An unassigned, expired or off-audience zone renders nothing, so it can be placed unconditionally.
 
 Declare a content slot by simply placing `@storefrontSlot('key')` in the blade — the scanner discovers it, no `theme.json` edit required. A slot in the shared **layout** is a `global` (site-wide) slot; a slot in a **page** blade is scoped to that page, and the same key (e.g. `content-top`) can be reused across pages because each page resolves its own content. It renders nothing until content is assigned.
+
+### Declaring a theme-default slot
+
+Use the paired form when the theme must ship working Blade that a manager can replace as one editable region:
+
+```blade
+@startStorefrontSlot('footer')
+    <footer>Theme-provided footer</footer>
+@endStorefrontSlot
+```
+
+- The slot key must be a string literal and the pair must be balanced in the same Blade file.
+- The enclosed default is ordinary theme Blade and must pass every normal safety rule.
+- Module contributions render before either the default or the owner-authored replacement.
+- In the Theme Editor, the default remains visible as a selectable backdrop. The first live fragment replaces it; **Reset to theme default** deletes every locale variant of the owner content and reloads the storefront preview so Blade renders the default again.
+- A layout paired slot is global and can be edited from any Theme Editor page that uses that layout. It does not make an otherwise slotless page appear in the page list.
+
+The default theme's `footer` pair encloses `footer.promo` and `footer-note`. Replacing `footer` therefore removes those nested regions from the rendered page. Existing `footer.promo` or `footer-note` content is not migrated into the replacement; recreate anything still needed inside the new `footer` builder content before publishing it.
 
 ### Declaring slot context (builder data binding)
 

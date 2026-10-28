@@ -101,7 +101,9 @@ All account pages receive the signed-in customer plus page-specific collections.
 `partials/account-nav` (pass `active`) for the sidebar. Highlights:
 
 - `account/order.blade.php` — order detail; use `orderStatusLabel()` / `orderStatusTone()` (§9)
-  for the status badge, and the `reorder` form when the order is completed and reorder is enabled.
+  for the status badge, the populated custom order attributes in `$order->attributeValues`, and the
+  `reorder` form when the order is completed and reorder is enabled. `$orderAttributeCodes` is a
+  map of populated custom attribute codes, for suppressing a legacy native field with the same code.
 - `account/shipping-addresses.blade.php` / `account/billing-addresses.blade.php` — both render
   `partials/account-addresses-page`; use the `address-shipping-*` / `address-billing-*` forms.
 - `account/quick-order.blade.php` — only when `$store['quick_order_enabled']`; `quick-order-upload`

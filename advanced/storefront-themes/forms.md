@@ -112,7 +112,7 @@ Two things are worth knowing:
 - Place the widget yourself with `@storefrontCaptcha` when the bottom of the form is the wrong spot. Using it once inside a form suppresses the automatic injection, so the widget never renders twice.
 - Keep `@storefrontScripts` in your layout. Without it the provider script never loads and a protected form cannot be submitted.
 
-Read the configuration — never the keys — from `$store['captcha']` (§9.6) when you want to render your own copy around it, e.g. a privacy note. It carries `enabled`, `provider`, `site_key`, `token_input` and `protected_forms`; the secret key is server-side only and is never exposed to a theme.
+Read the configuration — never the keys — from `$store['captcha']` (§9.6) when you want to render your own copy around it, e.g. a privacy note. It carries `enabled`, `provider`, `site_key`, `token_input` and `protected_forms`; the secret key is server-side only and is never exposed to a theme. Google reCAPTCHA v3 has no checkbox — the platform script executes it on submit.
 
 ### Forgot-password & email-verification quirks
 

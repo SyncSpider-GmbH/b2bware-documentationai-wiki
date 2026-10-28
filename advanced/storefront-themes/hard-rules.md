@@ -93,6 +93,7 @@ Each blade file must either match one of the canonical paths below **or** be a c
 - `checkout-address-summary.blade.php` &mdash; compact address row inside the checkout "Manage addresses" modals; pass `address` and `defaultForm`
 - `catalog-export-fields.blade.php` &mdash; shared column switches + native product filters for the catalog-export page (only rendered when `$store['catalog_export_enabled']`)
 - `catalog-export-preview.blade.php` &mdash; live catalog-export preview table (AJAX section, §9.7; only rendered when `$store['catalog_export_enabled']`)
+- `catalog-active-filters.blade.php` &mdash; applied catalog-filter chips (attribute values, price bounds, in stock, search) above the product grid; each chip links to the listing with that one filter removed. Rendered from `$activeFilters` (see catalog.md)
 - `product-details.blade.php` &mdash; the whole product-page body as a single AJAX-refreshable section (`product-details`, §9.7) so the variant picker can re-render it server-side
 - `added-to-cart-modal.blade.php` &mdash; the added-to-cart confirmation `<dialog>`; included from `shop.blade.php`. Override for a drawer/toast, or omit the `@include` to suppress it (§9.7)
 
