@@ -1,11 +1,11 @@
 ---
 title: StorefrontHub
-description: Blade storefront themes, custom domains, App Settings, and tenant_config flags for guest access, checkout, SEO, and analytics.
+description: Blade storefront themes, custom domains, URL rewrites, App Settings, and tenant_config flags for guest access, checkout, SEO, and analytics.
 ---
 
 ## Overview
 
-StorefrontHub renders the customer storefront. Admin APIs manage themes, theme versions/uploads, custom domains, proposal preview URLs, and App Settings. Runtime behaviour is also driven by the active theme pointer (`storefronthub.active_theme_id`) and the installation-scoped `tenant_config` row exposed to themes as `$store` / `storeFlags()`.
+StorefrontHub renders the customer storefront. Admin APIs manage themes, theme versions/uploads, custom domains, Magento-style URL rewrites, proposal preview URLs, and App Settings. Runtime behaviour is also driven by the active theme pointer (`storefronthub.active_theme_id`) and the installation-scoped `tenant_config` row exposed to themes as `$store` / `storeFlags()`.
 
 **Base URL:** `api/v1/apps/storefront-hub/`
 
@@ -73,6 +73,32 @@ One domain per store. Ingress serves only verified (`active`) domains.
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/proposals/{quote}/preview-url` | Customer-facing preview URL for a proposal/quote |
+
+  </Tab>
+  <Tab title="URL rewrites" icon="link">
+
+Magento-style redirects on the **storefront host** (tenant subdomain or custom domain), not the admin. Paths are locale-stripped for storage and matching (e.g. `en-us/products/x` → `products/x`).
+
+**Path shape**
+
+| Entity | Stored path example |
+|--------|---------------------|
+| Product | `products/{seo.slug-or-id}` |
+| Category | `categories/{parent}/{child}` |
+| Builder page | `{url_key}` (no prefix) |
+
+Custom rows are full CRUD. System rows (`product` / `category` / `page`) are created when an entity path changes and are listable/deletable but not editable via the API.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/url-rewrites` | List URL rewrites |
+| GET | `/url-rewrites/{id}` | Get one rewrite |
+| POST | `/url-rewrites` | Create a **custom** rewrite (`request_path`, `target_path`, optional `redirect_type` 301/302, `description`) |
+| PUT | `/url-rewrites/{id}` | Update a **custom** rewrite |
+| DELETE | `/url-rewrites/{id}` | Delete a rewrite (custom or system) |
+| POST | `/url-rewrites/generate-paths` | Fill **missing** product `seo.slug`, category `seo.slug`, and Builder `url_key` from name/title (kebab-case). Collisions use `{base}-{id}`. Does not overwrite existing paths. First product slug also records a 301 from `products/{id}`. |
+
+Permissions: `storefront-hub.url-rewrites.view` / `storefront-hub.url-rewrites.manage`. In admin: **Store Setup → URL Rewrites**.
 
   </Tab>
   <Tab title="Settings" icon="settings">

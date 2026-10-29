@@ -3,6 +3,16 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-29" description="Storefront URL rewrites and SEO path generation" tags={["feature", "storefront"]}>
+
+## StorefrontHub — URL rewrites
+
+- **Store Setup → URL Rewrites** — Magento-style redirects on the storefront host (subdomain or custom domain). Paths are locale-stripped; product paths use the `products/` prefix (e.g. `products/old-slug` → `products/new-slug`).
+- **Custom and system rules** — Admins create custom 301/302 rows. System rows are recorded when a product/category/page path changes.
+- **Generate missing paths** — One action fills empty product `seo.slug`, category `seo.slug`, and Builder `url_key` from name/title (kebab-case). Collisions use `{base}-{id}`. Existing paths are not overwritten. See [StorefrontHub](/hubs/storefront-hub).
+
+</Update>
+
 <Update label="2026-10-26" description="Sales agents can search a company before choosing a user" tags={["feature", "storefront"]}>
 
 ## Storefront — company search for sales agents
