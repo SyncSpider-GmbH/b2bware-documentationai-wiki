@@ -112,6 +112,19 @@ The MCP Server exposes **184 tools** and **4 workflow prompts** (v1.17.0) for se
 Signed-in operators need `subscription-hub.subscriptions.view` to read subscriptions, `subscription-hub.history.view` for the history and `subscription-hub.subscriptions.update` to change a status. Without the view key, an operator only reaches their own subscriptions.
 
   </Tab>
+  <Tab title="Storefront Builder" icon="window">
+
+| Tool | Description |
+|------|-------------|
+| `list_pages`, `get_page`, `create_page`, `update_page`, `delete_page` | Pages by `url_key` |
+| `list_documents`, `get_document`, `create_document`, `update_document`, `delete_document` | Documents by title |
+| `list_content_types`, `get_content_type` | Content types by slug, including field codes |
+| `list_content_entries`, `get_content_entry`, `create_content_entry`, `update_content_entry`, `publish_content_entry`, `delete_content_entry` | Entries by `content_type_slug` + `entry_slug`. Pass field values as `fields.{code}` |
+| `get_page_builder_schema`, `list_builder_versions`, `snapshot_page`, `snapshot_document`, `publish_builder_version`, `revert_builder_version` | Builder versions |
+
+Signed-in operators need `storefront-builder-hub.content-types.view` and `storefront-builder-hub.content-entries.*`. Call `get_content_type` before a write. See [Content types](/advanced/storefront/content-types).
+
+  </Tab>
 </Tabs>
 
 ## Companion AI Skills

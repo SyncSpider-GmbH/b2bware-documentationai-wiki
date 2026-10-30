@@ -167,6 +167,7 @@ Never fetch customer orders or account PII through `@fetch` — use these keys.
 | `$isAgent` | bool | Agent role or impersonation; use `count($isAgent)`. |
 | `$rootCategories` | Collection | Navigable root categories with children. Footer and catalog export. Not the mega menu. |
 | `$megaMenuCategories` | Collection | Header mega-menu rows for `category_ui_type === 'mega_menu'`: parents at `mega_menu_depth_start`, each with `children` at the next depth, and `menu_path` (full slug path). Empty in list mode. |
+| `$storefrontContentNav` | Collection | Content types the merchant asked to show next to Categories. Each item is `{ label, path, href }`. Empty when none are marked for shop navigation. |
 | `$favoriteIds` | array | Active list product ids; `[]` for guests. Prefer `collect($favoriteIds)->contains(...)`. |
 | `$canAccessAdmin` / `$adminUrl` | bool / string\|null | Admin hand-off; use `count(...)`. |
 | `$favoritesLists` | array | Lists + `active_list_id`; eager on the favorites page. |
@@ -521,5 +522,63 @@ The bundled `default` theme ships this as `partials/cart-rewards.blade.php`, inc
 ```
 
 > **Custom themes:** `cart-rewards.blade.php` is now a **canonical partial** (§2), rendered as the `cart-rewards` AJAX section (§9.7). Override it to restyle the reward bars — the `$cartProgress` view data is unchanged. (You may still render `$cartProgress` inline in your own `pages/cart.blade.php` if you prefer not to use the section.)
+
+---
+
+## Content types (`pages.__content-listing`, `pages.__content-detail`)
+
+When a routable **content type** matches the URL, the platform injects:
+
+| Key | When | Shape |
+|-----|------|--------|
+| `contentListing` | Listing route | `{ type: { slug, plural_label, listing_path, … }, columns: [ { code, label, picker_id } ], entries: [ … ], listing_view: 'grid' \| 'cards', category: string \| null }` |
+| `contentEntry` | Detail route | `{ type: { … }, entry: { slug, fields: [ presented field ], fields_by_code } }` |
+
+Each **presented field** is:
+
+```
+{
+  code, label, picker_id,
+  show_on_storefront, // bool — default listing/detail honour this
+  value,          // picker-specific public value (never password / json)
+  empty,          // bool
+  display,        // plain text for the listing table
+  html,           // rich text HTML (detail only)
+  excerpt,        // rich text, truncated at 140 characters
+  href,           // normalized URL on text-link
+  hex,            // color, e.g. #ff6600
+  media,          // { url, name, is_image } | null
+  items,          // labels for options / tags / category
+  fields,         // nested presented fields (complex, recursive)
+  rows            // [ { fields: […] } ] (complex-collection, recursive)
+}
+```
+
+Every shop-safe field (except password and JSON) is on the entry, including complex and collection trees that merchants hide from the default shop pages. `contentListing.columns` and the default `__content-detail` loop only fields with `show_on_storefront`. Look a hidden tree up by code:
+
+```
+data_get($entry, 'fields_by_code.specs')
+data_get($contentEntry, 'entry.fields_by_code.specs')
+```
+
+`fields` / `rows` nest the same presented shape, so a custom theme can walk complex → complex → collection without extra APIs. Include `partials/content-field-value` at any depth.
+
+Render with `partials/content-field-value` (pass `compact` on the listing). Per picker:
+
+| `picker_id` | Listing | Detail |
+|-------------|---------|--------|
+| `text` | truncated `display` | `display` |
+| `text-rich` | stripped `display`, truncated at 140 characters | `{!! html !!}` inside `.storefront-richtext` |
+| `text-email` / `text-link` | native `<a>` button (`mailto:` / `href`, `target=_blank` on links) | same |
+| `text-color` | swatch + `hex` | swatch + `hex` |
+| `number` | `formatNumber(value)` | `formatNumber(value)` |
+| `date` | `formatDate(value)` | `formatDate(value)` (`L LT` when a time is present) |
+| `bool` | Yes / No | Yes / No |
+| `media` | 80×80 `@storefrontImage` thumb (width/height set) or file button; both open in a new tab | `@storefrontImage` or file button (`media.url` is `public_url`, `target=_blank`) |
+| `options` / `tags` / `category` | comma-separated `items` | chips of `items` (category slugs resolved to names) |
+| `complex` | joined child `display` | nested label / value |
+| `complex-collection` | item count | one card per row |
+
+Password and JSON field values are omitted from shop view data. Media `url` is the public file URL — wrap images in `@storefrontImage` and set width and height. `listing_view` is `cards` when the URL has `?view=cards`, otherwise `grid`. The default theme uses a horizontally scrollable data grid on desktop, a card list on phones, and a desktop toggle between the two. Use these keys only — not raw item documents.
 
 ---

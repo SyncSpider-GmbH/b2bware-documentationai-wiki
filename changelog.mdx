@@ -3,6 +3,53 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-10-30" description="Nested content fields for custom themes" tags={["feature", "storefront", "storefront-builder"]}>
+
+## Nested complex and collection fields
+
+- Merchants can nest complex and collection fields (complex → complex → collection, and so on). Each presented field now includes `show_on_storefront` plus picker extras (`html`, `excerpt`, `href`, `hex`, `media`, `items`, recursive `fields` / `rows`).
+- New complex / collection fields are hidden on the default shop listing and detail (`show_on_storefront` false). Custom themes still receive every shop-safe field except password and JSON on `entry.fields` and `entry.fields_by_code.{code}`.
+- Theme contract: `__content-listing` / `__content-detail` are fixed pages. Include `partials/content-field-value` at any depth (`compact` on the listing). Look a hidden tree up with `fields_by_code`. See [Content types](/advanced/storefront/content-types) and the theme [view-data](/advanced/storefront-themes/view-data) pack.
+
+</Update>
+
+<Update label="2026-10-29" description="Content listing grid, cards, and link buttons" tags={["feature", "storefront"]}>
+
+## Content listing — grid, cards, and native links
+
+- Shop listing view data includes `listing_view` (`grid` or `cards` from `?view=`).
+- The default theme uses a horizontally scrollable data grid on desktop and a card list on phones. Desktop can switch between the two.
+- Link and email fields are native `<a>` buttons (right-click copy URL). Media opens in a new tab; images use `@storefrontImage` at 80×80 with width and height. Compact rich text is truncated.
+
+</Update>
+
+<Update label="2026-10-29" description="Content entries REST API and MCP tools" tags={["feature", "storefront", "storefront-builder", "mcp"]}>
+
+## Content entries over the API and MCP
+
+- REST paths accept the content type **slug** (or the numeric id). Create and update send field values as top-level keys. See [Content types](/advanced/storefront/content-types).
+- Admin MCP tools: `list_content_types`, `get_content_type`, `list_content_entries`, `get_content_entry`, `create_content_entry`, `update_content_entry`, `publish_content_entry`, `delete_content_entry`. Identify types and entries by slug; pass values as `fields.{code}`.
+
+</Update>
+
+<Update label="2026-10-29" description="Content types: shop nav, status, and field dialogs" tags={["feature", "storefront", "storefront-builder"]}>
+
+## Storefront content types — shop grid and publish status
+
+- A content type can appear next to Categories. Shoppers see a read-only table of the fields marked for the storefront, then a read-only detail page. Each picker has a dedicated shop render (rich text, media, dates, colors, options, tags, categories, nested groups).
+- Entries use Draft / Published / Scheduled, with Live view or Preview like pages. Publishing needs a slug.
+- Adding a field is a dialog. New types save settings first; fields show after that save.
+
+</Update>
+
+<Update label="2026-10-28" description="Storefront Builder content types" tags={["feature", "storefront", "storefront-builder"]}>
+
+## Storefront content types
+
+Merchants can add custom content types (downloads, blog, news), manage entries with draft/publish, preview, revisions, and optional search/SEO. The admin adds **Content Types** and a per-type entry list under Storefront Builder. The shop exposes listing and detail routes with `contentListing` / `contentEntry` view data. See [Content types](/advanced/storefront/content-types).
+
+</Update>
+
 <Update label="2026-10-29" description="Storefront URL rewrites and SEO path generation" tags={["feature", "storefront"]}>
 
 ## StorefrontHub — URL rewrites
@@ -10,6 +57,7 @@ description: Release history and version updates for the B2Bware DataHub platfor
 - **Store Setup → URL Rewrites** — Magento-style redirects on the storefront host (subdomain or custom domain). Paths are locale-stripped; product paths use the `products/` prefix (e.g. `products/old-slug` → `products/new-slug`).
 - **Custom and system rules** — Admins create custom 301/302 rows. System rows are recorded when a product/category/page path changes.
 - **Generate missing paths** — One action fills empty product `seo.slug`, category `seo.slug`, and Builder `url_key` from name/title (kebab-case). Collisions use `{base}-{id}`. Existing paths are not overwritten. See [StorefrontHub](/hubs/storefront-hub).
+
 
 </Update>
 
