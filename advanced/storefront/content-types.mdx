@@ -1,0 +1,116 @@
+---
+title: Storefront content types
+description: Custom merchant content (downloads, blog posts, news) outside the page builder.
+---
+
+# Storefront content types
+
+Merchants define **content types** in Storefront Builder (fields, URL pattern, navigation, optional search and SEO). Each type has **entries** — the rows of that type. This is separate from designed **pages** (`content_json` in the page builder).
+
+## Admin
+
+Content is its own sidebar group, above Storefront Builder. Children are **Content Types** and one link per visible type.
+
+- **Content Types** — `/admin/storefront-builder/content-types` — grid of types. Delete one row or the selected rows (`POST …/content-types/bulk/delete`).
+- **Entries** — `/admin/storefront-builder/content/{type-slug}` — grid of entries. Move the selected rows to trash (`POST …/content-entries/bulk/delete`) or restore them from trash (`POST …/content-entries/bulk/restore`).
+
+API base: `/api/v1/apps/storefront-builder-hub/content-types` and nested `content-entries`, translations, preview links, revisions, trash. Type paths accept the **slug** or the numeric id. Prefer the slug.
+
+## REST API
+
+Auth is a desk Bearer token (`Authorization: Bearer {api_token}`). Pagination uses `per_page` (not `perPage`). The list response is flat: `data`, `total`, `current_page`, `total_pages`, `per_page`.
+
+Identify a type by slug (`downloads`). Identify an entry by its public `slug` when you can. Create and update also return an entry id for trash and revisions.
+
+| Action | Method | Path |
+|--------|--------|------|
+| List types | GET | `/content-types` |
+| Get type (fields, flags) | GET | `/content-types/{slug}` |
+| List entries | GET | `/content-types/{slug}/content-entries?status=published&search=` |
+| Create entry | POST | `/content-types/{slug}/content-entries` |
+| Get entry | GET | `/content-types/{slug}/content-entries/{entryId}` |
+| Update entry | PUT | `/content-types/{slug}/content-entries/{entryId}` |
+| Publish | POST | `/content-types/{slug}/content-entries/{entryId}/publish` |
+| Preview link | POST | `/content-types/{slug}/content-entries/{entryId}/preview-link` |
+| Revisions | GET | `/content-types/{slug}/content-entries/{entryId}/revisions` |
+| Trash | DELETE | `/content-types/{slug}/content-entries/{entryId}` |
+| Restore | POST | `/content-types/{slug}/content-entries/{entryId}/restore` |
+| Bulk trash / restore | POST | `/content-types/{slug}/content-entries/bulk/delete` or `bulk/restore` |
+| Upsert translation | POST | `/content-translations/upsert` |
+| AI translate job | POST | `/content-translations/job/run` |
+
+Create and update send field values as **top-level keys** matching `fields_json.code`. System keys: `slug`, `status` (`draft` \| `published` \| `scheduled`), `scheduled_at`, `published_at`, `audience`, `seo_title`, `i18n`. Publishing or scheduling requires a slug.
+
+<Tabs>
+  <Tab title="cURL">
+
+```bash
+# 1. Read the type so you know field codes
+curl -sS -H "Authorization: Bearer $TOKEN" \
+  "https://api.datahub.syncspider.com/api/v1/apps/storefront-builder-hub/content-types/downloads"
+
+# 2. Create a draft (field code `title` is an example)
+curl -sS -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  "https://api.datahub.syncspider.com/api/v1/apps/storefront-builder-hub/content-types/downloads/content-entries" \
+  -d '{"slug":"winter-catalog","status":"draft","title":"Winter catalog","audience":{"mode":"all"}}'
+
+# 3. Publish (needs a slug)
+curl -sS -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  "https://api.datahub.syncspider.com/api/v1/apps/storefront-builder-hub/content-types/downloads/content-entries/$ENTRY_ID/publish"
+```
+
+  </Tab>
+  <Tab title="MCP">
+
+Connect the [MCP Server](/ai-tools/mcp-server) with a signed-in admin grant. Prefer slugs and field codes over internal ids.
+
+```
+list_content_types
+get_content_type          content_type_slug=downloads
+create_content_entry      content_type_slug=downloads  slug=winter-catalog  status=draft  fields={title:"Winter catalog"}
+publish_content_entry     content_type_slug=downloads  entry_slug=winter-catalog
+get_content_entry         content_type_slug=downloads  entry_slug=winter-catalog
+update_content_entry      content_type_slug=downloads  entry_slug=winter-catalog  fields={title:"Winter catalog 2026"}
+list_content_entries      content_type_slug=downloads  status=published
+delete_content_entry      content_type_slug=downloads  entry_slug=winter-catalog
+```
+
+`get_content_type` returns each field’s `code`, `picker_id`, and `required`. Put values in `fields` keyed by `code`. `entry_id` is only a fallback when the slug is missing.
+
+  </Tab>
+</Tabs>
+
+<Callout kind="info" title="MCP first">
+Call `get_content_type` before every write. The assistant should speak slugs and labels, same as pages (`url_key`) and documents (`title`).
+</Callout>
+
+## Shop URLs
+
+Routable types use a pattern such as `/{slug}/{entry}` (for example `/downloads/my-file`). Listing and detail routes are resolved before the CMS page catch-all. Reserved first segments match static storefront routes (`products`, `cart`, `account`, …).
+
+**Part of the storefront** (default) renders the listing and detail inside the shop layout, with the storefront header and footer. Turning it off sets `hideChrome` and the same pages render without that chrome.
+
+**Show in storefront navigation** adds the type next to Categories in the shop header. Shoppers get a read-only table of the fields marked **Show on the storefront**. A row opens a read-only detail page (label and value).
+
+Draft and scheduled entries are hidden from the public listing until the scheduled time; detail URLs 404 unless a valid **preview token** is present (`?preview=`). Publishing or scheduling requires a slug.
+
+Entry translations live on the entry document (`i18n`), not in ProductHub translation rows (those require a numeric product id). AI translate needs AI Hub configured and a queue worker, and you must pick the target language (for example German) in the entry editor first.
+
+## View data
+
+Themes receive curated keys (default blades: `pages/__content-listing`, `pages/__content-detail`):
+
+| Key | When | Shape |
+|-----|------|--------|
+| `contentListing` | Listing route | `{ type: { slug, plural_label, … }, columns: [ { code, label, picker_id } ], entries: [ … ], listing_view: "grid" \| "cards", category }` |
+| `contentEntry` | Detail route | `{ type: { … }, entry: { slug, fields: [ presented field ] } }` |
+
+Each presented field includes `code`, `label`, `picker_id`, `show_on_storefront`, `value`, `empty`, `display`, plus picker-specific keys (`html`, `excerpt`, `href`, `hex`, `media`, `items`, nested `fields` / `rows`). Complex and collection trees nest recursively. New complex / collection fields default to hidden on the default listing and detail; they still appear on `entry.fields` and `entry.fields_by_code.{code}` so a custom theme can render them with `partials/content-field-value`. Password and JSON field values are omitted from shop view data. Media images use `@storefrontImage` with width and height and open in a new tab; link and email fields are native `<a>` buttons. `listing_view` is `cards` when the URL has `?view=cards`, otherwise `grid`. The default listing is a horizontally scrollable data grid on desktop and a card list on phones, with a desktop toggle between the two. Compact rich text is truncated. Category slugs resolve to term names.
+
+## Visibility
+
+Per-entry **audience** is `{ mode: "all" }` or `{ mode: "groups", groups: [id, …] }`. Guests never match `groups`. Entries limited to groups are hidden from other customers.
+
+## Translations
+
+Field labels can have a translated string on the type. Entry values for another language are stored on the entry as `i18n.{language}.{field}`. AI translate is queued via `POST …/content-translations/job/run` (requires AI Hub and a queue worker).

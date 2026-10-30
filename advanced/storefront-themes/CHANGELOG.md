@@ -7,6 +7,24 @@
 This file tracks changes to the **theme authoring contract** (directives, form types, `$store`
 keys, canonical surface, tokens). It is not the platform-wide release log. Dates are UTC.
 
+## 2026-10-30 — Nested content fields for custom themes
+
+- **Canonical surface.** `pages/__content-listing.blade.php` and `pages/__content-detail.blade.php` are fixed pages. Canonical partials: `partials/content-field-value.blade.php` (any depth) and `partials/content-listing-cell.blade.php`. Do not use `@php` or `request(` on these files. See `hard-rules.md`.
+- **Presented field** now includes `show_on_storefront` plus picker extras: `code`, `label`, `picker_id`, `value`, `empty`, `display`, `html` (rich text, detail), `excerpt` (rich text, 140 characters), `href` (text-link), `hex` (color), `media` (`{ url, name, is_image }`), `items` (options / tags / category names), nested `fields` (complex, recursive) and `rows` (`[{ fields: […] }]`, collection, recursive).
+- **Default theme** listing columns and the detail loop only fields with `show_on_storefront`. New complex / collection fields default to hidden.
+- **Custom themes** still receive every shop-safe field except password and JSON on `entry.fields` and `entry.fields_by_code.{code}`. Look a hidden tree up with `data_get($entry, 'fields_by_code.specs')` or `data_get($contentEntry, 'entry.fields_by_code.specs')`. Include `partials/content-field-value` at any depth (`compact` on the listing).
+- **Password and JSON** values are omitted from shop view data. Media `url` is the public file — wrap images in `@storefrontImage` and set width and height. Use these keys only; not raw item documents. See `view-data.md` § Content types.
+
+## 2026-10-29 — Content listing grid and cards
+
+- **`contentListing.listing_view`** is `grid` or `cards` from `?view=`. `contentListing.category` echoes the optional category filter on the listing URL.
+- **Default theme:** `__content-listing` is a horizontally scrollable data grid on desktop and a card list on phones. Desktop has a grid/cards toggle (catalog toolbar pattern). Link and email fields are native `<a>` buttons (right-click copies the URL). Media opens in a new tab; images use `@storefrontImage` at 80×80 with width and height. Compact rich text is truncated at 140 characters. See `view-data.md`.
+
+## 2026-10-29 — Content types in the shop header
+
+- **`$storefrontContentNav`** — content types marked “show in storefront navigation” appear next to Categories. Each item is `{ label, path, href }`. Empty when none are marked. Default theme: `partials/content-nav-links.blade.php` from `partials/nav.blade.php`.
+- **Listing / detail view data.** A matching routable type injects `contentListing` (`type`, `columns`, `entries`, `listing_view`, `category`) or `contentEntry` (`type`, `entry` with `slug`, `fields`, `fields_by_code`). `__content-listing` is a read-only field table; `__content-detail` is label and value. Each picker has a dedicated shop render. Include `partials/content-field-value`. See `view-data.md`.
+
 ## 2026-10-27 — Quieter impersonation banner
 
 - **Default theme:** the impersonation bar uses the page surface, body text, and outline actions. It no longer uses the warning fill. See `partials/impersonation-banner.blade.php`.

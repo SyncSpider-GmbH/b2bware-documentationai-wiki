@@ -773,6 +773,11 @@
                         "title": "Post-Purchase",
                         "path": "advanced/storefront/post-purchase",
                         "icon": "receipt"
+                      },
+                      {
+                        "title": "Content types",
+                        "path": "advanced/storefront/content-types",
+                        "icon": "file-text"
                       }
                     ]
                   },
