@@ -21,6 +21,7 @@ tags:
   - name: Theme Uploads
   - name: Theme Versions
   - name: Themes
+  - name: Url Rewrites
 paths:
   /api/v1/apps/storefront-hub/custom-domains:
     get:
@@ -488,5 +489,151 @@ paths:
       responses:
         '200':
           description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/url-rewrites:
+    get:
+      tags:
+        - Url Rewrites
+      summary: List URL rewrites
+      description: Paginated Magento-style storefront URL rewrites for the current installation.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Url Rewrites
+      summary: Create custom URL rewrite
+      description: Creates a custom 301/302 rewrite. Paths are locale-stripped (e.g. products/old-slug). Product paths must include the products/ prefix.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - request_path
+                - target_path
+              properties:
+                request_path:
+                  type: string
+                  example: products/old-slug
+                target_path:
+                  type: string
+                  example: products/new-slug
+                redirect_type:
+                  type: integer
+                  enum: [301, 302]
+                  example: 301
+                description:
+                  type: string
+                  nullable: true
+                  example: Optional note
+              example:
+                request_path: products/old-slug
+                target_path: products/new-slug
+                redirect_type: 301
+                description: Optional note
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/url-rewrites/{id}:
+    get:
+      tags:
+        - Url Rewrites
+      summary: Get URL rewrite
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Url Rewrites
+      summary: Update custom URL rewrite
+      description: System (product/category/page) rewrites cannot be updated; delete or recreate as custom if needed.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                request_path:
+                  type: string
+                  example: products/old-slug
+                target_path:
+                  type: string
+                  example: products/new-slug
+                redirect_type:
+                  type: integer
+                  enum: [301, 302]
+                  example: 301
+                description:
+                  type: string
+                  nullable: true
+                  example: Optional note
+              example:
+                request_path: products/old-slug
+                target_path: products/new-slug
+                redirect_type: 301
+                description: Optional note
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Url Rewrites
+      summary: Delete URL rewrite
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/url-rewrites/generate-paths:
+    post:
+      tags:
+        - Url Rewrites
+      summary: Generate missing SEO paths
+      description: >
+        Fills empty product seo.slug, category seo.slug, and Builder page url_key from
+        name/title (kebab-case). Collisions use {base}-{id}. Does not overwrite existing
+        paths. First product slug also records a 301 from products/{id} to products/{slug}.
+      responses:
+        '200':
+          description: Summary of updated/skipped counts per entity type
           content:
             application/json: {}
