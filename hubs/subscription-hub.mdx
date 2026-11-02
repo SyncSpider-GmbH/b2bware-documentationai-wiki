@@ -385,7 +385,7 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 | Field | Rules |
 |---|---|
 | `interval.unit` | required, in: `hour`, `day`, `week`, `month`, `year` — must be an active interval of the product |
-| `interval.count` | required, integer, min:1 |
+| `interval.count` | required, integer, min:1; for `hour` 24–9999 |
 | `billing_method_id`, `shipping_method_id` | required, enabled; billing method allowed by the collection mode |
 | `billing_address_id` | required, the customer's or their company's address |
 | `shipping_address_id` | required unless `shipping_address_is_same_as_billing`; same ownership rule |
