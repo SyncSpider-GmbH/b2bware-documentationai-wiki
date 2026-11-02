@@ -30,6 +30,9 @@ SettingsHub does **not** expose any includes. All data is returned directly in t
 | GET | `/config/{id}` | Get a specific configuration |
 | PUT | `/config/{id}` | Update a configuration |
 | DELETE | `/config/{id}` | Delete a configuration |
+| GET | `/setup` | Setup progress for the apps installed on this tenant. Each app returns its own tasks. Apps that are not installed are omitted. |
+| GET | `/onboarding/install-status` | Whether the signup bundle install is still running, finished, or failed. |
+| POST | `/onboarding/brand` | Look up a company brand from its website. |
 
 ## Currency / i18n
 
