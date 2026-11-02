@@ -51,7 +51,7 @@ Use **Proposals** when the motion is offer → accept. Use **All Orders** when t
 | **Identity** | Type (`private` \| `public`), optional public token, description, media, active flag |
 | **Buyer** | Customer — required for public orderability |
 | **Checkout prerequisites** | Shipping address, billing address, shipping method, billing method |
-| **Money** | Surcharge, discount, subtotal, shipping, tax, total |
+| **Money** | Surcharge, discount, subtotal, shipping, tax, total. Surcharge and discount are entered in the store base currency, and the total includes both |
 | **Lines** | Product, quantity, **price**, meta; optional line groups |
 
 ### Public share → order (critical path)
@@ -59,7 +59,7 @@ Use **Proposals** when the motion is offer → accept. Use **All Orders** when t
 1. Caller resolves the quote by **token** (`type=public` only — private quotes never leak via token lookup).
 2. **Orderable** only when customer **and** all of shipping/billing **method** and **address** IDs are present on the proposal.
 3. Buyer may change **quantities** or **drop** items for the resulting order; those edits apply **only to the order**. Proposal lines are not rewritten.
-4. Unit **prices** come from proposal items (admin-set), pinned to store **base currency** so a buyer currency preference cannot relabel negotiated amounts.
+4. Unit **prices** come from proposal items (admin-set), pinned to store **base currency** so a buyer currency preference cannot relabel negotiated amounts. The proposal **surcharge** carries over to every order in full. The proposal **discount** carries over in proportion to the ordered share: ordering half of the proposal value gets half of the discount.
 5. Checkout reuses the normal cart → checkout pipeline (tax, shipping, discounts, payment) with trusted methods so admin-curated methods are honoured even if storefront visibility would hide them.
 6. The customer’s **company** is carried onto the order when present (B2B linkage).
 

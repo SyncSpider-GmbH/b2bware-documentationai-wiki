@@ -51,7 +51,7 @@ Nutzen Sie **Proposals**, wenn der Motion offer → accept ist. Nutzen Sie **All
 | **Identity** | Typ (`private` \| `public`), optionaler Public Token, Description, Media, Active-Flag |
 | **Buyer** | Customer — erforderlich für öffentliche Bestellbarkeit |
 | **Checkout-Voraussetzungen** | Shipping-Adresse, Billing-Adresse, Shipping-Methode, Billing-Methode |
-| **Money** | Surcharge, Discount, Subtotal, Shipping, Tax, Total |
+| **Money** | Surcharge, Discount, Subtotal, Shipping, Tax, Total. Surcharge und Discount werden in der Store-Basiswährung erfasst; das Total enthält beide |
 | **Lines** | Product, Quantity, **Price**, Meta; optionale Line Groups |
 
 ### Öffentliche Freigabe → Order (kritischer Pfad)
@@ -59,7 +59,7 @@ Nutzen Sie **Proposals**, wenn der Motion offer → accept ist. Nutzen Sie **All
 1. Caller löst das Quote per **Token** auf (`type=public` only — private Quotes leaken nie über Token-Lookup).
 2. **Bestellbar** nur, wenn Customer **und** alle Shipping-/Billing-**Methoden**- und **-Adress**-IDs am Proposal vorhanden sind.
 3. Buyer darf **Mengen** ändern oder Items für die resultierende Order **entfernen**; diese Edits gelten **nur für die Order**. Proposal-Zeilen werden nicht umgeschrieben.
-4. Stück-**preise** kommen aus Proposal-Items (Admin-gesetzt), gepinnt an die Store-**Basiswährung**, sodass eine Buyer-Währungspräferenz verhandelte Beträge nicht umetikettieren kann.
+4. Stück-**preise** kommen aus Proposal-Items (Admin-gesetzt), gepinnt an die Store-**Basiswährung**, sodass eine Buyer-Währungspräferenz verhandelte Beträge nicht umetikettieren kann. Die **Surcharge** des Proposals wird vollständig in jede Order übernommen. Der **Discount** wird anteilig zum bestellten Wert übernommen: Wer die Hälfte des Proposal-Werts bestellt, erhält die Hälfte des Discounts.
 5. Checkout nutzt die normale Cart → Checkout-Pipeline wieder (Tax, Shipping, Discounts, Payment) mit trusted Methods, damit admin-kuratierte Methods auch honoriert werden, wenn Storefront-Visibility sie verstecken würde.
 6. Die **Company** des Customers wird auf die Order übernommen, wenn vorhanden (B2B-Linkage).
 

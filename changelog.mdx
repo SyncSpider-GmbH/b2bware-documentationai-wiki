@@ -3,6 +3,16 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-11-02" description="Surcharge is charged in the document currency" tags={["fix", "orders"]}>
+
+## Surcharge and manual discounts count toward totals
+
+- A cart or order `surcharge_price` is in the cart or order currency. It is now part of the checkout preview, the order total and every total recalculation, and checkout copies it onto the order. See [OrderHub validation rules](/hubs/order-hub).
+- Proposal totals include the surcharge and the discount. An order placed from a public proposal carries the surcharge and its share of the discount. See [Proposals](/user-guide/orders/proposals).
+- Order emails can show the surcharge with `order.surcharge_total` and `order.has_surcharge`. New stores get a surcharge row in the default order templates; existing stores can add it to their own templates.
+
+</Update>
+
 <Update label="2026-10-30" description="Nested content fields for custom themes" tags={["feature", "storefront", "storefront-builder"]}>
 
 ## Nested complex and collection fields

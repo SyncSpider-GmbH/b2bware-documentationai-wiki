@@ -447,8 +447,8 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 | `external_id` | sometimes, nullable, unique (MongoDB, excluding soft-deleted) |
 | `order_number` | sometimes, nullable, unique (MongoDB, excluding soft-deleted) |
 | `subtotal_price` | sometimes, numeric |
-| `surcharge_price` | sometimes, numeric |
-| `discount_price` | sometimes, numeric |
+| `surcharge_price` | sometimes, numeric — in the order currency (`currency_code`), added to `total_price` on create and update |
+| `discount_price` | sometimes, numeric — in the order currency, subtracted from `total_price` |
 | `comment` | string (one-off order comment) |
 | `order_note` | sometimes, nullable, string |
 | `line_items` | required, array, min:1 |
@@ -484,8 +484,10 @@ A product that is sold only through a module's own checkout, such as a [subscrip
 | `cart_items.*.meta_data` | array — free-form per-line metadata |
 | `cart_items.*.product_id` | numeric, must exist |
 | `subtotal_price` | sometimes, numeric |
-| `surcharge_price` | sometimes, numeric |
-| `discount_price` | sometimes, numeric |
+| `surcharge_price` | sometimes, numeric — admin callers only, in the cart currency. Added to the cart total, the checkout preview and the order total, and copied onto the order at checkout |
+| `discount_price` | sometimes, numeric — admin callers only |
+
+A surcharge is never re-converted when the currency is unchanged. When an empty cart switches currency, its surcharge is converted with the exchange rate, unless the same request sends a new `surcharge_price`.
 
 </Expandable>
 
