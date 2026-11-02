@@ -5,7 +5,7 @@ description: Product subscriptions — per-product intervals and prices, custome
 
 ## Overview
 
-SubscriptionHub lets customers subscribe to a product and receive it again at a fixed interval (every 2 weeks, every month, …). The merchant configures which products can be subscribed, at which intervals and prices; every renewal is placed as a regular [OrderHub](/hubs/order-hub) order.
+SubscriptionHub lets customers subscribe to a product and receive it again at a fixed interval (every 2 weeks, every month, every 27 days and 20 hours, …). The merchant configures which products can be subscribed, at which intervals and prices; every renewal is placed as a regular [OrderHub](/hubs/order-hub) order.
 
 **Base URL:** `api/v1/apps/subscription-hub/`
 
@@ -18,9 +18,19 @@ Subscriptions are created only by a signed-in storefront customer at checkout (p
 | Entity | Purpose |
 |---|---|
 | **Product settings** | Per product: enabled flag, purchase mode (`subscription_only`, `one_time_and_subscription`), offered intervals `{unit, count, price, active}`, optional max cycles, price policy (`locked` or `current`). Variants use the setting of their configurable parent. See [Purchase modes](#purchase-modes). |
-| **Interval units** | Extendable list of units (`day`, `week`, `month`, `year`). A unit used by product settings or live subscriptions cannot be deleted, deactivated or renamed (409). |
+| **Interval units** | Extendable list of units (`hour`, `day`, `week`, `month`, `year`). A unit used by product settings or live subscriptions cannot be deleted, deactivated or renamed (409). `hour` is the custom interval, see [Custom intervals](#custom-intervals). |
 | **Subscriptions** | One per subscribed product. Snapshots interval, price, quantity, addresses and billing / shipping method at checkout. |
 | **History** | Append-only audit log of every lifecycle event (`created`, `renewed`, `renewal_paid`, `paused`, `resumed`, `cancelled`, `ended`, `payment_failed`, `address_updated`, `updated`, `status_changed`). |
+
+### Custom intervals
+
+When the built-in units do not fit, for example a package valid for 28 days that renews after 27 days and 20 hours, the admin picks the period **Custom (days and hours)** on the product's **Subscription** tab and enters days and hours.
+
+- The interval is stored as a count of hours with unit `hour`: 27 days and 20 hours is `{"unit": "hour", "count": 668}`. API clients send the same shape.
+- A custom interval is at least 1 day (24 hours) and at most 9999 hours.
+- Shoppers and admins see it as *Every 27 days and 20 hours*. Whole days show as *Every 2 days*.
+- Each renewal is due exactly that many hours after the previous due time. There is no anchor day, and in a time zone with daylight saving the wall-clock time shifts by an hour when the clocks change.
+- The `hour` unit is seeded active for every tenant.
 
 ### Purchase modes
 
@@ -253,7 +263,7 @@ Which billing methods subscription checkout offers:
 
 ## Renewals
 
-An hourly scheduler renews every subscription whose next due date has passed. Each renewal is a regular OrderHub order (marked `meta_data.subscription_renewal`) for the subscription's customer, at the locked subscription price — or, with price policy `current`, the product setting's current interval price. Coupons and automatic cart price rules never apply, and renewals are placed even when the product is out of stock.
+An hourly scheduler renews every subscription whose next due date has passed, so a renewal is placed up to an hour after its due time. Each renewal is a regular OrderHub order (marked `meta_data.subscription_renewal`) for the subscription's customer, at the locked subscription price — or, with price policy `current`, the product setting's current interval price. Coupons and automatic cart price rules never apply, and renewals are placed even when the product is out of stock.
 
 How the order is paid depends on the billing method and the collection mode:
 
@@ -346,8 +356,8 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 | `enabled` | required, boolean |
 | `purchase_mode` | required, in: `subscription_only`, `one_time_and_subscription` |
 | `intervals` | required, array, min:1; each unit + count once |
-| `intervals.*.unit` | required, an active interval unit (`day`, `week`, `month`, `year`) |
-| `intervals.*.count` | required, integer, min:1 |
+| `intervals.*.unit` | required, an active interval unit (`hour`, `day`, `week`, `month`, `year`) |
+| `intervals.*.count` | required, integer, min:1; for `hour` 24–9999 |
 | `intervals.*.price` | required, numeric, min:0 |
 | `intervals.*.active` | required, boolean |
 | `max_cycles` | nullable, integer, min:1 |
@@ -374,7 +384,7 @@ For include syntax, see [Includes & Relations](/core-concepts/includes).
 
 | Field | Rules |
 |---|---|
-| `interval.unit` | required, in: `day`, `week`, `month`, `year` — must be an active interval of the product |
+| `interval.unit` | required, in: `hour`, `day`, `week`, `month`, `year` — must be an active interval of the product |
 | `interval.count` | required, integer, min:1 |
 | `billing_method_id`, `shipping_method_id` | required, enabled; billing method allowed by the collection mode |
 | `billing_address_id` | required, the customer's or their company's address |

@@ -3,6 +3,16 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-11-02" description="Custom subscription intervals in days and hours" tags={["feature", "storefront"]}>
+
+## Custom subscription intervals
+
+- On a product's **Subscription** tab, the period **Custom (days and hours)** offers an interval such as 27 days and 20 hours. Shoppers see *Every 27 days and 20 hours*.
+- The API stores it as unit `hour` with the total hours (`{"unit": "hour", "count": 668}`), between 24 and 9999 hours. Renewals are due exactly that many hours apart.
+- Day, week, month and year intervals are unchanged. See [Custom intervals](/hubs/subscription-hub#custom-intervals).
+
+</Update>
+
 <Update label="2026-10-30" description="Nested content fields for custom themes" tags={["feature", "storefront", "storefront-builder"]}>
 
 ## Nested complex and collection fields
