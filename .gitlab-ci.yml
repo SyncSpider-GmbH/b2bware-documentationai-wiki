@@ -13,6 +13,6 @@ trigger-skills-release:
   variables:
     DOCS_SHA: $CI_COMMIT_SHA
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: '$CI_COMMIT_BRANCH == "main"'
       when: on_success
     - when: never
