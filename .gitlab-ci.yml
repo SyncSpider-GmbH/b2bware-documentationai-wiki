@@ -1,0 +1,18 @@
+# After docs land on main, rebuild public AI skill packages on datahub-skills.
+# Replaces the former GitHub Actions repository_dispatch → datahub-skills flow.
+
+stages:
+  - trigger
+
+trigger-skills-release:
+  stage: trigger
+  trigger:
+    project: sync-spider/datahub-skills
+    branch: main
+    strategy: depend
+  variables:
+    DOCS_SHA: $CI_COMMIT_SHA
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+    - when: never
