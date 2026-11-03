@@ -13,7 +13,7 @@ AccountingHub connects imported bank transactions to business documents such as 
 All endpoints require bearer authentication plus the AccountingHub permission shown by the route group. List endpoints use the shared DataHub pagination contract: request `page` and `per_page`; responses are flat with `data`, `total`, `current_page`, `total_pages`, and `per_page`.
 </Callout>
 
-<Callout kind="warning" title="Currency matching">
+<Callout kind="alert" title="Currency matching">
 AccountingHub does not perform FX conversion. Imported rows without a currency inherit the bank account currency, suggestions only include same-currency documents, and manual cross-currency matches return HTTP 422.
 </Callout>
 

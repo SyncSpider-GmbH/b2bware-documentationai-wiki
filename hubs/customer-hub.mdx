@@ -160,7 +160,7 @@ A company administrator invites people into their **own** company. The company i
 taken from the caller's shop session, never from the request, so one administrator can
 never invite into another company.
 
-<Callout kind="warning">
+<Callout kind="alert">
 The four authenticated routes require the `storefront.account.manage-users` storefront
 permission, which **no role holds by default**. Grant it to whichever role acts as company
 administrator first, or every call returns `403`.

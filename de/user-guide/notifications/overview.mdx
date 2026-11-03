@@ -7,7 +7,7 @@ description: Wie Notification Hub Hub-Events in B2Bware zu Multi-Channel-Message
 
 1. auf **Hub-Events** (Orders, Customers, Products, Licenses, …) hört und/oder **manuelle / API**-Creates annimmt,
 2. einen **Notification Type** auflöst (Template + Channels + Recipients),
-3. Templates rendert (Mustache-Style `{{vars}}` + Locale-Marker),
+3. Templates rendert (Mustache-Style Doppelklammer-Variablen + Locale-Marker),
 4. **User Preferences** respektiert (aktivierte Channels, Quiet Hours, Digest-Frequenz),
 5. über Queued Jobs an **Channels** dispatcht,
 6. **Delivery Attempts** für Triage aufzeichnet.

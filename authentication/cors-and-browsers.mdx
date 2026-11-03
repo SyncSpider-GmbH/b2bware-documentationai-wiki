@@ -22,7 +22,7 @@ In practice this means:
 - Cookies and credentialed `fetch` calls are accepted.
 - `OPTIONS` preflight responses are not cached client-side, so high-frequency endpoints generate one preflight per call from the browser.
 
-<Callout kind="warning" title="This is permissive on purpose, not by design">
+<Callout kind="alert" title="This is permissive on purpose, not by design">
 Because origins are not restricted today, the only thing standing between a malicious site and your tenant data is the secrecy of the `installation_key`. Treat the installation key as public-but-not-cheap: do not publish it on third-party properties you do not control, and rotate it if it leaks.
 </Callout>
 

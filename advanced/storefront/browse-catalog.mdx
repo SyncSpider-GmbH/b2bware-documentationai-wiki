@@ -17,7 +17,7 @@ GET /api/v1/apps/product-hub/products
 
 This is a public storefront endpoint. Anonymous visitors can call it with just `installation-key`. Logged-in customers add `x-auth-token` so per-customer pricing (tier prices, group prices) is applied.
 
-<Callout kind="warning" title="Always filter on status">
+<Callout kind="alert" title="Always filter on status">
 The catalog table contains drafts, archived items, and unpublished products in addition to public ones. Storefront listings should always filter on `status` so non-public items never reach the customer.
 </Callout>
 
@@ -71,7 +71,7 @@ Pagination is controlled via query parameters:
 | `page` | `1` | Page number. Walk by incrementing until `current_page == total_pages`. |
 | `per_page` | `25` | Page size. **Snake-case** is the supported name. |
 
-<Callout kind="warning" title="Use per_page (snake_case)">
+<Callout kind="alert" title="Use per_page (snake_case)">
 The camelCase variant `perPage` is **silently ignored** — the request falls back to the default 25. Always send `per_page`.
 </Callout>
 

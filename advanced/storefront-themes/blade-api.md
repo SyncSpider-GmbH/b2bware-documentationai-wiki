@@ -64,9 +64,9 @@ Section names you can override:
 | `layouts/shop` | `breadcrumbs` |
 
 ### Output
-- `{{ $value }}` — escaped
+- Blade escaped echo of `$value`
 - `{!! $value !!}` — unescaped (use sparingly, for trusted HTML only)
-- `{{-- comment --}}`
+- Blade comment (Blade comment delimiters)
 
 ### Allowed Blade directives (theme-specific)
 

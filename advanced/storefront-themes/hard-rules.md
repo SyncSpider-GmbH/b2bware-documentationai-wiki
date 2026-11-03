@@ -328,7 +328,7 @@ These are blocked both at upload time and at runtime compile time:
 - No `` `backticks` `` (shell exec)
 - No `$__env` access
 - `@verbatim` blocks are scanned — you cannot hide a forbidden pattern inside one
-- Blade comments `{{-- ... --}}` are stripped before scanning, so they cannot be used to bypass either
+- Blade comments (Blade comment delimiters) are stripped before scanning, so they cannot be used to bypass either
 
 ---
 

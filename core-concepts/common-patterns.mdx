@@ -123,7 +123,7 @@ Control pagination with:
 | `page` | `1` | Page number, 1-based. Walk by incrementing until `current_page == total_pages`. |
 | `per_page` | `25` | Page size. **Snake-case** is the supported name. |
 
-<Callout kind="warning" title="Use per_page (snake_case)">
+<Callout kind="alert" title="Use per_page (snake_case)">
 The camelCase variant `perPage` is **silently ignored** — the request falls back to the default 25. Always send `per_page`.
 </Callout>
 

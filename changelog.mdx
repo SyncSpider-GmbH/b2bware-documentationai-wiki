@@ -300,7 +300,7 @@ A company administrator can now invite people into their own company from the st
 - **Email** — new configurable notification types `company_user_invitation` (to the invitee) and `company_user_invitation_accepted` (to the inviter).
 - **Audit trail** — every invitation records creation, sending, acceptance, revocation and expiry.
 
-<Callout kind="warning">
+<Callout kind="alert">
 **Breaking — a permission grant is required before the feature works.** The storefront permission `storefront.account.manage-users` was previously registered but unenforced. It now gates all four administrator endpoints and **no role holds it by default**, so the endpoints return `403` for everyone until a tenant grants it to whichever role acts as company administrator (Roles → storefront permissions). Nothing else changes for tenants that do not use invitations.
 </Callout>
 

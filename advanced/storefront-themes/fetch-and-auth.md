@@ -110,7 +110,7 @@ already allowed to do — never wire a state-changing write to a plain page rend
 - ✅ Guard every render: `@if($data) … @endif` (a failed fetch is `null`).
 - ✅ Cache slow / external calls with `'cache' => N`.
 - ❌ `@fetch('/api/v1/apps/customer-hub/customers', …)` or any customer / order / PII endpoint.
-- ❌ `{{ $apiToken }}` or `data-token="{{ … }}"` — never expose a credential to the browser. The **only** sanctioned exception is `@storefrontAuthToken` (§9.14), which issues a short-lived token expressly for initializing a first-party widget.
+- ❌ Blade-echoing `$apiToken` or putting it in a `data-token` attribute — never expose a credential to the browser. The **only** sanctioned exception is `@storefrontAuthToken` (§9.14), which issues a short-lived token expressly for initializing a first-party widget.
 - ❌ Relying on `@fetch` for a write — internal is GET-only; use a `@storefrontForm` for actions.
 
 ---
