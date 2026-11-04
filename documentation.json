@@ -436,6 +436,11 @@
                         "icon": "user"
                       },
                       {
+                        "title": "Self-service signup",
+                        "path": "authentication/self-service-signup",
+                        "icon": "user-plus"
+                      },
+                      {
                         "title": "Installation Key",
                         "path": "authentication/installation-key",
                         "icon": "key"

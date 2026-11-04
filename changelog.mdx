@@ -3,6 +3,15 @@ title: Changelog
 description: Release history and version updates for the B2Bware DataHub platform.
 ---
 
+<Update label="2026-11-03" description="Self-service signup" tags={["feature", "auth"]}>
+
+## Self-service signup
+
+- A new trial account can be created without an existing admin session. `POST /apiv1/public/signup` returns a signup token. The access token is returned only after `POST /apiv1/public/signup/{signup_token}/install` reports `installed` and a second signup call sends `complete: true`.
+- See [Self-service signup](/authentication/self-service-signup).
+
+</Update>
+
 <Update label="2026-10-30" description="Nested content fields for custom themes" tags={["feature", "storefront", "storefront-builder"]}>
 
 ## Nested complex and collection fields

@@ -1,0 +1,102 @@
+---
+title: Self-service signup
+description: Create a trial account from the public signup API, then receive an access token only after the store is installed.
+---
+
+## When signup is open
+
+`GET /apiv1/public/signup` reports whether a new account can be created.
+
+```json
+{ "open": true, "message": null, "bundle_uuid": "the-nexus-bundle-uuid" }
+```
+
+Signup is open when the published public B2Bware bundle has at least one public plan. `bundle_uuid` is that bundle. Custom client bundles are not included. The bundle's current handler is `nexus`; that identifier can change without changing this contract. When signup is closed, `open` is `false` and `message` is `Signup is closed for now. Please come back later.` A create request then returns HTTP 400 with that same sentence and does not count toward the hourly limit.
+
+## Create an account
+
+`POST /apiv1/public/signup`
+
+| Field | Required | Notes |
+|---|---|---|
+| `email` | yes | |
+| `password` | yes | At least 6 characters |
+| `name` | yes | The account owner's name |
+| `organization_name` | yes | Must be unique |
+| `plan_id` | no | A public plan on the chosen bundle. When omitted, the lowest monthly plan with trial days on that bundle is used |
+| `bundle_uuid` | no | A published public bundle. When omitted, the default B2Bware bundle is used. A `plan_id` must belong to that bundle |
+
+There are at most 10 create attempts per IP address per hour. The public routes are also limited to 60 requests per minute.
+
+A successful create returns HTTP 201 and a `signup_token`. It does not return an access token.
+
+```json
+{
+  "message": "Signup accepted",
+  "signup_token": "signup-token",
+  "payment_required": false,
+  "trial_days": 14,
+  "install_status": "pending",
+  "ready": false
+}
+```
+
+`payment_required` is `true` when the chosen plan has `trial_days` of `0`. The account still exists. The admin asks for a plan before the rest of the product opens.
+
+Known validation failures use HTTP 400 and the usual `error`, `messages`, and `code` envelope. The messages a caller can show are:
+
+- `This email is already registered.`
+- `This organization name is already in use.`
+- `The password must be at least 6 characters.`
+- `The selected plan is not available.`
+- `Too many signup attempts. Try again later.`
+
+## Install the store
+
+`POST /apiv1/public/signup/{signup_token}/install`
+
+Starts the bundle install and returns HTTP 202 with the same status fields as the poll below. Call it once after create. Polling does not start the install.
+
+## Poll
+
+`GET /apiv1/public/signup/{signup_token}`
+
+```json
+{
+  "signup_token": "signup-token",
+  "install_status": "running",
+  "ready": false,
+  "trial_days": 14,
+  "payment_required": false
+}
+```
+
+`install_status` is `pending`, `running`, `installed`, or `failed`. `ready` is `true` only when `install_status` is `installed`. This response never includes an access token.
+
+An unknown or expired signup token returns HTTP 404.
+
+## Complete
+
+`POST /apiv1/public/signup`
+
+```json
+{ "signup_token": "signup-token", "complete": true }
+```
+
+When the store is installed, the response includes `access_token` once. The signup token cannot be used again after that.
+
+```json
+{
+  "message": "Signup ready",
+  "access_token": "desk-access-token",
+  "install_status": "installed",
+  "ready": true,
+  "onboarding": { "company_name": "Northwind", "step": "sell" }
+}
+```
+
+If the store is not installed yet, the response is HTTP 409 and `install_status` says how far the install has got. The signup token stays valid.
+
+Before complete, the same endpoint accepts an `onboarding` object and returns the poll payload. Only these fields are kept: `how_you_sell`, `step`, `completed`, `company_name`, `signup_email`, `website`, `country`, `catalog`, `demo_loaded`, `brand_font`, `brand_color`, `brand_logo_url`, `brand_icon_url`, `language`, `language_label`, `currency`, `needs_company_details`, `company_details`.
+
+The access token is for the new admin session. Send it as `Authorization: Bearer` on later admin calls. Do not send it on the public signup routes.
