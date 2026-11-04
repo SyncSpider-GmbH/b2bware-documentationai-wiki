@@ -182,7 +182,7 @@ What the storefront does next depends on `payment_url`:
 - **URL present** — redirect the browser to it. The provider handles the payment and POSTs back to the webhook URL embedded in the order. The customer eventually lands on `redirect_after_payment`.
 - **URL absent** — the order is fully created; route the customer straight to the order confirmation page.
 
-<Callout kind="warning" title="Do not consider the order paid until the webhook fires">
+<Callout kind="alert" title="Do not consider the order paid until the webhook fires">
 The redirect back from the payment provider only means the customer finished the flow. The actual `paid` status is set by the asynchronous webhook. Show "Payment pending" until the order status flips. See [Webhooks](/core-concepts/webhooks).
 </Callout>
 

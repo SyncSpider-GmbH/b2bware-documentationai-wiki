@@ -86,7 +86,7 @@ Examples of valid origins:
   </Step>
 </Steps>
 
-<Callout kind="warning" title="Treat tokens as secrets">
+<Callout kind="alert" title="Treat tokens as secrets">
 The embed public token is not a Desk admin password, but anyone with the token **and** a page on an allowlisted origin can use Integration Hub for that tenant. Do not publish the snippet in a public repo. Use **Rotate embed token** / **Rotate signing secret** if either leaks — then update the ERP.
 </Callout>
 
@@ -117,7 +117,7 @@ Paste on the ERP page that should show integrations:
 | `data-path` | Optional deep-link (`create`, `{id}`, `{id}/edit`). |
 | `data-partner-token` | Optional short-lived partner JWT (alternative to `data-embed-token`). |
 
-<Callout kind="warning" title="Empty installation key">
+<Callout kind="alert" title="Empty installation key">
 If the copied snippet has `data-installation-key=""`, it will **not** work. Desk admin sessions often do not store an AuthHub installation key in the browser. Paste a real tenant installation key before shipping to the client.
 </Callout>
 

@@ -1,0 +1,32 @@
+# Validate MDX before skills rebuild so documentation.ai auto-publish
+# failures are caught in GitLab instead of the docs dashboard.
+
+stages:
+  - validate
+  - trigger
+
+validate-mdx:
+  stage: validate
+  image: node:20-bookworm
+  script:
+    - npm install --prefix scripts --no-fund --no-audit
+    - node scripts/check-mdx.mjs --self-test
+    - node scripts/check-mdx.mjs
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+
+trigger-skills-release:
+  stage: trigger
+  needs:
+    - validate-mdx
+  trigger:
+    project: sync-spider/datahub-skills
+    branch: main
+    strategy: depend
+  variables:
+    DOCS_SHA: $CI_COMMIT_SHA
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: on_success
+    - when: never

@@ -7,7 +7,7 @@ description: How Notification Hub turns hub events into multi-channel messages i
 
 1. Listens to **hub events** (orders, customers, products, licenses, …) and/or accepts **manual / API** creates,
 2. Resolves a **Notification Type** (template + channels + recipients),
-3. Renders templates (Mustache-style `{{vars}}` + locale markers),
+3. Renders templates (Mustache-style double-brace variables + locale markers),
 4. Respects **user preferences** (enabled channels, quiet hours, digest frequency),
 5. Dispatches to **channels** via queued jobs,
 6. Records **delivery attempts** for triage.

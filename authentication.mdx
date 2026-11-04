@@ -14,7 +14,7 @@ DataHub supports two distinct authentication modes. Pick the one that matches yo
 | **Server-to-server** (admin, ERP sync, integrator) | `Authorization: Bearer {api_token}` | Backend only — never in a browser |
 | **Public webhook / payment callback** | none (URL contains `{installationKey}`) | Provider callback (Stripe, PayPal, etc.) |
 
-<Callout kind="warning" title="Bearer token must stay on the server">
+<Callout kind="alert" title="Bearer token must stay on the server">
 The `Authorization: Bearer` token is a tenant-level secret. **Do not** ship it to a browser, mobile app, or any other untrusted client. Storefronts use `installation-key` (safe to expose) plus an optional per-customer `x-auth-token` (issued at login).
 </Callout>
 

@@ -126,7 +126,7 @@ than relying on a shared IP). A storefront hits the `storefront` scope
 a single browser session is unlikely to reach it. Concentrate retries and bulk
 operations behind one authenticated identity to keep the budget predictable.
 
-<Callout kind="warning" title="High-volume webhook tenants">
+<Callout kind="alert" title="High-volume webhook tenants">
 Payment providers **retry webhooks on a 429**, which can delay order-status
 updates. If a store receives a very high volume of provider webhooks, contact
 support so the webhook ceiling can be raised and legitimate payment callbacks

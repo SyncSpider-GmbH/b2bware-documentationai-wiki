@@ -94,7 +94,7 @@ off gracefully:
   </Step>
 </Steps>
 
-<Callout kind="warning" title="High-volume webhook tenants">
+<Callout kind="alert" title="High-volume webhook tenants">
 Payment providers **retry webhooks on a 429**, and repeated throttling can delay
 order-status updates for your customers. If a store receives a very high volume
 of provider webhooks, contact support so the webhook ceiling can be raised.

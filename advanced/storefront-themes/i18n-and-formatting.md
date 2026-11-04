@@ -146,7 +146,7 @@ Inline the switcher's JS in the same blade as the markup (see [`partials/locale-
 
 ## 9.3 Date formatting
 
-Use `@formatDate(...)` (or the `formatDate(...)` helper inside expressions) for **every** date or datetime rendered in a theme. Never echo `{{ $order->created_at }}` directly — you'll leak a server-locale Carbon string.
+Use `@formatDate(...)` (or the `formatDate(...)` helper inside expressions) for **every** date or datetime rendered in a theme. Never Blade-echo `$order->created_at` directly — you'll leak a server-locale Carbon string.
 
 ```blade
 {{ formatDate($order->created_at) }}            {{-- locale-default short date --}}
@@ -210,7 +210,7 @@ Full token list: see [day.js / moment.js `format`](https://day.js.org/docs/en/di
 
 ## 9.4 Number & currency formatting
 
-Use `@formatCurrency(...)` for **every** monetary value (prices, totals, discounts, refunds) and `@formatNumber(...)` for plain numeric values (counts, weights, ratings, stock levels). Never write `{{ number_format($price, 2) }}` or `{{ $price . ' ' . $currency }}` — both ignore the active locale.
+Use `@formatCurrency(...)` for **every** monetary value (prices, totals, discounts, refunds) and `@formatNumber(...)` for plain numeric values (counts, weights, ratings, stock levels). Never write `number_format($price, 2)` via Blade echo, or concatenate `$price` with `$currency` — both ignore the active locale.
 
 ```blade
 {{ formatCurrency($product->price) }}           {{-- $19.99 / 19,99 € / 19,99 kn  --}}
@@ -241,7 +241,7 @@ formatNumber  (float|int|string $value, int $maxFractionDigits = 2): string
 | `fr-fr`       | `1 234,50 $US`                 | `1 234,5`              |
 | `ja-jp`       | `US$1,234.50`                  | `1,234.5`              |
 
-This follows the same approach as Shopify (`{{ price | money }}`), Shopware (`{{ price|currency }}`), and Magento (`<?= $block->formatCurrency(...) ?>`) — one helper that picks symbol and formatting from the storefront locale + a configured currency.
+This follows the same approach as Shopify (Liquid `price | money`), Shopware (Twig `price|currency`), and Magento (`$block->formatCurrency(...)`) — one helper that picks symbol and formatting from the storefront locale + a configured currency.
 
 ### When to pass an explicit currency
 

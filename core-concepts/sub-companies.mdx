@@ -24,7 +24,7 @@ Before you start, make sure all of the following are true — each one is valida
 
 You will also need the numeric **parent company id** and your **user id** (both visible in the admin panel, or via `GET {USER_SERVICE_URL}/api/v1/users/me`).
 
-<Callout kind="warning" title="Base URLs differ per step">
+<Callout kind="alert" title="Base URLs differ per step">
 Steps 1–2 run against the **user service** (`{USER_SERVICE_URL}`, e.g. `https://desk.syncspider.com`). Steps 3–5 run against **DataHub** (`https://api.datahub.syncspider.com`). Your DataHub administrator provides the user service URL for your environment.
 </Callout>
 
@@ -91,7 +91,7 @@ DataHub's installation endpoints resolve the target company from the calling use
   </Tab>
 </Tabs>
 
-<Callout kind="warning" title="Do not skip this step">
+<Callout kind="alert" title="Do not skip this step">
 If you leave `current_company_id` on the parent company, step 3 installs the hubs into the **parent** tenant instead of the sub-company.
 </Callout>
 
