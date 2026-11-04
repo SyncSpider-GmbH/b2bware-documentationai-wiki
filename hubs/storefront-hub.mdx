@@ -101,6 +101,18 @@ Custom rows are full CRUD. System rows (`product` / `category` / `page`) are cre
 Permissions: `storefront-hub.url-rewrites.view` / `storefront-hub.url-rewrites.manage`. In admin: **Store Setup → URL Rewrites**.
 
   </Tab>
+  <Tab title="Sample catalogs" icon="box">
+
+Sample catalogs for a new store. These routes use the same admin session as the rest of this hub and do not take an extra permission. `DELETE` removes products that were loaded from a sample catalog. Products created any other way stay.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/demo-catalogs` | List the sample catalogs (`id`, `title`, `detail`). |
+| GET | `/demo-catalogs/{catalog}` | One catalog, including its sample products. Unknown id returns HTTP 404. |
+| POST | `/demo-catalogs/{catalog}/load` | Create that catalog's products in this store. A product that already exists is left as it is. |
+| DELETE | `/demo-catalogs` | Remove products loaded from a sample catalog. Response is `{ "removed": number }`. |
+
+  </Tab>
   <Tab title="Settings" icon="settings">
 
 | Method | Endpoint | Description |

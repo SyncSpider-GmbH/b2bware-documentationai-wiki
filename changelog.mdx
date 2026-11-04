@@ -8,7 +8,9 @@ description: Release history and version updates for the B2Bware DataHub platfor
 ## Self-service signup
 
 - A new trial account can be created without an existing admin session. `POST /apiv1/public/signup` returns a signup token. The access token is returned only after `POST /apiv1/public/signup/{signup_token}/install` reports `installed` and a second signup call sends `complete: true`.
-- See [Self-service signup](/authentication/self-service-signup).
+- `GET /apiv1/public/bundle-pricing/{bundleUuid}` returns the public plans for a published bundle. See [Self-service signup](/authentication/self-service-signup).
+- SettingsHub onboarding adds `GET /onboarding/requirements` and `POST /onboarding/install-retry` next to install status, install, and brand lookup. See [SettingsHub](/hubs/settings-hub).
+- StorefrontHub sample catalogs: list, show, load, and remove under `/demo-catalogs`. See [StorefrontHub](/hubs/storefront-hub).
 
 </Update>
 

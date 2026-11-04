@@ -14,6 +14,7 @@ security:
   - bearerAuth: []
 tags:
   - name: Custom Domains
+  - name: Demo Catalogs
   - name: Info
   - name: Proposals
   - name: Settings
@@ -23,6 +24,57 @@ tags:
   - name: Themes
   - name: Url Rewrites
 paths:
+  /api/v1/apps/storefront-hub/demo-catalogs:
+    get:
+      tags:
+        - Demo Catalogs
+      summary: List
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Demo Catalogs
+      summary: Clear
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/demo-catalogs/{catalog}:
+    get:
+      tags:
+        - Demo Catalogs
+      summary: Show
+      parameters:
+        - name: catalog
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-hub/demo-catalogs/{catalog}/load:
+    post:
+      tags:
+        - Demo Catalogs
+      summary: Load
+      parameters:
+        - name: catalog
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
   /api/v1/apps/storefront-hub/custom-domains:
     get:
       tags:

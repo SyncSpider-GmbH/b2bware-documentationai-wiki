@@ -11,7 +11,7 @@ description: Create a trial account from the public signup API, then receive an 
 { "open": true, "message": null, "bundle_uuid": "the-nexus-bundle-uuid" }
 ```
 
-Signup is open when the published public B2Bware bundle has at least one public plan. `bundle_uuid` is that bundle. Custom client bundles are not included. The bundle's current handler is `nexus`; that identifier can change without changing this contract. When signup is closed, `open` is `false` and `message` is `Signup is closed for now. Please come back later.` A create request then returns HTTP 400 with that same sentence and does not count toward the hourly limit.
+Signup is open when the published public B2Bware bundle has at least one public plan. `bundle_uuid` is that bundle. Custom client bundles are not included. When signup is closed, `open` is `false` and `message` is `Signup is closed for now. Please come back later.` A create request then returns HTTP 400 with that same sentence and does not count toward the hourly limit.
 
 ## Create an account
 
@@ -100,3 +100,19 @@ If the store is not installed yet, the response is HTTP 409 and `install_status`
 Before complete, the same endpoint accepts an `onboarding` object and returns the poll payload. Only these fields are kept: `how_you_sell`, `step`, `completed`, `company_name`, `signup_email`, `website`, `country`, `catalog`, `demo_loaded`, `brand_font`, `brand_color`, `brand_logo_url`, `brand_icon_url`, `language`, `language_label`, `currency`, `needs_company_details`, `company_details`.
 
 The access token is for the new admin session. Send it as `Authorization: Bearer` on later admin calls. Do not send it on the public signup routes.
+
+## Public plan list
+
+`GET /apiv1/public/bundle-pricing/{bundleUuid}`
+
+Returns the published public bundle and its public plans. An unknown bundle, or one that is not published and public, returns HTTP 404 with the usual `error`, `messages`, and `code` envelope. No session is required.
+
+Optional query `lang` selects the card language when that language is configured. The response includes:
+
+| Field | Notes |
+|---|---|
+| `bundle` | `uuid`, `name`, `description` |
+| `plans` | `id`, `name`, `billing_period`, `currency`, `price`, `trial_days`, `features`, `limits`, `sort`, `offer` (`trial` or `subscription`) |
+| `signup_base_url` | Where "Get started" opens signup for this bundle |
+| `languages` | Locales available for the card copy |
+| `default_language` | Locale used when `lang` is omitted or unknown |

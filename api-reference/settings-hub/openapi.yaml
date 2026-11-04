@@ -344,6 +344,66 @@ paths:
           description: Successful response
           content:
             application/json: {}
+  /api/v1/apps/settings-hub/onboarding/brand:
+    post:
+      tags:
+        - Onboarding
+      summary: Brand lookup
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/settings-hub/onboarding/install:
+    post:
+      tags:
+        - Onboarding
+      summary: Start onboarding install
+      responses:
+        '202':
+          description: Install started
+          content:
+            application/json: {}
+  /api/v1/apps/settings-hub/onboarding/install-retry:
+    post:
+      tags:
+        - Onboarding
+      summary: Retry onboarding install
+      responses:
+        '202':
+          description: Install restarted
+          content:
+            application/json: {}
+  /api/v1/apps/settings-hub/onboarding/install-status:
+    get:
+      tags:
+        - Onboarding
+      summary: Onboarding install status
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/settings-hub/onboarding/requirements:
+    get:
+      tags:
+        - Onboarding
+      summary: Onboarding requirements
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/settings-hub/setup:
+    get:
+      tags:
+        - Setup
+      summary: Installed app setup
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
   /api/v1/apps/settings-hub/locales:
     get:
       tags:
