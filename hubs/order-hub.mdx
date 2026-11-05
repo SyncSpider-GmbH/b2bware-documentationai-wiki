@@ -679,7 +679,7 @@ and [CustomerHub](/hubs/customer-hub) for the deletion endpoints.
 
 ## Settings
 
-OrderHub App Settings control the order-status state machine, stock movements on status change, abandoned-cart reminders, and no-order alerts. Edit them in the admin under **OrderHub → Settings**, or via the endpoints below. See also [Hub Settings](/core-concepts/hub-settings).
+OrderHub App Settings control the order-status state machine, stock movements on status change, Mollie unsupported-currency handling, abandoned-cart reminders, and no-order alerts. Edit them in the admin under **OrderHub → Settings**, or via the endpoints below. See also [Hub Settings](/core-concepts/hub-settings).
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -687,7 +687,7 @@ OrderHub App Settings control the order-status state machine, stock movements on
 | GET | `/settings` | Get all OrderHub settings |
 | POST | `/settings` | Update OrderHub settings |
 | POST | `/settings/reset` | Reset all groups to defaults |
-| GET | `/settings/{group}` | Get one settings group (`general`, `transitions`, `stock_management`, `abandoned_cart`, `no_order_alerts`) |
+| GET | `/settings/{group}` | Get one settings group (`general`, `transitions`, `stock_management`, `payments`, `abandoned_cart`, `no_order_alerts`) |
 | POST | `/settings/{group}` | Update one settings group |
 | POST | `/settings/{group}/reset` | Reset one group to defaults |
 
@@ -724,6 +724,16 @@ One multi-select per known order status. Keys follow `transitions_from_<status>`
 | `enable_stock_adjustment` | boolean | `true` | Master switch. When off, no stock movement runs regardless of the lists below. |
 | `decrement_on_statuses` | select (multi) | `[]` | Statuses on which stock is taken from the warehouse. Empty = legacy behaviour: decrement on every order regardless of status. |
 | `restore_on_statuses` | select (multi) | `["canceled", "cancelled", "refunded"]` | Statuses on which previously taken stock is returned. Restore runs once per order. |
+
+</Expandable>
+
+<Expandable title="payments — Settings Reference" default-open="false">
+
+**payments** — Payment provider behaviour
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `mollie_unsupported_currency_fallback` | boolean | `false` | When an order currency is unsupported by Mollie, convert its total through the enabled SettingsHub exchange rates to the Mollie-supported shop default. If the default is unsupported, use USD only when USD is enabled in SettingsHub. When off, Mollie rejects unsupported order currencies. |
 
 </Expandable>
 
