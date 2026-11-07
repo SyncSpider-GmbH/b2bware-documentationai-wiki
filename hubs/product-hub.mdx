@@ -165,7 +165,7 @@ makes it manual and rate changes will no longer overwrite it. See
 
 For filter syntax and operators, see [Filtering](/core-concepts/filtering).
 
-<Expandable title="Product Filters (26 Filters)" default-open="true">
+<Expandable title="Product Filters (27 Filters)" default-open="true">
 
 **Standard Filters**
 
@@ -190,25 +190,26 @@ For filter syntax and operators, see [Filtering](/core-concepts/filtering).
 | 12 | `price` | number | Filter by regular price (supports range) |
 | 13 | `specialPrice` | number | Filter by special/sale price |
 | 14 | `finalPrice` | number | Filter by computed final price |
-| 15 | `attributeValues.value.attribute_id` | number | Filter by attribute definition ID |
-| 16 | `attributeValues.value.attribute_value` | text | Filter by attribute value text |
-| 17 | `attributeValues.attribute_value_id` | number | Filter by specific attribute value ID |
-| 18 | `categories.category_id` | number | Filter by exact category (no descendants) |
+| 15 | `effectivePrice` | number | Filter by the winning stored price: customer tier, customer group, active sale, then regular. Supports `>=`, `<=`, and `BETWEEN`. |
+| 16 | `attributeValues.value.attribute_id` | number | Filter by attribute definition ID |
+| 17 | `attributeValues.value.attribute_value` | text | Filter by attribute value text |
+| 18 | `attributeValues.attribute_value_id` | number | Filter by specific attribute value ID |
+| 19 | `categories.category_id` | number | Filter by exact category (no descendants) |
 
 **Special Callback Filters**
 
 | # | Filter Key | Type | Description |
 |---|------------|------|-------------|
-| 19 | `attribute` | JSON array | Advanced attribute filtering via `AttributeFilterRepository` (see below) |
-| 20 | `exclude_child_products` | callback | Set to `1` to exclude child variations |
-| 21 | `exclude_parent_products` | callback | Set to `1` to exclude configurable parents |
-| 22 | `without_stock` | callback | Set to `1` to exclude products with no stock records |
-| 23 | `exclude_child_products_id` | callback | Parent product ID to exclude its children |
-| 24 | `parent_id` | callback | Parent product ID to return only its children |
-| 25 | `search` | callback | Full-text search across name, sku, description, short_description |
-| 26 | `anchor_category_id` | callback | Filter by category and all its descendant categories |
+| 20 | `attribute` | JSON array | Advanced attribute filtering via `AttributeFilterRepository` (see below) |
+| 21 | `exclude_child_products` | callback | Set to `1` to exclude child variations |
+| 22 | `exclude_parent_products` | callback | Set to `1` to exclude configurable parents |
+| 23 | `without_stock` | callback | Set to `1` to exclude products with no stock records |
+| 24 | `exclude_child_products_id` | callback | Parent product ID to exclude its children |
+| 25 | `parent_id` | callback | Parent product ID to return only its children |
+| 26 | `search` | callback | Full-text search across name, sku, description, short_description |
+| 27 | `anchor_category_id` | callback | Filter by category and all its descendant categories |
 
-**Attribute Filter Format (Filter #19)**
+**Attribute Filter Format (Filter #20)**
 
 The `attribute` filter accepts a JSON-encoded array:
 

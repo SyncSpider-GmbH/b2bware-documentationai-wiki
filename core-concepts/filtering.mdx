@@ -147,6 +147,16 @@ filter[attribute]=[{"attribute_id":1,"attribute_value":"Red","condition":"IN","o
 
 For full details, see [ProductHub Filters](/hubs/product-hub#filters).
 
+## ProductHub Effective Price Filter
+
+`effectivePrice` filters products by the stored price that would win for the current customer, rather than by any matching price row. Its precedence is customer tier price, customer group price, active sale price, then regular price. It supports `>=`, `<=`, and `BETWEEN` conditions.
+
+```text
+?filter[effectivePrice]=[{"condition":"BETWEEN","value":[10,20]}]
+```
+
+For example, a product with a regular price of €19.99 and an active sale price of €10.00 does not match `{"condition":">=","value":11}`.
+
 ## Sorting & Filtering by Custom Attribute Code
 
 AttributesHub exposes two boolean flags that let any custom attribute participate as a first-class column on admin listing endpoints:
