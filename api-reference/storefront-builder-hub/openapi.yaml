@@ -29,6 +29,7 @@ tags:
   - name: Slots
   - name: Theme Editor
   - name: Theme Slots
+  - name: Content relationships
 paths:
   /api/v1/apps/storefront-builder-hub/blocks:
     get:
@@ -322,12 +323,16 @@ paths:
       tags:
         - Builder
       summary: Diagnostics
+      description: ' For related content, supply a related_target containing source and id. The target must be readable in this installation. The result uses storefront visibility.'
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                related_target:
+                  source: storefront_page
+                  id: 1
       parameters:
         - name: Content-Type
           in: header
@@ -344,12 +349,16 @@ paths:
       tags:
         - Builder
       summary: Preview
+      description: ' For related content, supply a related_target containing source and id. The target must be readable in this installation. The result uses storefront visibility.'
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                related_target:
+                  source: storefront_page
+                  id: 1
       parameters:
         - name: Content-Type
           in: header
@@ -924,6 +933,27 @@ paths:
           description: Successful response
           content:
             application/json: {}
+    post:
+      tags:
+        - Generated Pdfs
+      summary: Store
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
   /api/v1/apps/storefront-builder-hub/generated-pdfs/{id}:
     get:
       tags:
@@ -961,6 +991,33 @@ paths:
         - Generated Pdfs
       summary: Download
       parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/generated-pdfs/{id}/cancel:
+    post:
+      tags:
+        - Generated Pdfs
+      summary: Cancel
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
         - name: id
           in: path
           schema:
@@ -1064,6 +1121,33 @@ paths:
       tags:
         - Library Sections
       summary: Regenerate Thumbnail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/library-sections/{id}/thumbnail/upload:
+    post:
+      tags:
+        - Library Sections
+      summary: Upload Thumbnail
       requestBody:
         content:
           application/json:
@@ -1254,7 +1338,7 @@ paths:
       summary: Index
       responses:
         '200':
-          description: Schema, saved values, and defaults
+          description: Successful response
           content:
             application/json: {}
     post:
@@ -1266,9 +1350,7 @@ paths:
           application/json:
             schema:
               type: object
-              example:
-                pdf:
-                  filename_template: '{name}-{yyyyMMddHHmmss}-{id}'
+              example: {}
       parameters:
         - name: Content-Type
           in: header
@@ -1285,16 +1367,6 @@ paths:
       tags:
         - Settings
       summary: Get Groups List
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /api/v1/apps/storefront-builder-hub/settings/reset:
-    post:
-      tags:
-        - Settings
-      summary: Reset
       responses:
         '200':
           description: Successful response
@@ -1320,24 +1392,45 @@ paths:
       tags:
         - Settings
       summary: Update
-      parameters:
-        - name: group
-          in: path
-          schema:
-            type: string
-          required: true
-        - name: Content-Type
-          in: header
-          schema:
-            type: string
-          example: application/json
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example:
-                filename_template: '{name}-catalogue-{yyyyMMddHHmmss}-{id}'
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: group
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/settings/reset:
+    post:
+      tags:
+        - Settings
+      summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
       responses:
         '200':
           description: Successful response
@@ -1348,7 +1441,18 @@ paths:
       tags:
         - Settings
       summary: Reset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
       parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
         - name: group
           in: path
           schema:
@@ -1484,12 +1588,16 @@ paths:
       tags:
         - Theme Editor
       summary: Slot Fragment
+      description: ' For related content, supply a related_target containing source and id. The target must be readable in this installation. The result uses storefront visibility.'
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example: {}
+              example:
+                related_target:
+                  source: product
+                  id: 1
       parameters:
         - name: Content-Type
           in: header
@@ -1506,6 +1614,674 @@ paths:
       tags:
         - Theme Slots
       summary: Manifest
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/content-types/relation-sources:
+    get:
+      tags:
+        - Content relationships
+      summary: Get relationship sources
+      description: Installed target providers the Admin actor can view.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/content-types:
+    get:
+      tags:
+        - Content relationships
+      summary: Filter content types by linked target type
+      description: >-
+        Filters readable content types by a visible registered source before
+        pagination. Send a JSON array of equality conditions with value set to a
+        registered source code. Supports the content types search parameter. Set
+        include_entry_counts=1 to include permission-scoped counts of active
+        entries.
+      parameters:
+        - name: filter[linked_target_type]
+          in: query
+          schema:
+            type: string
+          example: '[{"condition":"=","value":"product","operator":"AND"}]'
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
+        - name: include_entry_counts
+          in: query
+          schema:
+            type: integer
+          example: '1'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    post:
+      tags:
+        - Content relationships
+      summary: Create content type
+      description: >-
+        Creates a Content Type and returns the initial field schema revision. A
+        relationship can omit code and label on creation. Existing codes and
+        custom labels stay stable. In each relationship config, use
+        unique_target to allow only one active entry per target,
+        admin_display=compact|full, and inline_edit for record-panel editing.
+        Separate nullable edit_role_ids, link_role_ids and unlink_role_ids
+        provide optional restrictions. Null inherits normal permission, an empty
+        list is Desk-only, and a populated list is limited to the chosen tenant
+        roles plus Desk.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                singular_label: Guide
+                plural_label: Product guides
+                slug: product-guides
+                fields_json: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+      responses:
+        '201':
+          description: "Created"
+          content:
+            application/json:
+              example: {"id": 1, "slug": "product-guides", "fields_json": [], "fields_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+  /api/v1/apps/storefront-builder-hub/content-types/{contentTypeId}:
+    get:
+      tags:
+        - Content relationships
+      summary: Get content type
+      description: Returns the readable Content Type and its current field schema revision.
+      parameters:
+        - name: contentTypeId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              example: {"id": 1, "slug": "product-guides", "fields_json": [], "fields_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+        '404':
+          description: "Not Found"
+          content:
+            application/json:
+              example: {"message": "Content type not found"}
+    put:
+      tags:
+        - Content relationships
+      summary: Update content type
+      description: >-
+        When updating fields, send fields_revision from the previous response. A
+        stale revision returns 409. Older integrations may omit the revision. A
+        relationship can omit code and label on creation. Existing codes and
+        custom labels stay stable. In each relationship config, use
+        unique_target to allow only one active entry per target,
+        admin_display=compact|full, and inline_edit for record-panel editing.
+        Separate nullable edit_role_ids, link_role_ids and unlink_role_ids
+        provide optional restrictions. Null inherits normal permission, an empty
+        list is Desk-only, and a populated list is limited to the chosen tenant
+        roles plus Desk.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                fields_revision: >-
+                  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+                fields_json: []
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: contentTypeId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              example: {"id": 1, "slug": "product-guides", "fields_json": [], "fields_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+        '409':
+          description: "Conflict"
+          content:
+            application/json:
+              example: {"message": "The fields changed in another editor. Reload this content type and retry."}
+        '422':
+          description: "Unprocessable Entity"
+          content:
+            application/json:
+              example: {"message": "The content type settings are invalid."}
+  /api/v1/apps/storefront-builder-hub/content-types/{contentTypeId}/relationships/{field}/options:
+    get:
+      tags:
+        - Content relationships
+      summary: Search related record options
+      description: Searches actual record labels in the configured source and tenant.
+      parameters:
+        - name: source
+          in: query
+          schema:
+            type: string
+          example: customer
+        - name: q
+          in: query
+          schema:
+            type: string
+          example: Example
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: contentTypeId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: field
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/content-types/{contentTypeId}/relationships/{field}/options/resolve:
+    post:
+      tags:
+        - Content relationships
+      summary: Resolve related record labels
+      description: Returns current labels for permitted source/ID pairs.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                targets:
+                  - source: customer
+                    id: 42
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: contentTypeId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: field
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/related-content/{source}/{recordId}:
+    get:
+      tags:
+        - Content relationships
+      summary: List related content for a record
+      description: >-
+        With no type, list eligible Content Types and use their next ID as
+        after. With a type ID or slug, list linked entries and use their next
+        cursor as before. Entries can be searched by title or slug using q and
+        filtered by supplying both the category field code and configured
+        category slug. For type discovery, q searches type labels. Related
+        entries include scoped structured details and capabilities. Required
+        relationships cannot be left empty.
+      parameters:
+        - name: after
+          in: query
+          schema:
+            type: integer
+          example: '0'
+        - name: type
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: before
+          in: query
+          schema:
+            type: string
+          example: 64cae4a66bf894c4e3c12074
+        - name: q
+          in: query
+          schema:
+            type: string
+          example: Guide
+        - name: category_field
+          in: query
+          schema:
+            type: string
+          example: topic
+        - name: category
+          in: query
+          schema:
+            type: string
+          example: setup
+        - name: source
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: recordId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/related-content/{source}/{recordId}/link-options:
+    get:
+      tags:
+        - Content relationships
+      summary: Search entries eligible to link
+      description: >-
+        Finds entries of the selected Content Type and relationship field by
+        title or slug. The target source and entry update permission are
+        required. The selected relationship must have capacity for this record.
+        Set include_unavailable=1 to keep readable unavailable matches with
+        unavailable_reason: already_linked, target_in_use, relationship_full, or
+        restricted.
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+          example: product-guides
+        - name: field
+          in: query
+          schema:
+            type: string
+          example: related_product
+        - name: q
+          in: query
+          schema:
+            type: string
+          example: Guide
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: include_unavailable
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: source
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: recordId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/related-content/{source}/{recordId}/link:
+    post:
+      tags:
+        - Content relationships
+      summary: Link an existing content entry
+      description: >-
+        Adds this record to the selected relationship. A repeat of the same
+        assignment returns success. Existing targets remain in place. An
+        occupied single-record field or a full list returns 409.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                type: product-guides
+                field: related_product
+                entry: 64cae4a66bf894c4e3c12074
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: source
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: recordId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              example: {"id": "64cae4a66bf894c4e3c12074", "linked": true}
+        '409':
+          description: "Conflict"
+          content:
+            application/json:
+              example: {"message": "This relationship has no free slots. Review its linked records in the entry editor."}
+  /api/v1/apps/storefront-builder-hub/content-types/{contentTypeId}/entry-slug-suggestion:
+    post:
+      tags:
+        - Content relationships
+      summary: Suggest new entry slug
+      description: >-
+        Returns the editable proposed slug for the configured source field, or
+        null.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                value: A guide for customers
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: contentTypeId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/content-types/{contentTypeId}/entry-authors:
+    get:
+      tags:
+        - Content relationships
+      summary: Search eligible staff authors
+      description: Returns the signed-in author and eligible team members for the type.
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+          example: Example
+        - name: contentTypeId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/v1/apps/storefront-builder-hub/related-content/{source}/{recordId}/unlink:
+    post:
+      tags:
+        - Content relationships
+      summary: Unlink a related content entry
+      description: >-
+        Removes an optional association if the actor has unlink access. Required
+        fields retain at least one target.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                type: product-guides
+                field: related_product
+                entry: 64cae4a66bf894c4e3c12074
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: source
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: recordId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              example: {"id": "64cae4a66bf894c4e3c12074", "linked": false}
+        '403':
+          description: "Forbidden"
+          content:
+            application/json:
+              example: {"message": "You cannot change this relationship."}
+        '404':
+          description: "Not Found"
+          content:
+            application/json:
+              example: {"message": "The entry or relationship was not found."}
+        '422':
+          description: "Unprocessable Entity"
+          content:
+            application/json:
+              example: {"message": "Choose a valid value for this relationship."}
+  /api/v1/apps/storefront-builder-hub/related-content/{source}/{recordId}/replace:
+    post:
+      tags:
+        - Content relationships
+      summary: Change a content entry assignment
+      description: >-
+        Atomically replaces this exact assignment. Requires assignment access,
+        target visibility, and capacity. Separate unlink access applies to net
+        removal.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                type: product-guides
+                field: related_product
+                entry: 64cae4a66bf894c4e3c12074
+                replacement:
+                  source: product
+                  id: 43
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: source
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: recordId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              example: {"id": "64cae4a66bf894c4e3c12074", "linked": false}
+        '403':
+          description: "Forbidden"
+          content:
+            application/json:
+              example: {"message": "You cannot change this relationship."}
+        '404':
+          description: "Not Found"
+          content:
+            application/json:
+              example: {"message": "The entry or relationship was not found."}
+        '409':
+          description: "Conflict"
+          content:
+            application/json:
+              example: {"message": "Choose a different record."}
+        '422':
+          description: "Unprocessable Entity"
+          content:
+            application/json:
+              example: {"message": "Choose a valid value for this relationship."}
+  /api/v1/apps/storefront-builder-hub/related-content/{source}/{recordId}/entry:
+    patch:
+      tags:
+        - Content relationships
+      summary: Edit an entry from a related record
+      description: >-
+        Applies allowed editable fields for the current association. Use mode
+        inline to enforce the configured inline-edit setting, or lightbox for
+        standard editor access. Link changes use link, replace or unlink
+        instead.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                type: product-guides
+                field: related_product
+                entry: 64cae4a66bf894c4e3c12074
+                mode: inline
+                values:
+                  title: Updated guide
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          example: application/json
+        - name: source
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: recordId
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              example: {"id": "64cae4a66bf894c4e3c12074", "updated_at": "2026-11-17T19:10:00Z", "details": [{"code": "title", "label": "Title", "picker_id": "text", "value": "Updated guide", "editable": true}]}
+        '403':
+          description: "Forbidden"
+          content:
+            application/json:
+              example: {"message": "You cannot change this relationship."}
+        '404':
+          description: "Not Found"
+          content:
+            application/json:
+              example: {"message": "The entry or relationship was not found."}
+        '422':
+          description: "Unprocessable Entity"
+          content:
+            application/json:
+              example: {"message": "Choose a valid value for this relationship."}
+  /api/v1/apps/storefront-builder-hub/content-entries:
+    get:
+      tags:
+        - Content relationships
+      summary: Browse content entries
+      description: >-
+        List active entries across the types visible to the actor. Optional type
+        (slug or id), search (title, slug, permitted linked name), status,
+        trashed, sort, page and per_page. The display title, display
+        description, type and authorized linked labels are additive.
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+          example: product-guides
+        - name: search
+          in: query
+          schema:
+            type: string
+          example: Guide
+        - name: status
+          in: query
+          schema:
+            type: string
+          example: draft
+        - name: trashed
+          in: query
+          schema:
+            type: integer
+          example: '0'
+        - name: sort
+          in: query
+          schema:
+            type: string
+          example: '-_updated_at'
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: '1'
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          example: '25'
       responses:
         '200':
           description: Successful response

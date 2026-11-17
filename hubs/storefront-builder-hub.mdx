@@ -13,8 +13,67 @@ PDF export is asynchronous: you queue an export, poll its status, and download t
 
 **Base URL:** `api/v1/apps/storefront-builder-hub/`
 
+## Content types and related records
+
+In **Storefront Builder → Content Types**, the **Relationships** column lists the configured relationship labels and target types available to your role. The list also shows the type description and its visible active-entry count. Use **Add Filter → Linked target type** to find types linked to a particular kind of record. **Content entries** browses across readable types or narrows the list to one selected type. Entry rows show the name, description, linked records, publication status and dates.
+
+Open a type and choose **Add relationship** in the **Fields** card. Choose the target kinds, whether a record is required, and whether each entry may link one or several records. New relationships derive their display name from the target kind. An optional distinction allows a custom label. Saved relationship codes and labels remain stable. Remove an unused relationship from the **Relationships** section. A relationship used by an entry or saved revision stays in place.
+
+The separate **Entries per record** setting can allow several entries of this type to use the same target or allow only one active entry for this field. Drafts, scheduled entries and published entries all count. Enabling the restriction checks assignments already in use. Moving an entry to the trash releases its targets. Restoring the entry or a saved revision checks the current assignments again.
+
+When editing an entry, search for names in the **Relationships** card below **Entry settings**. The type defines the fields and may allow the editor to add, change or remove their values. Named linked records open their Admin destination in a new tab.
+
+Open **Related content** on a saved product, category, customer, company, contact, order, attribute definition or Builder page. Choose a type, then find an existing entry directly by title or slug. The picker shows only entries that can be assigned to the selected relationship. **New entry** opens the editor with the current record selected and returns to the same type and record after saving.
+
+| Content Type setting | Behavior |
+| --- | --- |
+| Entry slug source field | Optional. Uses a top-level text field to suggest a URL slug for a new entry. Edit the suggestion in the entry editor. Saved URLs stay stable. |
+| Restrict content access | Desk administrators can select tenant roles allowed to read the type. Their standard Content permissions still determine the actions available to them. Restricted types are internal. Each required relationship must resolve to a record the editor can access before an entry or saved revision appears. |
+| Display on linked records | Compact entries can be expanded to see fields. Full display starts expanded. When inline editing is enabled, one Edit action opens the editable entries in the list. Tab moves through their fields and changes are saved from the shared toolbar. |
+| Edit associated content, assign and unlink | Each action can independently use normal role permissions, Desk-only access or selected tenant roles. The standard Content and target permissions still apply. An atomic replacement uses assignment access. Removing more links than are added uses unlink access. A required relationship retains at least one target. |
+| Available in storefront layouts | Off by default on each relationship. Allows the Builder to display eligible linked entries for products, categories and Builder pages. |
+
+New entries default to the signed-in Desk user or a staff operator whose role grants Content editing for the type. The author picker lists eligible staff. A historical author remains visible on its saved entry.
+
+### Use a relationship in a layout
+
+Enable **Available in storefront layouts** on the relationship and enable routing for its content type. In the Builder or Theme Editor, add a **Related content** source. Select the type and relationship and, optionally, choose an entry category, entry order and maximum number of results. Add the **Related content** widget, select the source and choose **Cards** or **List**.
+
+The shop resolves relationships for the current product, category or Builder page. Unsaved Builder and Theme previews use a current-tenant record and the same storefront visibility rules. The widget renders published or due entries that match the visitor's audience, and uses the storefront-visible title and excerpt. With no eligible entries, the widget emits no list.
+
+Themes can use the same data and provide their own styling. The method returns an array of titles, excerpts and local links for the current storefront record.
+
+```blade
+@foreach (\Apps\StorefrontHub\View\ThemeApi::relatedContent('care-guides', 'applies_to', 6) as $entry)
+    <article class="care-guide">
+        <h3><a href="{{ $entry['href'] }}">{{ $entry['title'] }}</a></h3>
+        <p>{{ $entry['excerpt'] }}</p>
+    </article>
+@endforeach
+```
+
+### Admin API
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /content-types/relation-sources` | List installed providers the actor can view. |
+| `GET /content-types/{type}/relationships/{field}/options` | Search a configured provider using `source`, `q` and `page`. |
+| `POST /content-types/{type}/relationships/{field}/options/resolve` | Resolve labels for up to 100 `targets`, each carrying a `source` and integer `id`. |
+| `GET /related-content/{source}/{recordId}` | List eligible types and fields. Use the response's `next` type ID as `after` for the next page. |
+| `GET /related-content/{source}/{recordId}?type={type}` | List entries linked to the target for one type. Use the response's `next` entry cursor as `before` for the next page. |
+| `GET /related-content/{source}/{recordId}/link-options` | Search linkable entries by title or slug for a selected type and relationship. Set `include_unavailable=1` to include readable matches that cannot be assigned and their reason. |
+| `POST /related-content/{source}/{recordId}/link` | Attach an existing entry to the selected relationship. Replaying the same assignment succeeds. A full relationship returns 409. |
+| `POST /related-content/{source}/{recordId}/replace` | Atomically replace the selected association with `replacement: {source,id}`. |
+| `POST /related-content/{source}/{recordId}/unlink` | Remove the association when the field remains valid. |
+| `PATCH /related-content/{source}/{recordId}/entry` | Edit available fields using `values` and mode `inline` or `lightbox`. |
+| `GET /content-entries` | Paginate entries across visible types with optional `type`, `search`, `status`, `trashed` and `sort`. |
+| `POST /content-types/{type}/entry-slug-suggestion` | Suggest a new entry slug from the submitted `value`. |
+| `GET /content-types/{type}/entry-authors` | Return the current eligible author and search the staff directory with `q`. |
+
+Set a relationship when creating or updating an entry by sending the relationship field code with an ordered array of source and ID objects. A single-record field accepts at most one object. Send an empty array to unlink an optional field. Updates that omit the field preserve its assignment. Existing fields keep the regular Content API representation.
+
 <Callout kind="info">
-All endpoints require Bearer token authentication plus admin access, and mutations enforce the matching StorefrontBuilderHub permission. See [Authentication](/authentication).
+All endpoints require Admin authentication. Mutations enforce the matching Storefront Builder Hub permission and relationship grants. See [Authentication](/authentication).
 For filter syntax, pagination, and sorting, see [Common Patterns](/core-concepts/common-patterns).
 </Callout>
 
